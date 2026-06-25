@@ -1,0 +1,1210 @@
+[
+  {
+    "disciplina": {
+      "codigo": "01/1",
+      "nome": "Cálculo com Funções de uma Variável Real",
+      "tipo": "Obrigatória",
+      "carga_horaria": 75,
+      "periodo": 1,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "02/1",
+      "nome": "Geometria Analítica e Álgebra Linear",
+      "tipo": "Obrigatória",
+      "carga_horaria": 50,
+      "periodo": 1,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "14/3",
+      "nome": "Matemática Discreta",
+      "tipo": "Obrigatória",
+      "carga_horaria": 50,
+      "periodo": 1,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "08/3",
+      "nome": "Introdução à Programação de Computadores",
+      "tipo": "Obrigatória",
+      "carga_horaria": 50,
+      "periodo": 1,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "08/3",
+        "requisito_id": "10/3",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "10/3",
+      "nome": "Laboratório de Introdução à Programação de Computadores",
+      "tipo": "Obrigatória",
+      "carga_horaria": 25,
+      "periodo": 1,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "10/3",
+        "requisito_id": "08/3",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "03/8",
+      "nome": "Contexto Social e Profissional da Engenharia de Computação",
+      "tipo": "Obrigatória",
+      "carga_horaria": 25,
+      "periodo": 1,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "01/7",
+      "nome": "Filosofia da Tecnologia",
+      "tipo": "Obrigatória",
+      "carga_horaria": 25,
+      "periodo": 1,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "04/1",
+      "nome": "Integração e Séries",
+      "tipo": "Obrigatória",
+      "carga_horaria": 50,
+      "periodo": 2,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "04/1",
+        "requisito_id": "01/1",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "03/1",
+      "nome": "Cálculo com Funções de Várias Variáveis I",
+      "tipo": "Obrigatória",
+      "carga_horaria": 50,
+      "periodo": 2,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "03/1",
+        "requisito_id": "01/1",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "03/1",
+        "requisito_id": "02/1",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "04/2",
+      "nome": "Fundamentos de Mecânica",
+      "tipo": "Obrigatória",
+      "carga_horaria": 50,
+      "periodo": 2,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "04/2",
+        "requisito_id": "01/1",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "04/2",
+        "requisito_id": "02/1",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "15/3",
+      "nome": "Programação Orientada à Objetos",
+      "tipo": "Obrigatória",
+      "carga_horaria": 25,
+      "periodo": 2,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "15/3",
+        "requisito_id": "08/3",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "15/3",
+        "requisito_id": "10/3",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "15/3",
+        "requisito_id": "11/3",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "11/3",
+      "nome": "Laboratório de Programação Orientada à Objetos",
+      "tipo": "Obrigatória",
+      "carga_horaria": 25,
+      "periodo": 2,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "11/3",
+        "requisito_id": "08/3",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "11/3",
+        "requisito_id": "10/3",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "11/3",
+        "requisito_id": "15/3",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "01/5",
+      "nome": "Sistemas Digitais para Computação",
+      "tipo": "Obrigatória",
+      "carga_horaria": 25,
+      "periodo": 2,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "01/5",
+        "requisito_id": "08/3",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "01/5",
+        "requisito_id": "10/3",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "01/5",
+        "requisito_id": "02/5",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "02/5",
+      "nome": "Laboratório de Sistemas Digitais para Computação",
+      "tipo": "Obrigatória",
+      "carga_horaria": 25,
+      "periodo": 2,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "02/5",
+        "requisito_id": "08/3",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "02/5",
+        "requisito_id": "10/3",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "02/5",
+        "requisito_id": "01/5",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "01/8",
+      "nome": "Metodologia Científica",
+      "tipo": "Obrigatória",
+      "carga_horaria": 25,
+      "periodo": 2,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "05/1",
+      "nome": "Equações Diferenciais Ordinárias",
+      "tipo": "Obrigatória",
+      "carga_horaria": 50,
+      "periodo": 3,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "05/1",
+        "requisito_id": "03/1",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "05/1",
+        "requisito_id": "04/1",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "06/1",
+      "nome": "Cálculo com Funções de Várias Variáveis II",
+      "tipo": "Obrigatória",
+      "carga_horaria": 50,
+      "periodo": 3,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "06/1",
+        "requisito_id": "03/1",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "06/1",
+        "requisito_id": "04/1",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "05/2",
+      "nome": "Fundamentos de Oscilações, Fluidos e Termodinâmica (OFT)",
+      "tipo": "Obrigatória",
+      "carga_horaria": 50,
+      "periodo": 3,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "05/2",
+        "requisito_id": "04/2",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "05/2",
+        "requisito_id": "05/1",
+        "tipo": "co"
+      },
+      {
+        "disciplina_id": "05/2",
+        "requisito_id": "02/2",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "02/2",
+      "nome": "Física Experimental - MOFT",
+      "tipo": "Obrigatória",
+      "carga_horaria": 25,
+      "periodo": 3,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "02/2",
+        "requisito_id": "04/2",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "02/2",
+        "requisito_id": "05/2",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "01/3",
+      "nome": "Algoritmos e Estruturas de Dados I",
+      "tipo": "Obrigatória",
+      "carga_horaria": 50,
+      "periodo": 3,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "01/3",
+        "requisito_id": "15/3",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "01/3",
+        "requisito_id": "11/3",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "01/3",
+        "requisito_id": "09/3",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "09/3",
+      "nome": "Laboratório de Algoritmos e Estruturas de Dados I",
+      "tipo": "Obrigatória",
+      "carga_horaria": 25,
+      "periodo": 3,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "09/3",
+        "requisito_id": "15/3",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "09/3",
+        "requisito_id": "11/3",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "09/3",
+        "requisito_id": "01/3",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "01/4",
+      "nome": "Arquitetura e Organização de Computadores I",
+      "tipo": "Obrigatória",
+      "carga_horaria": 25,
+      "periodo": 3,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "01/4",
+        "requisito_id": "01/5",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "01/4",
+        "requisito_id": "02/5",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "01/4",
+        "requisito_id": "02/4",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "02/4",
+      "nome": "Laboratório de Arquitetura e Organização de Computadores I",
+      "tipo": "Obrigatória",
+      "carga_horaria": 25,
+      "periodo": 3,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "02/4",
+        "requisito_id": "01/5",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "02/4",
+        "requisito_id": "02/5",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "02/4",
+        "requisito_id": "01/4",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "07/1",
+      "nome": "Métodos Numéricos Computacionais",
+      "tipo": "Obrigatória",
+      "carga_horaria": 50,
+      "periodo": 4,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "07/1",
+        "requisito_id": "08/3",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "07/1",
+        "requisito_id": "05/1",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "01/2",
+      "nome": "Fundamentos de Eletromagnetismo",
+      "tipo": "Obrigatória",
+      "carga_horaria": 50,
+      "periodo": 4,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "01/2",
+        "requisito_id": "05/2",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "01/2",
+        "requisito_id": "06/1",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "01/2",
+        "requisito_id": "03/2",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "03/2",
+      "nome": "Física Experimental - Eletromagnetismo",
+      "tipo": "Obrigatória",
+      "carga_horaria": 25,
+      "periodo": 4,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "03/2",
+        "requisito_id": "04/2",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "03/2",
+        "requisito_id": "05/2",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "03/2",
+        "requisito_id": "01/2",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "02/3",
+      "nome": "Algoritmos e Estruturas de Dados II",
+      "tipo": "Obrigatória",
+      "carga_horaria": 50,
+      "periodo": 4,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "02/3",
+        "requisito_id": "01/3",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "02/3",
+        "requisito_id": "09/3",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "13/3",
+      "nome": "Linguagens de Programação",
+      "tipo": "Obrigatória",
+      "carga_horaria": 50,
+      "periodo": 4,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "13/3",
+        "requisito_id": "11/3",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "13/3",
+        "requisito_id": "15/3",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "03/5",
+      "nome": "Análise de Circuitos Elétricos",
+      "tipo": "Obrigatória",
+      "carga_horaria": 50,
+      "periodo": 4,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "03/5",
+        "requisito_id": "01/2",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "04/4",
+      "nome": "Arquitetura e Organização de Computadores II",
+      "tipo": "Obrigatória",
+      "carga_horaria": 25,
+      "periodo": 4,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "04/4",
+        "requisito_id": "01/4",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "04/4",
+        "requisito_id": "05/4",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "05/4",
+      "nome": "Laboratório de Arquitetura e Organização de Computadores II",
+      "tipo": "Obrigatória",
+      "carga_horaria": 25,
+      "periodo": 4,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "05/4",
+        "requisito_id": "02/4",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "05/4",
+        "requisito_id": "04/4",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "08/1",
+      "nome": "Estatística",
+      "tipo": "Obrigatória",
+      "carga_horaria": 50,
+      "periodo": 5,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "08/1",
+        "requisito_id": "04/1",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "03/3",
+      "nome": "Banco de Dados I",
+      "tipo": "Obrigatória",
+      "carga_horaria": 50,
+      "periodo": 5,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "03/3",
+        "requisito_id": "02/3",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "06/3",
+      "nome": "Engenharia de Software",
+      "tipo": "Obrigatória",
+      "carga_horaria": 50,
+      "periodo": 5,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "06/3",
+        "requisito_id": "11/3",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "06/3",
+        "requisito_id": "15/3",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "04/5",
+      "nome": "Sinais e Sistemas Lineares",
+      "tipo": "Obrigatória",
+      "carga_horaria": 50,
+      "periodo": 5,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "04/5",
+        "requisito_id": "05/1",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "05/5",
+      "nome": "Eletrônica",
+      "tipo": "Obrigatória",
+      "carga_horaria": 50,
+      "periodo": 5,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "05/5",
+        "requisito_id": "03/5",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "05/5",
+        "requisito_id": "06/5",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "06/5",
+      "nome": "Laboratório de Eletrônica",
+      "tipo": "Obrigatória",
+      "carga_horaria": 25,
+      "periodo": 5,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "06/5",
+        "requisito_id": "03/5",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "06/5",
+        "requisito_id": "05/5",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "12/3",
+      "nome": "Linguagens Formais e Autômatos",
+      "tipo": "Obrigatória",
+      "carga_horaria": 50,
+      "periodo": 6,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "12/3",
+        "requisito_id": "13/3",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "12/3",
+        "requisito_id": "14/3",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "07/5",
+      "nome": "Teoria de Controle",
+      "tipo": "Obrigatória",
+      "carga_horaria": 50,
+      "periodo": 6,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "07/5",
+        "requisito_id": "04/5",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "07/5",
+        "requisito_id": "08/5",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "08/5",
+      "nome": "Laboratório de Teoria de Controle",
+      "tipo": "Obrigatória",
+      "carga_horaria": 25,
+      "periodo": 6,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "08/5",
+        "requisito_id": "04/5",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "08/5",
+        "requisito_id": "07/5",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "08/4",
+      "nome": "Sistemas Operacionais",
+      "tipo": "Obrigatória",
+      "carga_horaria": 50,
+      "periodo": 6,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "08/4",
+        "requisito_id": "01/4",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "08/4",
+        "requisito_id": "02/4",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "07/4",
+      "nome": "Redes de Computadores I",
+      "tipo": "Obrigatória",
+      "carga_horaria": 50,
+      "periodo": 6,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "07/4",
+        "requisito_id": "01/4",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "07/4",
+        "requisito_id": "02/4",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "07/4",
+        "requisito_id": "08/4",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "08/4",
+      "nome": "Laboratório de Redes de Computadores I",
+      "tipo": "Obrigatória",
+      "carga_horaria": 25,
+      "periodo": 6,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "08/4",
+        "requisito_id": "07/4",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "01/6",
+      "nome": "Inteligência Artificial",
+      "tipo": "Obrigatória",
+      "carga_horaria": 50,
+      "periodo": 6,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "01/6",
+        "requisito_id": "02/1",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "01/6",
+        "requisito_id": "02/3",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "01/6",
+        "requisito_id": "07/1",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "04/3",
+      "nome": "Compiladores",
+      "tipo": "Obrigatória",
+      "carga_horaria": 50,
+      "periodo": 7,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "04/3",
+        "requisito_id": "02/3",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "04/3",
+        "requisito_id": "12/3",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "09/5",
+      "nome": "Microprocesadores e microcontroladores",
+      "tipo": "Obrigatória",
+      "carga_horaria": 25,
+      "periodo": 7,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "09/5",
+        "requisito_id": "04/4",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "09/5",
+        "requisito_id": "05/4",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "09/5",
+        "requisito_id": "10/5",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "10/5",
+      "nome": "Laboratório de Microprocesadores e microcontroladores",
+      "tipo": "Obrigatória",
+      "carga_horaria": 25,
+      "periodo": 7,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "10/5",
+        "requisito_id": "04/4",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "10/5",
+        "requisito_id": "05/4",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "10/5",
+        "requisito_id": "09/5",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "02/6",
+      "nome": "Inteligência Computacional",
+      "tipo": "Obrigatória",
+      "carga_horaria": 50,
+      "periodo": 7,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "02/6",
+        "requisito_id": "01/6",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "03/6",
+      "nome": "Pesquisa Operacional",
+      "tipo": "Obrigatória",
+      "carga_horaria": 50,
+      "periodo": 7,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "03/6",
+        "requisito_id": "02/1",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "03/6",
+        "requisito_id": "02/3",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "03/6",
+        "requisito_id": "07/1",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "05/3",
+      "nome": "Computação Gráfica",
+      "tipo": "Obrigatória",
+      "carga_horaria": 50,
+      "periodo": 8,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "05/3",
+        "requisito_id": "02/1",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "05/3",
+        "requisito_id": "02/3",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "07/3",
+      "nome": "Interação Humano-Computador",
+      "tipo": "Obrigatória",
+      "carga_horaria": 50,
+      "periodo": 8,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "07/3",
+        "requisito_id": "06/3",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "09/4",
+      "nome": "Sistemas Distribuídos",
+      "tipo": "Obrigatória",
+      "carga_horaria": 50,
+      "periodo": 8,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "09/4",
+        "requisito_id": "08/4",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "02/7",
+      "nome": "Gestão Organizacional",
+      "tipo": "Obrigatória",
+      "carga_horaria": 25,
+      "periodo": 8,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "04/6",
+      "nome": "Ciência dos Dados",
+      "tipo": "Obrigatória",
+      "carga_horaria": 50,
+      "periodo": 8,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "04/6",
+        "requisito_id": "01/3",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "05/7",
+      "nome": "Empreendedorismo e Plano de negócios",
+      "tipo": "Obrigatória",
+      "carga_horaria": 25,
+      "periodo": 9,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "02/8",
+      "nome": "Metodologia de Pesquisa",
+      "tipo": "Obrigatória",
+      "carga_horaria": 25,
+      "periodo": 9,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "03/7",
+      "nome": "Psicologia Aplicada às Organizações",
+      "tipo": "Obrigatória",
+      "carga_horaria": 25,
+      "periodo": 9,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "04/7",
+      "nome": "Introdução à Sociologia",
+      "tipo": "Obrigatória",
+      "carga_horaria": 25,
+      "periodo": 9,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "04/8",
+      "nome": "Atividade de PFC 1",
+      "tipo": "Obrigatória",
+      "carga_horaria": 12.5,
+      "periodo": 9,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "PFC2",
+      "nome": "Atividade de PFC 2",
+      "tipo": "Obrigatória",
+      "carga_horaria": 12.5,
+      "periodo": 10,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "ESTAGIO",
+      "nome": "Atividade de Estágio Supervisionado",
+      "tipo": "Obrigatória",
+      "carga_horaria": 12.5,
+      "periodo": 10,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  }
+]

@@ -7,6 +7,8 @@ export interface CalendarEvent {
   subjectCode?: string;
   color: string;
   description: string;
+  done?: boolean;
+  manual?: boolean;
 }
 
 export const calendarEvents: CalendarEvent[] = [

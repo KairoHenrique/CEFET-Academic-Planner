@@ -16,7 +16,7 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
 - [x] Criação do README.md completo
 - [x] Criação do SCOPE.md com todas as regras de negócio
 - [x] Criação do TASKS.md (este arquivo)
-- [ ] Obter e indexar o PPC de Engenharia da Computação (PDF → dados estruturados)
+- [x] Obter e indexar o PPC de Engenharia da Computação (PDF → dados estruturados)
 
 ---
 
@@ -25,7 +25,7 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
 ### 1.1 Inicialização do Projeto
 - [x] Criar projeto Next.js com TypeScript (`npx create-next-app`)
 - [x] Configurar estrutura de pastas (`src/app`, `src/components`, `src/lib/db`, `src/lib/scraper`, `src/lib/engine`)
-- [ ] Instalar dependências: `better-sqlite3`, `playwright`, `crypto` (para criptografia de senha)
+- [x] Instalar dependências: `better-sqlite3`, `playwright`, `crypto` (para criptografia de senha)
 
 ### 1.2 Design System (CSS)
 - [x] Criar variáveis CSS com a paleta de cores do Cruzeiro (Azul `#0060B1`, Dourado `#D4A843`, etc.)
@@ -88,11 +88,11 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
 ## Fase 3: Interface do Usuário — Telas Principais
 
 ### 3.1 Tela de Login
-- [ ] Input de usuário e senha do SIGAA
-- [ ] Checkbox "Salvar senha localmente (criptografada)"
-- [ ] Botão "Entrar e Sincronizar"
-- [ ] Loading state com progresso da sincronização
-- [ ] Tratamento de erro visual (credenciais inválidas, SIGAA offline)
+- [x] Input de usuário e senha do SIGAA
+- [x] Checkbox "Salvar senha localmente (criptografada)"
+- [x] Botão "Entrar e Sincronizar"
+- [x] Loading state com progresso da sincronização
+- [x] Tratamento de erro visual (credenciais inválidas, SIGAA offline)
 
 ### 3.2 Dashboard Central
 - [x] Header com saudação, nome do aluno e semestre atual
@@ -101,7 +101,7 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
 - [x] Lista "Próximas Entregas" (5 próximas tarefas/avaliações)
 - [x] Modal com detalhes da tarefa ao clicar (descrição, entregáveis, link à disciplina)
 - [x] Grid de cards de disciplinas (nota, faltas, próxima atividade por matéria)
-- [ ] Botão de re-sincronização manual (Integrar com scraper real)
+- [x] Botão de re-sincronização manual (UI com progresso; integração scraper na Fase 2)
 
 ### 3.3 Grade Semanal (Horário de Aulas)
 - [x] Tabela visual: Segunda a Sexta × blocos de horário (M12, M34, M56, Almoço, T12, T34, Janta, N12, N34)
@@ -109,16 +109,16 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
 - [x] Cada célula: nome abreviado da matéria + sala
 - [x] Cores distintas por matéria
 - [x] Clique na célula abre modal com detalhes (sala, professor, horário) e link para disciplina
-- [ ] Modo de edição para adicionar eventos extras (monitoria, estágio, estudo)
+- [x] Modo de edição para adicionar eventos extras (monitoria, estágio, estudo)
 
 ### 3.4 Agenda Mensal
 - [x] Calendário mensal interativo (navegação entre meses)
 - [x] Pills de tarefas, provas e eventos nos dias correspondentes
 - [x] Filtros por tipo (tarefa / prova / evento / aula)
 - [x] Modal ao clicar no dia ou no evento (detalhes + link para disciplina)
-- [ ] Checkbox para marcar tarefa como concluída
-- [ ] Modal para adicionar tarefa manual ao clicar em um dia
-- [ ] Indicadores visuais de dias com muitas atividades (contador "+N" implementado; falta densidade visual)
+- [x] Checkbox para marcar tarefa como concluída
+- [x] Modal para adicionar tarefa manual ao clicar em um dia
+- [x] Indicadores visuais de densidade em dias com muitas atividades
 
 ### 3.5 Templates de Páginas (UI)
 - [x] Template `/calendario` (calendário mensal, eventos, datas acadêmicas, grade semanal)
@@ -140,7 +140,7 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
 - [x] Corrigir modal centralizado na tela (calendário e demais páginas)
 - [x] Corrigir espaços vazios no calendário e integralização
 - [x] Filtros globais visíveis na página do calendário
-- [ ] Aplicar layout modular em disciplinas e mapa (páginas com módulo único)
+- [x] Aplicar layout modular em disciplinas e mapa
 
 ---
 
@@ -148,7 +148,7 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
 
 ### 4.1 Página Individual da Disciplina
 - [x] Header com nome completo, código, professor, CH, sala, horário traduzido (template mock)
-- [ ] Seção de Ementa (texto do PPC)
+- [x] Seção de Ementa (texto do PPC)
 - [x] Card de Nota Atual (tabela de avaliações, pontos faltando — template mock)
 - [x] Card de Faltas (barra de progresso até o limite, cores por zona de risco — template mock)
 - [x] Lista de Tarefas (com data e tipo — template mock)
@@ -157,38 +157,38 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
 ### 4.2 Tabela de Notas Detalhada
 - [x] Tabela com avaliações mock (PRO1, SEM, PRO2, Nota)
 - [x] Coluna de "valor máximo" visível (não apenas no hover)
-- [ ] Botão "+ Adicionar Avaliação" para cadastro manual
+- [x] Botão "+ Adicionar Avaliação" para cadastro manual
 - [x] Indicador de "faltam X pontos para distribuir"
-- [ ] Destaque da nota necessária para aprovação
+- [x] Destaque da nota necessária para aprovação (banner + coluna Necessário)
 
 ### 4.3 Simulador de Notas
 - [x] Mover simulador de notas para a página individual de cada disciplina
 - [x] Campos editáveis para inserir notas hipotéticas (modo "Simular notas" na matéria)
 - [x] Cálculo em tempo real da nota final
 - [x] Indicador "Aprovado" ou "Reprovado" simulado
-- [ ] Impacto simulado no RG do semestre
+- [x] Impacto simulado no RG do semestre
 - [x] Botão "Limpar Simulação" para voltar aos dados reais
 - [x] Exibir quanto falta em cada avaliação para atingir aprovação (coluna "Necessário")
 
 ### 4.4 Tela de Frequência
-- [ ] Tabela cronológica de datas e status (Presente/Falta/Não Registrada)
-- [ ] Card resumo: "X faltas de Y permitidas (Z dias restantes)"
-- [ ] Indicador visual de zona de risco (verde → amarelo → vermelho)
+- [x] Tabela cronológica de datas e status (Presente/Falta/Não Registrada)
+- [x] Card resumo: "X faltas de Y permitidas (Z dias restantes)"
+- [x] Indicador visual de zona de risco (verde → amarelo → vermelho)
 
 ### 4.5 Download Automático de PDFs
-- [ ] Toggle on/off por disciplina nas configurações
-- [ ] Indicador de "X arquivos baixados" por matéria
-- [ ] Link para abrir a pasta local `docs-downloads/{disciplina}/`
+- [x] Toggle on/off por disciplina nas configurações
+- [x] Indicador de "X arquivos baixados" por matéria
+- [x] Link para abrir a pasta local `docs-downloads/{disciplina}/`
 
 ---
 
 ## Fase 5: Motor do PPC e Planejamento Acadêmico
 
 ### 5.1 Indexação do PPC
-- [ ] Popular banco de dados com todas as disciplinas de Eng. Computação (DCDV):
+- [x] Popular banco de dados com todas as disciplinas de Eng. Computação (DCDV):
   - Código, nome, tipo (Obrigatória/Optativa/Extensão), CH, período, ementa
-- [ ] Popular tabela de requisitos (pré-requisitos e co-requisitos)
-- [ ] Dados extraídos do mapa mental existente + PPC oficial
+- [x] Popular tabela de requisitos (pré-requisitos e co-requisitos)
+- [x] Dados extraídos do mapa mental existente + PPC oficial
 
 ### 5.2 Mapa Mental / Grafo do Curso
 - [x] Template estático: colunas por período com disciplinas e status (mock)

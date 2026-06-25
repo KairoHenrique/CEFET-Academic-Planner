@@ -8,6 +8,7 @@ import { SubjectsGrid } from "@/components/dashboard/SubjectsGrid";
 import { UpcomingTasks } from "@/components/dashboard/UpcomingTasks";
 import { WeeklySchedulePreview } from "@/components/dashboard/WeeklySchedulePreview";
 import { IntegrationProgress } from "@/components/dashboard/IntegrationProgress";
+import { SyncButton } from "@/components/ui/SyncButton";
 import {
   useModuleLayout,
   type ModuleDefinition,
@@ -51,6 +52,10 @@ export function DashboardView() {
         highlight="Kairo"
         subtitle="Engenharia de Computação · CEFET-MG Divinópolis"
       />
+
+      <div className="col-12 dashboard-sync-row">
+        <SyncButton />
+      </div>
 
       <ModuleGrid
         layout={layout}

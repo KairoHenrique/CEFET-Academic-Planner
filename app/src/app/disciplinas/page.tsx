@@ -1,16 +1,5 @@
-import { PageGrid } from "@/components/layout/PageGrid";
-import { PageHeader } from "@/components/layout/PageHeader";
-import { SubjectList } from "@/components/disciplinas/SubjectList";
+import { DisciplinasView } from "@/components/disciplinas/DisciplinasView";
 
 export default function DisciplinasPage() {
-  return (
-    <PageGrid>
-      <PageHeader
-        eyebrow="Semestre 2026.1"
-        title="Disciplinas"
-        subtitle="7 matérias cursando · notas, faltas e atividades"
-      />
-      <SubjectList />
-    </PageGrid>
-  );
+  return <DisciplinasView />;
 }
