@@ -1,3 +1,5 @@
+import { PageGrid } from "@/components/layout/PageGrid";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { StatsRow } from "@/components/dashboard/StatsRow";
 import { SubjectsGrid } from "@/components/dashboard/SubjectsGrid";
 import { UpcomingTasks } from "@/components/dashboard/UpcomingTasks";
@@ -6,16 +8,13 @@ import { IntegrationProgress } from "@/components/dashboard/IntegrationProgress"
 
 export default function DashboardPage() {
   return (
-    <div className="dashboard-page animate-fade-in">
-      <header className="page-header col-12">
-        <p className="page-header-eyebrow">Semestre 2026.1</p>
-        <h1>
-          Bom dia, <span className="highlight">Kairo</span>
-        </h1>
-        <p className="subtitle">
-          Engenharia de Computação · CEFET-MG Divinópolis
-        </p>
-      </header>
+    <PageGrid>
+      <PageHeader
+        eyebrow="Semestre 2026.1"
+        title="Bom dia,"
+        highlight="Kairo"
+        subtitle="Engenharia de Computação · CEFET-MG Divinópolis"
+      />
 
       <StatsRow />
 
@@ -34,6 +33,6 @@ export default function DashboardPage() {
       <div className="col-12">
         <SubjectsGrid />
       </div>
-    </div>
+    </PageGrid>
   );
 }

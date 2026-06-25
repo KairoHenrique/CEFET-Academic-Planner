@@ -1,16 +1,5 @@
 import { Icon } from "@/components/ui/Icon";
-
-export interface Subject {
-  name: string;
-  code: string;
-  room: string;
-  grade: number | null;
-  gradeMax: number;
-  absences: number;
-  maxAbsences: number;
-  tasks: number;
-  color: string;
-}
+import type { Subject } from "@/config/mock/subjects";
 
 function getAbsenceStatus(current: number, max: number) {
   const ratio = current / max;
