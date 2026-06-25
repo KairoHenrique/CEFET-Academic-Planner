@@ -330,6 +330,37 @@ a:hover {
   animation: spin 1s linear infinite;
 }
 
+.navbar-sync-wrap {
+  position: relative;
+}
+
+.navbar-sync-progress {
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  right: 0;
+  z-index: 100;
+  width: min(320px, calc(100vw - 32px));
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-emphasis);
+  box-shadow: var(--shadow-lg);
+}
+
+.navbar-sync-error {
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  right: 0;
+  z-index: 100;
+  width: min(280px, calc(100vw - 32px));
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  color: #f47067;
+  background: rgba(218, 54, 51, 0.12);
+  border: 1px solid rgba(218, 54, 51, 0.35);
+}
+
 .navbar-avatar {
   width: 34px;
   height: 34px;
@@ -2443,21 +2474,6 @@ a:hover {
   justify-content: space-between;
   font-size: 0.75rem;
   color: var(--text-secondary);
-}
-
-.dashboard-sync-row {
-  margin-bottom: var(--space-1);
-}
-
-.dashboard-sync {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-
-.dashboard-sync-error {
-  font-size: 0.8125rem;
-  color: var(--danger);
 }
 
 .add-event-form {
