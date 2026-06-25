@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/Navbar";
+import { JerseyBackground } from "@/components/JerseyBackground";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -29,6 +30,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" className={`${inter.variable} ${outfit.variable}`}>
       <body>
+        <JerseyBackground />
         <Navbar />
         <main className="main-content">{children}</main>
       </body>
