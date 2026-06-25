@@ -6,6 +6,7 @@ interface ModuleShellProps {
   label: string;
   editMode: boolean;
   hidden: boolean;
+  draggable?: boolean;
   onMoveUp: () => void;
   onMoveDown: () => void;
   onToggle: () => void;
@@ -16,6 +17,7 @@ export function ModuleShell({
   label,
   editMode,
   hidden,
+  draggable = false,
   onMoveUp,
   onMoveDown,
   onToggle,
@@ -27,7 +29,10 @@ export function ModuleShell({
     <div className={`module-shell ${hidden ? "module-hidden" : ""}`}>
       {editMode && (
         <div className="module-toolbar">
-          <span className="module-toolbar-label">{label}</span>
+          <span className="module-toolbar-label">
+            {draggable && <Icon name="grip" size={14} />}
+            {label}
+          </span>
           <div className="module-toolbar-actions">
             <button
               type="button"
@@ -83,9 +88,14 @@ export function ModuleLayoutBar({
         {editMode ? "Concluir personalização" : "Personalizar módulos"}
       </button>
       {editMode && (
-        <button type="button" className="btn-outline" onClick={onReset}>
-          Restaurar padrão
-        </button>
+        <>
+          <span className="module-layout-hint">
+            Arraste os módulos para reorganizar
+          </span>
+          <button type="button" className="btn-outline" onClick={onReset}>
+            Restaurar padrão
+          </button>
+        </>
       )}
     </div>
   );

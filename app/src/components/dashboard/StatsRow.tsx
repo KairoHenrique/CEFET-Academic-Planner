@@ -39,10 +39,9 @@ const stats: {
 
 export function StatsRow() {
   return (
-    <>
+    <div className="stats-module-grid">
       {stats.map((stat) => (
-        <div key={stat.label} className="col-3 col-stat">
-          <div className="card stat-card">
+        <div key={stat.label} className="card stat-card">
             <p className="card-header">
               <span className="section-header-title">{stat.label}</span>
             </p>
@@ -56,8 +55,7 @@ export function StatsRow() {
               </span>
             </div>
           </div>
-        </div>
       ))}
-    </>
+    </div>
   );
 }

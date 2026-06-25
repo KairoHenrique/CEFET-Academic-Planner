@@ -174,12 +174,14 @@ interface CalendarEventsListProps {
   filter: EventTypeFilter;
   onFilterChange: (filter: EventTypeFilter) => void;
   onEventSelect: (event: CalendarEvent) => void;
+  showFilters?: boolean;
 }
 
 export function CalendarEventsList({
   filter,
   onFilterChange,
   onEventSelect,
+  showFilters = true,
 }: CalendarEventsListProps) {
   const activeLabel =
     Object.entries(filterMap).find(([, v]) => v === filter)?.[0] ?? "Todas";
@@ -189,14 +191,16 @@ export function CalendarEventsList({
   );
 
   return (
-    <div className="card card-full-height">
+    <div className="card calendar-events-card">
       <div className="calendar-events-header">
         <h3 className="section-header-title">Próximos Eventos</h3>
-        <FilterBar
-          filters={FILTER_OPTIONS}
-          active={activeLabel}
-          onChange={(label) => onFilterChange(filterMap[label] ?? "todas")}
-        />
+        {showFilters && (
+          <FilterBar
+            filters={FILTER_OPTIONS}
+            active={activeLabel}
+            onChange={(label) => onFilterChange(filterMap[label] ?? "todas")}
+          />
+        )}
       </div>
 
       <ul className="event-list">

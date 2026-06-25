@@ -649,6 +649,12 @@ a:hover {
   padding: var(--space-5);
 }
 
+.stats-module-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-4);
+}
+
 .stat-card .card-header {
   margin-bottom: var(--space-3);
 }
@@ -1359,6 +1365,44 @@ a:hover {
   white-space: nowrap;
 }
 
+.integration-total-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 100%;
+}
+
+.integration-summary-card {
+  min-height: 100%;
+}
+
+.integration-detail-card {
+  padding: var(--space-5);
+}
+
+.integration-table {
+  table-layout: fixed;
+}
+
+.integration-table th:nth-child(1),
+.integration-table td:nth-child(1) {
+  width: 30%;
+}
+
+.integration-table th:nth-child(2),
+.integration-table td:nth-child(2),
+.integration-table th:nth-child(3),
+.integration-table td:nth-child(3),
+.integration-table th:nth-child(4),
+.integration-table td:nth-child(4) {
+  width: 14%;
+}
+
+.integration-table th:nth-child(5),
+.integration-table td:nth-child(5) {
+  width: 28%;
+}
+
 .panel-footer-note {
   margin-top: var(--space-4);
   font-size: 0.8125rem;
@@ -1500,6 +1544,32 @@ a:hover {
   flex-direction: column;
   gap: var(--space-3);
   margin-bottom: var(--space-4);
+}
+
+.calendar-events-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.calendar-page-filters {
+  margin-bottom: var(--space-1);
+}
+
+.calendar-filters-card {
+  padding: var(--space-4) var(--space-5);
+}
+
+.calendar-filters-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.calendar-filters-header .section-header {
+  margin-bottom: 0;
 }
 
 .event-list-btn {
@@ -1868,9 +1938,22 @@ a:hover {
 .modal {
   border: none;
   padding: 0;
+  margin: 0;
   background: transparent;
-  max-width: calc(100vw - 32px);
-  max-height: calc(100vh - 32px);
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.modal:not([open]) {
+  display: none;
 }
 
 .modal::backdrop {
@@ -1879,12 +1962,16 @@ a:hover {
 }
 
 .modal-panel {
-  width: min(480px, calc(100vw - 32px));
+  width: min(520px, calc(100vw - 32px));
+  max-height: calc(100vh - 48px);
   background: var(--bg-elevated);
   border: 1px solid var(--border-emphasis);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  margin: var(--space-4);
 }
 
 .modal-header {
@@ -1922,6 +2009,7 @@ a:hover {
 
 .modal-body {
   padding: var(--space-6);
+  overflow-y: auto;
 }
 
 .detail-meta-row {
@@ -2012,6 +2100,25 @@ a:hover {
   align-items: center;
 }
 
+.module-layout-hint {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+}
+
+.module-slot {
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+}
+
+.module-slot.module-dragging {
+  opacity: 0.45;
+}
+
+.module-slot.module-drop-target {
+  outline: 2px dashed var(--gold-400);
+  outline-offset: 4px;
+  border-radius: var(--radius-md);
+}
+
 .module-shell {
   height: 100%;
 }
@@ -2030,9 +2137,17 @@ a:hover {
   border-radius: var(--radius-sm);
   border: 1px dashed var(--border-emphasis);
   background: rgba(212, 168, 67, 0.06);
+  cursor: grab;
+}
+
+.module-toolbar:active {
+  cursor: grabbing;
 }
 
 .module-toolbar-label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--gold-300);
@@ -2065,6 +2180,10 @@ a:hover {
 
 /* ---- Responsive ---- */
 @media (max-width: 1024px) {
+  .stats-module-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
   .dashboard-page .col-3,
   .dashboard-page .col-4,
   .dashboard-page .col-5,
@@ -2082,6 +2201,15 @@ a:hover {
 }
 
 @media (max-width: 768px) {
+  .stats-module-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .calendar-filters-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
   .dashboard-page .col-3,
   .dashboard-page .col-stat,
   .dashboard-page .col-4,

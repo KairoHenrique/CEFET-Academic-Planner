@@ -3,34 +3,43 @@
 import { useState } from "react";
 import { PageGrid } from "@/components/layout/PageGrid";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { ModuleGrid } from "@/components/layout/ModuleGrid";
 import { CalendarMonth } from "@/components/calendario/CalendarMonth";
 import { CalendarEventsList } from "@/components/calendario/CalendarMonth";
 import { CalendarAcademicDates } from "@/components/calendario/CalendarAcademicDates";
 import { WeeklyScheduleTable } from "@/components/schedule/WeeklyScheduleTable";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Modal } from "@/components/ui/Modal";
+import { FilterBar } from "@/components/ui/FilterBar";
 import { EventDetailContent } from "@/components/ui/ActivityDetail";
 import type { CalendarEvent, EventTypeFilter } from "@/config/mock/calendar";
-import {
-  ModuleLayoutBar,
-  ModuleShell,
-} from "@/components/layout/ModuleLayout";
-import {
-  useModuleLayout,
-  type ModuleDefinition,
-} from "@/hooks/useModuleLayout";
+import { type ModuleDefinition } from "@/hooks/useModuleLayout";
+import { useModuleLayout } from "@/hooks/useModuleLayout";
 
 const MODULES: ModuleDefinition[] = [
-  { id: "calendar", label: "Calendário mensal", colClass: "col-8" },
-  { id: "events", label: "Próximos eventos", colClass: "col-4" },
-  { id: "academic", label: "Datas acadêmicas", colClass: "col-4" },
-  { id: "schedule", label: "Grade semanal", colClass: "col-12" },
+  { id: "calendar", label: "Calendário mensal", colClass: "col-7" },
+  { id: "events", label: "Próximos eventos", colClass: "col-5" },
+  { id: "academic", label: "Datas acadêmicas", colClass: "col-5" },
+  { id: "schedule", label: "Grade semanal", colClass: "col-7" },
 ];
+
+const FILTER_OPTIONS = ["Todas", "Tarefa", "Prova", "Evento", "Aula"];
+
+const filterMap: Record<string, EventTypeFilter> = {
+  Todas: "todas",
+  Tarefa: "tarefa",
+  Prova: "prova",
+  Evento: "evento",
+  Aula: "aula",
+};
 
 export function CalendarioView() {
   const [filter, setFilter] = useState<EventTypeFilter>("todas");
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const layout = useModuleLayout("calendario", MODULES);
+
+  const activeLabel =
+    Object.entries(filterMap).find(([, v]) => v === filter)?.[0] ?? "Todas";
 
   const renderModule = (id: string) => {
     switch (id) {
@@ -46,6 +55,7 @@ export function CalendarioView() {
             filter={filter}
             onFilterChange={setFilter}
             onEventSelect={setSelectedEvent}
+            showFilters={false}
           />
         );
       case "academic":
@@ -72,33 +82,25 @@ export function CalendarioView() {
         subtitle="Clique em qualquer atividade para ver detalhes · personalize os módulos"
       />
 
-      <ModuleLayoutBar
-        editMode={layout.editMode}
-        onToggleEdit={() => layout.setEditMode((v) => !v)}
-        onReset={layout.resetLayout}
-      />
-
-      {layout.order.map((moduleId) => {
-        const module = MODULES.find((m) => m.id === moduleId);
-        if (!module) return null;
-        const hidden = layout.hidden.includes(module.id);
-        if (hidden && !layout.editMode) return null;
-
-        return (
-          <div key={module.id} className={module.colClass}>
-            <ModuleShell
-              label={module.label}
-              editMode={layout.editMode}
-              hidden={hidden}
-              onMoveUp={() => layout.moveModule(module.id, -1)}
-              onMoveDown={() => layout.moveModule(module.id, 1)}
-              onToggle={() => layout.toggleModule(module.id)}
-            >
-              {renderModule(module.id)}
-            </ModuleShell>
+      <ModuleGrid
+        layout={layout}
+        modules={MODULES}
+        renderModule={renderModule}
+        beforeModules={
+          <div className="col-12 calendar-page-filters">
+            <div className="calendar-filters-card card">
+              <div className="calendar-filters-header">
+                <SectionHeader title="Filtrar eventos" icon="filter" />
+                <FilterBar
+                  filters={FILTER_OPTIONS}
+                  active={activeLabel}
+                  onChange={(label) => setFilter(filterMap[label] ?? "todas")}
+                />
+              </div>
+            </div>
           </div>
-        );
-      })}
+        }
+      />
 
       <Modal
         open={Boolean(selectedEvent)}

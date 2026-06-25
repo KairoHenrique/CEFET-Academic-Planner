@@ -2,12 +2,9 @@
 
 import { PageGrid } from "@/components/layout/PageGrid";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { ModuleGrid } from "@/components/layout/ModuleGrid";
 import { GradeSimulator } from "@/components/simulador/GradeSimulator";
 import { EnrollmentSimulator } from "@/components/simulador/EnrollmentSimulator";
-import {
-  ModuleLayoutBar,
-  ModuleShell,
-} from "@/components/layout/ModuleLayout";
 import {
   useModuleLayout,
   type ModuleDefinition,
@@ -21,12 +18,18 @@ const MODULES: ModuleDefinition[] = [
 export function SimuladorView() {
   const layout = useModuleLayout("simulador", MODULES);
 
-  if (!layout.hydrated) return null;
-
-  const moduleContent: Record<string, React.ReactNode> = {
-    grades: <GradeSimulator />,
-    enrollment: <EnrollmentSimulator />,
+  const renderModule = (id: string) => {
+    switch (id) {
+      case "grades":
+        return <GradeSimulator />;
+      case "enrollment":
+        return <EnrollmentSimulator />;
+      default:
+        return null;
+    }
   };
+
+  if (!layout.hydrated) return null;
 
   return (
     <PageGrid>
@@ -36,33 +39,11 @@ export function SimuladorView() {
         subtitle="Simule notas e monte sua grade · clique nas atividades para detalhes"
       />
 
-      <ModuleLayoutBar
-        editMode={layout.editMode}
-        onToggleEdit={() => layout.setEditMode((v) => !v)}
-        onReset={layout.resetLayout}
+      <ModuleGrid
+        layout={layout}
+        modules={MODULES}
+        renderModule={renderModule}
       />
-
-      {layout.order.map((moduleId) => {
-        const module = MODULES.find((m) => m.id === moduleId);
-        if (!module) return null;
-        const hidden = layout.hidden.includes(module.id);
-        if (hidden && !layout.editMode) return null;
-
-        return (
-          <div key={module.id} className={module.colClass}>
-            <ModuleShell
-              label={module.label}
-              editMode={layout.editMode}
-              hidden={hidden}
-              onMoveUp={() => layout.moveModule(module.id, -1)}
-              onMoveDown={() => layout.moveModule(module.id, 1)}
-              onToggle={() => layout.toggleModule(module.id)}
-            >
-              {moduleContent[module.id]}
-            </ModuleShell>
-          </div>
-        );
-      })}
     </PageGrid>
   );
 }
