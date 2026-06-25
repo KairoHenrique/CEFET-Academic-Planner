@@ -1,22 +1,17 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 import { brand } from "@/config/brand";
 import { navLinks } from "@/config/navigation";
 import { BrandLogo } from "@/components/ui/BrandLogo";
 import { Icon } from "@/components/ui/Icon";
+import { SyncButton } from "@/components/ui/SyncButton";
 
 export function Navbar() {
   const pathname = usePathname();
-  const [syncing, setSyncing] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-
-  const handleSync = () => {
-    setSyncing(true);
-    setTimeout(() => setSyncing(false), 2000);
-  };
 
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -48,6 +43,7 @@ export function Navbar() {
 
           <div className="navbar-actions">
             <button
+              type="button"
               className="navbar-menu-btn"
               onClick={() => setMobileOpen((o) => !o)}
               aria-label={mobileOpen ? "Fechar menu" : "Abrir menu"}
@@ -56,19 +52,7 @@ export function Navbar() {
               <Icon name={mobileOpen ? "close" : "menu"} size={18} />
             </button>
 
-            <button
-              className="navbar-sync-btn"
-              onClick={handleSync}
-              disabled={syncing}
-              title="Sincronizar com SIGAA"
-            >
-              <Icon
-                name="sync"
-                size={15}
-                className={syncing ? "sync-icon-spinning" : undefined}
-              />
-              <span>{syncing ? "Sincronizando" : "Sync SIGAA"}</span>
-            </button>
+            <SyncButton variant="navbar" />
 
             <div className="navbar-avatar" title="Minha Conta" role="img" aria-label="Perfil KH">
               KH

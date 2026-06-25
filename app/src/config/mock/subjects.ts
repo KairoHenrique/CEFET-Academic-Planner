@@ -2,6 +2,7 @@ export interface SubjectEvaluation {
   name: string;
   max: number;
   score: number | null;
+  manual?: boolean;
 }
 
 export interface Subject {
@@ -19,6 +20,9 @@ export interface Subject {
   professor?: string;
   schedule?: string;
   ch?: number;
+  ementa: string;
+  downloadedFiles: number;
+  pdfAutoDownload: boolean;
 }
 
 const standardEvaluations = (
@@ -38,7 +42,9 @@ const labEvaluations = (
   { name: "PRO2", max: 10, score: scores.PRO2 ?? null },
 ];
 
-export const semesterSubjects: Subject[] = [
+type SubjectSeed = Omit<Subject, "ementa" | "downloadedFiles" | "pdfAutoDownload">;
+
+const semesterSubjectsSeed: SubjectSeed[] = [
   {
     name: "Algoritmos e Estruturas de Dados I",
     code: "AEDI",
@@ -156,6 +162,66 @@ export const semesterSubjects: Subject[] = [
     ch: 30,
   },
 ];
+
+const defaultSubjectMeta = {
+  ementa:
+    "Disciplina do curso de Engenharia da Computação. Conteúdo programático conforme PPC vigente do CEFET-MG.",
+  downloadedFiles: 0,
+  pdfAutoDownload: false,
+};
+
+const subjectMeta: Record<
+  string,
+  Pick<Subject, "ementa" | "downloadedFiles" | "pdfAutoDownload">
+> = {
+  AEDI: {
+    ementa:
+      "Introdução a estruturas de dados fundamentais: listas, pilhas, filas, árvores e grafos. Análise de complexidade e implementação em linguagem de programação.",
+    downloadedFiles: 8,
+    pdfAutoDownload: true,
+  },
+  AOCI: {
+    ementa:
+      "Organização básica de computadores, representação de dados, sistema de numeração, lógica digital e arquitetura de conjunto de instruções.",
+    downloadedFiles: 5,
+    pdfAutoDownload: true,
+  },
+  "ENG-SOFT": {
+    ementa:
+      "Processos de software, requisitos, modelagem UML, metodologias ágeis, testes e gestão de projetos. Desenvolvimento de sistema em equipe ao longo do semestre.",
+    downloadedFiles: 14,
+    pdfAutoDownload: true,
+  },
+  EMPREEND: {
+    ementa:
+      "Fundamentos de empreendedorismo, plano de negócios, modelagem canvas e pitch de startups.",
+    downloadedFiles: 3,
+    pdfAutoDownload: false,
+  },
+  SOCIOLOGIA: {
+    ementa:
+      "Introdução aos conceitos sociológicos, trabalho, tecnologia e sociedade contemporânea.",
+    downloadedFiles: 2,
+    pdfAutoDownload: false,
+  },
+  LAEDI: {
+    ementa:
+      "Laboratório prático de implementação de estruturas de dados e algoritmos estudados em AEDI I.",
+    downloadedFiles: 4,
+    pdfAutoDownload: true,
+  },
+  LAOCI: {
+    ementa:
+      "Laboratório de circuitos digitais, portas lógicas, ULA e montagem de sistemas combinacionais.",
+    downloadedFiles: 6,
+    pdfAutoDownload: true,
+  },
+};
+
+export const semesterSubjects: Subject[] = semesterSubjectsSeed.map((subject) => ({
+  ...subject,
+  ...(subjectMeta[subject.code] ?? defaultSubjectMeta),
+}));
 
 export function getSubjectByCode(code: string): Subject | undefined {
   return semesterSubjects.find(

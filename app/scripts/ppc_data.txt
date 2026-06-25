@@ -1,0 +1,61 @@
+1º	01/1	Cálculo com Funções de uma Variável Real	X		90	75	-	-
+1º	02/1	Geometria Analítica e Álgebra Linear	X		60	50	-	-
+1º	14/3	Matemática Discreta	X		60	50	-	-
+1º	08/3	Introdução à Programação de Computadores	X		60	50	-	10/3
+1º	10/3	Laboratório de Introdução à Programação de Computadores	X		30	25	-	08/3
+1º	03/8	Contexto Social e Profissional da Engenharia de Computação	X		30	25	-	-
+1º	01/7	Filosofia da Tecnologia	X		30	25	-	-
+2º	04/1	Integração e Séries	X		60	50	01/1	-
+2º	03/1	Cálculo com Funções de Várias Variáveis I	X		60	50	01/1 02/1	-
+2º	04/2	Fundamentos de Mecânica	X		60	50	01/1 02/1	-
+2º	15/3	Programação Orientada à Objetos	X		30	25	08/3 10/3	11/3
+2º	11/3	Laboratório de Programação Orientada à Objetos	X		30	25	08/3 10/3	15/3
+2º	01/5	Sistemas Digitais para Computação	X		30	25	08/3 10/3	02/5
+2º	02/5	Laboratório de Sistemas Digitais para Computação	X		30	25	08/3 10/3	01/5
+2º	01/8	Metodologia Científica	X		30	25	-	-
+3º	05/1	Equações Diferenciais Ordinárias	X		60	50	03/1 04/1	-
+3º	06/1	Cálculo com Funções de Várias Variáveis II	X		60	50	03/1 04/1	-
+3º	05/2	Fundamentos de Oscilações, Fluidos e Termodinâmica (OFT)	X		60	50	04/2	05/1 02/2
+3º	02/2	Física Experimental - MOFT	X		30	25	04/2	05/2
+3º	01/3	Algoritmos e Estruturas de Dados I	X		60	50	15/3 11/3	09/3
+3º	09/3	Laboratório de Algoritmos e Estruturas de Dados I	X		30	25	15/3 11/3	01/3
+3º	01/4	Arquitetura e Organização de Computadores I	X		30	25	01/5 02/5	02/4
+3º	02/4	Laboratório de Arquitetura e Organização de Computadores I	X		30	25	01/5 02/5	01/4
+4º	07/1	Métodos Numéricos Computacionais	X		60	50	08/3	05/1
+4º	01/2	Fundamentos de Eletromagnetismo	X		60	50	05/2 06/1	03/2
+4º	03/2	Física Experimental - Eletromagnetismo	X		30	25	04/2 05/2	01/2
+4º	02/3	Algoritmos e Estruturas de Dados II	X		60	50	01/3 09/3	-
+4º	13/3	Linguagens de Programação	X	X	60	50	11/3 15/3	-
+4º	03/5	Análise de Circuitos Elétricos	X		60	50	-	01/2
+4º	04/4	Arquitetura e Organização de Computadores II	X		30	25	01/4	05/4
+4º	05/4	Laboratório de Arquitetura e Organização de Computadores II	X		30	25	02/4	04/4
+5º	08/1	Estatística	X		60	50	04/1	-
+5º	03/3	Banco de Dados I	X	X	60	50	02/3	-
+5º	06/3	Engenharia de Software	X		60	50	11/3 15/3	-
+5º	04/5	Sinais e Sistemas Lineares	X		60	50	05/1	-
+5º	05/5	Eletrônica	X		60	50	03/5	06/5
+5º	06/5	Laboratório de Eletrônica	X		30	25	03/5	05/5
+6º	12/3	Linguagens Formais e Autômatos	X		60	50	13/3 14/3	-
+6º	07/5	Teoria de Controle	X		60	50	04/5	08/5
+6º	08/5	Laboratório de Teoria de Controle	X		30	25	04/5	07/5
+6º	08/4	Sistemas Operacionais	X		60	50	01/4 02/4	-
+6º	07/4	Redes de Computadores I	X		60	50	01/4 02/4	08/4
+6º	08/4	Laboratório de Redes de Computadores I	X		30	25	-	07/4
+6º	01/6	Inteligência Artificial	X	X	60	50	02/1 02/3 07/1	-
+7º	04/3	Compiladores	X	X	60	50	02/3 12/3	-
+7º	09/5	Microprocesadores e microcontroladores	X		30	25	04/4 05/4	10/5
+7º	10/5	Laboratório de Microprocesadores e microcontroladores	X		30	25	04/4 05/4	09/5
+7º	02/6	Inteligência Computacional	X	X	60	50	01/6	-
+7º	03/6	Pesquisa Operacional	X		60	50	02/1 02/3 07/1	-
+8º	05/3	Computação Gráfica	X	X	60	50	02/1 02/3	-
+8º	07/3	Interação Humano-Computador	X		60	50	06/3	-
+8º	09/4	Sistemas Distribuídos	X	X	60	50	08/4	-
+8º	02/7	Gestão Organizacional	X		30	25	-	-
+8º	04/6	Ciência dos Dados	X	X	60	50	01/3	-
+9º	05/7	Empreendedorismo e Plano de negócios	X		30	25	-	-
+9º	02/8	Metodologia de Pesquisa	X		30	25	-	-
+9º	03/7	Psicologia Aplicada às Organizações	X		30	25	-	-
+9º	04/7	Introdução à Sociologia	X		30	25	-	-
+9º	04/8	Atividade de PFC 1			15	12.5	-	-
+10º	-	Atividade de PFC 2			15	12.5	-	-
+10º	-	Atividade de Estágio Supervisionado			15	12.5	-	-

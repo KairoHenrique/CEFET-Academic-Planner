@@ -11,13 +11,15 @@ import { Icon } from "./Icon";
 interface EventDetailContentProps {
   event: CalendarEvent;
   onClose: () => void;
+  onToggleDone?: (id: string) => void;
 }
 
-export function EventDetailContent({ event, onClose }: EventDetailContentProps) {
+export function EventDetailContent({ event, onClose, onToggleDone }: EventDetailContentProps) {
   return (
   <>
     <div className="detail-meta-row">
       <span className={`badge info`}>{eventTypeLabels[event.type]}</span>
+      {event.done && <span className="badge success">Concluída</span>}
       <span className="detail-date">{formatEventDate(event.date)}</span>
     </div>
 
@@ -40,6 +42,16 @@ export function EventDetailContent({ event, onClose }: EventDetailContentProps) 
           <Icon name="books" size={14} />
           Ver disciplina
         </Link>
+      )}
+      {event.type === "tarefa" && onToggleDone && (
+        <button
+          type="button"
+          className="btn-outline"
+          onClick={() => onToggleDone(event.id)}
+        >
+          <Icon name="check" size={14} />
+          {event.done ? "Marcar pendente" : "Marcar concluída"}
+        </button>
       )}
       <button type="button" className="btn-outline" onClick={onClose}>
         Fechar
@@ -106,13 +118,6 @@ export function ScheduleDetailContent({
       </div>
     </>
   );
-}
-
-interface DayEventsContentProps {
-  day: number;
-  monthLabel: string;
-  events: CalendarEvent[];
-  onSelectEvent: (event: CalendarEvent) => void;
 }
 
 interface TaskDetailContentProps {
@@ -196,30 +201,57 @@ export function TaskDetailContent({
   );
 }
 
+interface DayEventsContentProps {
+  day: number;
+  monthLabel: string;
+  events: CalendarEvent[];
+  onSelectEvent: (event: CalendarEvent) => void;
+  onToggleDone?: (id: string) => void;
+  onAddEvent?: () => void;
+}
+
 export function DayEventsContent({
   day,
   monthLabel,
   events,
   onSelectEvent,
+  onToggleDone,
+  onAddEvent,
 }: DayEventsContentProps) {
   return (
     <>
       <p className="detail-date">
         {day} de {monthLabel}
       </p>
+      {onAddEvent && (
+        <button type="button" className="btn-outline day-add-event-btn" onClick={onAddEvent}>
+          <Icon name="plus" size={14} />
+          Adicionar tarefa
+        </button>
+      )}
       {events.length === 0 ? (
         <p className="detail-description">Nenhum evento neste dia.</p>
       ) : (
         <ul className="day-events-list">
           {events.map((event) => (
-            <li key={event.id}>
+            <li key={event.id} className="day-event-row">
+              {event.type === "tarefa" && onToggleDone && (
+                <button
+                  type="button"
+                  className={`task-checkbox ${event.done ? "checked" : ""}`}
+                  onClick={() => onToggleDone(event.id)}
+                  aria-label={`Marcar ${event.title}`}
+                >
+                  {event.done && <Icon name="check" size={11} />}
+                </button>
+              )}
               <button
                 type="button"
                 className="day-event-btn"
                 onClick={() => onSelectEvent(event)}
               >
                 <span className="subject-dot" style={{ background: event.color }} />
-                <span>{event.title}</span>
+                <span className={event.done ? "event-done" : ""}>{event.title}</span>
                 <span className={`badge info`}>{eventTypeLabels[event.type]}</span>
               </button>
             </li>

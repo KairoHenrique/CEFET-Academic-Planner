@@ -2309,6 +2309,328 @@ a:hover {
   border-color: var(--border-emphasis);
 }
 
+/* ---- Login & Forms ---- */
+.main-content-login {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 48px);
+  padding: var(--space-6);
+}
+
+.login-page {
+  width: min(440px, 100%);
+}
+
+.login-card {
+  padding: var(--space-8);
+}
+
+.login-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-8);
+}
+
+.login-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.login-subtitle {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-top: var(--space-1);
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.login-submit {
+  width: 100%;
+  justify-content: center;
+  margin-top: var(--space-2);
+}
+
+.login-error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm);
+  background: rgba(218, 54, 51, 0.12);
+  border: 1px solid rgba(218, 54, 51, 0.35);
+  color: #f47067;
+  font-size: 0.8125rem;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.form-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.form-input {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-default);
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+
+.form-input:focus {
+  border-color: var(--gold-400);
+}
+
+.form-input-error {
+  border-color: var(--danger);
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.form-hint {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+}
+
+.form-error {
+  font-size: 0.75rem;
+  color: var(--danger);
+}
+
+.form-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.form-checkbox input {
+  margin-top: 2px;
+  accent-color: var(--gold-400);
+}
+
+.sync-progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.sync-progress-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.dashboard-sync-row {
+  margin-bottom: var(--space-1);
+}
+
+.dashboard-sync {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.dashboard-sync-error {
+  font-size: 0.8125rem;
+  color: var(--danger);
+}
+
+.add-event-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* ---- Calendar density ---- */
+.calendar-day.density-1 {
+  background: rgba(212, 168, 67, 0.04);
+}
+
+.calendar-day.density-2 {
+  background: rgba(212, 168, 67, 0.08);
+  border-color: color-mix(in srgb, var(--gold-400) 35%, transparent);
+}
+
+.calendar-day.density-3,
+.calendar-day.density-4 {
+  background: rgba(212, 168, 67, 0.12);
+  border-color: var(--gold-400);
+}
+
+.calendar-day-count {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  font-size: 0.5625rem;
+  font-weight: 700;
+  color: var(--gold-300);
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: var(--radius-full);
+  min-width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.calendar-day {
+  position: relative;
+}
+
+.calendar-event-pill.done {
+  opacity: 0.5;
+  text-decoration: line-through;
+}
+
+.day-event-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.day-event-row .day-event-btn {
+  flex: 1;
+}
+
+.day-add-event-btn {
+  margin-bottom: var(--space-4);
+}
+
+.event-done {
+  text-decoration: line-through;
+  opacity: 0.65;
+}
+
+/* ---- Schedule editor ---- */
+.schedule-editor-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-4);
+}
+
+.schedule-editor-bar .section-header {
+  margin-bottom: 0;
+}
+
+.schedule-editor-hint {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-4);
+}
+
+/* ---- Subject detail ---- */
+.syllabus-content {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.passing-grade-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-4);
+  border-radius: var(--radius-sm);
+  font-size: 0.8125rem;
+  border: 1px solid var(--border-default);
+}
+
+.passing-grade-banner.success {
+  background: rgba(63, 185, 80, 0.1);
+  border-color: rgba(63, 185, 80, 0.35);
+  color: #5fd068;
+}
+
+.passing-grade-banner.warning {
+  background: rgba(212, 168, 67, 0.1);
+  border-color: rgba(212, 168, 67, 0.35);
+  color: var(--gold-300);
+}
+
+.grades-panel-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.grade-row-highlight {
+  background: rgba(212, 168, 67, 0.06);
+}
+
+.grade-manual-badge {
+  margin-left: var(--space-2);
+  font-size: 0.5625rem;
+}
+
+.rg-impact {
+  display: block;
+  font-size: 0.8125rem;
+  margin-bottom: var(--space-4);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--bg-hover);
+}
+
+.rg-impact.positive {
+  color: var(--success);
+}
+
+.rg-impact.negative {
+  color: var(--danger);
+}
+
+.attendance-table-wrap {
+  max-height: 220px;
+  overflow-y: auto;
+  margin-top: var(--space-4);
+}
+
+.attendance-table td {
+  font-size: 0.8125rem;
+}
+
+.downloads-toggle {
+  margin-bottom: var(--space-4);
+}
+
+.path-code {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.75rem;
+  color: var(--gold-300);
+}
+
 /* ---- Responsive ---- */
 @media (max-width: 1024px) {
   .stats-module-grid {
