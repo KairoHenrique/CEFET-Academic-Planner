@@ -24,7 +24,8 @@ export type IconName =
   | "chevron-left"
   | "chevron-right"
   | "chevron-up"
-  | "chevron-down";
+  | "chevron-down"
+  | "grip";
 
 interface IconProps extends SVGProps<SVGSVGElement> {
   name: IconName;
@@ -167,6 +168,16 @@ const paths: Record<IconName, React.ReactNode> = {
   "chevron-right": <polyline points="9 18 15 12 9 6" />,
   "chevron-up": <polyline points="18 15 12 9 6 15" />,
   "chevron-down": <polyline points="6 9 12 15 18 9" />,
+  grip: (
+    <>
+      <circle cx="9" cy="6" r="1.25" fill="currentColor" stroke="none" />
+      <circle cx="15" cy="6" r="1.25" fill="currentColor" stroke="none" />
+      <circle cx="9" cy="12" r="1.25" fill="currentColor" stroke="none" />
+      <circle cx="15" cy="12" r="1.25" fill="currentColor" stroke="none" />
+      <circle cx="9" cy="18" r="1.25" fill="currentColor" stroke="none" />
+      <circle cx="15" cy="18" r="1.25" fill="currentColor" stroke="none" />
+    </>
+  ),
 };
 
 export function Icon({ name, size = 20, className, ...props }: IconProps) {

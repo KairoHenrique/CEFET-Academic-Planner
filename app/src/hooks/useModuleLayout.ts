@@ -74,6 +74,20 @@ export function useModuleLayout(pageId: string, defaults: ModuleDefinition[]) {
     });
   };
 
+  const reorderModule = (sourceId: string, targetId: string) => {
+    if (sourceId === targetId) return;
+    setOrder((prev) => {
+      const from = prev.indexOf(sourceId);
+      const to = prev.indexOf(targetId);
+      if (from < 0 || to < 0) return prev;
+      const next = [...prev];
+      next.splice(from, 1);
+      next.splice(to, 0, sourceId);
+      persist(next, hidden);
+      return next;
+    });
+  };
+
   const toggleModule = (id: string) => {
     setHidden((prev) => {
       const next = prev.includes(id)
@@ -98,6 +112,7 @@ export function useModuleLayout(pageId: string, defaults: ModuleDefinition[]) {
     order,
     hidden,
     moveModule,
+    reorderModule,
     toggleModule,
     resetLayout,
     allModules: defaults,

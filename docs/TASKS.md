@@ -134,7 +134,12 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
 - [x] Hook `useModuleLayout` com persistência em `localStorage`
 - [x] Reordenar módulos (↑ ↓) nas páginas calendário e simulador
 - [x] Ocultar / mostrar módulos e restaurar layout padrão
-- [ ] Aplicar layout modular nas demais páginas (dashboard, disciplinas, mapa, integralização)
+- [x] Aplicar layout modular no dashboard e integralização (calendário e simulador já tinham)
+- [x] Arrastar e soltar módulos para reordenar (drag-and-drop)
+- [x] Corrigir modal centralizado na tela (calendário e demais páginas)
+- [x] Corrigir espaços vazios no calendário e integralização
+- [x] Filtros globais visíveis na página do calendário
+- [ ] Aplicar layout modular em disciplinas e mapa (páginas com módulo único)
 
 ---
 
@@ -233,7 +238,7 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
 - [x] Redesign visual paleta Cruzeiro (fundo jersey, dourado, ícones SVG, sem emojis)
 - [x] Corrigir espaçamento vazio no dashboard (grid unificado)
 - [x] Melhorar contraste e legibilidade (cards, badges, bordas)
-- [ ] Revisar todas as telas para consistência visual
+- [x] Revisar telas calendário, integralização e modal para consistência visual
 - [ ] Adicionar animações de transição entre páginas
 - [ ] Adicionar loading skeletons em todas as telas
 - [x] Responsividade básica (breakpoints mobile/tablet/desktop)
