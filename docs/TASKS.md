@@ -101,7 +101,7 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
 - [x] Lista "Próximas Entregas" (5 próximas tarefas/avaliações)
 - [x] Modal com detalhes da tarefa ao clicar (descrição, entregáveis, link à disciplina)
 - [x] Grid de cards de disciplinas (nota, faltas, próxima atividade por matéria)
-- [x] Botão de re-sincronização manual (UI com progresso; integração scraper na Fase 2)
+- [x] Botão de re-sincronização na navbar (Sync SIGAA)
 
 ### 3.3 Grade Semanal (Horário de Aulas)
 - [x] Tabela visual: Segunda a Sexta × blocos de horário (M12, M34, M56, Almoço, T12, T34, Janta, N12, N34)

@@ -52,7 +52,7 @@ export function Navbar() {
               <Icon name={mobileOpen ? "close" : "menu"} size={18} />
             </button>
 
-            <SyncButton variant="navbar" />
+            <SyncButton />
 
             <div className="navbar-avatar" title="Minha Conta" role="img" aria-label="Perfil KH">
               KH
