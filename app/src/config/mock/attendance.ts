@@ -1,14 +1,6 @@
-export type AttendanceStatus = "presente" | "falta" | "nao_registrada";
-
-export interface AttendanceRecord {
-  date: string;
-  status: AttendanceStatus;
-}
-
-export interface AttendanceSummary {
-  records: AttendanceRecord[];
-  daysRemaining: number;
-}
+export type { AttendanceStatus, AttendanceRecord, AttendanceSummary } from "@/lib/types/attendance";
+export { attendanceStatusLabels } from "@/lib/types/attendance";
+import type { AttendanceRecord, AttendanceSummary } from "@/lib/types/attendance";
 
 const engSoftAttendance: AttendanceRecord[] = [
   { date: "10/02/2026", status: "presente" },
@@ -60,8 +52,3 @@ export function getAttendanceByCode(code: string): AttendanceSummary {
   );
 }
 
-export const attendanceStatusLabels: Record<AttendanceStatus, string> = {
-  presente: "Presente",
-  falta: "Falta",
-  nao_registrada: "Não registrada",
-};

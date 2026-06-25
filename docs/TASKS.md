@@ -49,8 +49,29 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
   - Tabela `calendario_academico` (evento, data_inicio, data_fim, semestre)
   - Tabela `configuracoes` (chave, valor — para senha criptografada, pasta do banco, toggles de download, etc.)
 - [x] Criar funções CRUD para todas as tabelas
-- [ ] Criar migration/seed inicial
-- [ ] Configurar caminho do banco como variável de ambiente / configuração do usuário
+- [x] Criar migration/seed inicial
+- [x] Configurar caminho do banco como variável de ambiente / configuração do usuário
+
+### 1.4 API e Integração UI ↔ SQLite (Bloco 1)
+
+#### Fundação (B1–B5)
+- [x] B1 — Bootstrap do SQLite (`ensureDbReady`, migrations de colunas)
+- [x] B2 — CRUD completo em `lib/db/queries.ts` (todas as tabelas)
+- [x] B3 — `seed-demo.ts` (dados do aluno a partir dos mocks)
+- [x] B4 — Camada `lib/api/` (errors, response, validate, withDb)
+- [x] B5 — Tipos compartilhados em `lib/types/` (mocks reexportam)
+
+#### Sync e Dashboard (B6–B8)
+- [x] B6 — Serviço `lib/sync/run-sync.ts` (pipeline de sync mock)
+- [x] B7 — `POST /api/sync`
+- [x] B8 — `GET /api/dashboard`
+
+#### Integração frontend (pendente)
+- [ ] F1 — `lib/api/client.ts`
+- [ ] F2 — `useSync` → `/api/sync`
+- [ ] F3 — Login com credenciais reais
+- [ ] F4 — Dashboard via API
+- [ ] F5 — Loading/erro no dashboard
 
 ---
 

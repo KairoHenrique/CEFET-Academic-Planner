@@ -1,0 +1,23 @@
+import { apiErrorResponse, apiSuccess } from "@/lib/api/response";
+import { parseSyncRequest } from "@/lib/api/validate";
+import { withDb } from "@/lib/api/with-db";
+import { runSync } from "@/lib/sync/run-sync";
+import { ApiError } from "@/lib/api/errors";
+
+export const POST = withDb(async (request) => {
+  try {
+    const body = await request.json();
+    const credentials = parseSyncRequest(body);
+    const result = runSync(credentials);
+
+    return apiSuccess({
+      ok: true as const,
+      steps: result.steps,
+    });
+  } catch (error) {
+    if (error instanceof ApiError) {
+      return apiErrorResponse(error);
+    }
+    return apiErrorResponse(error);
+  }
+});
