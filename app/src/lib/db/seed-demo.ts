@@ -1,0 +1,142 @@
+import { academicDates } from "@/config/mock/calendar";
+import { getAttendanceByCode } from "@/config/mock/attendance";
+import { integrationCategories } from "@/config/mock/integration";
+import { semesterSubjects } from "@/config/mock/subjects";
+import { academicTasks } from "@/config/mock/tasks";
+import {
+  clearSyncedStudentData,
+  saveAluno,
+  saveCalendarioEvent,
+  saveDisciplina,
+  saveFalta,
+  saveIntegralizacao,
+  saveNota,
+  saveSemestreAtual,
+  saveTarefa,
+} from "./queries";
+import { seedPpcIfEmpty } from "./seed-ppc";
+
+const SEMESTRE_ATUAL = "2026.1";
+
+function parseBrDateToIso(date: string): string {
+  const [day, month, year] = date.split("/").map(Number);
+  return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}
+
+function parseAcademicDateRange(label: string, date: string): {
+  dataInicio: string;
+  dataFim: string | null;
+} {
+  if (date.includes("–") || date.includes("-")) {
+    const separator = date.includes("–") ? "–" : "-";
+    const [startRaw, endRaw] = date.split(separator).map((part) => part.trim());
+    const yearMatch = endRaw.match(/\d{4}/);
+    const year = yearMatch?.[0] ?? "2026";
+    const startParts = startRaw.split("/");
+    const endParts = endRaw.replace(/\s*\d{4}/, "").trim().split("/");
+    const dataInicio = parseBrDateToIso(`${startParts[0]}/${startParts[1]}/${year}`);
+    const dataFim = parseBrDateToIso(`${endParts[0]}/${endParts[1]}/${year}`);
+    return { dataInicio, dataFim };
+  }
+
+  return { dataInicio: parseBrDateToIso(date), dataFim: null };
+}
+
+export function seedDemoStudentData(): void {
+  seedPpcIfEmpty();
+  clearSyncedStudentData();
+
+  saveAluno({
+    matricula: "2024001234",
+    nome: "Kairo",
+    curso: "Engenharia de Computação",
+    email: "kairo@aluno.cefetmg.br",
+    semestre_entrada: "2024.1",
+    rg: 56.33,
+    status: "Regular",
+  });
+
+  for (const subject of semesterSubjects) {
+    saveDisciplina({
+      codigo: subject.code,
+      nome: subject.name,
+      tipo: "Obrigatória",
+      carga_horaria: subject.ch ?? 60,
+      periodo: null,
+      ementa: subject.ementa,
+    });
+
+    saveSemestreAtual({
+      disciplina_id: subject.code,
+      local: subject.room,
+      codigo_horario: null,
+      horario_traduzido: subject.schedule ?? null,
+      cor: subject.color,
+      professor: subject.professor ?? null,
+      max_faltas: subject.maxAbsences,
+      nota_maxima: subject.gradeMax,
+      nota_aprovacao: subject.passingGrade,
+      arquivos_baixados: subject.downloadedFiles,
+      pdf_auto_download: subject.pdfAutoDownload ? 1 : 0,
+    });
+
+    for (const evaluation of subject.evaluations) {
+      saveNota({
+        disciplina_id: subject.code,
+        avaliacao_nome: evaluation.name,
+        nota_maxima: evaluation.max,
+        nota_obtida: evaluation.score,
+        manual: evaluation.manual ? 1 : 0,
+      });
+    }
+
+    const attendance = getAttendanceByCode(subject.code);
+    for (const record of attendance.records) {
+      saveFalta({
+        disciplina_id: subject.code,
+        data: record.date,
+        status: record.status,
+      });
+    }
+  }
+
+  for (const task of academicTasks) {
+    saveTarefa({
+      disciplina_id: task.subjectCode,
+      titulo: task.title,
+      descricao: task.description,
+      data_inicio: null,
+      data_fim: parseBrDateToIso(task.date),
+      tipo: task.type,
+      possui_nota: task.hasGrade ? 1 : 0,
+      concluida: task.done ? 1 : 0,
+      manual: 0,
+      instrucoes: JSON.stringify(task.instructions),
+      entregaveis: JSON.stringify(task.deliverables),
+      pontuacao_maxima: task.maxGrade ?? null,
+    });
+  }
+
+  for (const category of integrationCategories) {
+    saveIntegralizacao({
+      tipo_ch: category.label,
+      total_necessario: category.total,
+      concluido: category.done,
+      pendente: category.total - category.done,
+      manual: 0,
+    });
+  }
+
+  for (const academicDate of academicDates) {
+    const { dataInicio, dataFim } = parseAcademicDateRange(
+      academicDate.label,
+      academicDate.date
+    );
+    saveCalendarioEvent({
+      evento: academicDate.label,
+      data_inicio: dataInicio,
+      data_fim: dataFim,
+      semestre: SEMESTRE_ATUAL,
+    });
+  }
+}

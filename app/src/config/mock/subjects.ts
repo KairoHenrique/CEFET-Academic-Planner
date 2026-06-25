@@ -1,29 +1,5 @@
-export interface SubjectEvaluation {
-  name: string;
-  max: number;
-  score: number | null;
-  manual?: boolean;
-}
-
-export interface Subject {
-  name: string;
-  code: string;
-  room: string;
-  grade: number | null;
-  gradeMax: number;
-  passingGrade: number;
-  evaluations: SubjectEvaluation[];
-  absences: number;
-  maxAbsences: number;
-  tasks: number;
-  color: string;
-  professor?: string;
-  schedule?: string;
-  ch?: number;
-  ementa: string;
-  downloadedFiles: number;
-  pdfAutoDownload: boolean;
-}
+export type { SubjectEvaluation, Subject } from "@/lib/types/subject";
+import type { Subject, SubjectEvaluation } from "@/lib/types/subject";
 
 const standardEvaluations = (
   scores: Partial<Record<string, number | null>> = {}

@@ -6,4 +6,4 @@ export const integrationCategories = [
   { label: "Flexibilizada", done: 0, total: 30, color: "blue" as const },
 ];
 
-export const INTEGRATION_TOTAL_HOURS = 4320;
+export { INTEGRATION_TOTAL_HOURS } from "@/lib/types/integration";
