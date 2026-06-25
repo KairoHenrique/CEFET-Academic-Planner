@@ -3,78 +3,100 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-
-const navLinks = [
-  { href: "/", label: "Dashboard", icon: "📊" },
-  { href: "/calendario", label: "Calendário", icon: "📅" },
-  { href: "/disciplinas", label: "Disciplinas", icon: "📚" },
-  { href: "/mapa", label: "Mapa do Curso", icon: "🗺️" },
-  { href: "/integralizacao", label: "Integralização", icon: "📈" },
-  { href: "/simulador", label: "Simulador", icon: "🧮" },
-];
+import { brand } from "@/config/brand";
+import { navLinks } from "@/config/navigation";
+import { BrandLogo } from "@/components/ui/BrandLogo";
+import { Icon } from "@/components/ui/Icon";
 
 export function Navbar() {
   const pathname = usePathname();
   const [syncing, setSyncing] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleSync = () => {
     setSyncing(true);
-    // TODO: Implementar sincronização real com SIGAA
     setTimeout(() => setSyncing(false), 2000);
   };
 
-  return (
-    <nav className="navbar" role="navigation" aria-label="Navegação principal">
-      <div className="navbar-inner">
-        {/* Brand */}
-        <Link href="/" className="navbar-brand">
-          <span className="brand-icon">🎓</span>
-          <span>Academic Planner</span>
-        </Link>
+  const isActive = (href: string) =>
+    href === "/" ? pathname === "/" : pathname.startsWith(href);
 
-        {/* Navigation Links (Apple-style) */}
-        <ul className="navbar-links">
+  return (
+    <>
+      <nav className="navbar" role="navigation" aria-label="Navegação principal">
+        <div className="navbar-inner">
+          <Link href="/" className="navbar-brand">
+            <BrandLogo />
+            <span>{brand.name}</span>
+          </Link>
+
+          <ul className="navbar-links">
+            {navLinks.map((link) => (
+              <li key={link.href}>
+                <Link
+                  href={link.href}
+                  className={isActive(link.href) ? "active" : ""}
+                >
+                  <span className="navbar-link-icon">
+                    <Icon name={link.icon} size={16} />
+                  </span>
+                  <span>{link.label}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+
+          <div className="navbar-actions">
+            <button
+              className="navbar-menu-btn"
+              onClick={() => setMobileOpen((o) => !o)}
+              aria-label={mobileOpen ? "Fechar menu" : "Abrir menu"}
+              aria-expanded={mobileOpen}
+            >
+              <Icon name={mobileOpen ? "close" : "menu"} size={18} />
+            </button>
+
+            <button
+              className="navbar-sync-btn"
+              onClick={handleSync}
+              disabled={syncing}
+              title="Sincronizar com SIGAA"
+            >
+              <Icon
+                name="sync"
+                size={15}
+                className={syncing ? "sync-icon-spinning" : undefined}
+              />
+              <span>{syncing ? "Sincronizando" : "Sync SIGAA"}</span>
+            </button>
+
+            <div className="navbar-avatar" title="Minha Conta" role="img" aria-label="Perfil KH">
+              KH
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <div
+        className={`mobile-nav ${mobileOpen ? "open" : ""}`}
+        role="dialog"
+        aria-label="Menu de navegação"
+      >
+        <ul className="mobile-nav-list">
           {navLinks.map((link) => (
             <li key={link.href}>
               <Link
                 href={link.href}
-                className={pathname === link.href ? "active" : ""}
+                className={isActive(link.href) ? "active" : ""}
+                onClick={() => setMobileOpen(false)}
               >
-                <span>{link.icon}</span>
+                <Icon name={link.icon} size={18} />
                 <span>{link.label}</span>
               </Link>
             </li>
           ))}
         </ul>
-
-        {/* Actions */}
-        <div className="navbar-actions">
-          <button
-            className="navbar-sync-btn"
-            onClick={handleSync}
-            disabled={syncing}
-            title="Sincronizar com SIGAA"
-          >
-            <span style={{ 
-              display: "inline-block",
-              animation: syncing ? "spin 1s linear infinite" : "none" 
-            }}>
-              🔄
-            </span>
-            <span>{syncing ? "Sincronizando..." : "Sync SIGAA"}</span>
-          </button>
-          <div className="navbar-avatar" title="Minha Conta">
-            KH
-          </div>
-        </div>
       </div>
-
-      <style jsx>{`
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
-    </nav>
+    </>
   );
 }

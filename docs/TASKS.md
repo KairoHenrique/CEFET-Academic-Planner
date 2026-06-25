@@ -35,7 +35,7 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
 - [x] Adicionar micro-animações (hover, transitions, loading states)
 
 ### 1.3 Banco de Dados (SQLite)
-- [ ] Criar schema completo do banco de dados:
+- [x] Criar schema completo do banco de dados:
   - Tabela `aluno` (matricula, nome, curso, email, semestre_entrada, rg, status)
   - Tabela `disciplinas` (codigo, nome, tipo, carga_horaria, periodo, ementa)
   - Tabela `requisitos` (disciplina_id, requisito_id, tipo: 'pre' | 'co')
@@ -48,7 +48,7 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
   - Tabela `integralizacao` (tipo_ch, total_necessario, concluido, pendente, manual: bool)
   - Tabela `calendario_academico` (evento, data_inicio, data_fim, semestre)
   - Tabela `configuracoes` (chave, valor — para senha criptografada, pasta do banco, toggles de download, etc.)
-- [ ] Criar funções CRUD para todas as tabelas
+- [x] Criar funções CRUD para todas as tabelas
 - [ ] Criar migration/seed inicial
 - [ ] Configurar caminho do banco como variável de ambiente / configuração do usuário
 

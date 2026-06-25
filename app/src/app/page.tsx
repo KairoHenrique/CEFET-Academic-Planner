@@ -7,35 +7,31 @@ import { IntegrationProgress } from "@/components/dashboard/IntegrationProgress"
 export default function DashboardPage() {
   return (
     <div className="animate-fade-in">
-      {/* Page Header */}
-      <div className="page-header">
-        <h1>Bom dia, Kairo 👋</h1>
+      <header className="page-header">
+        <p className="page-header-eyebrow">Semestre 2026.1</p>
+        <h1>
+          Bom dia, <span className="highlight">Kairo</span>
+        </h1>
         <p className="subtitle">
-          Semestre 2026.1 · Engenharia de Computação · CEFET-MG Divinópolis
+          Engenharia de Computação · CEFET-MG Divinópolis
         </p>
-      </div>
+      </header>
 
-      {/* Stats Row (RG, Integralização, Faltas, Tarefas) */}
       <StatsRow />
 
-      {/* Main Grid */}
-      <div className="dashboard-grid" style={{ marginTop: "var(--space-6)" }}>
-        {/* Próximas Entregas */}
+      <div className="dashboard-grid dashboard-section">
         <div className="col-8">
           <UpcomingTasks />
         </div>
 
-        {/* Progresso de Integralização */}
         <div className="col-4">
           <IntegrationProgress />
         </div>
 
-        {/* Grade da Semana (Preview) */}
         <div className="col-12">
           <WeeklySchedulePreview />
         </div>
 
-        {/* Disciplinas do Semestre */}
         <div className="col-12">
           <SubjectsGrid />
         </div>
