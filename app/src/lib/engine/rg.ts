@@ -1,7 +1,9 @@
-import type { Subject } from "@/config/mock/subjects";
+import type { Subject } from "@/lib/types/subject";
+
+type RgSubject = Pick<Subject, "code" | "grade" | "ch">;
 
 export function computeWeightedAverage(
-  subjects: Subject[],
+  subjects: RgSubject[],
   gradeOverrides: Record<string, number | null> = {}
 ): number | null {
   const withGrades = subjects.filter((subject) => {

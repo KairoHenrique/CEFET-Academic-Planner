@@ -12,6 +12,7 @@ export interface SubjectListItem {
   maxAbsences: number;
   tasks: number;
   color: string;
+  ch?: number;
   professor?: string;
   schedule?: string;
 }

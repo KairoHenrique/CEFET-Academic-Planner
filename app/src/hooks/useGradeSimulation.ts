@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { SubjectEvaluation } from "@/config/mock/subjects";
+import type { SubjectEvaluation } from "@/lib/types/subject";
 
 interface UseGradeSimulationOptions {
   evaluations: SubjectEvaluation[];

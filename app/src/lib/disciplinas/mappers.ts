@@ -24,6 +24,7 @@ export function parseJsonArray(value: string | null): string[] {
 
 export function mapNotasToEvaluations(notas: NotaRow[]): SubjectEvaluation[] {
   return notas.map((nota) => ({
+    id: nota.id,
     name: nota.avaliacao_nome,
     max: nota.nota_maxima ?? 0,
     score: nota.nota_obtida,

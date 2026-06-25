@@ -1326,6 +1326,28 @@ a:hover {
   }
 }
 
+.subject-list-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+}
+
+.subject-list-skeleton-row {
+  height: 52px;
+  border-radius: var(--radius-sm);
+}
+
+.subject-detail-skeleton {
+  height: 180px;
+  border-radius: var(--radius-md);
+}
+
+.data-table-fetching {
+  opacity: 0.72;
+  transition: opacity 0.2s ease;
+}
+
 /* ---- Page Toolbar & Filters ---- */
 .page-toolbar {
   display: flex;

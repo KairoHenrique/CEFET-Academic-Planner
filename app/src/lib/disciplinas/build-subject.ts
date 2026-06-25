@@ -32,6 +32,7 @@ export function buildSubjectListItem(
   const summary = buildSubjectSummary(semestre);
   return {
     ...summary,
+    ch: semestre.carga_horaria ?? undefined,
     professor: semestre.professor ?? undefined,
     schedule: semestre.horario_traduzido ?? undefined,
   };

@@ -5,7 +5,7 @@ import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Icon } from "@/components/ui/Icon";
 import { Modal } from "@/components/ui/Modal";
 import { Input } from "@/components/ui/Input";
-import type { Subject } from "@/config/mock/subjects";
+import type { Subject } from "@/lib/types/subject";
 import { RgImpactLabel } from "@/components/disciplinas/RgImpactLabel";
 import { useSubjectGrades } from "@/hooks/useSubjectGrades";
 
@@ -39,20 +39,26 @@ export function SubjectGradesPanel({ subject }: SubjectGradesPanelProps) {
     simulatedRg,
     currentTotal,
     addEvaluation,
+    isSaving,
+    saveError,
   } = grades;
 
-  const handleAddEvaluation = () => {
+  const handleAddEvaluation = async () => {
     const max = parseFloat(newMax);
     if (!newName.trim() || Number.isNaN(max) || max <= 0) return;
-    addEvaluation({
-      name: newName.trim().toUpperCase(),
-      max,
-      score: null,
-      manual: true,
-    });
-    setAddOpen(false);
-    setNewName("");
-    setNewMax("10");
+    try {
+      await addEvaluation({
+        name: newName.trim().toUpperCase(),
+        max,
+        score: null,
+        manual: true,
+      });
+      setAddOpen(false);
+      setNewName("");
+      setNewMax("10");
+    } catch {
+      // saveError surfaced via hook when mutation fails
+    }
   };
 
   const passingStatus =
@@ -191,7 +197,19 @@ export function SubjectGradesPanel({ subject }: SubjectGradesPanelProps) {
         <Input label="Nome" value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Ex.: TRABALHO" />
         <Input label="Nota máxima" type="number" min={1} value={newMax} onChange={(e) => setNewMax(e.target.value)} />
         <div className="detail-actions">
-          <button type="button" className="btn-gold" onClick={handleAddEvaluation}>Adicionar</button>
+          {saveError && (
+            <p className="form-error" role="alert">
+              {saveError}
+            </p>
+          )}
+          <button
+            type="button"
+            className="btn-gold"
+            onClick={() => void handleAddEvaluation()}
+            disabled={isSaving}
+          >
+            {isSaving ? "Salvando..." : "Adicionar"}
+          </button>
           <button type="button" className="btn-outline" onClick={() => setAddOpen(false)}>Cancelar</button>
         </div>
       </Modal>
