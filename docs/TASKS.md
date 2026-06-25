@@ -58,7 +58,7 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
 
 ### 1.4 API e Integração UI ↔ SQLite
 
-> **Progresso:** Etapas 1–2 ✅ · Etapa 3A backend (B9–B12) ✅ · próximo: F6–F8 (disciplinas no front).
+> **Progresso:** Etapas 1–2 ✅ · Etapa 3A ✅ (B9–B12 + F6–F8) · próximo: **3B Calendário** (B13–F10).
 
 Roadmap detalhado por blocos (back/front, ordem de execução): ver seção **[Roadmap por Blocos](#roadmap-por-blocos-ordem-de-execução)** abaixo.
 
@@ -82,13 +82,13 @@ Estratégia: **fatias verticais** — backend da feature primeiro, depois fronte
 
 Legenda rápida: linha `[x]` = fatia concluída · linha `[ ]` = pendente · `·` = tasks extras na mesma fatia.
 
-### Bloco 1 — API + UI ↔ SQLite `🟡 em progresso (20/42)`
+### Bloco 1 — API + UI ↔ SQLite `🟡 em progresso (23/42)`
 
 - [x] **BACK:**  B1 → B2 → B3 → B4 → B5
 - [x] **BACK:**  B6 → B7 → B8
 - [x] **FRONT:** F1 → F2 → F3 → F4 → F5 · F5b · F5c
 - [x] **BACK:**  B9 → B10 → B11 → B12
-- [ ] **FRONT:** F6 → F7 → F8
+- [x] **FRONT:** F6 → F7 → F8
 - [ ] **BACK:**  B13 → B14 → B15
 - [ ] **FRONT:** F9 → F10
 - [ ] **BACK:**  B16 → B17
@@ -139,7 +139,7 @@ Legenda rápida: linha `[x]` = fatia concluída · linha `[ ]` = pendente · `·
 
 | Bloco | Status | Concluído |
 |-------|--------|-----------|
-| 1 — API + SQLite | 🟡 Em progresso | 20 / 42 (Etapas 1–2 + 3A back ✅) |
+| 1 — API + SQLite | 🟡 Em progresso | 23 / 42 (Etapas 1–2 + 3A ✅) |
 | 2 — Scraper SIGAA | ⬜ Não iniciado | 0 / 10 |
 | 3 — Inteligência acadêmica | ⬜ Não iniciado | 0 / 11 |
 | 4 — Polimento | ⬜ Não iniciado | 0 / 5 |
@@ -183,7 +183,7 @@ Objetivo: app deixa de ser só mock; dados fluem **SQLite → API → React**.
 
 #### Etapa 3 — Demais telas (back → front)
 
-> **3A Disciplinas:** backend ✅ (B9–B12) · front pendente (F6–F8)
+> **3A Disciplinas:** backend ✅ (B9–B12) · front ✅ (F6–F8) · próximo: **3B Calendário** (B13–B15)
 
 ##### 3A — Disciplinas
 
@@ -193,9 +193,9 @@ Objetivo: app deixa de ser só mock; dados fluem **SQLite → API → React**.
 | B10 | Back | `GET /api/disciplinas/[code]` (detalhe: ementa, notas, faltas, tarefas, grupo) | [x] |
 | B11 | Back | `PATCH /api/disciplinas/[code]/notas` — avaliação manual | [x] |
 | B12 | Back | `PATCH /api/tarefas/[id]` — marcar concluída | [x] |
-| F6 | Front | `/disciplinas` — `SubjectList` via API (introduzir **TanStack Query**) | [ ] |
-| F7 | Front | `/disciplinas/[code]` — painéis via API | [ ] |
-| F8 | Front | `useSubjectGrades` lê/escreve notas via API | [ ] |
+| F6 | Front | `/disciplinas` — `SubjectList` via API (introduzir **TanStack Query**) | [x] |
+| F7 | Front | `/disciplinas/[code]` — painéis via API | [x] |
+| F8 | Front | `useSubjectGrades` lê/escreve notas via API | [x] |
 
 ##### 3B — Calendário
 
@@ -558,4 +558,4 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
    - Faça **commit** ao finalizar (push não é obrigatório).
 8. **Código frontend** está em `app/src/` (não na raiz `src/`). Mock data em `app/src/config/mock/`.
 9. **Roadmap por blocos** (back/front, ordem de execução) está na seção [Roadmap por Blocos](#roadmap-por-blocos-ordem-de-execução). **Checklist linear com progresso:** [Checklist mestre](#checklist-mestre-ordem-linear). Siga a ordem `B` antes de `F` dentro de cada etapa.
-10. **Auditoria de status:** tasks `[x]` nas Fases 3–6 significam **UI shell** (muitas ainda em `config/mock/`). Integração real com SQLite segue o [Checklist mestre](#checklist-mestre-ordem-linear) (Bloco 1: Etapas 1–2 + B9–B12 ✅; próximo: F6–F8). Última auditoria: 25/jun/2026.
+10. **Auditoria de status:** tasks `[x]` nas Fases 3–6 significam **UI shell** (muitas ainda em `config/mock/`). Integração real com SQLite segue o [Checklist mestre](#checklist-mestre-ordem-linear) (Bloco 1: Etapa 3A disciplinas ✅; próximo: calendário). Última auditoria: 25/jun/2026.

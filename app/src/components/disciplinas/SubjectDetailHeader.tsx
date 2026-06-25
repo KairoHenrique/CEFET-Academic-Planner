@@ -1,4 +1,4 @@
-import type { Subject } from "@/config/mock/subjects";
+import type { Subject } from "@/lib/types/subject";
 import { Icon } from "@/components/ui/Icon";
 
 interface SubjectDetailHeaderProps {

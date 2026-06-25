@@ -3,8 +3,7 @@
 import Link from "next/link";
 import { PageGrid } from "@/components/layout/PageGrid";
 import { ModuleGrid } from "@/components/layout/ModuleGrid";
-import type { Subject } from "@/config/mock/subjects";
-import { getAttendanceByCode } from "@/config/mock/attendance";
+import { DashboardStateCard } from "@/components/dashboard/DashboardStateCard";
 import { SubjectDetailHeader } from "@/components/disciplinas/SubjectDetailHeader";
 import { SubjectGradesPanel } from "@/components/disciplinas/SubjectGradesPanel";
 import { SubjectAbsencePanel } from "@/components/disciplinas/SubjectAbsencePanel";
@@ -12,6 +11,7 @@ import { SubjectTasksPanel } from "@/components/disciplinas/SubjectTasksPanel";
 import { SubjectSyllabusPanel } from "@/components/disciplinas/SubjectSyllabusPanel";
 import { SubjectDownloadsPanel } from "@/components/disciplinas/SubjectDownloadsPanel";
 import { Icon } from "@/components/ui/Icon";
+import { useDisciplina } from "@/hooks/useDisciplina";
 import {
   useModuleLayout,
   type ModuleDefinition,
@@ -26,12 +26,53 @@ const MODULES: ModuleDefinition[] = [
 ];
 
 interface SubjectDetailViewProps {
-  subject: Subject;
+  code: string;
 }
 
-export function SubjectDetailView({ subject }: SubjectDetailViewProps) {
-  const layout = useModuleLayout(`subject-${subject.code}`, MODULES);
-  const attendance = getAttendanceByCode(subject.code);
+export function SubjectDetailView({ code }: SubjectDetailViewProps) {
+  const layout = useModuleLayout(`subject-${code}`, MODULES);
+  const { data, isLoading, error, notFound, refetch } = useDisciplina(code);
+
+  if (!layout.hydrated) return null;
+
+  if (isLoading) {
+    return (
+      <PageGrid>
+        <div className="col-12">
+          <div className="skeleton subject-detail-skeleton" aria-busy="true" aria-label="Carregando disciplina" />
+        </div>
+      </PageGrid>
+    );
+  }
+
+  if (notFound) {
+    return (
+      <PageGrid>
+        <DashboardStateCard
+          title="Disciplina não encontrada"
+          message="Esta matéria não está no semestre atual ou o código é inválido."
+          actionLabel="Voltar para disciplinas"
+          actionHref="/disciplinas"
+        />
+      </PageGrid>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <PageGrid>
+        <DashboardStateCard
+          variant="error"
+          title="Erro ao carregar disciplina"
+          message={error ?? "Não foi possível carregar os dados."}
+          actionLabel="Tentar novamente"
+          onRetry={() => void refetch()}
+        />
+      </PageGrid>
+    );
+  }
+
+  const { subject, tasks, attendance } = data;
 
   const renderModule = (id: string) => {
     switch (id) {
@@ -49,7 +90,7 @@ export function SubjectDetailView({ subject }: SubjectDetailViewProps) {
           />
         );
       case "tasks":
-        return <SubjectTasksPanel subjectCode={subject.code} />;
+        return <SubjectTasksPanel subjectCode={subject.code} tasks={tasks} />;
       case "downloads":
         return (
           <SubjectDownloadsPanel
@@ -63,8 +104,6 @@ export function SubjectDetailView({ subject }: SubjectDetailViewProps) {
         return null;
     }
   };
-
-  if (!layout.hydrated) return null;
 
   return (
     <PageGrid>

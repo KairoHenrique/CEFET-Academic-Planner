@@ -1,4 +1,5 @@
 export interface SubjectEvaluation {
+  id?: number;
   name: string;
   max: number;
   score: number | null;
