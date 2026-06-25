@@ -1,0 +1,158 @@
+import type { DashboardResponse } from "@/lib/types/dashboard";
+import type {
+  DisciplinaListFilter,
+  DisciplinaListResponse,
+  PatchNotasBody,
+  PatchNotasResponse,
+  PatchTarefaBody,
+  SubjectDetailResponse,
+} from "@/lib/types/disciplinas-api";
+import type { SyncRequest, SyncSuccessResponse } from "@/lib/types/sync";
+
+export type ClientErrorCode =
+  | "VALIDATION_ERROR"
+  | "INVALID_CREDENTIALS"
+  | "SIGAA_OFFLINE"
+  | "NOT_FOUND"
+  | "INTERNAL_ERROR"
+  | "NETWORK_ERROR"
+  | "UNKNOWN";
+
+interface ApiFailureBody {
+  ok?: false;
+  code?: ClientErrorCode;
+  message?: string;
+}
+
+export class ApiClientError extends Error {
+  readonly code: ClientErrorCode;
+  readonly status: number;
+
+  constructor(message: string, code: ClientErrorCode, status: number) {
+    super(message);
+    this.name = "ApiClientError";
+    this.code = code;
+    this.status = status;
+  }
+}
+
+async function parseJsonBody<T>(response: Response): Promise<T> {
+  try {
+    return (await response.json()) as T;
+  } catch {
+    throw new ApiClientError(
+      "Resposta inválida do servidor.",
+      "UNKNOWN",
+      response.status
+    );
+  }
+}
+
+async function requestJson<T>(
+  path: string,
+  init?: RequestInit
+): Promise<T> {
+  let response: Response;
+
+  try {
+    response = await fetch(path, {
+      ...init,
+      headers: {
+        "Content-Type": "application/json",
+        ...init?.headers,
+      },
+    });
+  } catch {
+    throw new ApiClientError(
+      "Não foi possível conectar ao servidor. Verifique se o app está rodando.",
+      "NETWORK_ERROR",
+      0
+    );
+  }
+
+  const body = await parseJsonBody<T & ApiFailureBody>(response);
+
+  if (!response.ok) {
+    throw new ApiClientError(
+      body.message ?? "Falha na requisição.",
+      body.code ?? "INTERNAL_ERROR",
+      response.status
+    );
+  }
+
+  return body;
+}
+
+export async function postSync(
+  credentials: SyncRequest
+): Promise<SyncSuccessResponse> {
+  return requestJson<SyncSuccessResponse>("/api/sync", {
+    method: "POST",
+    body: JSON.stringify(credentials),
+  });
+}
+
+export async function getDashboard(): Promise<DashboardResponse> {
+  return requestJson<DashboardResponse>("/api/dashboard");
+}
+
+function buildDisciplinaListQuery(
+  q?: string,
+  filter?: DisciplinaListFilter
+): string {
+  const params = new URLSearchParams();
+  if (q) params.set("q", q);
+  if (filter && filter !== "todas") params.set("filter", filter);
+  const query = params.toString();
+  return query ? `?${query}` : "";
+}
+
+export async function getDisciplinas(
+  q?: string,
+  filter?: DisciplinaListFilter
+): Promise<DisciplinaListResponse> {
+  return requestJson<DisciplinaListResponse>(
+    `/api/disciplinas${buildDisciplinaListQuery(q, filter)}`
+  );
+}
+
+export async function getDisciplina(
+  code: string
+): Promise<SubjectDetailResponse> {
+  return requestJson<SubjectDetailResponse>(
+    `/api/disciplinas/${encodeURIComponent(code)}`
+  );
+}
+
+export async function patchDisciplinaNotas(
+  code: string,
+  body: PatchNotasBody
+): Promise<PatchNotasResponse> {
+  return requestJson<PatchNotasResponse>(
+    `/api/disciplinas/${encodeURIComponent(code)}/notas`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    }
+  );
+}
+
+export async function patchTarefa(
+  id: number,
+  body: PatchTarefaBody
+): Promise<{ id: number; concluida: boolean }> {
+  return requestJson<{ id: number; concluida: boolean }>(
+    `/api/tarefas/${id}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    }
+  );
+}
+
+export const SYNC_COMPLETE_EVENT = "planner:sync-complete";
+
+export function notifySyncComplete(): void {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new CustomEvent(SYNC_COMPLETE_EVENT));
+}

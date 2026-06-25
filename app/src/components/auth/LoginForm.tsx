@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/Input";
 import { SyncProgress } from "@/components/ui/SyncProgress";
 import { Icon } from "@/components/ui/Icon";
 import { useSync } from "@/hooks/useSync";
+import { saveSyncCredentials } from "@/lib/auth/credentials";
 import { setSession } from "@/lib/auth/session";
 import { BrandLogo } from "@/components/ui/BrandLogo";
 import { brand } from "@/config/brand";
@@ -23,19 +24,24 @@ export function LoginForm() {
     setFormError(null);
     sync.resetError();
 
-    if (!username.trim() || !password.trim()) {
+    const trimmedUsername = username.trim();
+
+    if (!trimmedUsername || !password.trim()) {
       setFormError("Preencha usuário e senha do SIGAA.");
       return;
     }
 
-    const simulateError =
-      password === "erro" ? "credentials" : username === "offline" ? "offline" : undefined;
+    const credentials = {
+      username: trimmedUsername,
+      password,
+    };
 
-    const ok = await sync.startSync({ simulateError });
+    const ok = await sync.startSync(credentials);
     if (!ok) return;
 
+    saveSyncCredentials(credentials, savePassword);
     setSession({
-      username: username.trim(),
+      username: trimmedUsername,
       savePassword,
       loggedAt: new Date().toISOString(),
     });
@@ -100,7 +106,11 @@ export function LoginForm() {
             className="btn-gold login-submit"
             disabled={sync.syncing}
           >
-            <Icon name="sync" size={16} className={sync.syncing ? "sync-icon-spinning" : undefined} />
+            <Icon
+              name="sync"
+              size={16}
+              className={sync.syncing ? "sync-icon-spinning" : undefined}
+            />
             {sync.syncing ? "Sincronizando…" : "Entrar e Sincronizar"}
           </button>
         </form>

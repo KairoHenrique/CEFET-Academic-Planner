@@ -1,23 +1,34 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import {
+  ApiClientError,
+  notifySyncComplete,
+  postSync,
+} from "@/lib/api/client";
+import { getSyncCredentials } from "@/lib/auth/credentials";
+import type { SyncRequest, SyncStep } from "@/lib/types/sync";
 
-export interface SyncStep {
-  label: string;
-  progress: number;
-}
-
-const SYNC_STEPS: SyncStep[] = [
-  { label: "Autenticando no SIGAA…", progress: 15 },
-  { label: "Carregando portal do discente…", progress: 35 },
-  { label: "Sincronizando disciplinas…", progress: 55 },
-  { label: "Baixando notas e faltas…", progress: 75 },
-  { label: "Atualizando calendário…", progress: 90 },
-  { label: "Concluído", progress: 100 },
-];
+const STEP_DELAY_MS = 280;
 
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function mapSyncError(error: unknown): string {
+  if (error instanceof ApiClientError) {
+    return error.message;
+  }
+  return "Falha na sincronização. Tente novamente.";
+}
+
+async function playSyncSteps(steps: SyncStep[], onStep: (step: SyncStep) => void) {
+  for (const step of steps) {
+    onStep(step);
+    if (step.progress < 100) {
+      await delay(STEP_DELAY_MS);
+    }
+  }
 }
 
 export function useSync() {
@@ -26,43 +37,36 @@ export function useSync() {
   const [stepLabel, setStepLabel] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  const startSync = useCallback(
-    async (options?: { simulateError?: "credentials" | "offline" }) => {
-      setSyncing(true);
-      setError(null);
-      setProgress(0);
+  const startSync = useCallback(async (credentials?: SyncRequest) => {
+    setSyncing(true);
+    setError(null);
+    setProgress(0);
+    setStepLabel("Iniciando sincronização…");
 
-      try {
-        for (const step of SYNC_STEPS) {
-          setStepLabel(step.label);
-          setProgress(step.progress);
-          await delay(500);
+    const creds = credentials ?? getSyncCredentials();
+    if (!creds) {
+      setError("Credenciais não encontradas. Faça login novamente.");
+      setSyncing(false);
+      return false;
+    }
 
-          if (options?.simulateError === "credentials" && step.progress === 15) {
-            throw new Error("credentials");
-          }
-          if (options?.simulateError === "offline" && step.progress === 35) {
-            throw new Error("offline");
-          }
-        }
-      } catch (err) {
-        const code = err instanceof Error ? err.message : "unknown";
-        if (code === "credentials") {
-          setError("Usuário ou senha inválidos. Verifique suas credenciais do SIGAA.");
-        } else if (code === "offline") {
-          setError("SIGAA indisponível no momento. Tente novamente mais tarde.");
-        } else {
-          setError("Falha na sincronização. Tente novamente.");
-        }
-        setSyncing(false);
-        return false;
-      }
+    try {
+      const result = await postSync(creds);
 
+      await playSyncSteps(result.steps, (step) => {
+        setStepLabel(step.label);
+        setProgress(step.progress);
+      });
+
+      notifySyncComplete();
       setSyncing(false);
       return true;
-    },
-    []
-  );
+    } catch (err) {
+      setError(mapSyncError(err));
+      setSyncing(false);
+      return false;
+    }
+  }, []);
 
   const resetError = useCallback(() => setError(null), []);
 
@@ -75,3 +79,5 @@ export function useSync() {
     resetError,
   };
 }
+
+export type { SyncStep };

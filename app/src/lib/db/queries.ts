@@ -133,6 +133,21 @@ export function getSemestreAtual(): SemestreAtualWithDisciplina[] {
     .all() as SemestreAtualWithDisciplina[];
 }
 
+export function getSemestreAtualByCodigo(
+  codigo: string
+): SemestreAtualWithDisciplina | undefined {
+  return db
+    .prepare(
+      `
+    SELECT sa.*, d.nome, d.carga_horaria
+    FROM semestre_atual sa
+    JOIN disciplinas d ON d.codigo = sa.disciplina_id
+    WHERE sa.disciplina_id = ? COLLATE NOCASE
+  `
+    )
+    .get(codigo) as SemestreAtualWithDisciplina | undefined;
+}
+
 export function getSemestreDisciplina(
   disciplinaId: string
 ): SemestreAtualRow | undefined {
@@ -189,6 +204,39 @@ export function saveNota(nota: Omit<NotaRow, "id">): void {
     VALUES (@disciplina_id, @avaliacao_nome, @nota_maxima, @nota_obtida, @manual)
   `
   ).run(nota);
+}
+
+export function getNotaById(id: number): NotaRow | undefined {
+  return db.prepare("SELECT * FROM notas WHERE id = ?").get(id) as
+    | NotaRow
+    | undefined;
+}
+
+export function notaNomeExists(
+  disciplinaId: string,
+  avaliacaoNome: string,
+  excludeId?: number
+): boolean {
+  const row = db
+    .prepare(
+      `
+    SELECT COUNT(*) as total FROM notas
+    WHERE disciplina_id = ? COLLATE NOCASE
+      AND avaliacao_nome = ? COLLATE NOCASE
+      AND (? IS NULL OR id != ?)
+  `
+    )
+    .get(disciplinaId, avaliacaoNome, excludeId ?? null, excludeId ?? null) as {
+    total: number;
+  };
+  return row.total > 0;
+}
+
+export function updateNotaObtida(id: number, notaObtida: number | null): number {
+  const result = db
+    .prepare(`UPDATE notas SET nota_obtida = ? WHERE id = ? AND manual = 1`)
+    .run(notaObtida, id);
+  return result.changes;
 }
 
 export function clearNotasSynced(): void {

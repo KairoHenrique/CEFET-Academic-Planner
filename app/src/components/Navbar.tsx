@@ -8,6 +8,7 @@ import { navLinks } from "@/config/navigation";
 import { BrandLogo } from "@/components/ui/BrandLogo";
 import { Icon } from "@/components/ui/Icon";
 import { SyncButton } from "@/components/ui/SyncButton";
+import { LogoutButton } from "@/components/auth/LogoutButton";
 
 export function Navbar() {
   const pathname = usePathname();
@@ -54,9 +55,11 @@ export function Navbar() {
 
             <SyncButton />
 
-            <div className="navbar-avatar" title="Minha Conta" role="img" aria-label="Perfil KH">
+            <div className="navbar-avatar" title="Minha Conta" role="img" aria-label="Perfil">
               KH
             </div>
+
+            <LogoutButton />
           </div>
         </div>
       </nav>
@@ -79,6 +82,12 @@ export function Navbar() {
               </Link>
             </li>
           ))}
+          <li className="mobile-nav-logout">
+            <LogoutButton
+              className="mobile-nav-logout-btn"
+              onLoggedOut={() => setMobileOpen(false)}
+            />
+          </li>
         </ul>
       </div>
     </>

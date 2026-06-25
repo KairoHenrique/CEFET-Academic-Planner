@@ -25,7 +25,8 @@ export type IconName =
   | "chevron-right"
   | "chevron-up"
   | "chevron-down"
-  | "grip";
+  | "grip"
+  | "logout";
 
 interface IconProps extends SVGProps<SVGSVGElement> {
   name: IconName;
@@ -176,6 +177,13 @@ const paths: Record<IconName, React.ReactNode> = {
       <circle cx="15" cy="12" r="1.25" fill="currentColor" stroke="none" />
       <circle cx="9" cy="18" r="1.25" fill="currentColor" stroke="none" />
       <circle cx="15" cy="18" r="1.25" fill="currentColor" stroke="none" />
+    </>
+  ),
+  logout: (
+    <>
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+      <polyline points="16 17 21 12 16 7" />
+      <line x1="21" y1="12" x2="9" y2="12" />
     </>
   ),
 };

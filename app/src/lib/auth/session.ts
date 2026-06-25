@@ -1,3 +1,5 @@
+import { clearSyncCredentials } from "@/lib/auth/credentials";
+
 const SESSION_KEY = "academic-planner-session";
 
 export interface AuthSession {
@@ -22,6 +24,7 @@ export function setSession(session: AuthSession) {
 
 export function clearSession() {
   localStorage.removeItem(SESSION_KEY);
+  clearSyncCredentials();
 }
 
 export function isAuthenticated(): boolean {
