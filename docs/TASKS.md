@@ -256,7 +256,6 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
 - [ ] Integrar Google Drive API para leitura do `.db`
 - [ ] Implementar modo offline
 - [ ] Adaptar UI para telas de celular
-- [ ] Publicar na Play Store / App Store
 
 ---
 
