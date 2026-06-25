@@ -34,7 +34,12 @@ export default async function SubjectDetailPage({ params }: SubjectDetailPagePro
       </div>
 
       <div className="col-6">
-        <SubjectGradesPanel grade={subject.grade} gradeMax={subject.gradeMax} />
+        <SubjectGradesPanel
+          grade={subject.grade}
+          gradeMax={subject.gradeMax}
+          passingGrade={subject.passingGrade}
+          evaluations={subject.evaluations}
+        />
       </div>
 
       <div className="col-6">

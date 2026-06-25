@@ -1845,6 +1845,54 @@ a:hover {
   border-color: var(--gold-400);
 }
 
+.grades-panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-4);
+}
+
+.grades-panel-header .section-header {
+  margin-bottom: 0;
+  flex: 1;
+}
+
+.grades-simulate-toggle {
+  margin-top: 0;
+  white-space: nowrap;
+}
+
+.grades-sim-input {
+  width: 100%;
+  max-width: 88px;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-default);
+  background: rgba(0, 0, 0, 0.2);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+
+.grades-sim-input:focus {
+  border-color: var(--gold-400);
+}
+
+.grades-min-cell {
+  font-size: 0.75rem;
+  color: var(--gold-300);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.grades-min-ok {
+  color: var(--success);
+}
+
 .enrollment-card {
   overflow: hidden;
 }

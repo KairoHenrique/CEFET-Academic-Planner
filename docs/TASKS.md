@@ -125,7 +125,7 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
 - [x] Template `/disciplinas/[code]` (detalhe: notas, faltas, tarefas)
 - [x] Template `/mapa` (grade curricular por período com status)
 - [x] Template `/integralizacao` (resumo, barras e tabela de CH)
-- [x] Template `/simulador` (notas + matrícula)
+- [x] Template `/simulador` (montar grade / matrícula)
 - [x] Página `not-found` customizada
 - [x] Layout compartilhado (`PageHeader`, `PageGrid`) e mock data em `config/mock/`
 - [x] Componentes UI base: `Modal`, `FilterBar`, `ActivityDetail`, `SectionHeader`, `Icon`
@@ -160,11 +160,13 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
 - [ ] Destaque da nota necessária para aprovação
 
 ### 4.3 Simulador de Notas
-- [x] Campos editáveis para inserir notas hipotéticas
+- [x] Mover simulador de notas para a página individual de cada disciplina
+- [x] Campos editáveis para inserir notas hipotéticas (modo "Simular notas" na matéria)
 - [x] Cálculo em tempo real da nota final
 - [x] Indicador "Aprovado" ou "Reprovado" simulado
 - [ ] Impacto simulado no RG do semestre
 - [x] Botão "Limpar Simulação" para voltar aos dados reais
+- [x] Exibir quanto falta em cada avaliação para atingir aprovação (coluna "Necessário")
 
 ### 4.4 Tela de Frequência
 - [ ] Tabela cronológica de datas e status (Presente/Falta/Não Registrada)
@@ -195,6 +197,7 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
 - [ ] Zoom e pan para navegação
 
 ### 5.3 Simulador de Matrícula (Pré-horário)
+- [x] Página dedicada apenas ao simulador de horários/matrícula (`/simulador` — Montar Grade)
 - [ ] Buscar turmas ofertadas do SIGAA (scraper)
 - [ ] Filtrar matérias elegíveis (cruza com histórico + pré-requisitos atendidos)
 - [x] Lista de matérias com ícones: Desbloqueada / Trancada (template mock)
