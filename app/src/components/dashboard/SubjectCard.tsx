@@ -1,5 +1,5 @@
 import { Icon } from "@/components/ui/Icon";
-import type { Subject } from "@/config/mock/subjects";
+import type { SubjectSummary } from "@/lib/types/subject";
 
 function getAbsenceStatus(current: number, max: number) {
   const ratio = current / max;
@@ -8,7 +8,7 @@ function getAbsenceStatus(current: number, max: number) {
   return { label: "Seguro", badgeClass: "success" as const };
 }
 
-export function SubjectCard({ subject }: { subject: Subject }) {
+export function SubjectCard({ subject }: { subject: SubjectSummary }) {
   const absenceStatus = getAbsenceStatus(subject.absences, subject.maxAbsences);
   const absenceRatio = (subject.absences / subject.maxAbsences) * 100;
 

@@ -1,0 +1,34 @@
+import { notFoundError } from "@/lib/api/errors";
+import {
+  getFaltasByDisciplina,
+  getGrupoByDisciplina,
+  getSemestreAtualByCodigo,
+  getTarefasByDisciplina,
+} from "@/lib/db/queries";
+import type { SubjectDetailResponse } from "@/lib/types/disciplinas-api";
+import { buildAttendanceSummary } from "./attendance";
+import { buildSubjectFromSemestre } from "./build-subject";
+import { mapGrupoMembros, mapTarefaToAcademicTask } from "./mappers";
+
+export function buildDisciplinaDetail(code: string): SubjectDetailResponse {
+  const semestre = getSemestreAtualByCodigo(code);
+  if (!semestre) {
+    throw notFoundError("Disciplina não encontrada no semestre atual.");
+  }
+
+  const subject = buildSubjectFromSemestre(semestre);
+  const faltas = getFaltasByDisciplina(semestre.disciplina_id);
+  const attendance = buildAttendanceSummary(faltas, subject.maxAbsences);
+  const grupo = mapGrupoMembros(
+    getGrupoByDisciplina(semestre.disciplina_id)
+  );
+
+  const tasks = getTarefasByDisciplina(semestre.disciplina_id).map((row) =>
+    mapTarefaToAcademicTask(
+      { ...row, disciplina_nome: semestre.nome },
+      subject.color
+    )
+  );
+
+  return { subject, tasks, attendance, grupo };
+}

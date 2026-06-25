@@ -1,18 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Icon } from "@/components/ui/Icon";
 import { Modal } from "@/components/ui/Modal";
 import { TaskDetailContent } from "@/components/ui/ActivityDetail";
-import {
-  academicTasks,
-  type AcademicTask,
-} from "@/config/mock/tasks";
+import type { AcademicTask } from "@/lib/types/task";
 
-export function UpcomingTasks() {
-  const [tasks, setTasks] = useState<AcademicTask[]>(academicTasks);
+interface UpcomingTasksProps {
+  tasks: AcademicTask[];
+}
+
+export function UpcomingTasks({ tasks: initialTasks }: UpcomingTasksProps) {
+  const [tasks, setTasks] = useState<AcademicTask[]>(initialTasks);
   const [selectedTask, setSelectedTask] = useState<AcademicTask | null>(null);
+
+  useEffect(() => {
+    setTasks(initialTasks);
+  }, [initialTasks]);
 
   const toggleTask = (id: number) => {
     setTasks((prev) =>
@@ -27,8 +32,7 @@ export function UpcomingTasks() {
   const completedTasks = tasks.filter((t) => t.done);
 
   const selectedFromState =
-    selectedTask &&
-    tasks.find((task) => task.id === selectedTask.id);
+    selectedTask && tasks.find((task) => task.id === selectedTask.id);
 
   return (
     <>
@@ -42,6 +46,10 @@ export function UpcomingTasks() {
         />
 
         <div className="task-list">
+          {pendingTasks.length === 0 && completedTasks.length === 0 && (
+            <p className="page-state-message">Nenhuma tarefa cadastrada.</p>
+          )}
+
           {pendingTasks.map((task) => (
             <TaskRow
               key={task.id}

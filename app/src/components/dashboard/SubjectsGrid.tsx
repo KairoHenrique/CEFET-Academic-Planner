@@ -1,8 +1,12 @@
 import { SectionHeader } from "@/components/ui/SectionHeader";
-import { semesterSubjects } from "@/config/mock/subjects";
+import type { SubjectSummary } from "@/lib/types/subject";
 import { SubjectCard } from "./SubjectCard";
 
-export function SubjectsGrid() {
+interface SubjectsGridProps {
+  disciplinas: SubjectSummary[];
+}
+
+export function SubjectsGrid({ disciplinas }: SubjectsGridProps) {
   return (
     <section>
       <SectionHeader
@@ -13,7 +17,7 @@ export function SubjectsGrid() {
       />
 
       <div className="subjects-grid">
-        {semesterSubjects.map((subject) => (
+        {disciplinas.map((subject) => (
           <SubjectCard key={subject.code} subject={subject} />
         ))}
       </div>
