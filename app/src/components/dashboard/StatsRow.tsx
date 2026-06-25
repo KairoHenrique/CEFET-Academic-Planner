@@ -39,10 +39,10 @@ const stats: {
 
 export function StatsRow() {
   return (
-    <div className="dashboard-grid stagger-children">
+    <>
       {stats.map((stat) => (
-        <div key={stat.label} className="col-3">
-          <div className="card">
+        <div key={stat.label} className="col-3 col-stat">
+          <div className="card stat-card">
             <p className="card-header">
               <span className="section-header-title">{stat.label}</span>
             </p>
@@ -58,6 +58,6 @@ export function StatsRow() {
           </div>
         </div>
       ))}
-    </div>
+    </>
   );
 }

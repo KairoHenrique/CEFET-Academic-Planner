@@ -6,8 +6,8 @@ import { IntegrationProgress } from "@/components/dashboard/IntegrationProgress"
 
 export default function DashboardPage() {
   return (
-    <div className="animate-fade-in">
-      <header className="page-header">
+    <div className="dashboard-page animate-fade-in">
+      <header className="page-header col-12">
         <p className="page-header-eyebrow">Semestre 2026.1</p>
         <h1>
           Bom dia, <span className="highlight">Kairo</span>
@@ -19,22 +19,20 @@ export default function DashboardPage() {
 
       <StatsRow />
 
-      <div className="dashboard-grid dashboard-section">
-        <div className="col-8">
-          <UpcomingTasks />
-        </div>
+      <div className="col-8">
+        <UpcomingTasks />
+      </div>
 
-        <div className="col-4">
-          <IntegrationProgress />
-        </div>
+      <div className="col-4">
+        <IntegrationProgress />
+      </div>
 
-        <div className="col-12">
-          <WeeklySchedulePreview />
-        </div>
+      <div className="col-12">
+        <WeeklySchedulePreview />
+      </div>
 
-        <div className="col-12">
-          <SubjectsGrid />
-        </div>
+      <div className="col-12">
+        <SubjectsGrid />
       </div>
     </div>
   );
