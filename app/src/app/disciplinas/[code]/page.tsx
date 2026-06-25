@@ -50,7 +50,7 @@ export default async function SubjectDetailPage({ params }: SubjectDetailPagePro
       </div>
 
       <div className="col-12">
-        <SubjectTasksPanel />
+        <SubjectTasksPanel subjectCode={subject.code} />
       </div>
     </PageGrid>
   );

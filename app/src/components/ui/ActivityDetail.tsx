@@ -5,6 +5,7 @@ import {
   formatEventDate,
 } from "@/config/mock/calendar";
 import type { ScheduleSlotData } from "@/config/mock/schedule";
+import type { AcademicTask } from "@/config/mock/tasks";
 import { Icon } from "./Icon";
 
 interface EventDetailContentProps {
@@ -112,6 +113,87 @@ interface DayEventsContentProps {
   monthLabel: string;
   events: CalendarEvent[];
   onSelectEvent: (event: CalendarEvent) => void;
+}
+
+interface TaskDetailContentProps {
+  task: AcademicTask;
+  onClose: () => void;
+  onToggleDone?: () => void;
+}
+
+export function TaskDetailContent({
+  task,
+  onClose,
+  onToggleDone,
+}: TaskDetailContentProps) {
+  return (
+    <>
+      <div className="detail-meta-row">
+        <span className="badge info">
+          {task.type === "grupo" ? "Grupo" : "Individual"}
+        </span>
+        <span className={`badge ${task.done ? "success" : "warning"}`}>
+          {task.done ? "Concluída" : "Pendente"}
+        </span>
+        <span className="detail-date">{task.date}</span>
+      </div>
+
+      <p className="detail-subject">
+        <span className="subject-dot" style={{ background: task.subjectColor }} />
+        {task.subject}
+      </p>
+
+      <p className="detail-description">{task.description}</p>
+
+      {task.instructions.length > 0 && (
+        <div className="detail-block">
+          <h4 className="detail-block-title">O que fazer</h4>
+          <ul className="detail-checklist">
+            {task.instructions.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {task.deliverables.length > 0 && (
+        <div className="detail-block">
+          <h4 className="detail-block-title">Entregáveis</h4>
+          <ul className="detail-checklist">
+            {task.deliverables.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {task.hasGrade && task.maxGrade !== undefined && (
+        <p className="detail-grade-note">
+          Vale até <strong>{task.maxGrade} pontos</strong> na disciplina.
+        </p>
+      )}
+
+      <div className="detail-actions">
+        <Link
+          href={`/disciplinas/${task.subjectCode}`}
+          className="btn-gold"
+          onClick={onClose}
+        >
+          <Icon name="books" size={14} />
+          Ver disciplina
+        </Link>
+        {onToggleDone && (
+          <button type="button" className="btn-outline" onClick={onToggleDone}>
+            <Icon name="check" size={14} />
+            {task.done ? "Marcar pendente" : "Marcar concluída"}
+          </button>
+        )}
+        <button type="button" className="btn-outline" onClick={onClose}>
+          Fechar
+        </button>
+      </div>
+    </>
+  );
 }
 
 export function DayEventsContent({

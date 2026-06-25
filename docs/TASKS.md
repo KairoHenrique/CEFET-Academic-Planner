@@ -99,6 +99,7 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
 - [x] Card de RG com indicador visual (cor baseada na faixa)
 - [x] Barra de integralização com breakdown por tipo de CH
 - [x] Lista "Próximas Entregas" (5 próximas tarefas/avaliações)
+- [x] Modal com detalhes da tarefa ao clicar (descrição, entregáveis, link à disciplina)
 - [x] Grid de cards de disciplinas (nota, faltas, próxima atividade por matéria)
 - [ ] Botão de re-sincronização manual (Integrar com scraper real)
 
@@ -151,6 +152,7 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
 - [x] Card de Nota Atual (tabela de avaliações, pontos faltando — template mock)
 - [x] Card de Faltas (barra de progresso até o limite, cores por zona de risco — template mock)
 - [x] Lista de Tarefas (com data e tipo — template mock)
+- [x] Clique na tarefa abre modal com descrição, instruções e entregáveis
 
 ### 4.2 Tabela de Notas Detalhada
 - [x] Tabela com avaliações mock (PRO1, SEM, PRO2, Nota)
