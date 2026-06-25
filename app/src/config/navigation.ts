@@ -12,5 +12,5 @@ export const navLinks: NavLink[] = [
   { href: "/disciplinas", label: "Disciplinas", icon: "books" },
   { href: "/mapa", label: "Mapa do Curso", icon: "map" },
   { href: "/integralizacao", label: "Integralização", icon: "chart" },
-  { href: "/simulador", label: "Simulador", icon: "calculator" },
+  { href: "/simulador", label: "Montar Grade", icon: "calendar" },
 ];

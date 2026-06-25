@@ -1,5 +1,5 @@
-import { SimuladorView } from "@/components/simulador/SimuladorView";
+import { MatriculaView } from "@/components/simulador/MatriculaView";
 
 export default function SimuladorPage() {
-  return <SimuladorView />;
+  return <MatriculaView />;
 }
