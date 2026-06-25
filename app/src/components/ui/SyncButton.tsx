@@ -4,11 +4,7 @@ import { Icon } from "@/components/ui/Icon";
 import { SyncProgress } from "@/components/ui/SyncProgress";
 import { useSync } from "@/hooks/useSync";
 
-interface SyncButtonProps {
-  variant?: "navbar" | "dashboard";
-}
-
-export function SyncButton({ variant = "dashboard" }: SyncButtonProps) {
+export function SyncButton() {
   const sync = useSync();
 
   const handleClick = () => {
@@ -16,14 +12,15 @@ export function SyncButton({ variant = "dashboard" }: SyncButtonProps) {
     void sync.startSync();
   };
 
-  if (variant === "navbar") {
-    return (
+  return (
+    <div className="navbar-sync-wrap">
       <button
         type="button"
         className="navbar-sync-btn"
         onClick={handleClick}
         disabled={sync.syncing}
         title="Sincronizar com SIGAA"
+        aria-busy={sync.syncing}
       >
         <Icon
           name="sync"
@@ -32,29 +29,17 @@ export function SyncButton({ variant = "dashboard" }: SyncButtonProps) {
         />
         <span>{sync.syncing ? "Sincronizando" : "Sync SIGAA"}</span>
       </button>
-    );
-  }
 
-  return (
-    <div className="dashboard-sync">
-      <button
-        type="button"
-        className="btn-outline"
-        onClick={handleClick}
-        disabled={sync.syncing}
-      >
-        <Icon
-          name="sync"
-          size={14}
-          className={sync.syncing ? "sync-icon-spinning" : undefined}
-        />
-        {sync.syncing ? "Sincronizando…" : "Re-sincronizar SIGAA"}
-      </button>
-      {sync.error && (
-        <p className="dashboard-sync-error" role="alert">{sync.error}</p>
-      )}
       {sync.syncing && (
-        <SyncProgress progress={sync.progress} stepLabel={sync.stepLabel} />
+        <div className="navbar-sync-progress" role="status" aria-live="polite">
+          <SyncProgress progress={sync.progress} stepLabel={sync.stepLabel} />
+        </div>
+      )}
+
+      {sync.error && !sync.syncing && (
+        <p className="navbar-sync-error" role="alert">
+          {sync.error}
+        </p>
       )}
     </div>
   );
