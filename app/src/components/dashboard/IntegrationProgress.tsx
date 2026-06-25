@@ -1,17 +1,12 @@
 import { SectionHeader } from "@/components/ui/SectionHeader";
-
-const categories = [
-  { label: "Obrigatória", done: 545, total: 3080, color: "blue" },
-  { label: "Optativa", done: 0, total: 240, color: "gold" },
-  { label: "Complementar", done: 0, total: 375, color: "success" },
-  { label: "Extensão", done: 0, total: 450, color: "warning" },
-  { label: "Flexibilizada", done: 0, total: 30, color: "blue" },
-] as const;
+import {
+  integrationCategories,
+  INTEGRATION_TOTAL_HOURS,
+} from "@/config/mock/integration";
 
 export function IntegrationProgress() {
-  const totalDone = categories.reduce((acc, c) => acc + c.done, 0);
-  const totalNeeded = 4320;
-  const percentage = Math.round((totalDone / totalNeeded) * 100);
+  const totalDone = integrationCategories.reduce((acc, c) => acc + c.done, 0);
+  const percentage = Math.round((totalDone / INTEGRATION_TOTAL_HOURS) * 100);
 
   return (
     <div className="card card-full-height">
@@ -25,7 +20,7 @@ export function IntegrationProgress() {
         <div className="progress-label-row">
           <span className="progress-label">Total do Currículo</span>
           <span className="progress-value">
-            {totalDone}h / {totalNeeded}h
+            {totalDone}h / {INTEGRATION_TOTAL_HOURS}h
           </span>
         </div>
         <div className="progress-bar progress-bar-lg">
@@ -37,7 +32,7 @@ export function IntegrationProgress() {
       </div>
 
       <div className="progress-category-list">
-        {categories.map((cat) => {
+        {integrationCategories.map((cat) => {
           const pct =
             cat.total > 0 ? Math.round((cat.done / cat.total) * 100) : 0;
           return (
