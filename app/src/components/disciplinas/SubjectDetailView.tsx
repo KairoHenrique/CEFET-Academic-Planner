@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
 import { PageGrid } from "@/components/layout/PageGrid";
 import { ModuleGrid } from "@/components/layout/ModuleGrid";
 import { DashboardStateCard } from "@/components/dashboard/DashboardStateCard";
@@ -33,9 +32,6 @@ interface SubjectDetailViewProps {
 export function SubjectDetailView({ code }: SubjectDetailViewProps) {
   const layout = useModuleLayout(`subject-${code}`, MODULES);
   const { data, isLoading, error, notFound, refetch } = useDisciplina(code);
-  const [simulateMode, setSimulateMode] = useState(false);
-  const [gradesPanelHeight, setGradesPanelHeight] = useState<number | undefined>();
-
   if (!layout.hydrated) return null;
 
   if (isLoading) {
@@ -82,13 +78,7 @@ export function SubjectDetailView({ code }: SubjectDetailViewProps) {
       case "syllabus":
         return <SubjectSyllabusPanel ementa={subject.ementa} />;
       case "grades":
-        return (
-          <SubjectGradesPanel
-            subject={subject}
-            onSimulateModeChange={setSimulateMode}
-            onLayoutHeight={setGradesPanelHeight}
-          />
-        );
+        return <SubjectGradesPanel subject={subject} />;
       case "attendance":
         return (
           <SubjectAbsencePanel
@@ -97,8 +87,6 @@ export function SubjectDetailView({ code }: SubjectDetailViewProps) {
             maxAbsences={subject.maxAbsences}
             daysRemaining={attendance.daysRemaining}
             records={attendance.records}
-            expandList={simulateMode}
-            panelHeight={simulateMode ? gradesPanelHeight : undefined}
           />
         );
       case "tasks":

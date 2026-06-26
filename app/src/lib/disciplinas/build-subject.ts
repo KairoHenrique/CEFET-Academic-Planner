@@ -7,18 +7,49 @@ import {
 import type { SemestreAtualWithDisciplina } from "@/lib/types/db";
 import type { Subject, SubjectSummary } from "@/lib/types/subject";
 import type { SubjectListItem } from "@/lib/types/disciplinas-api";
+import {
+  SUBJECT_DISPLAY_GRADE_MAX,
+  SUBJECT_DISPLAY_PASSING_GRADE,
+  SUBJECT_RECOVERY_GRADE,
+} from "@/lib/disciplinas/grade-display";
 import { mapNotasToEvaluations } from "./mappers";
 import { computeGrade } from "./grade";
+import { computeGradeRisk } from "./grade-risk";
+
+function buildGradeRisk(
+  semestre: SemestreAtualWithDisciplina,
+  evaluations: ReturnType<typeof mapNotasToEvaluations>,
+  grade: number | null
+) {
+  const absences = countFaltasByDisciplina(semestre.disciplina_id);
+  const maxAbsences = semestre.max_faltas ?? 15;
+
+  return computeGradeRisk({
+    evaluations,
+    passingGrade: SUBJECT_DISPLAY_PASSING_GRADE,
+    gradeMax: SUBJECT_DISPLAY_GRADE_MAX,
+    recoveryGrade: SUBJECT_RECOVERY_GRADE,
+    grade,
+    absences,
+    maxAbsences,
+  });
+}
 
 export function buildSubjectSummary(
   semestre: SemestreAtualWithDisciplina
 ): SubjectSummary {
+  const notas = getNotasByDisciplina(semestre.disciplina_id);
+  const evaluations = mapNotasToEvaluations(notas);
+  const grade = computeGrade(semestre.disciplina_id);
+
   return {
     name: semestre.nome,
     code: semestre.disciplina_id,
     room: semestre.local ?? "—",
-    grade: computeGrade(semestre.disciplina_id),
-    gradeMax: semestre.nota_maxima ?? 100,
+    grade,
+    gradeMax: SUBJECT_DISPLAY_GRADE_MAX,
+    passingGrade: SUBJECT_DISPLAY_PASSING_GRADE,
+    gradeRisk: buildGradeRisk(semestre, evaluations, grade),
     absences: countFaltasByDisciplina(semestre.disciplina_id),
     maxAbsences: semestre.max_faltas ?? 15,
     tasks: countTarefasPendentesByDisciplina(semestre.disciplina_id),
@@ -44,11 +75,12 @@ export function buildSubjectFromSemestre(
   const disciplina = getDisciplinaByCodigo(semestre.disciplina_id);
   const summary = buildSubjectSummary(semestre);
   const notas = getNotasByDisciplina(semestre.disciplina_id);
+  const evaluations = mapNotasToEvaluations(notas);
 
   return {
     ...summary,
-    passingGrade: semestre.nota_aprovacao ?? 60,
-    evaluations: mapNotasToEvaluations(notas),
+    gradeRisk: buildGradeRisk(semestre, evaluations, summary.grade),
+    evaluations,
     professor: semestre.professor ?? undefined,
     schedule: semestre.horario_traduzido ?? undefined,
     ch: semestre.carga_horaria ?? disciplina?.carga_horaria ?? undefined,

@@ -4,6 +4,10 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Subject, SubjectEvaluation } from "@/lib/types/subject";
 import type { PatchNotasResponse, SubjectDetailResponse } from "@/lib/types/disciplinas-api";
 import { patchDisciplinaNotas } from "@/lib/api/client";
+import {
+  SUBJECT_DISPLAY_GRADE_MAX,
+  SUBJECT_DISPLAY_PASSING_GRADE,
+} from "@/lib/disciplinas/grade-display";
 import { useGradeSimulation } from "@/hooks/useGradeSimulation";
 import { queryKeys } from "@/lib/query/keys";
 
@@ -29,7 +33,10 @@ function applyNotasPatchToCache(
 }
 
 export function useSubjectGrades(
-  subject: Pick<Subject, "code" | "grade" | "gradeMax" | "passingGrade" | "evaluations">
+  subject: Pick<
+    Subject,
+    "code" | "grade" | "gradeMax" | "passingGrade" | "gradeRisk" | "evaluations"
+  >
 ) {
   const queryClient = useQueryClient();
 
@@ -37,8 +44,8 @@ export function useSubjectGrades(
 
   const simulation = useGradeSimulation({
     evaluations,
-    passingGrade: subject.passingGrade,
-    gradeMax: subject.gradeMax,
+    passingGrade: SUBJECT_DISPLAY_PASSING_GRADE,
+    gradeMax: SUBJECT_DISPLAY_GRADE_MAX,
   });
 
   const addMutation = useMutation({

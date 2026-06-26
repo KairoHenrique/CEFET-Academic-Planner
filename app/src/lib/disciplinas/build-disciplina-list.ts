@@ -5,6 +5,7 @@ import type {
   SubjectListItem,
 } from "@/lib/types/disciplinas-api";
 import { buildSubjectListItem } from "./build-subject";
+import { subjectMatchesDisciplinaFilter } from "./list-filters";
 
 function matchesSearch(item: SubjectListItem, query: string): boolean {
   if (!query) return true;
@@ -15,18 +16,6 @@ function matchesSearch(item: SubjectListItem, query: string): boolean {
   );
 }
 
-function matchesFilter(
-  item: SubjectListItem,
-  filter: DisciplinaListFilter
-): boolean {
-  if (filter === "todas") return true;
-  if (filter === "com_tarefas") return item.tasks > 0;
-  if (filter === "risco_faltas") {
-    return item.absences / item.maxAbsences >= 0.5;
-  }
-  return true;
-}
-
 export function buildDisciplinaList(
   query = "",
   filter: DisciplinaListFilter = "todas"
@@ -34,7 +23,9 @@ export function buildDisciplinaList(
   const items = getSemestreAtual()
     .map(buildSubjectListItem)
     .filter(
-      (item) => matchesSearch(item, query) && matchesFilter(item, filter)
+      (item) =>
+        matchesSearch(item, query) &&
+        subjectMatchesDisciplinaFilter(item, filter)
     );
 
   return { items };

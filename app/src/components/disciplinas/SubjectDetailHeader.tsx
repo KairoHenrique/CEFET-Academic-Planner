@@ -1,11 +1,17 @@
+"use client";
+
 import type { Subject } from "@/lib/types/subject";
 import { Icon } from "@/components/ui/Icon";
+import { PrioritySelect } from "@/components/ui/PrioritySelect";
+import { useSubjectPriorities } from "@/hooks/useStoredPriorities";
 
 interface SubjectDetailHeaderProps {
   subject: Subject;
 }
 
 export function SubjectDetailHeader({ subject }: SubjectDetailHeaderProps) {
+  const { getPriority, setSubjectPriority } = useSubjectPriorities();
+
   return (
     <div className="card subject-detail-header">
       <div className="subject-detail-top">
@@ -13,11 +19,17 @@ export function SubjectDetailHeader({ subject }: SubjectDetailHeaderProps) {
           <p className="page-header-eyebrow">{subject.code}</p>
           <h2 className="subject-detail-title">{subject.name}</h2>
         </div>
-        <span
-          className="subject-detail-accent"
-          style={{ background: subject.color }}
-          aria-hidden="true"
-        />
+        <div className="subject-detail-actions">
+          <PrioritySelect
+            level={getPriority(subject.code)}
+            onChange={(level) => setSubjectPriority(subject.code, level)}
+          />
+          <span
+            className="subject-detail-accent"
+            style={{ background: subject.color }}
+            aria-hidden="true"
+          />
+        </div>
       </div>
       <div className="subject-detail-meta">
         <span className="subject-meta-item">

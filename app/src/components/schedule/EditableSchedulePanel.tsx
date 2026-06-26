@@ -5,6 +5,7 @@ import { WeeklyScheduleTable } from "@/components/schedule/WeeklyScheduleTable";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Modal } from "@/components/ui/Modal";
 import { Input } from "@/components/ui/Input";
+import { PlannerSelect } from "@/components/ui/PlannerSelect";
 import { Icon } from "@/components/ui/Icon";
 import {
   getExtraTypeLabel,
@@ -93,19 +94,18 @@ export function EditableSchedulePanel() {
               onChange={(e) => setRoom(e.target.value)}
               placeholder="Sala ou online"
             />
-            <label className="form-field">
-              <span className="form-label">Tipo</span>
-              <select
-                className="form-input"
-                value={extraType}
-                onChange={(e) => setExtraType(e.target.value as ExtraSlotType)}
-              >
-                <option value="monitoria">Monitoria</option>
-                <option value="estagio">Estágio</option>
-                <option value="estudo">Estudo</option>
-                <option value="outro">Outro</option>
-              </select>
-            </label>
+            <PlannerSelect
+              label="Tipo"
+              value={extraType}
+              fullWidth
+              options={[
+                { value: "monitoria", label: "Monitoria" },
+                { value: "estagio", label: "Estágio" },
+                { value: "estudo", label: "Estudo" },
+                { value: "outro", label: "Outro" },
+              ]}
+              onChange={(next) => setExtraType(next)}
+            />
             <p className="panel-footer-note">
               Será salvo como: {getExtraTypeLabel(extraType)}
             </p>
