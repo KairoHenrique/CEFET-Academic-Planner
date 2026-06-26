@@ -12,6 +12,9 @@ const DISCIPLINA_FILTERS: DisciplinaListFilter[] = [
   "todas",
   "com_tarefas",
   "risco_faltas",
+  "risco",
+  "critico",
+  "aprovados",
 ];
 
 export function parseSyncRequest(body: unknown): SyncRequest {

@@ -1,14 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/components/ui/Icon";
 import { FilterBar } from "@/components/ui/FilterBar";
+import { PrioritySelect } from "@/components/ui/PrioritySelect";
 import { DashboardStateCard } from "@/components/dashboard/DashboardStateCard";
+import { SubjectGradeCell } from "@/components/grades/SubjectGradeCell";
 import { SubjectListSkeleton } from "@/components/disciplinas/SubjectListSkeleton";
+import { SubjectScheduleCell } from "@/components/disciplinas/SubjectScheduleCell";
+import { SubjectRoomCell } from "@/components/disciplinas/SubjectRoomCell";
 import { useDisciplinas } from "@/hooks/useDisciplinas";
+import { useSubjectPriorities } from "@/hooks/useStoredPriorities";
+import { sortSubjectsByPriority } from "@/lib/priority/sort";
+import { computeAbsenceRisk } from "@/lib/disciplinas/absence-risk";
 
-const filters = ["Todas", "Com tarefas", "Risco de faltas"];
+import { DISCIPLINA_FILTER_LABELS } from "@/lib/disciplinas/list-filters";
 
 export function SubjectList() {
   const router = useRouter();
@@ -18,6 +25,11 @@ export function SubjectList() {
     search,
     activeFilter
   );
+  const { getPriority, setSubjectPriority, map } = useSubjectPriorities();
+
+  const sortedItems = useMemo(() => {
+    return sortSubjectsByPriority(items, getPriority);
+  }, [items, getPriority, map]);
 
   const openSubject = (code: string) => {
     router.push(`/disciplinas/${code}`);
@@ -38,9 +50,11 @@ export function SubjectList() {
           />
         </div>
         <FilterBar
-          filters={filters}
+          filters={[...DISCIPLINA_FILTER_LABELS]}
           active={activeFilter}
           onChange={setActiveFilter}
+          className="subject-list-filters"
+          nowrap
         />
       </div>
 
@@ -54,7 +68,7 @@ export function SubjectList() {
           actionLabel="Tentar novamente"
           onRetry={() => void refetch()}
         />
-      ) : items.length === 0 ? (
+      ) : sortedItems.length === 0 ? (
         <DashboardStateCard
           title="Nenhuma disciplina encontrada"
           message={
@@ -72,60 +86,79 @@ export function SubjectList() {
           <table className="data-table">
             <thead>
               <tr>
-                <th>Disciplina</th>
-                <th>Professor</th>
-                <th>Horário</th>
-                <th>Nota</th>
-                <th>Faltas</th>
-                <th />
+                <th className="col-priority" aria-label="Prioridade" />
+                <th className="col-subject">Disciplina</th>
+                <th className="col-professor">Professor</th>
+                <th className="col-schedule">Horário</th>
+                <th className="col-room">Sala</th>
+                <th className="col-grade-risk">Nota</th>
+                <th className="col-absences">Faltas</th>
               </tr>
             </thead>
             <tbody>
-              {items.map((subject) => (
-                <tr
-                  key={subject.code}
-                  className="data-table-row-clickable subject-table-row"
-                  onClick={() => openSubject(subject.code)}
-                  role="link"
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      openSubject(subject.code);
-                    }
-                  }}
-                  aria-label={`Abrir detalhes de ${subject.name}`}
-                >
-                  <td>
-                    <div className="table-subject">
-                      <span
-                        className="subject-dot"
-                        style={{ background: subject.color }}
+              {sortedItems.map((subject) => {
+                const absenceRisk = computeAbsenceRisk(
+                  subject.absences,
+                  subject.maxAbsences
+                );
+                return (
+                  <tr
+                    key={subject.code}
+                    className="data-table-row-clickable subject-table-row"
+                    onClick={() => openSubject(subject.code)}
+                    role="link"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        openSubject(subject.code);
+                      }
+                    }}
+                    aria-label={`Abrir detalhes de ${subject.name}`}
+                  >
+                    <td className="col-priority">
+                      <PrioritySelect
+                        level={getPriority(subject.code)}
+                        compact
+                        onChange={(level) =>
+                          setSubjectPriority(subject.code, level)
+                        }
                       />
-                      <div>
-                        <p className="table-subject-name">{subject.name}</p>
-                        <p className="table-subject-code">{subject.code}</p>
+                    </td>
+                    <td className="col-subject">
+                      <div className="table-subject">
+                        <span
+                          className="subject-dot"
+                          style={{ background: subject.color }}
+                        />
+                        <div>
+                          <p className="table-subject-name">{subject.name}</p>
+                          <p className="table-subject-code">{subject.code}</p>
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                  <td>{subject.professor ?? "—"}</td>
-                  <td>{subject.schedule ?? "—"}</td>
-                  <td>
-                    {subject.grade !== null
-                      ? `${subject.grade} / ${subject.gradeMax}`
-                      : "—"}
-                  </td>
-                  <td>
-                    {subject.absences} / {subject.maxAbsences}
-                  </td>
-                  <td>
-                    <span className="table-action-link">
-                      Detalhes
-                      <Icon name="arrow-right" size={14} />
-                    </span>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                    <td className="col-professor">{subject.professor ?? "—"}</td>
+                    <td className="col-schedule">
+                      <SubjectScheduleCell schedule={subject.schedule} />
+                    </td>
+                    <td className="col-room">
+                      <SubjectRoomCell room={subject.room} />
+                    </td>
+                    <td
+                      className="col-grade-risk"
+                      onClick={(event) => event.stopPropagation()}
+                      onKeyDown={(event) => event.stopPropagation()}
+                    >
+                      <SubjectGradeCell subject={subject} />
+                    </td>
+                    <td className="col-absences">
+                      <span className={`badge ${absenceRisk.badgeClass}`}>
+                        {subject.absences}/{subject.maxAbsences}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

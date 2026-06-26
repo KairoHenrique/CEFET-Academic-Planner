@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { CalendarEvent } from "@/config/mock/calendar";
 import { semesterSubjects } from "@/config/mock/subjects";
 import { Input } from "@/components/ui/Input";
+import { PlannerSelect } from "@/components/ui/PlannerSelect";
 
 interface AddEventFormProps {
   defaultDate: string;
@@ -45,33 +46,28 @@ export function AddEventForm({ defaultDate, onSubmit, onCancel }: AddEventFormPr
         placeholder="Ex.: Revisar capítulo 3"
         required
       />
-      <label className="form-field">
-        <span className="form-label">Disciplina</span>
-        <select
-          className="form-input"
-          value={subjectCode}
-          onChange={(e) => setSubjectCode(e.target.value)}
-        >
-          {semesterSubjects.map((s) => (
-            <option key={s.code} value={s.code}>
-              {s.code} — {s.name}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label className="form-field">
-        <span className="form-label">Tipo</span>
-        <select
-          className="form-input"
-          value={type}
-          onChange={(e) => setType(e.target.value as CalendarEvent["type"])}
-        >
-          <option value="tarefa">Tarefa</option>
-          <option value="prova">Prova</option>
-          <option value="evento">Evento</option>
-          <option value="aula">Aula</option>
-        </select>
-      </label>
+      <PlannerSelect
+        label="Disciplina"
+        value={subjectCode}
+        fullWidth
+        options={semesterSubjects.map((s) => ({
+          value: s.code,
+          label: `${s.code} — ${s.name}`,
+        }))}
+        onChange={setSubjectCode}
+      />
+      <PlannerSelect
+        label="Tipo"
+        value={type}
+        fullWidth
+        options={[
+          { value: "tarefa", label: "Tarefa" },
+          { value: "prova", label: "Prova" },
+          { value: "evento", label: "Evento" },
+          { value: "aula", label: "Aula" },
+        ]}
+        onChange={(next) => setType(next)}
+      />
       <Input
         label="Data"
         type="date"

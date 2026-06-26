@@ -1,3 +1,5 @@
+import type { GradeRisk } from "@/lib/types/grade-risk";
+
 export interface SubjectEvaluation {
   id?: number;
   name: string;
@@ -15,6 +17,7 @@ export interface Subject {
   grade: number | null;
   gradeMax: number;
   passingGrade: number;
+  gradeRisk: GradeRisk;
   evaluations: SubjectEvaluation[];
   absences: number;
   maxAbsences: number;
@@ -34,6 +37,8 @@ export interface SubjectSummary {
   room: string;
   grade: number | null;
   gradeMax: number;
+  passingGrade: number;
+  gradeRisk: GradeRisk;
   absences: number;
   maxAbsences: number;
   tasks: number;

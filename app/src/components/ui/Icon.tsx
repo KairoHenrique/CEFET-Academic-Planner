@@ -27,6 +27,13 @@ export type IconName =
   | "chevron-right"
   | "chevron-up"
   | "chevron-down"
+  | "help-circle"
+  | "priority-high"
+  | "priority-medium-high"
+  | "priority-neutral"
+  | "priority-medium-low"
+  | "priority-low"
+  | "priority-very-low"
   | "grip"
   | "logout";
 
@@ -184,6 +191,34 @@ const paths: Record<IconName, React.ReactNode> = {
   "chevron-right": <polyline points="9 18 15 12 9 6" />,
   "chevron-up": <polyline points="18 15 12 9 6 15" />,
   "chevron-down": <polyline points="6 9 12 15 18 9" />,
+  "help-circle": (
+    <>
+      <circle cx="12" cy="12" r="10" />
+      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+      <line x1="12" y1="17" x2="12.01" y2="17" />
+    </>
+  ),
+  "priority-high": (
+    <>
+      <polyline points="7 14 12 9 17 14" />
+      <polyline points="7 19 12 14 17 19" />
+    </>
+  ),
+  "priority-medium-high": <polyline points="7 15 12 9 17 15" />,
+  "priority-neutral": <line x1="5" y1="12" x2="19" y2="12" />,
+  "priority-medium-low": <polyline points="7 9 12 15 17 9" />,
+  "priority-low": (
+    <>
+      <polyline points="7 10 12 15 17 10" />
+      <polyline points="7 5 12 10 17 5" />
+    </>
+  ),
+  "priority-very-low": (
+    <>
+      <polyline points="8 11 12 15 16 11" opacity="0.55" />
+      <polyline points="8 6 12 10 16 6" opacity="0.55" />
+    </>
+  ),
   grip: (
     <>
       <circle cx="9" cy="6" r="1.25" fill="currentColor" stroke="none" />

@@ -2,6 +2,8 @@
 
 Este documento contém todas as tasks do projeto, organizadas por fase. Cada task tem um status e detalhes suficientes para qualquer desenvolvedor (humano ou IA) entender e implementar.
 
+**Navegação rápida:** [Resumo dos blocos](#resumo-rápido--o-que-cada-bloco-faz) · [Checklist mestre](#checklist-mestre-ordem-linear) · [Detalhe B/F por etapa](#bloco-1--api--ui--sqlite)
+
 **Legenda:**
 - `[ ]` — Não iniciada
 - `[/]` — Em progresso
@@ -10,6 +12,9 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
 ---
 
 ## Fase 0: Planejamento e Documentação
+
+> **Resumo:** Definir escopo, stack e documentação base antes de codar. PPC de Eng. Computação indexado para o mapa curricular.
+
 - [x] Levantamento de requisitos com o stakeholder
 - [x] Análise do portal SIGAA (estrutura, URLs, dados disponíveis)
 - [x] Definição da stack tecnológica (Next.js + Playwright + SQLite)
@@ -21,6 +26,8 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
 ---
 
 ## Fase 1: Setup da Infraestrutura
+
+> **Resumo:** Projeto Next.js, design Cruzeiro, schema SQLite completo e início da camada API. Bloco 1 começa aqui (B1–B8, F1–F5).
 
 ### 1.1 Inicialização do Projeto
 - [x] Criar projeto Next.js com TypeScript (`npx create-next-app`)
@@ -58,7 +65,7 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
 
 ### 1.4 API e Integração UI ↔ SQLite
 
-> **Progresso:** Etapas 1–2 ✅ · Etapa 3A ✅ (B9–B12 + F6–F8) · próximo: **3B Calendário** (B13–F10).
+> **Progresso:** Etapas 1–2 ✅ · Etapa 3A ✅ (B9–B12 + extensões, F6–F8 + extensões) · próximo: **3B Calendário** (B13–F10).
 
 Roadmap detalhado por blocos (back/front, ordem de execução): ver seção **[Roadmap por Blocos](#roadmap-por-blocos-ordem-de-execução)** abaixo.
 
@@ -70,10 +77,24 @@ Estratégia: **fatias verticais** — backend da feature primeiro, depois fronte
 
 **Legenda de tipo:** `B` = Backend · `F` = Frontend · `Int` = Integração (back + front)
 
+### Resumo rápido — o que cada bloco faz
+
+| Bloco | Em uma linha | Entrega principal |
+|-------|----------------|-------------------|
+| **0** | Planejamento | Requisitos, SCOPE, PPC indexado, stack definida |
+| **1** | API + SQLite | App deixa de ser mock: `SQLite → API → React` em todas as telas |
+| **2** | Scraper SIGAA | Playwright loga no SIGAA e popula o banco com dados reais |
+| **3** | Inteligência | Pré-requisitos, elegibilidade, choque de horários, grafo, alertas |
+| **4** | Polimento | Skeletons, animações, favicon, detecção de pasta na nuvem |
+| **5** | Mobile | App Expo + `.db` na nuvem + offline (futuro) |
+
 **O que permanece no client (localStorage) durante o Bloco 1:**
 - Layout modular de módulos (`useModuleLayout`)
 - Extras na grade semanal (monitoria, estágio)
 - Simulação de notas (modo "Simular" na disciplina)
+- Prioridade de matérias e tarefas (`useStoredPriorities`)
+- Ordenação de tarefas (`useTaskSortMode`)
+- Nota de recuperação por disciplina (`lib/recovery/storage.ts`)
 - `/simulador` (Montar Grade) — continua mock até Bloco 2.4
 
 ---
@@ -84,11 +105,13 @@ Legenda rápida: linha `[x]` = fatia concluída · linha `[ ]` = pendente · `·
 
 ### Bloco 1 — API + UI ↔ SQLite `🟡 em progresso (23/42)`
 
+> **O que é:** Fatias verticais back→front até todas as rotas consumirem o SQLite local. Substitui `config/mock/` por APIs reais, mantendo no browser só layout modular, extras da grade e simulador de notas.
+
 - [x] **BACK:**  B1 → B2 → B3 → B4 → B5
 - [x] **BACK:**  B6 → B7 → B8
 - [x] **FRONT:** F1 → F2 → F3 → F4 → F5 · F5b · F5c
 - [x] **BACK:**  B9 → B10 → B11 → B12
-- [x] **FRONT:** F6 → F7 → F8
+- [x] **FRONT:** F6 → F7 → F8 · F6b · F8d · F8e · F8f
 - [ ] **BACK:**  B13 → B14 → B15
 - [ ] **FRONT:** F9 → F10
 - [ ] **BACK:**  B16 → B17
@@ -100,9 +123,12 @@ Legenda rápida: linha `[x]` = fatia concluída · linha `[ ]` = pendente · `·
 - [ ] **BACK:**  B20 → B21 → B22 → B23
 - [ ] **FRONT:** F14 → F15 → F16 → F17
 
-> **Parcial em F5:** grade semanal no dashboard (`WeeklySchedulePreview`) conclui em **F13**.
+> **Parcial em F5:** grade semanal no dashboard (`WeeklySchedulePreview`) conclui em **F13**.  
+> **Extensões 3A (fora do 23/42):** F6b, F8d–F8f documentadas na tabela abaixo.
 
 ### Bloco 2 — Scraper SIGAA `⬜ não iniciado (0/10)`
+
+> **O que é:** Motor Playwright que faz login no SIGAA, raspa portal do discente + turmas virtuais e grava no SQLite via `runSync`. Troca o `seed-demo` por sync real; habilita PDFs, turmas ofertadas e `/simulador` com dados vivos.
 
 - [ ] **BACK:**  B24 → B25 → B26
 - [ ] **BACK:**  B27
@@ -114,6 +140,8 @@ Legenda rápida: linha `[x]` = fatia concluída · linha `[ ]` = pendente · `·
 
 ### Bloco 3 — Inteligência acadêmica `⬜ não iniciado (0/11)`
 
+> **O que é:** Regras de negócio sobre dados reais: quem pode cursar o quê, choques de horário, grafo PPC interativo, alertas de integralização e calendário. Depende do Bloco 2 para histórico e turmas ofertadas.
+
 - [ ] **BACK:**  B32 → B33 → B34
 - [ ] **FRONT:** F21 → F22 → F23
 - [ ] **BACK:**  B35
@@ -123,13 +151,15 @@ Legenda rápida: linha `[x]` = fatia concluída · linha `[ ]` = pendente · `·
 
 ### Bloco 4 — Polimento e sync externa `⬜ não iniciado (0/5)`
 
-> Export/import e tela de configurações estão no **Bloco 1, Etapa 4** (B20–F17).
+> **O que é:** Acabamento de UX (loading, transições, favicon) e indicador de que o `.db` está numa pasta Drive/OneDrive. Export/import e `/configuracoes` = **Bloco 1, Etapa 4** (B20–F17).
 
 - [ ] **FRONT:** F25 → F26 → F27
 - [ ] **BACK:**  B38
 - [ ] **FRONT:** F28
 
 ### Bloco 5 — Mobile (Fase 7) `⬜ futuro`
+
+> **O que é:** Mesmo planner no celular (Expo), lendo o `.db` sincronizado na nuvem, com UI adaptada e modo offline.
 
 - [ ] **FRONT:** App React Native (Expo)
 - [ ] **BACK:**  Integração Drive API para `.db`
@@ -149,32 +179,47 @@ Legenda rápida: linha `[x]` = fatia concluída · linha `[ ]` = pendente · `·
 
 ### Bloco 1 — API + UI ↔ SQLite
 
-Objetivo: app deixa de ser só mock; dados fluem **SQLite → API → React**.
+**Objetivo:** app deixa de ser só mock; dados fluem **SQLite → API → React**.
+
+| Etapa | Foco | O que entrega |
+|-------|------|----------------|
+| **1** | Fundação | Schema, CRUD, seed, camada API, tipos |
+| **2** | Dashboard | Sync mock + `GET /dashboard` + login real + navbar |
+| **3A** | Disciplinas | Listagem, detalhe, notas, tarefas, faltas via API |
+| **3B** | Calendário | Eventos acadêmicos + tarefas/provas na agenda |
+| **3C** | Integralização | CH por categoria + horas manuais |
+| **3D** | Mapa | Grade PPC com status (concluída/cursando/trancada) |
+| **3E** | Grade semanal | Horários do semestre vindos do banco |
+| **4** | Config | Caminho do `.db`, export/import JSON, toggles |
 
 #### Etapa 1 — Fundação (só backend) ✅
 
-| # | Tipo | Task | Status |
-|---|------|------|--------|
-| B1 | Back | Bootstrap do SQLite (`ensureDbReady`, migrations de colunas) | [x] |
-| B2 | Back | CRUD completo em `lib/db/queries.ts` (todas as tabelas) | [x] |
-| B3 | Back | `seed-demo.ts` — popular aluno/semestre a partir dos mocks | [x] |
-| B4 | Back | Camada `lib/api/` (errors, response, validate, withDb) | [x] |
-| B5 | Back | Tipos compartilhados em `lib/types/` (mocks reexportam) | [x] |
+> **Resumo:** Prepara o SQLite (migrations, queries, seed demo) e a infraestrutura de API (`withDb`, validação, erros, tipos). Nada de UI ainda.
+
+| # | Tipo | Task | Resumo | Status |
+|---|------|------|--------|--------|
+| B1 | Back | Bootstrap do SQLite | Abre/migra o `.db` na inicialização | [x] |
+| B2 | Back | CRUD em `queries.ts` | Leitura/escrita de todas as tabelas | [x] |
+| B3 | Back | `seed-demo.ts` | Popula aluno e semestre a partir dos mocks | [x] |
+| B4 | Back | Camada `lib/api/` | Errors, response, validate, withDb | [x] |
+| B5 | Back | Tipos `lib/types/` | Contratos compartilhados back ↔ front | [x] |
 
 #### Etapa 2 — Sync + Dashboard ✅
 
-| # | Tipo | Task | Status |
-|---|------|------|--------|
-| B6 | Back | Serviço `lib/sync/run-sync.ts` (pipeline mock, sem Playwright) | [x] |
-| B7 | Back | `POST /api/sync` | [x] |
-| B8 | Back | `GET /api/dashboard` | [x] |
-| F1 | Front | `lib/api/client.ts` — fetch wrapper com tipos e erros | [x] |
-| F2 | Front | `useSync` → `POST /api/sync` | [x] |
-| F3 | Front | `LoginForm` passa credenciais reais para sync | [x] |
-| F4 | Front | Dashboard lê `GET /api/dashboard` (header, stats, tarefas, disciplinas, integralização) | [x] |
-| F5 | Front | Loading + estado vazio/erro no dashboard | [x] |
-| F5b | Front | `LogoutButton` na navbar + limpar sessão/credenciais | [x] |
-| F5c | Front | Credenciais salvas para re-sync na navbar (`lib/auth/credentials.ts`) | [x] |
+> **Resumo:** Pipeline de sync (mock por enquanto), endpoint do dashboard e front que consome: login sincroniza, home mostra stats, tarefas e disciplinas do banco.
+
+| # | Tipo | Task | Resumo | Status |
+|---|------|------|--------|--------|
+| B6 | Back | `run-sync.ts` | Orquestra sync (hoje seed; scraper no B31) | [x] |
+| B7 | Back | `POST /api/sync` | Dispara sincronização com credenciais | [x] |
+| B8 | Back | `GET /api/dashboard` | Agrega header, stats, tarefas, matérias | [x] |
+| F1 | Front | `lib/api/client.ts` | Fetch tipado + tratamento de erro | [x] |
+| F2 | Front | `useSync` | Hook que chama sync e expõe loading/erro | [x] |
+| F3 | Front | `LoginForm` | Envia credenciais reais para o sync | [x] |
+| F4 | Front | Dashboard via API | Header, stats, cards de disciplinas | [x] |
+| F5 | Front | Loading/erro/vazio | Estados de carregamento no dashboard | [x] |
+| F5b | Front | `LogoutButton` | Sair e limpar sessão/credenciais | [x] |
+| F5c | Front | Credenciais salvas | Re-sync rápido pela navbar | [x] |
 
 > **F5 — escopo parcial:** `WeeklySchedulePreview` no dashboard ainda usa mock/localStorage (conclusão em **F13**).  
 > **Data fetching:** dashboard usa hooks nativos (`useDashboard`); **TanStack Query** desde **F6** (disciplinas + mutations de notas/tarefas).
@@ -183,72 +228,94 @@ Objetivo: app deixa de ser só mock; dados fluem **SQLite → API → React**.
 
 #### Etapa 3 — Demais telas (back → front)
 
-> **3A Disciplinas:** backend ✅ (B9–B12) · front ✅ (F6–F8) · próximo: **3B Calendário** (B13–B15)
+> **3A Disciplinas:** backend ✅ (B9–B12 + extensões) · front ✅ (F6–F8 + extensões F6b, F8b–F8f) · próximo: **3B Calendário** (B13–F15)
 
 ##### 3A — Disciplinas
 
-| # | Tipo | Task | Status |
-|---|------|------|--------|
-| B9 | Back | `GET /api/disciplinas` (listagem + busca/filtro) | [x] |
-| B10 | Back | `GET /api/disciplinas/[code]` (detalhe: ementa, notas, faltas, tarefas, grupo) | [x] |
-| B11 | Back | `PATCH /api/disciplinas/[code]/notas` — avaliação manual | [x] |
-| B12 | Back | `PATCH /api/tarefas/[id]` — marcar concluída | [x] |
-| F6 | Front | `/disciplinas` — `SubjectList` via API (introduzir **TanStack Query**) | [x] |
-| F7 | Front | `/disciplinas/[code]` — painéis via API | [x] |
-| F8 | Front | `useSubjectGrades` lê/escreve notas via API (`add` manual; `update` pronto no hook) | [x] |
+> **Resumo:** `/disciplinas` e página da matéria 100% no SQLite: listar, detalhe, editar notas (inline/extra), CRUD de tarefas e marcar faltas.
+
+| # | Tipo | Task | Resumo | Status |
+|---|------|------|--------|--------|
+| B9 | Back | `GET /api/disciplinas` | Lista matérias com busca/filtro | [x] |
+| B10 | Back | `GET /api/disciplinas/[code]` | Detalhe: ementa, notas, faltas, tarefas, grupo | [x] |
+| B11 | Back | `PATCH .../notas` | Add/update/delete, nota extra, override | [x] |
+| B12 | Back | `PATCH /api/tarefas/[id]` | Toggle concluída, editar, excluir | [x] |
+| B12b | Back | `POST .../tarefas` | Criar tarefa manual na disciplina | [x] |
+| B12c | Back | `PATCH .../faltas` | Atualizar presença/falta por data | [x] |
+| F6 | Front | `/disciplinas` | `SubjectList` via API + TanStack Query | [x] |
+| F7 | Front | `/disciplinas/[code]` | Painéis de notas, faltas, tarefas via API | [x] |
+| F8 | Front | `useSubjectGrades` | CRUD notas, inline, nota extra | [x] |
+| F8b | Front | `SubjectTasksPanel` | CRUD tarefas + filtro Concluídas | [x] |
+| F8c | Front | Faltas via API | `SubjectAbsencePanel` + hook de presença | [x] |
+| F6b | Front | `SubjectList` UX | Filtros Risco/Crítico/Aprovados, colunas Sala/Horário, linha clicável | [x] |
+| F8d | Front | Risco de nota + recuperação | `GradeRiskIndicator`, `RecoveryGradeEntry`, `grade-risk.ts` (recuperação em localStorage) | [x] |
+| F8e | Front | Prioridade + selects | `PrioritySelect`, `PlannerSelect`, `useStoredPriorities`, `TaskSortSelect` | [x] |
+| F8f | Front | Simulador (polish) | Menu overlay, layout estável com frequência, OK em Necessário, pré-preenche notas reais | [x] |
 
 ##### 3B — Calendário
 
-| # | Tipo | Task | Status |
-|---|------|------|--------|
-| B13 | Back | `GET /api/calendar` — tarefas, provas, datas acadêmicas | [ ] |
-| B14 | Back | `POST /api/calendar/events` — evento manual | [ ] |
-| B15 | Back | `PATCH /api/calendar/events/[id]` — concluir/editar | [ ] |
-| F9 | Front | `useCalendarEvents` → API | [ ] |
-| F10 | Front | `CalendarioView`, `CalendarAcademicDates`, `AddEventForm` | [ ] |
+> **Resumo:** Agenda mensal e datas acadêmicas deixam o mock: eventos, provas e tarefas vêm do banco; criar/editar eventos manuais.
+
+| # | Tipo | Task | Resumo | Status |
+|---|------|------|--------|--------|
+| B13 | Back | `GET /api/calendar` | Tarefas, provas e datas do semestre | [ ] |
+| B14 | Back | `POST /api/calendar/events` | Inserir evento manual | [ ] |
+| B15 | Back | `PATCH .../events/[id]` | Editar ou marcar concluído | [ ] |
+| F9 | Front | `useCalendarEvents` | Hook que alimenta o calendário | [ ] |
+| F10 | Front | Views do calendário | `CalendarioView`, datas acadêmicas, form | [ ] |
 
 ##### 3C — Integralização
 
-| # | Tipo | Task | Status |
-|---|------|------|--------|
-| B16 | Back | `GET /api/integralizacao` | [ ] |
-| B17 | Back | `POST /api/integralizacao` — horas manuais | [ ] |
-| F11 | Front | `IntegrationTable` + `IntegrationProgress` via API | [ ] |
+> **Resumo:** Página `/integralizacao` lê CH real (obrigatória, optativa, extensão…) e permite cadastrar horas manuais.
+
+| # | Tipo | Task | Resumo | Status |
+|---|------|------|--------|--------|
+| B16 | Back | `GET /api/integralizacao` | Totais por tipo de carga horária | [ ] |
+| B17 | Back | `POST /api/integralizacao` | Registrar horas complementares manuais | [ ] |
+| F11 | Front | Painéis integralização | Donut + tabela via API (hoje mock) | [ ] |
 
 ##### 3D — Mapa do curso
 
-| # | Tipo | Task | Status |
-|---|------|------|--------|
-| B18 | Back | `GET /api/mapa` — disciplinas por período + status (histórico + requisitos) | [ ] |
-| F12 | Front | `CourseMapGrid` via API | [ ] |
+> **Resumo:** `/mapa` mostra o PPC por período com status calculado (histórico + pré-requisitos).
+
+| # | Tipo | Task | Resumo | Status |
+|---|------|------|--------|--------|
+| B18 | Back | `GET /api/mapa` | Disciplinas por período + status | [ ] |
+| F12 | Front | `CourseMapGrid` | Grid visual consumindo a API | [ ] |
 
 ##### 3E — Grade semanal
 
-| # | Tipo | Task | Status |
-|---|------|------|--------|
-| B19 | Back | `GET /api/schedule` — slots de `semestre_atual` | [ ] |
-| F13 | Front | `WeeklyScheduleTable` via API (extras permanecem em localStorage) | [ ] |
+> **Resumo:** Horários oficiais do semestre (`semestre_atual`) na grade; extras (monitoria) continuam no localStorage.
+
+| # | Tipo | Task | Resumo | Status |
+|---|------|------|--------|--------|
+| B19 | Back | `GET /api/schedule` | Slots Seg–Sex traduzidos do SIGAA | [ ] |
+| F13 | Front | `WeeklyScheduleTable` | Grade na API (fecha F5 parcial) | [ ] |
 
 ##### 3F — Simulador de matrícula
 
-| # | Tipo | Task | Status |
-|---|------|------|--------|
-| — | — | **Fora do Bloco 1** — `/simulador` continua mock até Bloco 2.4 | — |
+> **Resumo:** `/simulador` (Montar Grade) **fica mock** até o Bloco 2.4 trazer turmas ofertadas reais.
+
+| # | Tipo | Task | Resumo | Status |
+|---|------|------|--------|--------|
+| — | — | Fora do Bloco 1 | Mock até scraper B30 + front F19 | — |
 
 **Ordem sugerida Etapa 3:** `B9–B12 → F6–F8` → `B13–B15 → F9–F10` → `B16–B17 → F11` → `B18 → F12` → `B19 → F13`
 
 #### Etapa 4 — Configurações + backup (Bloco 1 + Fase 6.1/6.2)
 
-| # | Tipo | Task | Status |
-|---|------|------|--------|
-| B20 | Back | `GET /api/config` + `PUT /api/config` (db_path, toggles PDF) | [ ] |
-| B21 | Back | `POST /api/export` — dump JSON | [ ] |
-| B22 | Back | `POST /api/import` — validar + importar | [ ] |
-| B23 | Back | `lib/db/index.ts` — respeitar `DB_PATH` de `configuracoes` | [ ] |
-| F14 | Front | Nova rota `/configuracoes` + link na navbar | [ ] |
-| F15 | Front | Formulário: caminho do `.db`, dica Drive/OneDrive | [ ] |
-| F16 | Front | Botões Exportar / Importar JSON | [ ] |
-| F17 | Front | Aviso de reinício ao mudar caminho do banco | [ ] |
+> **Resumo:** Tela `/configuracoes`: onde fica o `.db` (Drive/OneDrive), backup JSON e toggles de download de PDF.
+
+| # | Tipo | Task | Resumo | Status |
+|---|------|------|--------|--------|
+| B20 | Back | `GET/PUT /api/config` | Caminho do banco + toggles PDF | [ ] |
+| B21 | Back | `POST /api/export` | Dump completo em JSON | [ ] |
+| B22 | Back | `POST /api/import` | Validar e restaurar backup | [ ] |
+| B23 | Back | `DB_PATH` dinâmico | Banco lê pasta de `configuracoes` | [ ] |
+| F14 | Front | Rota `/configuracoes` | Página + link na navbar | [ ] |
+| F15 | Front | Form caminho `.db` | Campo + dica pasta na nuvem | [ ] |
+| F16 | Front | Export/Import JSON | Botões na UI de config | [ ] |
+| F17 | Front | Aviso de reinício | Modal ao mudar caminho do banco | [ ] |
 
 **Ordem:** `B20 → B21 → B22 → B23` → `F14 → F15 → F16 → F17`
 
@@ -258,20 +325,27 @@ Objetivo: app deixa de ser só mock; dados fluem **SQLite → API → React**.
 
 ### Bloco 2 — Scraper SIGAA (Fase 2)
 
-Objetivo: dados reais do SIGAA substituem `seed-demo` no `runSync`.
+**Objetivo:** dados reais do SIGAA substituem `seed-demo` no `runSync`.
 
-| # | Tipo | Task | Fase | Status |
-|---|------|------|------|--------|
-| B24 | Back | `lib/scraper/auth.ts` — login Playwright + sessão/cookies | 2.1 | [ ] |
-| B25 | Back | Criptografia AES-256 para senha local (opcional) | 2.1 | [ ] |
-| B26 | Back | Tratamento de erros: credenciais, timeout, SIGAA offline | 2.1 | [ ] |
-| B27 | Back | Scraper portal do discente (RG, integralização, semestre, tarefas) | 2.2 | [ ] |
-| B28 | Back | Scraper turma virtual por disciplina (notas, faltas, tarefas, grupo) | 2.3 | [ ] |
-| B29 | Back | Download de PDFs/materiais → `docs-downloads/{disciplina}/` | 2.3 | [ ] |
-| B30 | Back | Turmas ofertadas + calendário acadêmico + histórico PDF | 2.4 | [ ] |
-| B31 | Back | Integrar scraper no `runSync` (substituir seed-demo) | 2.x | [ ] |
-| F18 | Front | Remover simulação de erros mock no login (erros reais do scraper) | 2.1 | [ ] |
-| F19 | Front | `/simulador` — turmas ofertadas via API | 2.4 | [ ] |
+| Fase scraper | O que raspa |
+|--------------|-------------|
+| **2.1 Auth** | Login Playwright, sessão, senha AES opcional, erros |
+| **2.2 Portal** | RG, integralização, semestre, tarefas pendentes |
+| **2.3 Turma** | Notas, faltas, grupo, tarefas, download PDFs |
+| **2.4 Extra** | Turmas ofertadas, calendário acadêmico, histórico PDF |
+
+| # | Tipo | Task | Resumo | Fase | Status |
+|---|------|------|--------|------|--------|
+| B24 | Back | `lib/scraper/auth.ts` | Login Playwright + cookies de sessão | 2.1 | [ ] |
+| B25 | Back | Criptografia AES-256 | Senha salva local cifrada (opcional) | 2.1 | [ ] |
+| B26 | Back | Erros de auth | Credencial inválida, timeout, SIGAA offline | 2.1 | [ ] |
+| B27 | Back | Scraper portal discente | RG, CH, matérias do semestre, atividades | 2.2 | [ ] |
+| B28 | Back | Scraper turma virtual | Notas, faltas, tarefas e grupo por matéria | 2.3 | [ ] |
+| B29 | Back | Download PDFs | Materiais → `docs-downloads/{disciplina}/` | 2.3 | [ ] |
+| B30 | Back | Turmas + calendário | Ofertas próximo sem + datas oficiais + histórico | 2.4 | [ ] |
+| B31 | Back | Integrar no `runSync` | Troca seed-demo por pipeline real | 2.x | [ ] |
+| F18 | Front | Erros reais no login | Remove simulação mock de falhas | 2.1 | [ ] |
+| F19 | Front | `/simulador` via API | Montar grade com turmas ofertadas reais | 2.4 | [ ] |
 
 **Ordem:** `B24 → B25 → B26` → `B27` → `B28 → B29` → `B30` → `B31` → `F18` → `F19`
 
@@ -281,21 +355,27 @@ Objetivo: dados reais do SIGAA substituem `seed-demo` no `runSync`.
 
 ### Bloco 3 — Inteligência acadêmica (Fase 5)
 
-Objetivo: regras de negócio com dados reais (pré-requisitos, matrícula, grafo).
+**Objetivo:** regras de negócio com dados reais (pré-requisitos, matrícula, grafo, alertas).
 
-| # | Tipo | Task | Fase | Status |
-|---|------|------|------|--------|
-| B32 | Back | Motor de elegibilidade (histórico + pré-requisitos) | 5.3 | [ ] |
-| B33 | Back | Detecção de choque de horários na API | 5.3 | [ ] |
-| B34 | Back | Persistir/exportar simulação de matrícula | 5.3 | [ ] |
-| B35 | Back | `GET /api/mapa/grafo` — nós e arestas para react-flow | 5.2 | [ ] |
-| B36 | Back | Alertas de integralização (limiar por categoria) | 5.4 | [ ] |
-| B37 | Back | Alertas de calendário acadêmico (datas próximas) | 5.5 | [ ] |
-| F20 | Front | Grafo interativo com `react-flow` (zoom, pan, setas pre/co) | 5.2 | [ ] |
-| F21 | Front | Simulador: filtro de matérias elegíveis + drag-and-drop | 5.3 | [ ] |
-| F22 | Front | Choque de horários — alerta visual na grade | 5.3 | [ ] |
-| F23 | Front | Salvar / exportar simulação de matrícula | 5.3 | [ ] |
-| F24 | Front | Alertas de integralização e calendário acadêmico | 5.4–5.5 | [ ] |
+| Área | O que resolve |
+|------|----------------|
+| **Matrícula** | Quais matérias o aluno pode cursar; choque de horário; salvar simulação |
+| **Mapa PPC** | Grafo interativo com setas pré/co-requisito |
+| **Alertas** | CH perto de completar; datas acadêmicas chegando |
+
+| # | Tipo | Task | Resumo | Fase | Status |
+|---|------|------|--------|------|--------|
+| B32 | Back | Motor elegibilidade | Histórico + pré-requisitos → pode cursar? | 5.3 | [ ] |
+| B33 | Back | Choque de horários | API detecta sobreposição na grade | 5.3 | [ ] |
+| B34 | Back | Persistir simulação | Salvar/exportar grade montada | 5.3 | [ ] |
+| B35 | Back | `GET /api/mapa/grafo` | Nós e arestas para react-flow | 5.2 | [ ] |
+| B36 | Back | Alertas integralização | Limiar por categoria de CH | 5.4 | [ ] |
+| B37 | Back | Alertas calendário | Datas acadêmicas próximas | 5.5 | [ ] |
+| F20 | Front | Grafo react-flow | Zoom, pan, setas sólidas/pontilhadas | 5.2 | [ ] |
+| F21 | Front | Simulador elegível | Filtro + drag-and-drop na grade | 5.3 | [ ] |
+| F22 | Front | Alerta choque | Destaque visual de conflito | 5.3 | [ ] |
+| F23 | Front | Salvar simulação | Botões salvar/exportar matrícula | 5.3 | [ ] |
+| F24 | Front | Alertas na UI | Banners integralização + calendário | 5.4–5.5 | [ ] |
 
 **Ordem:** `B32 → B33 → B34` → `F21 → F22 → F23` → `B35 → F20` → `B36 → B37 → F24`
 
@@ -305,15 +385,15 @@ Objetivo: regras de negócio com dados reais (pré-requisitos, matrícula, grafo
 
 ### Bloco 4 — Polimento e sync externa (Fase 6)
 
-Objetivo: UX de produção e backup/sync via pasta na nuvem.
+**Objetivo:** UX de produção e indicador de backup na nuvem (config/export ficam na Etapa 4 do Bloco 1).
 
-| # | Tipo | Task | Fase | Status |
-|---|------|------|------|--------|
-| F25 | Front | Loading skeletons em todas as telas | 6.4 | [ ] |
-| F26 | Front | Animações de transição entre páginas | 6.4 | [ ] |
-| F27 | Front | Favicon e título personalizado | 6.4 | [ ] |
-| B38 | Back | Detecção de `.db` em pasta Drive/OneDrive/Dropbox | 6.3 | [ ] |
-| F28 | Front | Indicador de status da pasta sincronizada | 6.3 | [ ] |
+| # | Tipo | Task | Resumo | Fase | Status |
+|---|------|------|--------|------|--------|
+| F25 | Front | Loading skeletons | Placeholders em todas as telas | 6.4 | [ ] |
+| F26 | Front | Transições de página | Animações entre rotas | 6.4 | [ ] |
+| F27 | Front | Favicon + título | Identidade na aba do browser | 6.4 | [ ] |
+| B38 | Back | Detectar pasta nuvem | `.db` em Drive/OneDrive/Dropbox | 6.3 | [ ] |
+| F28 | Front | Status da pasta | Indicador “sincronizado” na UI | 6.3 | [ ] |
 
 **Ordem:** após Bloco 1 Etapa 4 → `F25 → F26 → F27` → `B38 → F28`
 
@@ -325,18 +405,35 @@ Objetivo: UX de produção e backup/sync via pasta na nuvem.
 ### Visão geral dos blocos
 
 ```
-Bloco 1 (API + SQLite)     →  Bloco 2 (Scraper SIGAA)
-        ↓                              ↓
-Bloco 3 (PPC, matrícula)   ←  dados reais
+Bloco 0 (Planejamento)      →  docs, PPC, stack
         ↓
-Bloco 4 (Polimento)
+Bloco 1 (API + SQLite)     →  telas consomem banco local (23/42)
         ↓
-Fase 7 (Mobile — futuro)
+Bloco 2 (Scraper SIGAA)    →  sync real substitui seed-demo
+        ↓
+Bloco 3 (Inteligência)     →  PPC, matrícula, grafo, alertas
+        ↓
+Bloco 4 (Polimento)        →  UX produção + pasta na nuvem
+        ↓
+Bloco 5 (Mobile)           →  Expo + offline (futuro)
 ```
+
+| Fase doc | Equivale a | Conteúdo principal |
+|----------|------------|-------------------|
+| **Fase 0** | Bloco 0 | Requisitos, SCOPE, TASKS, PPC |
+| **Fase 1** | Bloco 1 (setup) | Next.js, design system, schema SQLite |
+| **Fase 2** | Bloco 2 | Scraper Playwright |
+| **Fase 3** | UI templates | Login, dashboard, calendário, rotas |
+| **Fase 4** | Disciplinas UI | Notas, faltas, tarefas, simulador local |
+| **Fase 5** | Bloco 3 + PPC | Mapa, matrícula, integralização |
+| **Fase 6** | Bloco 1.4 + Bloco 4 | Config, export, polimento |
+| **Fase 7** | Bloco 5 | App mobile |
 
 ---
 
 ## Fase 2: Motor de Scraping (SIGAA)
+
+> **Resumo:** Playwright automatiza login e extração de dados do SIGAA (portal + turmas). Corresponde ao **Bloco 2** (B24–B31, F18–F19).
 
 ### 2.1 Autenticação
 - [ ] Implementar login no SIGAA via Playwright (POST para `verTelaLogin.do`)
@@ -369,6 +466,8 @@ Fase 7 (Mobile — futuro)
 
 ## Fase 3: Interface do Usuário — Telas Principais
 
+> **Resumo:** Shell visual de login, dashboard, calendário, mapa, integralização e simulador. Integração SQLite segue o [Bloco 1](#bloco-1--api--ui--sqlite) (dashboard ✅, disciplinas ✅; demais rotas ainda mock).
+
 ### 3.1 Tela de Login
 - [x] Input de usuário e senha do SIGAA
 - [x] Senha com mostrar/ocultar (`PasswordInput`)
@@ -376,15 +475,17 @@ Fase 7 (Mobile — futuro)
 - [x] Botão "Entrar e Sincronizar"
 - [x] Loading state com progresso da sincronização
 - [x] Tratamento de erro visual (credenciais inválidas, SIGAA offline) — via API mock (`erro` / `offline`)
-- [x] UI do login (card CEFET-MG, piping dourado, rodapé "Criar conta" → SIGAA)
+- [x] UI do login (card CEFET-MG, piping dourado, rodapé "Criar conta" → SIGAA, `LoginCard`, `PasswordInput`)
 
 ### 3.2 Dashboard Central
 - [x] Header com saudação, nome do aluno e semestre atual — **via API** (`useDashboard`)
 - [/] Card de RG com indicador visual (cor baseada na faixa) — RG numérico em `StatsRow`; **faixa de cores pendente**
 - [x] Barra de integralização com breakdown por tipo de CH — **via API** (página `/integralizacao` ainda mock → F11)
-- [/] Lista "Próximas Entregas" (5 próximas tarefas/avaliações) — lista pendentes da API; **limite de 5 pendente**
+- [/] Lista "Próximas Entregas" (5 próximas tarefas/avaliações) — filtros via API (incl. Concluídas) + regra 3 dias após prazo; **limite de 5 pendente**
 - [x] Modal com detalhes da tarefa ao clicar (descrição, entregáveis, link à disciplina)
 - [x] Grid de cards de disciplinas (nota, faltas, próxima atividade por matéria) — **via API**
+- [x] Indicador de risco de nota e badge Recuperação nos cards (`GradeRiskIndicator`; prioridade fora do `<Link>`)
+- [x] Ordenação e prioridade em "Próximas Entregas" (`TaskSortSelect`, `PrioritySelect`)
 - [x] Botão de re-sincronização na navbar (Sync SIGAA)
 - [x] Botão Sair (`LogoutButton`) — extra F5b
 
@@ -407,13 +508,13 @@ Fase 7 (Mobile — futuro)
 
 ### 3.5 Templates de Páginas (UI)
 - [x] Template `/calendario` (calendário mensal, eventos, datas acadêmicas, grade semanal)
-- [/] Template `/disciplinas` — listagem e detalhe **via API** (F6–F8); simulação de notas permanece local
+- [x] Template `/disciplinas` — listagem e detalhe **via API** (F6–F8); simulação de notas permanece local
 - [x] Template `/mapa` (grade curricular por período com status)
-- [x] Template `/integralizacao` (resumo, barras e tabela de CH)
+- [/] Template `/integralizacao` — UI donut + barras douradas; **dados ainda mock** (F11)
 - [x] Template `/simulador` (montar grade / matrícula)
 - [x] Página `not-found` customizada
 - [x] Layout compartilhado (`PageHeader`, `PageGrid`) e mock data em `config/mock/`
-- [x] Componentes UI base: `Modal`, `FilterBar`, `ActivityDetail`, `SectionHeader`, `Icon`
+- [x] Componentes UI base: `Modal`, `FilterBar`, `ActivityDetail`, `SectionHeader`, `Icon`, `ToggleOption`, `PasswordInput`, `PlannerSelect`, `PrioritySelect`
 
 ### 3.6 Layout Modular de Módulos
 - [x] Hook `useModuleLayout` com persistência em `localStorage`
@@ -430,20 +531,29 @@ Fase 7 (Mobile — futuro)
 
 ## Fase 4: Interface do Usuário — Gestão de Disciplinas
 
+> **Resumo:** Página da matéria: notas (inline/extra), faltas, tarefas CRUD, simulador local de aprovação. Backend no **Bloco 1, Etapa 3A** ✅.
+
 ### 4.1 Página Individual da Disciplina
 - [x] Header com nome completo, código, professor, CH, sala, horário traduzido — **via API** (F7)
 - [x] Seção de Ementa (texto do PPC) — **via API**
 - [x] Card de Nota Atual (tabela de avaliações, pontos faltando) — **via API**; add manual via F8
 - [x] Card de Faltas (barra de progresso até o limite, cores por zona de risco) — **via API**
-- [x] Lista de Tarefas (com data e tipo) — **via API**; marcar concluída via `PATCH /api/tarefas/[id]`
+- [x] Lista de Tarefas (com data e tipo) — **via API**; CRUD manual + marcar concluída (`POST/PATCH` tarefas)
 - [x] Clique na tarefa abre modal com descrição, instruções e entregáveis
+- [x] Painéis Notas e Frequência alinhados em altura na página da disciplina
 
 ### 4.2 Tabela de Notas Detalhada
 - [x] Tabela com avaliações (PRO1, SEM, PRO2, Nota…) — **dados SQLite via API**
 - [x] Coluna de "valor máximo" visível (não apenas no hover)
 - [x] Botão "+ Adicionar Avaliação" para cadastro manual
-- [x] Indicador de "faltam X pontos para distribuir"
+- [x] Indicador de "faltam X pontos para distribuir" (exclui notas extra)
 - [x] Destaque da nota necessária para aprovação (banner + coluna Necessário)
+- [x] Edição inline de nota (vírgula/ponto, validação min/max)
+- [x] Toggle "Nota extra" (`ToggleOption`) — não entra em pontos a distribuir
+- [x] Excluir qualquer avaliação (SIGAA ou manual)
+- [x] Barra de risco com marca 60 acima da barra (painel) e pontos a distribuir só com nota lançada
+- [x] Coluna Necessário com **OK** quando a meta da avaliação ou aprovação (≥ 60) é atingida
+- [x] Recuperação inline (`RecoveryGradeEntry`) quando semestre encerrado (40–59 pts); média `(semestre + recuperação) ÷ 2`
 
 ### 4.3 Simulador de Notas
 - [x] Mover simulador de notas para a página individual de cada disciplina
@@ -452,11 +562,14 @@ Fase 7 (Mobile — futuro)
 - [x] Indicador "Aprovado" ou "Reprovado" simulado
 - [x] Botão "Limpar Simulação" para voltar aos dados reais
 - [x] Exibir quanto falta em cada avaliação para atingir aprovação (coluna "Necessário")
+- [x] Simulador sem impacto de RG no semestre (removido `RgImpactLabel`)
+- [x] Ao simular: trigger mantém tamanho, menu em overlay, barra de risco permanece, campos pré-preenchidos com notas reais
 
 ### 4.4 Tela de Frequência
 - [x] Tabela cronológica de datas e status (Presente/Falta/Não Registrada)
 - [x] Card resumo: "X faltas de Y permitidas (Z dias restantes)"
 - [x] Indicador visual de zona de risco (verde → amarelo → vermelho)
+- [x] Atualização de presença via `PATCH /api/disciplinas/[code]/faltas`
 
 ### 4.5 Download Automático de PDFs
 - [/] Toggle on/off por disciplina — **na página da disciplina** (`SubjectDownloadsPanel`); tela `/configuracoes` = F14
@@ -466,6 +579,8 @@ Fase 7 (Mobile — futuro)
 ---
 
 ## Fase 5: Motor do PPC e Planejamento Acadêmico
+
+> **Resumo:** Dados do PPC (disciplinas, requisitos), mapa do curso, simulador de matrícula, integralização e calendário acadêmico. Inteligência avançada = **Bloco 3**.
 
 ### 5.1 Indexação do PPC
 - [x] Popular banco de dados com todas as disciplinas de Eng. Computação (DCDV):
@@ -497,6 +612,8 @@ Fase 7 (Mobile — futuro)
 - [x] Tabela com tipos de CH, total necessário, concluído, pendente (template mock)
 - [x] Botão "+ Cadastrar Horas" (UI placeholder)
 - [x] Barra de progresso visual por categoria
+- [x] Donut "Total Integralizado" + cards alinhados em altura (`IntegrationDonutChart`)
+- [x] Barras de progresso douradas unificadas no app
 - [ ] Alerta quando estiver perto de concluir uma categoria
 
 ### 5.5 Calendário Acadêmico
@@ -507,6 +624,8 @@ Fase 7 (Mobile — futuro)
 ---
 
 ## Fase 6: Sincronização e Polimento
+
+> **Resumo:** Backup JSON, caminho do `.db` na nuvem (Bloco 1 Etapa 4) + skeletons, animações e favicon (Bloco 4).
 
 ### 6.1 Exportação de Dados
 - [ ] Botão "Exportar Dados (JSON)" nas configurações
@@ -527,6 +646,9 @@ Fase 7 (Mobile — futuro)
 - [x] Corrigir espaçamento vazio no dashboard (grid unificado)
 - [x] Melhorar contraste e legibilidade (cards, badges, bordas)
 - [x] Revisar telas calendário, integralização e modal para consistência visual
+- [x] UI login refinada (card institucional, senha com olho, toggle lembrar senha)
+- [x] Barras de progresso douradas (global `.progress-bar-fill`)
+- [x] Caixas de seleção unificadas (pill escuro Cruzeiro, menu em overlay) — `PlannerSelect`, `PrioritySelect`
 - [ ] Adicionar animações de transição entre páginas
 - [/] Adicionar loading skeletons em todas as telas — **dashboard** + **disciplinas** (lista/detalhe); demais telas = F25
 - [x] Responsividade básica (breakpoints mobile/tablet/desktop)
@@ -535,6 +657,9 @@ Fase 7 (Mobile — futuro)
 ---
 
 ## Fase 7 (Futuro): App Mobile
+
+> **Resumo:** Mesmo planner no celular via Expo, lendo `.db` sincronizado — **Bloco 5**.
+
 - [ ] Criar projeto React Native (Expo) reaproveitando componentes
 - [ ] Integrar Google Drive API para leitura do `.db`
 - [ ] Implementar modo offline
@@ -558,4 +683,4 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
    - Faça **commit** ao finalizar (push não é obrigatório).
 8. **Código frontend** está em `app/src/` (não na raiz `src/`). Mock data em `app/src/config/mock/`.
 9. **Roadmap por blocos** (back/front, ordem de execução) está na seção [Roadmap por Blocos](#roadmap-por-blocos-ordem-de-execução). **Checklist linear com progresso:** [Checklist mestre](#checklist-mestre-ordem-linear). Siga a ordem `B` antes de `F` dentro de cada etapa.
-10. **Auditoria de status:** tasks `[x]` nas Fases 3–6 = **UI shell** quando a rota ainda usa `config/mock/` (calendário, mapa, integralização, simulador). Integração SQLite: [Checklist mestre](#checklist-mestre-ordem-linear) — dashboard + disciplinas ✅ (23/42). Última auditoria: 25/jun/2026.
+10. **Auditoria de status:** tasks `[x]` nas Fases 3–6 = **UI shell** quando a rota ainda usa `config/mock/` (calendário, mapa, simulador). Integralização: UI pronta, dados mock até F11. Integração SQLite: [Checklist mestre](#checklist-mestre-ordem-linear) — dashboard + disciplinas ✅ (23/42 no checklist linear; extensões 3A: B12b/c, F5b/c, F6b, F8b–F8f). Próximo bloco linear: **3B Calendário** (B13–F10). Última auditoria: 25/jun/2026.

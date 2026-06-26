@@ -1,4 +1,5 @@
 import type { Subject, SubjectEvaluation } from "./subject";
+import type { GradeRisk } from "./grade-risk";
 import type { AcademicTask } from "./task";
 import type { AttendanceSummary } from "./attendance";
 
@@ -8,6 +9,8 @@ export interface SubjectListItem {
   room: string;
   grade: number | null;
   gradeMax: number;
+  passingGrade: number;
+  gradeRisk: GradeRisk;
   absences: number;
   maxAbsences: number;
   tasks: number;
@@ -17,7 +20,13 @@ export interface SubjectListItem {
   schedule?: string;
 }
 
-export type DisciplinaListFilter = "todas" | "com_tarefas" | "risco_faltas";
+export type DisciplinaListFilter =
+  | "todas"
+  | "com_tarefas"
+  | "risco_faltas"
+  | "risco"
+  | "critico"
+  | "aprovados";
 
 export interface DisciplinaListResponse {
   items: SubjectListItem[];

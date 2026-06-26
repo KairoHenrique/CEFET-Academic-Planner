@@ -1,5 +1,10 @@
+"use client";
+
+import { useMemo } from "react";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import type { SubjectSummary } from "@/lib/types/subject";
+import { sortSubjectsByPriority } from "@/lib/priority/sort";
+import { useSubjectPriorities } from "@/hooks/useStoredPriorities";
 import { SubjectCard } from "./SubjectCard";
 
 interface SubjectsGridProps {
@@ -7,6 +12,12 @@ interface SubjectsGridProps {
 }
 
 export function SubjectsGrid({ disciplinas }: SubjectsGridProps) {
+  const { getPriority, map } = useSubjectPriorities();
+
+  const sorted = useMemo(() => {
+    return sortSubjectsByPriority(disciplinas, getPriority);
+  }, [disciplinas, getPriority, map]);
+
   return (
     <section>
       <SectionHeader
@@ -17,7 +28,7 @@ export function SubjectsGrid({ disciplinas }: SubjectsGridProps) {
       />
 
       <div className="subjects-grid">
-        {disciplinas.map((subject) => (
+        {sorted.map((subject) => (
           <SubjectCard key={subject.code} subject={subject} />
         ))}
       </div>

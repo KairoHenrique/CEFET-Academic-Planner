@@ -16,8 +16,6 @@ interface SubjectAbsencePanelProps {
   maxAbsences: number;
   daysRemaining: number;
   records: AttendanceRecord[];
-  expandList?: boolean;
-  panelHeight?: number;
 }
 
 const statusBadge: Record<AttendanceStatus, string> = {
@@ -38,8 +36,6 @@ export function SubjectAbsencePanel({
   maxAbsences,
   daysRemaining,
   records,
-  expandList = false,
-  panelHeight,
 }: SubjectAbsencePanelProps) {
   const { updateAttendanceStatus, isSaving, saveError } =
     useSubjectAttendance(subjectCode);
@@ -71,14 +67,7 @@ export function SubjectAbsencePanel({
 
   return (
     <>
-      <div
-        className={`card absence-panel ${expandList ? "absence-panel--expand" : ""}`}
-        style={
-          expandList && panelHeight
-            ? { height: panelHeight, boxSizing: "border-box" }
-            : undefined
-        }
-      >
+      <div className="card absence-panel">
         <SectionHeader
           title="Frequência"
           icon="clipboard"

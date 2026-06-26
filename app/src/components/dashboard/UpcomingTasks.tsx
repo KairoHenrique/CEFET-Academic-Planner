@@ -3,19 +3,22 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { SectionHeader } from "@/components/ui/SectionHeader";
-import { Icon } from "@/components/ui/Icon";
-import { Modal } from "@/components/ui/Modal";
 import { FilterBar } from "@/components/ui/FilterBar";
+import { Modal } from "@/components/ui/Modal";
 import { TaskDetailContent } from "@/components/ui/ActivityDetail";
+import { TaskListRow } from "@/components/tasks/TaskListRow";
+import { TaskSortSelect } from "@/components/tasks/TaskSortSelect";
 import { patchTarefa } from "@/lib/api/client";
 import { queryKeys } from "@/lib/query/keys";
+import { sortTasks } from "@/lib/priority/sort";
 import type { AcademicTask } from "@/lib/types/task";
 import {
-  formatTaskDueLabel,
   matchesTaskDueFilter,
   shouldHideTaskFromDashboard,
   type TaskDueFilter,
 } from "@/lib/tasks/dates";
+import { useTaskPriorities } from "@/hooks/useStoredPriorities";
+import { useTaskSortMode } from "@/hooks/useTaskSortMode";
 
 interface UpcomingTasksProps {
   tasks: AcademicTask[];
@@ -36,6 +39,9 @@ export function UpcomingTasks({ tasks: initialTasks }: UpcomingTasksProps) {
   const [tasks, setTasks] = useState<AcademicTask[]>(initialTasks);
   const [selectedTask, setSelectedTask] = useState<AcademicTask | null>(null);
   const [dueFilter, setDueFilter] = useState("Todas");
+  const { getPriority, setTaskPriority, map: taskPriorityMap } =
+    useTaskPriorities();
+  const { mode: sortMode, setSortMode, hydrated: sortReady } = useTaskSortMode();
 
   useEffect(() => {
     setTasks(initialTasks);
@@ -63,17 +69,16 @@ export function UpcomingTasks({ tasks: initialTasks }: UpcomingTasksProps) {
     ([, label]) => label === dueFilter
   )?.[0] ?? "todas") as TaskDueFilter;
 
-  const visibleTasks = useMemo(
-    () =>
-      tasks
-        .filter((task) =>
-          filterKey === "concluidas"
-            ? true
-            : !shouldHideTaskFromDashboard(task)
-        )
-        .filter((task) => matchesTaskDueFilter(task, filterKey)),
-    [tasks, filterKey]
-  );
+  const visibleTasks = useMemo(() => {
+    const filtered = tasks
+      .filter((task) =>
+        filterKey === "concluidas" ? true : !shouldHideTaskFromDashboard(task)
+      )
+      .filter((task) => matchesTaskDueFilter(task, filterKey));
+
+    if (!sortReady) return filtered;
+    return sortTasks(filtered, getPriority, sortMode);
+  }, [tasks, filterKey, getPriority, sortReady, sortMode, taskPriorityMap]);
 
   const toggleTask = (id: number) => {
     const task = tasks.find((t) => t.id === id);
@@ -99,11 +104,15 @@ export function UpcomingTasks({ tasks: initialTasks }: UpcomingTasksProps) {
         />
 
         <div className="tasks-panel-filters">
-          <FilterBar
-            filters={FILTER_OPTIONS}
-            active={dueFilter}
-            onChange={setDueFilter}
-          />
+          <div className="tasks-panel-filters__chips">
+            <FilterBar
+              filters={FILTER_OPTIONS}
+              active={dueFilter}
+              onChange={setDueFilter}
+              nowrap
+            />
+          </div>
+          <TaskSortSelect mode={sortMode} onChange={setSortMode} />
         </div>
 
         <div className="task-list">
@@ -113,11 +122,14 @@ export function UpcomingTasks({ tasks: initialTasks }: UpcomingTasksProps) {
 
           {filterKey === "concluidas" ? (
             visibleTasks.map((task) => (
-              <TaskRow
+              <TaskListRow
                 key={task.id}
                 task={task}
+                priority={getPriority(task.id)}
+                onSetPriority={(level) => setTaskPriority(task.id, level)}
                 onToggle={toggleTask}
                 onOpen={setSelectedTask}
+                showSubject
                 faded
                 disabled={toggleMutation.isPending}
               />
@@ -125,11 +137,14 @@ export function UpcomingTasks({ tasks: initialTasks }: UpcomingTasksProps) {
           ) : (
             <>
               {pendingTasks.map((task) => (
-                <TaskRow
+                <TaskListRow
                   key={task.id}
                   task={task}
+                  priority={getPriority(task.id)}
+                  onSetPriority={(level) => setTaskPriority(task.id, level)}
                   onToggle={toggleTask}
                   onOpen={setSelectedTask}
+                  showSubject
                   disabled={toggleMutation.isPending}
                 />
               ))}
@@ -140,11 +155,14 @@ export function UpcomingTasks({ tasks: initialTasks }: UpcomingTasksProps) {
                     Concluídas ({completedTasks.length})
                   </p>
                   {completedTasks.map((task) => (
-                    <TaskRow
+                    <TaskListRow
                       key={task.id}
                       task={task}
+                      priority={getPriority(task.id)}
+                      onSetPriority={(level) => setTaskPriority(task.id, level)}
                       onToggle={toggleTask}
                       onOpen={setSelectedTask}
+                      showSubject
                       faded
                       disabled={toggleMutation.isPending}
                     />
@@ -170,60 +188,5 @@ export function UpcomingTasks({ tasks: initialTasks }: UpcomingTasksProps) {
         )}
       </Modal>
     </>
-  );
-}
-
-interface TaskRowProps {
-  task: AcademicTask;
-  onToggle: (id: number) => void;
-  onOpen: (task: AcademicTask) => void;
-  faded?: boolean;
-  disabled?: boolean;
-}
-
-function TaskRow({ task, onToggle, onOpen, faded, disabled }: TaskRowProps) {
-  return (
-    <div className={`task-item ${faded ? "completed-section" : ""}`}>
-      <button
-        type="button"
-        className={`task-checkbox ${task.done ? "checked" : ""}`}
-        disabled={disabled}
-        onClick={(e) => {
-          e.stopPropagation();
-          onToggle(task.id);
-        }}
-        aria-label={`${task.done ? "Desmarcar" : "Marcar"} ${task.title}`}
-      >
-        {task.done && <Icon name="check" size={11} />}
-      </button>
-
-      <button
-        type="button"
-        className="task-open-btn"
-        onClick={() => onOpen(task)}
-        aria-label={`Ver detalhes de ${task.title}`}
-      >
-        <div className="task-info">
-          <div className={`task-title ${task.done ? "completed" : ""}`}>
-            {task.title}
-          </div>
-          <div className="task-subtitle">
-            <span
-              className="subject-dot"
-              style={{ background: task.subjectColor }}
-            />
-            {task.subject}
-            <span className="badge info">
-              {task.type === "grupo" ? "Grupo" : "Individual"}
-            </span>
-          </div>
-        </div>
-        <div className="task-date">
-          <Icon name="calendar" size={12} />
-          {formatTaskDueLabel(task.date, task.dueTime)}
-          <Icon name="chevron-right" size={14} className="task-chevron" />
-        </div>
-      </button>
-    </div>
   );
 }

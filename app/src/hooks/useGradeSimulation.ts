@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type { SubjectEvaluation } from "@/lib/types/subject";
+import { computePendingTeacherPoints } from "@/lib/disciplinas/grade-risk";
 
 interface UseGradeSimulationOptions {
   evaluations: SubjectEvaluation[];
@@ -38,12 +39,10 @@ export function useGradeSimulation({
 
   const approved = simulatedTotal >= passingGrade;
   const pointsNeeded = Math.max(0, passingGrade - simulatedTotal);
-  const pendingTeacherPoints = useMemo(() => {
-    const distributedMax = evaluations
-      .filter((ev) => !ev.extra)
-      .reduce((acc, ev) => acc + ev.max, 0);
-    return Math.max(0, gradeMax - distributedMax);
-  }, [evaluations, gradeMax]);
+  const pendingTeacherPoints = useMemo(
+    () => computePendingTeacherPoints(evaluations, gradeMax),
+    [evaluations, gradeMax]
+  );
 
   const getMinimumForEvaluation = (index: number): number | null => {
     if (evaluations[index].extra) return null;
@@ -62,7 +61,22 @@ export function useGradeSimulation({
     setSimulated((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleReset = () => setSimulated({});
+  const buildSimulatedFromEvaluations = () => {
+    const initial: Record<string, string> = {};
+    for (const ev of evaluations) {
+      if (ev.score !== null) {
+        initial[ev.name] = String(ev.score);
+      }
+    }
+    return initial;
+  };
+
+  const enterSimulation = () => {
+    setSimulated(buildSimulatedFromEvaluations());
+    setSimulateMode(true);
+  };
+
+  const handleReset = () => setSimulated(buildSimulatedFromEvaluations());
 
   const exitSimulation = () => {
     setSimulateMode(false);
@@ -72,6 +86,7 @@ export function useGradeSimulation({
   return {
     simulateMode,
     setSimulateMode,
+    enterSimulation,
     simulated,
     resolvedScores,
     simulatedTotal,

@@ -1,6 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import {
+  SUBJECT_DISPLAY_GRADE_MAX,
+  SUBJECT_DISPLAY_PASSING_GRADE,
+} from "@/lib/disciplinas/grade-display";
+import { GradeRiskIndicator } from "@/components/grades/GradeRiskIndicator";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Icon } from "@/components/ui/Icon";
 import { Modal } from "@/components/ui/Modal";
@@ -8,14 +13,39 @@ import { Input } from "@/components/ui/Input";
 import { ToggleOption } from "@/components/ui/ToggleOption";
 import type { Subject, SubjectEvaluation } from "@/lib/types/subject";
 import { useSubjectGrades } from "@/hooks/useSubjectGrades";
+import { useSubjectRecovery } from "@/hooks/useSubjectRecovery";
 
 interface SubjectGradesPanelProps {
   subject: Pick<
     Subject,
-    "code" | "grade" | "gradeMax" | "passingGrade" | "evaluations"
+    "code" | "grade" | "gradeMax" | "passingGrade" | "gradeRisk" | "evaluations"
   >;
-  onSimulateModeChange?: (active: boolean) => void;
-  onLayoutHeight?: (height: number) => void;
+}
+
+function renderNecessarioCell(
+  row: SubjectEvaluation,
+  minNeeded: number | null,
+  pointsNeeded: number,
+  resolvedScore: number | null
+) {
+  if (row.extra) {
+    return <span className="grades-min-extra">—</span>;
+  }
+
+  const rowScoreMet =
+    resolvedScore !== null &&
+    minNeeded !== null &&
+    resolvedScore + 0.001 >= minNeeded;
+
+  if (pointsNeeded === 0 || rowScoreMet) {
+    return <span className="grades-min-ok">OK</span>;
+  }
+
+  if (minNeeded !== null) {
+    return <span>≥ {minNeeded.toFixed(1)}</span>;
+  }
+
+  return "—";
 }
 
 function normalizeScoreForParse(value: string): string {
@@ -58,13 +88,12 @@ function clampScoreDraft(value: string, max: number): string {
   return trimmed;
 }
 
-export function SubjectGradesPanel({
-  subject,
-  onSimulateModeChange,
-  onLayoutHeight,
-}: SubjectGradesPanelProps) {
-  const panelRef = useRef<HTMLDivElement>(null);
+export function SubjectGradesPanel({ subject }: SubjectGradesPanelProps) {
   const grades = useSubjectGrades(subject);
+  const { gradeRisk, recoveryScore, setRecoveryScore } = useSubjectRecovery(
+    subject.code,
+    subject.gradeRisk
+  );
   const [addOpen, setAddOpen] = useState(false);
   const [newName, setNewName] = useState("");
   const [newMax, setNewMax] = useState("10");
@@ -78,9 +107,10 @@ export function SubjectGradesPanel({
   const {
     evaluations,
     simulateMode,
-    setSimulateMode,
+    enterSimulation,
     simulated,
     simulatedTotal,
+    resolvedScores,
     approved,
     pointsNeeded,
     pendingTeacherPoints,
@@ -88,7 +118,6 @@ export function SubjectGradesPanel({
     handleChange,
     handleReset,
     exitSimulation,
-    currentTotal,
     addEvaluation,
     updateEvaluationScore,
     updateManualEvaluation,
@@ -207,25 +236,6 @@ export function SubjectGradesPanel({
     }
   };
 
-  const passingStatus =
-    currentTotal >= subject.passingGrade ? "success" : "warning";
-
-  useEffect(() => {
-    onSimulateModeChange?.(simulateMode);
-  }, [simulateMode, onSimulateModeChange]);
-
-  useEffect(() => {
-    const node = panelRef.current;
-    if (!node || !onLayoutHeight) return;
-
-    const report = () => onLayoutHeight(node.getBoundingClientRect().height);
-    report();
-
-    const observer = new ResizeObserver(report);
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, [onLayoutHeight, simulateMode, evaluations.length]);
-
   const pendingLabel =
     pendingTeacherPoints % 1 === 0
       ? String(pendingTeacherPoints)
@@ -233,7 +243,7 @@ export function SubjectGradesPanel({
 
   return (
     <>
-      <div ref={panelRef} className="card grades-panel">
+      <div className="card grades-panel">
         <div className="grades-panel-header">
           <SectionHeader
             title="Notas"
@@ -242,6 +252,12 @@ export function SubjectGradesPanel({
               simulateMode ? (
                 <span className={`badge ${approved ? "success" : "danger"}`}>
                   {approved ? "Aprovado" : "Reprovado"}
+                </span>
+              ) : gradeRisk.zone !== "unknown" ? (
+                <span
+                  className={`badge ${gradeRisk.zone === "safe" ? "success" : gradeRisk.zone === "warning" ? "warning" : "danger"}`}
+                >
+                  {gradeRisk.label}
                 </span>
               ) : subject.grade !== null ? (
                 <span className="badge gold">{subject.grade} pts</span>
@@ -256,7 +272,7 @@ export function SubjectGradesPanel({
             <button
               type="button"
               className={`btn-outline grades-simulate-toggle ${simulateMode ? "active" : ""}`}
-              onClick={() => (simulateMode ? exitSimulation() : setSimulateMode(true))}
+              onClick={() => (simulateMode ? exitSimulation() : enterSimulation())}
             >
               <Icon name="calculator" size={14} />
               {simulateMode ? "Notas reais" : "Simular"}
@@ -264,21 +280,17 @@ export function SubjectGradesPanel({
           </div>
         </div>
 
-        <div className={`passing-grade-banner ${passingStatus}`}>
-          <span>Aprovação: ≥ {subject.passingGrade} pontos</span>
-          {simulateMode ? (
-            <span className="passing-grade-banner-sim">
-              Simulada:{" "}
-              <strong className={approved ? "success" : "danger"}>
-                {simulatedTotal.toFixed(1)}
-              </strong>
-            </span>
-          ) : (
-            <span>
-              Atual: <strong>{currentTotal.toFixed(1)}</strong>
-            </span>
-          )}
-        </div>
+        {gradeRisk.zone !== "unknown" && (
+          <GradeRiskIndicator
+            grade={subject.grade}
+            gradeRisk={gradeRisk}
+            variant="panel"
+            recoveryInteractive={!simulateMode}
+            recoveryScore={recoveryScore}
+            onRecoveryScoreSave={setRecoveryScore}
+            onRecoveryScoreClear={() => setRecoveryScore(null)}
+          />
+        )}
 
         <div className="data-table-wrap grades-table-wrap">
           <table className="data-table">
@@ -286,9 +298,7 @@ export function SubjectGradesPanel({
               <tr>
                 <th>Avaliação</th>
                 <th className="grades-col-max">Máx.</th>
-                <th className="grades-col-nota">
-                  {simulateMode ? "Simular" : "Nota"}
-                </th>
+                <th className="grades-col-nota">Nota</th>
                 <th className="grades-col-necessario">Necessário</th>
               </tr>
             </thead>
@@ -339,8 +349,8 @@ export function SubjectGradesPanel({
                         <input
                           type="text"
                           inputMode="decimal"
-                          className="grades-sim-input"
-                          placeholder={row.score?.toString() ?? "0"}
+                          className="grades-score-input"
+                          placeholder="—"
                           value={simulated[row.name] ?? ""}
                           onChange={(e) => {
                             const cleaned = sanitizeScoreInput(e.target.value);
@@ -375,14 +385,11 @@ export function SubjectGradesPanel({
                       )}
                     </td>
                     <td className="grades-min-cell grades-col-necessario">
-                      {row.extra ? (
-                        <span className="grades-min-extra">—</span>
-                      ) : pointsNeeded === 0 && simulateMode ? (
-                        <span className="grades-min-ok">OK</span>
-                      ) : minNeeded !== null ? (
-                        <span>≥ {minNeeded.toFixed(1)}</span>
-                      ) : (
-                        "—"
+                      {renderNecessarioCell(
+                        row,
+                        minNeeded,
+                        pointsNeeded,
+                        resolvedScores[index] ?? null
                       )}
                     </td>
                   </tr>
@@ -396,7 +403,7 @@ export function SubjectGradesPanel({
           {simulateMode && pointsNeeded > 0 ? (
             <>
               Faltam <strong>{pointsNeeded.toFixed(1)}</strong> pts para{" "}
-              <strong>{subject.passingGrade}</strong>
+              <strong>{SUBJECT_DISPLAY_PASSING_GRADE}</strong>
             </>
           ) : (
             <>

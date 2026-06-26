@@ -1,5 +1,11 @@
 export type { SubjectEvaluation, Subject } from "@/lib/types/subject";
 import type { Subject, SubjectEvaluation } from "@/lib/types/subject";
+import { computeGradeRisk } from "@/lib/disciplinas/grade-risk";
+import {
+  SUBJECT_DISPLAY_GRADE_MAX,
+  SUBJECT_DISPLAY_PASSING_GRADE,
+  SUBJECT_RECOVERY_GRADE,
+} from "@/lib/disciplinas/grade-display";
 
 const standardEvaluations = (
   scores: Partial<Record<string, number | null>> = {}
@@ -18,7 +24,10 @@ const labEvaluations = (
   { name: "PRO2", max: 10, score: scores.PRO2 ?? null },
 ];
 
-type SubjectSeed = Omit<Subject, "ementa" | "downloadedFiles" | "pdfAutoDownload">;
+type SubjectSeed = Omit<
+  Subject,
+  "ementa" | "downloadedFiles" | "pdfAutoDownload" | "gradeRisk"
+>;
 
 const semesterSubjectsSeed: SubjectSeed[] = [
   {
@@ -126,8 +135,8 @@ const semesterSubjectsSeed: SubjectSeed[] = [
     code: "LAOCI",
     room: "304",
     grade: 9.0,
-    gradeMax: 25,
-    passingGrade: 15,
+    gradeMax: 100,
+    passingGrade: 60,
     evaluations: labEvaluations({ PRO1: 9.0 }),
     absences: 4,
     maxAbsences: 7,
@@ -197,6 +206,15 @@ const subjectMeta: Record<
 export const semesterSubjects: Subject[] = semesterSubjectsSeed.map((subject) => ({
   ...subject,
   ...(subjectMeta[subject.code] ?? defaultSubjectMeta),
+  gradeRisk: computeGradeRisk({
+    evaluations: subject.evaluations,
+    passingGrade: SUBJECT_DISPLAY_PASSING_GRADE,
+    gradeMax: SUBJECT_DISPLAY_GRADE_MAX,
+    recoveryGrade: SUBJECT_RECOVERY_GRADE,
+    grade: subject.grade,
+    absences: subject.absences,
+    maxAbsences: subject.maxAbsences,
+  }),
 }));
 
 export function getSubjectByCode(code: string): Subject | undefined {
