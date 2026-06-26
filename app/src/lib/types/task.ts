@@ -7,8 +7,11 @@ export interface AcademicTask {
   subjectCode: string;
   subjectColor: string;
   date: string;
+  dueDateIso: string;
+  dueTime: string;
   type: TaskType;
   done: boolean;
+  manual: boolean;
   description: string;
   instructions: string[];
   deliverables: string[];

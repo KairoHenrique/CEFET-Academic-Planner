@@ -1,45 +1,45 @@
 "use client";
 
-import { useMemo } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Subject, SubjectEvaluation } from "@/lib/types/subject";
+import type { PatchNotasResponse, SubjectDetailResponse } from "@/lib/types/disciplinas-api";
 import { patchDisciplinaNotas } from "@/lib/api/client";
-import { computeWeightedAverage } from "@/lib/engine/rg";
 import { useGradeSimulation } from "@/hooks/useGradeSimulation";
-import { useDisciplinas } from "@/hooks/useDisciplinas";
 import { queryKeys } from "@/lib/query/keys";
 
+function applyNotasPatchToCache(
+  queryClient: ReturnType<typeof useQueryClient>,
+  code: string,
+  response: PatchNotasResponse
+): void {
+  queryClient.setQueryData<SubjectDetailResponse>(
+    queryKeys.disciplina(code),
+    (current) => {
+      if (!current) return current;
+      return {
+        ...current,
+        subject: {
+          ...current.subject,
+          evaluations: response.evaluations,
+          grade: response.grade,
+        },
+      };
+    }
+  );
+}
+
 export function useSubjectGrades(
-  subject: Pick<Subject, "code" | "grade" | "passingGrade" | "evaluations">
+  subject: Pick<Subject, "code" | "grade" | "gradeMax" | "passingGrade" | "evaluations">
 ) {
   const queryClient = useQueryClient();
-  const { items: semesterItems } = useDisciplinas();
 
   const evaluations = subject.evaluations;
 
   const simulation = useGradeSimulation({
     evaluations,
     passingGrade: subject.passingGrade,
+    gradeMax: subject.gradeMax,
   });
-
-  const rgSubjects = useMemo(
-    () =>
-      semesterItems.map((item) => ({
-        code: item.code,
-        grade: item.code === subject.code ? subject.grade : item.grade,
-        ch: item.ch ?? 0,
-      })),
-    [semesterItems, subject.code, subject.grade]
-  );
-
-  const currentRg = computeWeightedAverage(rgSubjects);
-
-  const simulatedRg = useMemo(() => {
-    if (!simulation.simulateMode) return null;
-    return computeWeightedAverage(rgSubjects, {
-      [subject.code]: simulation.simulatedTotal,
-    });
-  }, [simulation.simulateMode, simulation.simulatedTotal, rgSubjects, subject.code]);
 
   const addMutation = useMutation({
     mutationFn: (evaluation: SubjectEvaluation) =>
@@ -48,8 +48,10 @@ export function useSubjectGrades(
         avaliacao_nome: evaluation.name,
         nota_maxima: evaluation.max,
         nota_obtida: evaluation.score,
+        nota_extra: evaluation.extra,
       }),
-    onSuccess: () => {
+    onSuccess: (response) => {
+      applyNotasPatchToCache(queryClient, subject.code, response);
       void queryClient.invalidateQueries({
         queryKey: queryKeys.disciplina(subject.code),
       });
@@ -65,7 +67,47 @@ export function useSubjectGrades(
         id: payload.id,
         nota_obtida: payload.nota_obtida,
       }),
-    onSuccess: () => {
+    onSuccess: (response) => {
+      applyNotasPatchToCache(queryClient, subject.code, response);
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.disciplina(subject.code),
+      });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.disciplinas() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.dashboard() });
+    },
+  });
+
+  const updateManualMutation = useMutation({
+    mutationFn: (payload: {
+      id: number;
+      avaliacao_nome?: string;
+      nota_maxima?: number;
+      nota_obtida?: number | null;
+      nota_extra?: boolean;
+    }) =>
+      patchDisciplinaNotas(subject.code, {
+        action: "update_manual",
+        id: payload.id,
+        avaliacao_nome: payload.avaliacao_nome,
+        nota_maxima: payload.nota_maxima,
+        nota_obtida: payload.nota_obtida,
+        nota_extra: payload.nota_extra,
+      }),
+    onSuccess: (response) => {
+      applyNotasPatchToCache(queryClient, subject.code, response);
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.disciplina(subject.code),
+      });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.disciplinas() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.dashboard() });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) =>
+      patchDisciplinaNotas(subject.code, { action: "delete", id }),
+    onSuccess: (response) => {
+      applyNotasPatchToCache(queryClient, subject.code, response);
       void queryClient.invalidateQueries({
         queryKey: queryKeys.disciplina(subject.code),
       });
@@ -82,6 +124,20 @@ export function useSubjectGrades(
     await updateMutation.mutateAsync({ id, nota_obtida: notaObtida });
   };
 
+  const updateManualEvaluation = async (payload: {
+    id: number;
+    avaliacao_nome?: string;
+    nota_maxima?: number;
+    nota_obtida?: number | null;
+    nota_extra?: boolean;
+  }) => {
+    await updateManualMutation.mutateAsync(payload);
+  };
+
+  const deleteEvaluation = async (id: number) => {
+    await deleteMutation.mutateAsync(id);
+  };
+
   const distributed = evaluations.reduce(
     (acc, ev, index) => acc + (simulation.resolvedScores[index] ?? 0),
     0
@@ -91,15 +147,29 @@ export function useSubjectGrades(
   return {
     evaluations,
     ...simulation,
-    currentRg,
-    simulatedRg,
     currentTotal,
     addEvaluation,
     updateEvaluationScore,
-    isSaving: addMutation.isPending || updateMutation.isPending,
+    updateManualEvaluation,
+    deleteEvaluation,
+    isSaving:
+      addMutation.isPending ||
+      updateMutation.isPending ||
+      updateManualMutation.isPending ||
+      deleteMutation.isPending,
     saveError:
-      (addMutation.error ?? updateMutation.error) instanceof Error
-        ? (addMutation.error ?? updateMutation.error)?.message
+      (
+        addMutation.error ??
+        updateMutation.error ??
+        updateManualMutation.error ??
+        deleteMutation.error
+      ) instanceof Error
+        ? (
+            addMutation.error ??
+            updateMutation.error ??
+            updateManualMutation.error ??
+            deleteMutation.error
+          )?.message
         : null,
   };
 }

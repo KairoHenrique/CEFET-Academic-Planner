@@ -12,7 +12,7 @@ export function SyncProgress({ progress, stepLabel }: SyncProgressProps) {
       </div>
       <div className="progress-bar progress-bar-lg">
         <div
-          className="progress-bar-fill gold"
+          className="progress-bar-fill"
           style={{ width: `${progress}%` }}
         />
       </div>

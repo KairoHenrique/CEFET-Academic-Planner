@@ -50,7 +50,7 @@ export function SubjectCard({ subject }: { subject: SubjectSummary }) {
 
       <div className="progress-bar">
         <div
-          className={`progress-bar-fill ${absenceStatus.badgeClass}`}
+          className="progress-bar-fill"
           style={{ width: `${absenceRatio}%` }}
         />
       </div>

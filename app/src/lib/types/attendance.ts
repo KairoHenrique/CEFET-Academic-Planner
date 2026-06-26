@@ -1,6 +1,7 @@
 export type AttendanceStatus = "presente" | "falta" | "nao_registrada";
 
 export interface AttendanceRecord {
+  id: number;
   date: string;
   status: AttendanceStatus;
 }

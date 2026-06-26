@@ -3,13 +3,15 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/Input";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { SyncProgress } from "@/components/ui/SyncProgress";
+import { ToggleOption } from "@/components/ui/ToggleOption";
 import { Icon } from "@/components/ui/Icon";
 import { useSync } from "@/hooks/useSync";
 import { saveSyncCredentials } from "@/lib/auth/credentials";
 import { setSession } from "@/lib/auth/session";
-import { BrandLogo } from "@/components/ui/BrandLogo";
 import { brand } from "@/config/brand";
+import { LoginCard } from "@/components/auth/LoginCard";
 
 export function LoginForm() {
   const router = useRouter();
@@ -49,58 +51,68 @@ export function LoginForm() {
     router.refresh();
   };
 
-  return (
-    <div className="login-page">
-      <div className="login-card card">
-        <div className="login-brand">
-          <BrandLogo />
-          <div>
-            <h1 className="login-title">{brand.name}</h1>
-            <p className="login-subtitle">Entre com suas credenciais do SIGAA</p>
-          </div>
-        </div>
+  const displayError = formError ?? sync.error;
 
-        <form className="login-form" onSubmit={handleSubmit}>
+  return (
+    <LoginCard
+      foot={
+        <a
+          href={brand.signupUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="login-foot-link"
+        >
+          Criar conta
+        </a>
+      }
+    >
+      <form
+        className={`login-form ${sync.syncing ? "login-form--syncing" : ""}`}
+        onSubmit={handleSubmit}
+      >
+        <div className="login-fields">
           <Input
-            label="Usuário SIGAA"
+            label="Usuário"
             type="text"
             autoComplete="username"
+            autoFocus
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            placeholder="Matrícula ou usuário"
+            placeholder="Login do SIGAA"
             disabled={sync.syncing}
           />
-          <Input
+          <PasswordInput
             label="Senha"
-            type="password"
             autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Sua senha do portal"
+            placeholder="Senha do portal"
             disabled={sync.syncing}
           />
+        </div>
 
-          <label className="form-checkbox">
-            <input
-              type="checkbox"
-              checked={savePassword}
-              onChange={(e) => setSavePassword(e.target.checked)}
-              disabled={sync.syncing}
-            />
-            <span>Salvar senha localmente (criptografada)</span>
-          </label>
+        <div className="login-remember">
+          <ToggleOption
+            label="Lembrar senha neste computador"
+            checked={savePassword}
+            onChange={setSavePassword}
+            disabled={sync.syncing}
+          />
+        </div>
 
-          {(formError || sync.error) && (
-            <div className="login-error" role="alert">
-              <Icon name="close" size={14} />
-              {formError ?? sync.error}
-            </div>
-          )}
+        {displayError && (
+          <div className="login-error" role="alert">
+            {displayError}
+          </div>
+        )}
 
-          {sync.syncing && (
+        {sync.syncing && (
+          <div className="login-sync-panel">
             <SyncProgress progress={sync.progress} stepLabel={sync.stepLabel} />
-          )}
+          </div>
+        )}
 
+        <div className="login-actions">
           <button
             type="submit"
             className="btn-gold login-submit"
@@ -110,11 +122,12 @@ export function LoginForm() {
               name="sync"
               size={16}
               className={sync.syncing ? "sync-icon-spinning" : undefined}
+              aria-hidden
             />
-            {sync.syncing ? "Sincronizando…" : "Entrar e Sincronizar"}
+            {sync.syncing ? "Sincronizando…" : "Entrar e sincronizar"}
           </button>
-        </form>
-      </div>
-    </div>
+        </div>
+      </form>
+    </LoginCard>
   );
 }

@@ -17,11 +17,13 @@ interface EventDetailContentProps {
 export function EventDetailContent({ event, onClose, onToggleDone }: EventDetailContentProps) {
   return (
   <>
-    <div className="detail-meta-row">
-      <span className={`badge info`}>{eventTypeLabels[event.type]}</span>
-      {event.done && <span className="badge success">Concluída</span>}
-      <span className="detail-date">{formatEventDate(event.date)}</span>
-    </div>
+      <div className="detail-meta-row">
+        <div className="detail-meta-badges">
+          <span className={`badge info`}>{eventTypeLabels[event.type]}</span>
+          {event.done && <span className="badge success">Concluída</span>}
+        </div>
+        <span className="detail-date">{formatEventDate(event.date)}</span>
+      </div>
 
     {event.subject && (
       <p className="detail-subject">
@@ -81,8 +83,10 @@ export function ScheduleDetailContent({
   return (
     <>
       <div className="detail-meta-row">
-        <span className="badge gold">{slot.code}</span>
-        {simulated && <span className="badge info">Simulado</span>}
+        <div className="detail-meta-badges">
+          <span className="badge gold">{slot.code}</span>
+          {simulated && <span className="badge info">Simulado</span>}
+        </div>
       </div>
 
       <p className="detail-subject">
@@ -124,23 +128,29 @@ interface TaskDetailContentProps {
   task: AcademicTask;
   onClose: () => void;
   onToggleDone?: () => void;
+  onEdit?: () => void;
 }
 
 export function TaskDetailContent({
   task,
   onClose,
   onToggleDone,
+  onEdit,
 }: TaskDetailContentProps) {
   return (
     <>
       <div className="detail-meta-row">
-        <span className="badge info">
-          {task.type === "grupo" ? "Grupo" : "Individual"}
+        <div className="detail-meta-badges">
+          <span className="badge info">
+            {task.type === "grupo" ? "Grupo" : "Individual"}
+          </span>
+          <span className={`badge ${task.done ? "success" : "warning"}`}>
+            {task.done ? "Concluída" : "Pendente"}
+          </span>
+        </div>
+        <span className="detail-date">
+          {task.date} · até {task.dueTime}
         </span>
-        <span className={`badge ${task.done ? "success" : "warning"}`}>
-          {task.done ? "Concluída" : "Pendente"}
-        </span>
-        <span className="detail-date">{task.date}</span>
       </div>
 
       <p className="detail-subject">
@@ -193,9 +203,11 @@ export function TaskDetailContent({
             {task.done ? "Marcar pendente" : "Marcar concluída"}
           </button>
         )}
-        <button type="button" className="btn-outline" onClick={onClose}>
-          Fechar
-        </button>
+        {onEdit && (
+          <button type="button" className="btn-outline" onClick={onEdit}>
+            Editar
+          </button>
+        )}
       </div>
     </>
   );

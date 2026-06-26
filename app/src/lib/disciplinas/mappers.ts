@@ -3,12 +3,7 @@ import type { AcademicTask } from "@/lib/types/task";
 import type { SubjectEvaluation } from "@/lib/types/subject";
 import type { GrupoMembroDto } from "@/lib/types/disciplinas-api";
 import type { GrupoMembroRow } from "@/lib/types/db";
-
-export function formatIsoToBr(iso: string | null): string {
-  if (!iso) return "";
-  const [year, month, day] = iso.split("-");
-  return `${day}/${month}/${year}`;
-}
+import { formatIsoToBr, normalizeTime } from "@/lib/tasks/dates";
 
 export function parseJsonArray(value: string | null): string[] {
   if (!value) return [];
@@ -29,6 +24,8 @@ export function mapNotasToEvaluations(notas: NotaRow[]): SubjectEvaluation[] {
     max: nota.nota_maxima ?? 0,
     score: nota.nota_obtida,
     manual: nota.manual === 1,
+    userOverride: (nota.nota_override ?? 0) === 1,
+    extra: (nota.nota_extra ?? 0) === 1,
   }));
 }
 
@@ -42,9 +39,12 @@ export function mapTarefaToAcademicTask(
     subject: row.disciplina_nome ?? row.disciplina_id,
     subjectCode: row.disciplina_id,
     subjectColor,
-    date: formatIsoToBr(row.data_fim),
+    date: row.data_fim ? formatIsoToBr(row.data_fim) : "—",
+    dueDateIso: row.data_fim ?? "",
+    dueTime: normalizeTime(row.hora_fim),
     type: row.tipo ?? "individual",
     done: row.concluida === 1,
+    manual: row.manual === 1,
     description: row.descricao ?? "",
     instructions: parseJsonArray(row.instrucoes),
     deliverables: parseJsonArray(row.entregaveis),

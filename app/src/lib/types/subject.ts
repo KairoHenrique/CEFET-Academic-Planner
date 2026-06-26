@@ -4,6 +4,8 @@ export interface SubjectEvaluation {
   max: number;
   score: number | null;
   manual?: boolean;
+  userOverride?: boolean;
+  extra?: boolean;
 }
 
 export interface Subject {

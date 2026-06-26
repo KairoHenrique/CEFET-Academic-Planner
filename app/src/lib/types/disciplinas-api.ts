@@ -42,6 +42,7 @@ export interface PatchNotasAddBody {
   avaliacao_nome: string;
   nota_maxima: number;
   nota_obtida?: number | null;
+  nota_extra?: boolean;
 }
 
 export interface PatchNotasUpdateBody {
@@ -50,13 +51,78 @@ export interface PatchNotasUpdateBody {
   nota_obtida: number | null;
 }
 
-export type PatchNotasBody = PatchNotasAddBody | PatchNotasUpdateBody;
+export interface PatchNotasUpdateManualBody {
+  action: "update_manual";
+  id: number;
+  avaliacao_nome?: string;
+  nota_maxima?: number;
+  nota_obtida?: number | null;
+  nota_extra?: boolean;
+}
+
+export interface PatchNotasDeleteBody {
+  action: "delete";
+  id: number;
+}
+
+export type PatchNotasBody =
+  | PatchNotasAddBody
+  | PatchNotasUpdateBody
+  | PatchNotasUpdateManualBody
+  | PatchNotasDeleteBody;
 
 export interface PatchNotasResponse {
   evaluations: SubjectEvaluation[];
   grade: number | null;
 }
 
-export interface PatchTarefaBody {
+export interface PatchTarefaToggleBody {
+  action: "toggle";
   concluida: boolean;
+}
+
+export interface PatchTarefaUpdateBody {
+  action: "update";
+  titulo?: string;
+  descricao?: string;
+  data_fim?: string;
+  hora_fim?: string;
+  tipo?: "individual" | "grupo";
+  possui_nota?: boolean;
+  concluida?: boolean;
+  pontuacao_maxima?: number | null;
+}
+
+export interface PatchTarefaDeleteBody {
+  action: "delete";
+}
+
+export type PatchTarefaBody =
+  | PatchTarefaToggleBody
+  | PatchTarefaUpdateBody
+  | PatchTarefaDeleteBody;
+
+export interface CreateTarefaBody {
+  titulo: string;
+  descricao?: string;
+  data_fim: string;
+  hora_fim?: string;
+  tipo?: "individual" | "grupo";
+  possui_nota?: boolean;
+  pontuacao_maxima?: number | null;
+  instrucoes?: string[];
+  entregaveis?: string[];
+}
+
+export interface PatchFaltaUpdateBody {
+  action: "update";
+  id: number;
+  status: "presente" | "falta" | "nao_registrada";
+}
+
+export type PatchFaltaBody = PatchFaltaUpdateBody;
+
+export interface PatchFaltaResponse {
+  attendance: AttendanceSummary;
+  absences: number;
 }

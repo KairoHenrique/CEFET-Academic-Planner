@@ -13,6 +13,7 @@ export function buildAttendanceSummary(
 
   return {
     records: records.map((row) => ({
+      id: row.id,
       date: row.data,
       status: row.status,
     })),
