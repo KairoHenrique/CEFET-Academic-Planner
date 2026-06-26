@@ -1,0 +1,56 @@
+---
+description: Fluxo obrigatório de tasks — TASKS.md, [/], [x] e commit ao concluir (sem push)
+alwaysApply: true
+---
+
+# Fluxo de tasks (TASKS.md + commit)
+
+Sempre que o usuário pedir uma ou mais tasks do projeto, siga **este fluxo para cada task**, na ordem, sem exceção.
+
+## Arquivo fonte
+
+- Roadmap: `docs/TASKS.md`
+- Legenda: `[ ]` não iniciada · `[/]` em progresso · `[x]` concluída
+
+## Ao **iniciar** uma task
+
+1. Localize a task em `docs/TASKS.md` (ou crie a entrada se for nova).
+2. Marque como **`[/]`** antes de implementar.
+3. Se o escopo mudar em relação ao que está escrito, ajuste o texto da task para refletir o trabalho real.
+
+## Ao **concluir** uma task
+
+1. Marque como **`[x]`** em `docs/TASKS.md`.
+2. Garanta que descrição, checklist e contadores (ex.: `23/42`) estejam corretos.
+3. **Crie um commit** com código + `docs/TASKS.md` (conventional commits, em português).
+4. **Nunca faça `git push`** ao terminar uma task — só commit. Push apenas se o usuário pedir explicitamente.
+
+## Múltiplas tasks no mesmo pedido
+
+Repita o ciclo **iniciar → implementar → concluir → commit** para **cada** task:
+
+```
+[/] task A → implementar → [x] + commit
+[/] task B → implementar → [x] + commit
+```
+
+Não agrupe várias tasks concluídas em um único commit, salvo se o usuário pedir explicitamente um commit único.
+
+## Commits
+
+- Inclua sempre `docs/TASKS.md` quando houver mudança de status ou de escopo.
+- Não commitar `app/.data/planner.db` nem arquivos `.env` / credenciais.
+- Sem `Co-authored-by: Cursor` na mensagem.
+- Não alterar `git config`.
+
+## Exemplo
+
+```markdown
+# Antes de codar
+| B13 | Back | GET /api/calendar | ... | [/] |
+
+# Depois de concluir + commit
+| B13 | Back | GET /api/calendar | ... | [x] |
+```
+
+Mensagem de commit: `feat: adiciona GET /api/calendar (B13)`
