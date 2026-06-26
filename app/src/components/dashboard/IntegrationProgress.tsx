@@ -27,7 +27,7 @@ export function IntegrationProgress({ integralizacao }: IntegrationProgressProps
         </div>
         <div className="progress-bar progress-bar-lg">
           <div
-            className="progress-bar-fill blue"
+            className="progress-bar-fill"
             style={{ width: `${percentage}%` }}
           />
         </div>
@@ -47,7 +47,7 @@ export function IntegrationProgress({ integralizacao }: IntegrationProgressProps
               </div>
               <div className="progress-bar">
                 <div
-                  className={`progress-bar-fill ${cat.color}`}
+                  className="progress-bar-fill"
                   style={{ width: `${pct}%` }}
                 />
               </div>

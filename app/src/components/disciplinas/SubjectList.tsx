@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Icon } from "@/components/ui/Icon";
 import { FilterBar } from "@/components/ui/FilterBar";
 import { DashboardStateCard } from "@/components/dashboard/DashboardStateCard";
@@ -11,6 +11,7 @@ import { useDisciplinas } from "@/hooks/useDisciplinas";
 const filters = ["Todas", "Com tarefas", "Risco de faltas"];
 
 export function SubjectList() {
+  const router = useRouter();
   const [activeFilter, setActiveFilter] = useState("Todas");
   const [search, setSearch] = useState("");
   const { items, isLoading, isFetching, error, refetch } = useDisciplinas(
@@ -18,9 +19,13 @@ export function SubjectList() {
     activeFilter
   );
 
+  const openSubject = (code: string) => {
+    router.push(`/disciplinas/${code}`);
+  };
+
   return (
-    <>
-      <div className="col-12 page-toolbar">
+    <div className="subject-list">
+      <div className="page-toolbar subject-list-toolbar">
         <div className="search-input-wrap">
           <Icon name="search" size={16} />
           <input
@@ -61,62 +66,70 @@ export function SubjectList() {
           actionHref={search || activeFilter !== "Todas" ? undefined : "/login"}
         />
       ) : (
-        <div className="col-12">
-          <div
-            className={`data-table-wrap card ${isFetching ? "data-table-fetching" : ""}`}
-          >
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Disciplina</th>
-                  <th>Professor</th>
-                  <th>Horário</th>
-                  <th>Nota</th>
-                  <th>Faltas</th>
-                  <th />
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((subject) => (
-                  <tr key={subject.code}>
-                    <td>
-                      <div className="table-subject">
-                        <span
-                          className="subject-dot"
-                          style={{ background: subject.color }}
-                        />
-                        <div>
-                          <p className="table-subject-name">{subject.name}</p>
-                          <p className="table-subject-code">{subject.code}</p>
-                        </div>
+        <div
+          className={`data-table-wrap card subject-list-table ${isFetching ? "data-table-fetching" : ""}`}
+        >
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Disciplina</th>
+                <th>Professor</th>
+                <th>Horário</th>
+                <th>Nota</th>
+                <th>Faltas</th>
+                <th />
+              </tr>
+            </thead>
+            <tbody>
+              {items.map((subject) => (
+                <tr
+                  key={subject.code}
+                  className="data-table-row-clickable subject-table-row"
+                  onClick={() => openSubject(subject.code)}
+                  role="link"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      openSubject(subject.code);
+                    }
+                  }}
+                  aria-label={`Abrir detalhes de ${subject.name}`}
+                >
+                  <td>
+                    <div className="table-subject">
+                      <span
+                        className="subject-dot"
+                        style={{ background: subject.color }}
+                      />
+                      <div>
+                        <p className="table-subject-name">{subject.name}</p>
+                        <p className="table-subject-code">{subject.code}</p>
                       </div>
-                    </td>
-                    <td>{subject.professor ?? "—"}</td>
-                    <td>{subject.schedule ?? "—"}</td>
-                    <td>
-                      {subject.grade !== null
-                        ? `${subject.grade} / ${subject.gradeMax}`
-                        : "—"}
-                    </td>
-                    <td>
-                      {subject.absences} / {subject.maxAbsences}
-                    </td>
-                    <td>
-                      <Link
-                        href={`/disciplinas/${subject.code}`}
-                        className="table-action-link"
-                      >
-                        Detalhes
-                        <Icon name="arrow-right" size={14} />
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    </div>
+                  </td>
+                  <td>{subject.professor ?? "—"}</td>
+                  <td>{subject.schedule ?? "—"}</td>
+                  <td>
+                    {subject.grade !== null
+                      ? `${subject.grade} / ${subject.gradeMax}`
+                      : "—"}
+                  </td>
+                  <td>
+                    {subject.absences} / {subject.maxAbsences}
+                  </td>
+                  <td>
+                    <span className="table-action-link">
+                      Detalhes
+                      <Icon name="arrow-right" size={14} />
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
-    </>
+    </div>
   );
 }

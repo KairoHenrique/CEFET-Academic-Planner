@@ -10,7 +10,7 @@ import {
   saveDisciplina,
   saveFalta,
   saveIntegralizacao,
-  saveNota,
+  upsertSyncedNota,
   saveSemestreAtual,
   saveTarefa,
 } from "./queries";
@@ -81,7 +81,7 @@ export function seedDemoStudentData(): void {
     });
 
     for (const evaluation of subject.evaluations) {
-      saveNota({
+      upsertSyncedNota({
         disciplina_id: subject.code,
         avaliacao_nome: evaluation.name,
         nota_maxima: evaluation.max,
@@ -107,6 +107,7 @@ export function seedDemoStudentData(): void {
       descricao: task.description,
       data_inicio: null,
       data_fim: parseBrDateToIso(task.date),
+      hora_fim: task.dueTime ?? "23:59",
       tipo: task.type,
       possui_nota: task.hasGrade ? 1 : 0,
       concluida: task.done ? 1 : 0,

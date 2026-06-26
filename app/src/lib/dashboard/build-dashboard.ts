@@ -11,6 +11,7 @@ import { INTEGRATION_TOTAL_HOURS } from "@/lib/types/integration";
 import type { AcademicTask } from "@/lib/types/task";
 import { buildSubjectSummary } from "@/lib/disciplinas/build-subject";
 import { mapTarefaToAcademicTask } from "@/lib/disciplinas/mappers";
+import { shouldHideTaskFromDashboard } from "@/lib/tasks/dates";
 
 const INTEGRATION_COLORS: Record<string, IntegrationCategory["color"]> = {
   Obrigatória: "blue",
@@ -59,9 +60,10 @@ export function buildDashboard(): DashboardResponse {
         colorByCode.get(row.disciplina_id) ?? "#3AA0E8"
       )
     )
+    .filter((task) => !shouldHideTaskFromDashboard(task))
     .sort((a, b) => {
       if (a.done !== b.done) return a.done ? 1 : -1;
-      return a.date.localeCompare(b.date);
+      return a.dueDateIso.localeCompare(b.dueDateIso);
     });
 
   const tarefasPendentes = tarefas.filter((task) => !task.done).length;

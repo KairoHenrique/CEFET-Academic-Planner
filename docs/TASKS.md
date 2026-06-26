@@ -177,7 +177,7 @@ Objetivo: app deixa de ser só mock; dados fluem **SQLite → API → React**.
 | F5c | Front | Credenciais salvas para re-sync na navbar (`lib/auth/credentials.ts`) | [x] |
 
 > **F5 — escopo parcial:** `WeeklySchedulePreview` no dashboard ainda usa mock/localStorage (conclusão em **F13**).  
-> **Data fetching:** hooks nativos em F1–F5; adotar **TanStack Query** a partir de **F6** (Etapa 3A).
+> **Data fetching:** dashboard usa hooks nativos (`useDashboard`); **TanStack Query** desde **F6** (disciplinas + mutations de notas/tarefas).
 
 **Ordem:** `B6 → B7 → B8` → depois `F1 → F2 → F3 → F4 → F5`
 
@@ -195,7 +195,7 @@ Objetivo: app deixa de ser só mock; dados fluem **SQLite → API → React**.
 | B12 | Back | `PATCH /api/tarefas/[id]` — marcar concluída | [x] |
 | F6 | Front | `/disciplinas` — `SubjectList` via API (introduzir **TanStack Query**) | [x] |
 | F7 | Front | `/disciplinas/[code]` — painéis via API | [x] |
-| F8 | Front | `useSubjectGrades` lê/escreve notas via API | [x] |
+| F8 | Front | `useSubjectGrades` lê/escreve notas via API (`add` manual; `update` pronto no hook) | [x] |
 
 ##### 3B — Calendário
 
@@ -371,10 +371,12 @@ Fase 7 (Mobile — futuro)
 
 ### 3.1 Tela de Login
 - [x] Input de usuário e senha do SIGAA
-- [/] Checkbox "Salvar senha localmente (criptografada)" — persiste credenciais; **criptografia AES = B25**
+- [x] Senha com mostrar/ocultar (`PasswordInput`)
+- [x] Toggle "Lembrar senha neste computador" — persiste credenciais; **criptografia AES = B25**
 - [x] Botão "Entrar e Sincronizar"
 - [x] Loading state com progresso da sincronização
 - [x] Tratamento de erro visual (credenciais inválidas, SIGAA offline) — via API mock (`erro` / `offline`)
+- [x] UI do login (card CEFET-MG, piping dourado, rodapé "Criar conta" → SIGAA)
 
 ### 3.2 Dashboard Central
 - [x] Header com saudação, nome do aluno e semestre atual — **via API** (`useDashboard`)
@@ -405,8 +407,7 @@ Fase 7 (Mobile — futuro)
 
 ### 3.5 Templates de Páginas (UI)
 - [x] Template `/calendario` (calendário mensal, eventos, datas acadêmicas, grade semanal)
-- [x] Template `/disciplinas` (listagem com busca e filtros)
-- [x] Template `/disciplinas/[code]` (detalhe: notas, faltas, tarefas)
+- [/] Template `/disciplinas` — listagem e detalhe **via API** (F6–F8); simulação de notas permanece local
 - [x] Template `/mapa` (grade curricular por período com status)
 - [x] Template `/integralizacao` (resumo, barras e tabela de CH)
 - [x] Template `/simulador` (montar grade / matrícula)
@@ -430,15 +431,15 @@ Fase 7 (Mobile — futuro)
 ## Fase 4: Interface do Usuário — Gestão de Disciplinas
 
 ### 4.1 Página Individual da Disciplina
-- [x] Header com nome completo, código, professor, CH, sala, horário traduzido (template mock)
-- [x] Seção de Ementa (texto do PPC)
-- [x] Card de Nota Atual (tabela de avaliações, pontos faltando — template mock)
-- [x] Card de Faltas (barra de progresso até o limite, cores por zona de risco — template mock)
-- [x] Lista de Tarefas (com data e tipo — template mock)
+- [x] Header com nome completo, código, professor, CH, sala, horário traduzido — **via API** (F7)
+- [x] Seção de Ementa (texto do PPC) — **via API**
+- [x] Card de Nota Atual (tabela de avaliações, pontos faltando) — **via API**; add manual via F8
+- [x] Card de Faltas (barra de progresso até o limite, cores por zona de risco) — **via API**
+- [x] Lista de Tarefas (com data e tipo) — **via API**; marcar concluída via `PATCH /api/tarefas/[id]`
 - [x] Clique na tarefa abre modal com descrição, instruções e entregáveis
 
 ### 4.2 Tabela de Notas Detalhada
-- [x] Tabela com avaliações mock (PRO1, SEM, PRO2, Nota)
+- [x] Tabela com avaliações (PRO1, SEM, PRO2, Nota…) — **dados SQLite via API**
 - [x] Coluna de "valor máximo" visível (não apenas no hover)
 - [x] Botão "+ Adicionar Avaliação" para cadastro manual
 - [x] Indicador de "faltam X pontos para distribuir"
@@ -449,7 +450,6 @@ Fase 7 (Mobile — futuro)
 - [x] Campos editáveis para inserir notas hipotéticas (modo "Simular notas" na matéria)
 - [x] Cálculo em tempo real da nota final
 - [x] Indicador "Aprovado" ou "Reprovado" simulado
-- [x] Impacto simulado no RG do semestre
 - [x] Botão "Limpar Simulação" para voltar aos dados reais
 - [x] Exibir quanto falta em cada avaliação para atingir aprovação (coluna "Necessário")
 
@@ -528,7 +528,7 @@ Fase 7 (Mobile — futuro)
 - [x] Melhorar contraste e legibilidade (cards, badges, bordas)
 - [x] Revisar telas calendário, integralização e modal para consistência visual
 - [ ] Adicionar animações de transição entre páginas
-- [/] Adicionar loading skeletons em todas as telas — **só dashboard** (`DashboardSkeleton`); demais telas = F25
+- [/] Adicionar loading skeletons em todas as telas — **dashboard** + **disciplinas** (lista/detalhe); demais telas = F25
 - [x] Responsividade básica (breakpoints mobile/tablet/desktop)
 - [/] Favicon e título personalizado na aba do navegador — título em `layout.tsx` ✅; **favicon.ico pendente**
 
@@ -558,4 +558,4 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
    - Faça **commit** ao finalizar (push não é obrigatório).
 8. **Código frontend** está em `app/src/` (não na raiz `src/`). Mock data em `app/src/config/mock/`.
 9. **Roadmap por blocos** (back/front, ordem de execução) está na seção [Roadmap por Blocos](#roadmap-por-blocos-ordem-de-execução). **Checklist linear com progresso:** [Checklist mestre](#checklist-mestre-ordem-linear). Siga a ordem `B` antes de `F` dentro de cada etapa.
-10. **Auditoria de status:** tasks `[x]` nas Fases 3–6 significam **UI shell** (muitas ainda em `config/mock/`). Integração real com SQLite segue o [Checklist mestre](#checklist-mestre-ordem-linear) (Bloco 1: Etapa 3A disciplinas ✅; próximo: calendário). Última auditoria: 25/jun/2026.
+10. **Auditoria de status:** tasks `[x]` nas Fases 3–6 = **UI shell** quando a rota ainda usa `config/mock/` (calendário, mapa, integralização, simulador). Integração SQLite: [Checklist mestre](#checklist-mestre-ordem-linear) — dashboard + disciplinas ✅ (23/42). Última auditoria: 25/jun/2026.

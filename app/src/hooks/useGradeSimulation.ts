@@ -6,11 +6,13 @@ import type { SubjectEvaluation } from "@/lib/types/subject";
 interface UseGradeSimulationOptions {
   evaluations: SubjectEvaluation[];
   passingGrade: number;
+  gradeMax: number;
 }
 
 export function useGradeSimulation({
   evaluations,
   passingGrade,
+  gradeMax,
 }: UseGradeSimulationOptions) {
   const [simulateMode, setSimulateMode] = useState(false);
   const [simulated, setSimulated] = useState<Record<string, string>>({});
@@ -24,7 +26,7 @@ export function useGradeSimulation({
         return ev.score;
       }
 
-      const parsed = parseFloat(raw);
+      const parsed = parseFloat(raw.replace(",", "."));
       return Number.isNaN(parsed) ? ev.score : parsed;
     });
   }, [evaluations, simulateMode, simulated]);
@@ -36,13 +38,16 @@ export function useGradeSimulation({
 
   const approved = simulatedTotal >= passingGrade;
   const pointsNeeded = Math.max(0, passingGrade - simulatedTotal);
-  const distributed = evaluations.reduce(
-    (acc, ev, index) => acc + (resolvedScores[index] ?? 0),
-    0
-  );
-  const remaining = evaluations.reduce((acc, ev) => acc + ev.max, 0) - distributed;
+  const pendingTeacherPoints = useMemo(() => {
+    const distributedMax = evaluations
+      .filter((ev) => !ev.extra)
+      .reduce((acc, ev) => acc + ev.max, 0);
+    return Math.max(0, gradeMax - distributedMax);
+  }, [evaluations, gradeMax]);
 
-  const getMinimumForEvaluation = (index: number): number => {
+  const getMinimumForEvaluation = (index: number): number | null => {
+    if (evaluations[index].extra) return null;
+
     const othersTotal = resolvedScores.reduce<number>(
       (acc, score, idx) => (idx === index ? acc : acc + (score ?? 0)),
       0
@@ -72,7 +77,7 @@ export function useGradeSimulation({
     simulatedTotal,
     approved,
     pointsNeeded,
-    remaining,
+    pendingTeacherPoints,
     getMinimumForEvaluation,
     handleChange,
     handleReset,

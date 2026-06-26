@@ -79,23 +79,38 @@ export function ModuleLayoutBar({
 }: ModuleLayoutBarProps) {
   return (
     <div className="module-layout-bar col-12">
-      <button
-        type="button"
-        className={`btn-outline ${editMode ? "active" : ""}`}
-        onClick={onToggleEdit}
-      >
-        <Icon name="dashboard" size={14} />
-        {editMode ? "Concluir personalização" : "Personalizar módulos"}
-      </button>
-      {editMode && (
+      {editMode ? (
         <>
+          <div className="module-layout-actions">
+            <button
+              type="button"
+              className="btn-outline active module-layout-btn"
+              onClick={onToggleEdit}
+            >
+              <Icon name="dashboard" size={14} />
+              Concluir personalização
+            </button>
+            <button
+              type="button"
+              className="btn-outline module-layout-btn"
+              onClick={onReset}
+            >
+              Restaurar padrão
+            </button>
+          </div>
           <span className="module-layout-hint">
             Arraste os módulos para reorganizar
           </span>
-          <button type="button" className="btn-outline" onClick={onReset}>
-            Restaurar padrão
-          </button>
         </>
+      ) : (
+        <button
+          type="button"
+          className="btn-outline"
+          onClick={onToggleEdit}
+        >
+          <Icon name="dashboard" size={14} />
+          Personalizar módulos
+        </button>
       )}
     </div>
   );

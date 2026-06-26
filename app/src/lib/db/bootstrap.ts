@@ -32,6 +32,9 @@ function runMigrations(): void {
   addColumnIfMissing("tarefas", "instrucoes", "TEXT");
   addColumnIfMissing("tarefas", "entregaveis", "TEXT");
   addColumnIfMissing("tarefas", "pontuacao_maxima", "REAL");
+  addColumnIfMissing("tarefas", "hora_fim", "TEXT DEFAULT '23:59'");
+  addColumnIfMissing("notas", "nota_override", "INTEGER DEFAULT 0");
+  addColumnIfMissing("notas", "nota_extra", "INTEGER DEFAULT 0");
 }
 
 export function initDB(): void {

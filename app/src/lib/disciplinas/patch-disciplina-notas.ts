@@ -1,11 +1,13 @@
 import { notFoundError, validationError } from "@/lib/api/errors";
 import {
-  getNotasByDisciplina,
+  deleteNota,
   getNotaById,
+  getNotasByDisciplina,
   getSemestreAtualByCodigo,
   notaNomeExists,
   saveNota,
-  updateNotaObtida,
+  updateNotaFields,
+  updateNotaScore,
 } from "@/lib/db/queries";
 import type {
   PatchNotasBody,
@@ -32,6 +34,17 @@ function assertDisciplinaSemestre(code: string) {
   return semestre;
 }
 
+function assertNotaDisciplina(notaId: number, disciplinaId: string) {
+  const nota = getNotaById(notaId);
+  if (
+    !nota ||
+    nota.disciplina_id.toLowerCase() !== disciplinaId.toLowerCase()
+  ) {
+    throw notFoundError("Avaliação não encontrada nesta disciplina.");
+  }
+  return nota;
+}
+
 function addManualNota(
   disciplinaId: string,
   body: Extract<PatchNotasBody, { action: "add" }>
@@ -54,30 +67,67 @@ function addManualNota(
     nota_maxima: body.nota_maxima,
     nota_obtida: body.nota_obtida ?? null,
     manual: 1,
+    nota_override: body.nota_obtida != null ? 1 : 0,
+    nota_extra: body.nota_extra ? 1 : 0,
   });
 }
 
-function updateManualNota(
+function updateNotaScoreEntry(
   disciplinaId: string,
   body: Extract<PatchNotasBody, { action: "update" }>
 ): void {
-  const nota = getNotaById(body.id);
-  if (
-    !nota ||
-    nota.disciplina_id.toLowerCase() !== disciplinaId.toLowerCase()
-  ) {
-    throw notFoundError("Avaliação não encontrada nesta disciplina.");
-  }
-  if (nota.manual !== 1) {
-    throw validationError("Apenas avaliações manuais podem ser editadas.");
-  }
-
+  const nota = assertNotaDisciplina(body.id, disciplinaId);
   const max = nota.nota_maxima ?? 0;
   validateNotaScore(body.nota_obtida, max);
 
-  const changes = updateNotaObtida(body.id, body.nota_obtida);
+  const changes = updateNotaScore(body.id, body.nota_obtida);
   if (changes === 0) {
     throw validationError("Não foi possível atualizar a avaliação.");
+  }
+}
+
+function updateNotaEntry(
+  disciplinaId: string,
+  body: Extract<PatchNotasBody, { action: "update_manual" }>
+): void {
+  const nota = assertNotaDisciplina(body.id, disciplinaId);
+
+  const nome = body.avaliacao_nome?.trim();
+  if (body.avaliacao_nome !== undefined && !nome) {
+    throw validationError("Nome da avaliação é obrigatório.");
+  }
+  if (nome && notaNomeExists(disciplinaId, nome, body.id)) {
+    throw validationError("Já existe uma avaliação com este nome.");
+  }
+  if (body.nota_maxima !== undefined && body.nota_maxima <= 0) {
+    throw validationError("Nota máxima deve ser maior que zero.");
+  }
+
+  const max = body.nota_maxima ?? nota.nota_maxima ?? 0;
+  validateNotaScore(body.nota_obtida, max);
+
+  const changes = updateNotaFields(body.id, {
+    avaliacao_nome: nome,
+    nota_maxima: body.nota_maxima,
+    nota_obtida: body.nota_obtida,
+    nota_override: body.nota_obtida !== undefined ? 1 : undefined,
+    nota_extra:
+      body.nota_extra === undefined ? undefined : body.nota_extra ? 1 : 0,
+  });
+  if (changes === 0) {
+    throw validationError("Nenhuma alteração informada.");
+  }
+}
+
+function deleteNotaEntry(
+  disciplinaId: string,
+  body: Extract<PatchNotasBody, { action: "delete" }>
+): void {
+  assertNotaDisciplina(body.id, disciplinaId);
+
+  const changes = deleteNota(body.id);
+  if (changes === 0) {
+    throw validationError("Não foi possível excluir a avaliação.");
   }
 }
 
@@ -88,10 +138,19 @@ export function patchDisciplinaNotas(
   const semestre = assertDisciplinaSemestre(code);
   const disciplinaId = semestre.disciplina_id;
 
-  if (body.action === "add") {
-    addManualNota(disciplinaId, body);
-  } else {
-    updateManualNota(disciplinaId, body);
+  switch (body.action) {
+    case "add":
+      addManualNota(disciplinaId, body);
+      break;
+    case "update":
+      updateNotaScoreEntry(disciplinaId, body);
+      break;
+    case "update_manual":
+      updateNotaEntry(disciplinaId, body);
+      break;
+    case "delete":
+      deleteNotaEntry(disciplinaId, body);
+      break;
   }
 
   const notas = getNotasByDisciplina(disciplinaId);

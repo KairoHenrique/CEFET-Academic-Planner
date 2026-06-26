@@ -1,12 +1,16 @@
 import type { DashboardResponse } from "@/lib/types/dashboard";
 import type {
+  CreateTarefaBody,
   DisciplinaListFilter,
   DisciplinaListResponse,
+  PatchFaltaBody,
+  PatchFaltaResponse,
   PatchNotasBody,
   PatchNotasResponse,
   PatchTarefaBody,
   SubjectDetailResponse,
 } from "@/lib/types/disciplinas-api";
+import type { AcademicTask } from "@/lib/types/task";
 import type { SyncRequest, SyncSuccessResponse } from "@/lib/types/sync";
 
 export type ClientErrorCode =
@@ -137,14 +141,37 @@ export async function patchDisciplinaNotas(
   );
 }
 
+export async function patchDisciplinaFalta(
+  code: string,
+  body: PatchFaltaBody
+): Promise<PatchFaltaResponse> {
+  return requestJson<PatchFaltaResponse>(
+    `/api/disciplinas/${encodeURIComponent(code)}/faltas`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    }
+  );
+}
+
 export async function patchTarefa(
   id: number,
   body: PatchTarefaBody
-): Promise<{ id: number; concluida: boolean }> {
-  return requestJson<{ id: number; concluida: boolean }>(
-    `/api/tarefas/${id}`,
+): Promise<{ id: number }> {
+  return requestJson<{ id: number }>(`/api/tarefas/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function createDisciplinaTarefa(
+  code: string,
+  body: CreateTarefaBody
+): Promise<AcademicTask> {
+  return requestJson<AcademicTask>(
+    `/api/disciplinas/${encodeURIComponent(code)}/tarefas`,
     {
-      method: "PATCH",
+      method: "POST",
       body: JSON.stringify(body),
     }
   );

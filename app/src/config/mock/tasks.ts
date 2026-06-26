@@ -1,7 +1,8 @@
 export type { TaskType, AcademicTask } from "@/lib/types/task";
 import type { AcademicTask } from "@/lib/types/task";
+import { parseBrDateToIso } from "@/lib/tasks/dates";
 
-export const academicTasks: AcademicTask[] = [
+const rawTasks = [
   {
     id: 1,
     title: "Diagramas UML",
@@ -117,7 +118,16 @@ export const academicTasks: AcademicTask[] = [
     hasGrade: true,
     maxGrade: 10,
   },
-];
+] as const;
+
+export const academicTasks: AcademicTask[] = rawTasks.map((task) => ({
+  ...task,
+  instructions: [...task.instructions],
+  deliverables: [...task.deliverables],
+  dueDateIso: parseBrDateToIso(task.date),
+  dueTime: "23:59",
+  manual: false,
+}));
 
 export function getTaskById(id: number): AcademicTask | undefined {
   return academicTasks.find((task) => task.id === id);

@@ -1,6 +1,7 @@
 export {
   timeSlots,
   weekDays,
+  splitTimeSlot,
   type ScheduleSlotData,
   type ScheduleSlot,
 } from "@/lib/types/schedule";

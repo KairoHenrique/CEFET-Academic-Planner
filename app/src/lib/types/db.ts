@@ -57,6 +57,8 @@ export interface NotaRow {
   nota_maxima: number | null;
   nota_obtida: number | null;
   manual: number;
+  nota_override?: number;
+  nota_extra?: number;
 }
 
 export interface FaltaRow {
@@ -73,6 +75,7 @@ export interface TarefaRow {
   descricao: string | null;
   data_inicio: string | null;
   data_fim: string | null;
+  hora_fim?: string | null;
   tipo: "individual" | "grupo" | null;
   possui_nota: number;
   concluida: number;

@@ -197,13 +197,55 @@ export function getNotasByDisciplina(disciplinaId: string): NotaRow[] {
     .all(disciplinaId) as NotaRow[];
 }
 
-export function saveNota(nota: Omit<NotaRow, "id">): void {
+export function getNotaByDisciplinaAndNome(
+  disciplinaId: string,
+  avaliacaoNome: string
+): NotaRow | undefined {
+  return db
+    .prepare(
+      `SELECT * FROM notas
+       WHERE disciplina_id = ? COLLATE NOCASE
+         AND avaliacao_nome = ? COLLATE NOCASE`
+    )
+    .get(disciplinaId, avaliacaoNome) as NotaRow | undefined;
+}
+
+export function upsertSyncedNota(
+  nota: Omit<NotaRow, "id" | "nota_override"> & { nota_override?: number }
+): void {
+  const existing = getNotaByDisciplinaAndNome(
+    nota.disciplina_id,
+    nota.avaliacao_nome
+  );
+
+  if (existing) {
+    if ((existing.nota_override ?? 0) === 1) return;
+
+    db.prepare(
+      `UPDATE notas
+       SET nota_maxima = ?, nota_obtida = ?, manual = ?
+       WHERE id = ?`
+    ).run(nota.nota_maxima, nota.nota_obtida, nota.manual, existing.id);
+    return;
+  }
+
+  saveNota({
+    ...nota,
+    nota_override: 0,
+  });
+}
+
+export function saveNota(nota: Omit<NotaRow, "id"> & { nota_override?: number }): void {
   db.prepare(
     `
-    INSERT INTO notas (disciplina_id, avaliacao_nome, nota_maxima, nota_obtida, manual)
-    VALUES (@disciplina_id, @avaliacao_nome, @nota_maxima, @nota_obtida, @manual)
+    INSERT INTO notas (disciplina_id, avaliacao_nome, nota_maxima, nota_obtida, manual, nota_override, nota_extra)
+    VALUES (@disciplina_id, @avaliacao_nome, @nota_maxima, @nota_obtida, @manual, @nota_override, @nota_extra)
   `
-  ).run(nota);
+  ).run({
+    ...nota,
+    nota_override: nota.nota_override ?? 0,
+    nota_extra: nota.nota_extra ?? 0,
+  });
 }
 
 export function getNotaById(id: number): NotaRow | undefined {
@@ -239,8 +281,74 @@ export function updateNotaObtida(id: number, notaObtida: number | null): number 
   return result.changes;
 }
 
+export function updateNotaScore(id: number, notaObtida: number | null): number {
+  const result = db
+    .prepare(
+      `UPDATE notas SET nota_obtida = ?, nota_override = 1 WHERE id = ?`
+    )
+    .run(notaObtida, id);
+  return result.changes;
+}
+
+export function updateNotaFields(
+  id: number,
+  fields: {
+    avaliacao_nome?: string;
+    nota_maxima?: number;
+    nota_obtida?: number | null;
+    nota_override?: number;
+    nota_extra?: number;
+  }
+): number {
+  const sets: string[] = [];
+  const params: Array<string | number | null> = [];
+
+  if (fields.avaliacao_nome !== undefined) {
+    sets.push("avaliacao_nome = ?");
+    params.push(fields.avaliacao_nome);
+  }
+  if (fields.nota_maxima !== undefined) {
+    sets.push("nota_maxima = ?");
+    params.push(fields.nota_maxima);
+  }
+  if (fields.nota_obtida !== undefined) {
+    sets.push("nota_obtida = ?");
+    params.push(fields.nota_obtida);
+  }
+  if (fields.nota_override !== undefined) {
+    sets.push("nota_override = ?");
+    params.push(fields.nota_override);
+  }
+  if (fields.nota_extra !== undefined) {
+    sets.push("nota_extra = ?");
+    params.push(fields.nota_extra);
+  }
+
+  if (sets.length === 0) return 0;
+
+  params.push(id);
+  const result = db
+    .prepare(`UPDATE notas SET ${sets.join(", ")} WHERE id = ?`)
+    .run(...params);
+  return result.changes;
+}
+
+export function updateManualNotaFields(
+  id: number,
+  fields: { avaliacao_nome?: string; nota_maxima?: number; nota_obtida?: number | null }
+): number {
+  return updateNotaFields(id, fields);
+}
+
+export function deleteNota(id: number): number {
+  const result = db.prepare(`DELETE FROM notas WHERE id = ?`).run(id);
+  return result.changes;
+}
+
 export function clearNotasSynced(): void {
-  db.prepare("DELETE FROM notas WHERE manual = 0").run();
+  db.prepare(
+    "DELETE FROM notas WHERE manual = 0 AND COALESCE(nota_override, 0) = 0"
+  ).run();
 }
 
 // --- FALTAS ---
@@ -267,6 +375,22 @@ export function saveFalta(falta: Omit<FaltaRow, "id">): void {
     VALUES (@disciplina_id, @data, @status)
   `
   ).run(falta);
+}
+
+export function getFaltaById(id: number): FaltaRow | undefined {
+  return db.prepare("SELECT * FROM faltas WHERE id = ?").get(id) as
+    | FaltaRow
+    | undefined;
+}
+
+export function updateFaltaStatus(
+  id: number,
+  status: FaltaRow["status"]
+): number {
+  const result = db
+    .prepare(`UPDATE faltas SET status = ? WHERE id = ?`)
+    .run(status, id);
+  return result.changes;
 }
 
 export function clearFaltasSynced(): void {
@@ -324,15 +448,83 @@ export function saveTarefa(tarefa: Omit<TarefaRow, "id">): void {
   db.prepare(
     `
     INSERT INTO tarefas (
-      disciplina_id, titulo, descricao, data_inicio, data_fim, tipo,
+      disciplina_id, titulo, descricao, data_inicio, data_fim, hora_fim, tipo,
       possui_nota, concluida, manual, instrucoes, entregaveis, pontuacao_maxima
     )
     VALUES (
-      @disciplina_id, @titulo, @descricao, @data_inicio, @data_fim, @tipo,
+      @disciplina_id, @titulo, @descricao, @data_inicio, @data_fim, @hora_fim, @tipo,
       @possui_nota, @concluida, @manual, @instrucoes, @entregaveis, @pontuacao_maxima
     )
   `
-  ).run(tarefa);
+  ).run({
+    ...tarefa,
+    hora_fim: tarefa.hora_fim ?? "23:59",
+  });
+}
+
+export function updateTarefaFields(
+  id: number,
+  fields: Partial<
+    Pick<
+      TarefaRow,
+      | "titulo"
+      | "descricao"
+      | "data_fim"
+      | "hora_fim"
+      | "tipo"
+      | "possui_nota"
+      | "concluida"
+      | "pontuacao_maxima"
+    >
+  >
+): number {
+  const sets: string[] = [];
+  const params: Array<string | number | null> = [];
+
+  if (fields.titulo !== undefined) {
+    sets.push("titulo = ?");
+    params.push(fields.titulo);
+  }
+  if (fields.descricao !== undefined) {
+    sets.push("descricao = ?");
+    params.push(fields.descricao);
+  }
+  if (fields.data_fim !== undefined) {
+    sets.push("data_fim = ?");
+    params.push(fields.data_fim);
+  }
+  if (fields.hora_fim !== undefined) {
+    sets.push("hora_fim = ?");
+    params.push(fields.hora_fim);
+  }
+  if (fields.tipo !== undefined) {
+    sets.push("tipo = ?");
+    params.push(fields.tipo);
+  }
+  if (fields.possui_nota !== undefined) {
+    sets.push("possui_nota = ?");
+    params.push(fields.possui_nota);
+  }
+  if (fields.concluida !== undefined) {
+    sets.push("concluida = ?");
+    params.push(fields.concluida);
+  }
+  if (fields.pontuacao_maxima !== undefined) {
+    sets.push("pontuacao_maxima = ?");
+    params.push(fields.pontuacao_maxima);
+  }
+
+  if (sets.length === 0) return 0;
+
+  params.push(id);
+  return db
+    .prepare(`UPDATE tarefas SET ${sets.join(", ")} WHERE id = ?`)
+    .run(...params).changes;
+}
+
+export function deleteTarefa(id: number): number {
+  return db.prepare("DELETE FROM tarefas WHERE id = ? AND manual = 1").run(id)
+    .changes;
 }
 
 export function updateTarefaConcluida(id: number, concluida: boolean): void {

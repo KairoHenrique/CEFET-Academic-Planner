@@ -4,6 +4,7 @@ import { useState } from "react";
 import {
   timeSlots,
   weekDays,
+  splitTimeSlot,
   weeklySchedule,
   type ScheduleSlot,
   type ScheduleSlotData,
@@ -68,16 +69,27 @@ export function WeeklyScheduleTable({
         <table className={`schedule-table ${compact ? "schedule-table-compact" : ""}`}>
           <thead>
             <tr>
-              <th />
-              {timeSlots.map((slot) => (
-                <th key={slot}>{compact ? slot.replace("–", "-").slice(0, 5) : slot}</th>
-              ))}
+              <th className="schedule-day-col" aria-hidden="true" />
+              {timeSlots.map((slot) => {
+                const { start, end } = splitTimeSlot(slot);
+                return (
+                  <th key={slot} className="schedule-time-col">
+                    {compact ? (
+                      <span className="schedule-time-range">
+                        {start} – {end}
+                      </span>
+                    ) : (
+                      slot
+                    )}
+                  </th>
+                );
+              })}
             </tr>
           </thead>
           <tbody>
             {weekDays.map((day, dayIdx) => (
               <tr key={day}>
-                <td className="day-label">{compact ? day.slice(0, 3) : day}</td>
+                <td className="day-label schedule-day-col">{compact ? day.slice(0, 3) : day}</td>
                 {timeSlots.map((time, slotIdx) => {
                   const slot = schedule[dayIdx]?.[slotIdx];
                   const isTarget =
@@ -86,7 +98,7 @@ export function WeeklyScheduleTable({
                     selectedSlot === slotIdx;
 
                   return (
-                    <td key={slotIdx}>
+                    <td key={slotIdx} className="schedule-cell">
                       {slot ? (
                         <button
                           type="button"
