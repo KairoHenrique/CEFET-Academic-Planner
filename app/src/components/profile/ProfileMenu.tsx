@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import { getSyncCredentials } from "@/lib/auth/credentials";
 import { buildInitials } from "@/lib/perfil/build-initials";
 import { usePerfil } from "@/hooks/usePerfil";
-import type { SyncAutoIntervalMinutes } from "@/lib/sync/sync-preferences";
 
 function formatCpf(value: string): string {
   const digits = value.replace(/\D/g, "");
@@ -13,9 +12,8 @@ function formatCpf(value: string): string {
 }
 
 export function ProfileMenu() {
-  const { data, isLoading, updatePreferences } = usePerfil();
+  const { data } = usePerfil();
   const [open, setOpen] = useState(false);
-  const [saving, setSaving] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
   const profile = data?.profile;
@@ -46,33 +44,13 @@ export function ProfileMenu() {
     };
   }, [open]);
 
-  const handleToggleAuto = async () => {
-    if (!sync || saving) return;
-    setSaving(true);
-    try {
-      await updatePreferences({ syncAutoEnabled: !sync.autoEnabled });
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleIntervalChange = async (value: SyncAutoIntervalMinutes) => {
-    if (!sync || saving || sync.intervalMinutes === value) return;
-    setSaving(true);
-    try {
-      await updatePreferences({ syncIntervalMinutes: value });
-    } finally {
-      setSaving(false);
-    }
-  };
-
   return (
     <div className="profile-menu-root" ref={rootRef}>
       <button
         type="button"
         className="navbar-avatar profile-menu-trigger"
-        title="Perfil e configurações"
-        aria-label="Abrir menu de perfil"
+        title="Perfil"
+        aria-label="Abrir perfil"
         aria-expanded={open}
         aria-haspopup="dialog"
         onClick={() => setOpen((current) => !current)}
@@ -81,7 +59,7 @@ export function ProfileMenu() {
       </button>
 
       {open && (
-        <div className="profile-menu-panel" role="dialog" aria-label="Perfil e configurações">
+        <div className="profile-menu-panel" role="dialog" aria-label="Perfil">
           <header className="profile-menu-header">
             <div className="profile-menu-avatar-lg">{initials}</div>
             <div>
@@ -102,45 +80,21 @@ export function ProfileMenu() {
                   {profile.curso}
                 </p>
               )}
+              {profile?.email && (
+                <p className="profile-menu-meta profile-menu-meta-muted">
+                  {profile.email}
+                </p>
+              )}
             </div>
           </header>
 
           <section className="profile-menu-section">
             <h3 className="profile-menu-section-title">Sincronização</h3>
-            <label className="profile-menu-toggle">
-              <span>Sync automático com SIGAA</span>
-              <input
-                type="checkbox"
-                checked={sync?.autoEnabled ?? false}
-                disabled={isLoading || saving}
-                onChange={() => void handleToggleAuto()}
-              />
-            </label>
+            <p className="profile-menu-sync-badge">Automática</p>
             <p className="profile-menu-hint">
-              Intervalo mínimo de {sync?.minIntervalMinutes ?? 5} min entre syncs
-              (proteção ao SIGAA).
+              A plataforma sincroniza com o SIGAA a cada {sync?.intervalMinutes ?? 30}{" "}
+              min (mín. {sync?.minIntervalMinutes ?? 5} min entre tentativas).
             </p>
-            {sync?.autoEnabled && (
-              <div className="profile-menu-field">
-                <label htmlFor="sync-interval">Repetir a cada</label>
-                <select
-                  id="sync-interval"
-                  value={sync.intervalMinutes}
-                  disabled={isLoading || saving}
-                  onChange={(event) =>
-                    void handleIntervalChange(
-                      Number(event.target.value) as SyncAutoIntervalMinutes
-                    )
-                  }
-                >
-                  {sync.intervalOptions.map((minutes) => (
-                    <option key={minutes} value={minutes}>
-                      {minutes} min
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
             {sync?.lastSyncAt && (
               <p className="profile-menu-hint">
                 Último sync:{" "}

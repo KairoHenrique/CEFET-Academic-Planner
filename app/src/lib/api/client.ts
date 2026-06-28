@@ -26,7 +26,7 @@ import type {
   PostIntegralizacaoBody,
 } from "@/lib/types/integralizacao-api";
 import type { MapaResponse } from "@/lib/types/mapa-api";
-import type { PerfilResponse, PatchPerfilBody } from "@/lib/types/perfil-api";
+import type { PerfilResponse } from "@/lib/types/perfil-api";
 
 export type ClientErrorCode =
   | "VALIDATION_ERROR"
@@ -120,13 +120,6 @@ export async function getDashboard(): Promise<DashboardResponse> {
 
 export async function getPerfil(): Promise<PerfilResponse> {
   return requestJson<PerfilResponse>("/api/perfil");
-}
-
-export async function patchPerfil(body: PatchPerfilBody): Promise<PerfilResponse> {
-  return requestJson<PerfilResponse>("/api/perfil", {
-    method: "PATCH",
-    body: JSON.stringify(body),
-  });
 }
 
 function buildDisciplinaListQuery(

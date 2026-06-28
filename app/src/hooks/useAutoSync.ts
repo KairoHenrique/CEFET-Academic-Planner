@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import type { PerfilSyncSettings } from "@/lib/types/perfil-api";
+import type { PerfilSyncStatus } from "@/lib/types/perfil-api";
 
-function canSyncNow(settings: PerfilSyncSettings): boolean {
+function canSyncNow(settings: PerfilSyncStatus): boolean {
   if (settings.nextAllowedAt) {
     return Date.parse(settings.nextAllowedAt) <= Date.now();
   }
@@ -11,8 +11,7 @@ function canSyncNow(settings: PerfilSyncSettings): boolean {
 }
 
 export function useAutoSync(
-  syncSettings: PerfilSyncSettings | undefined,
-  autoEnabled: boolean,
+  syncSettings: PerfilSyncStatus | undefined,
   startSync: () => Promise<boolean>,
   syncing: boolean
 ): void {
@@ -25,7 +24,7 @@ export function useAutoSync(
   syncingRef.current = syncing;
 
   useEffect(() => {
-    if (!autoEnabled || !syncSettings) return;
+    if (!syncSettings) return;
 
     const intervalMs = syncSettings.intervalMinutes * 60_000;
 
@@ -36,7 +35,8 @@ export function useAutoSync(
       void startSyncRef.current();
     };
 
+    runIfDue();
     const timer = window.setInterval(runIfDue, intervalMs);
     return () => window.clearInterval(timer);
-  }, [autoEnabled, syncSettings?.intervalMinutes]);
+  }, [syncSettings?.intervalMinutes]);
 }

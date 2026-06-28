@@ -1,31 +1,16 @@
-import type { SyncAutoIntervalMinutes } from "@/lib/sync/sync-preferences";
+import type { PerfilAluno } from "@/lib/types/perfil-api";
 
-export interface PerfilAluno {
-  matricula: string;
-  nome: string;
-  curso: string | null;
-  email: string | null;
-  semestreEntrada: string | null;
-  status: string | null;
-  initials: string;
-}
-
-export interface PerfilSyncSettings {
-  autoEnabled: boolean;
-  intervalMinutes: SyncAutoIntervalMinutes;
+export interface PerfilSyncStatus {
+  /** Sync automático é sempre ativo na plataforma. */
+  automatic: true;
+  intervalMinutes: number;
   minIntervalMinutes: number;
   lastSyncAt: string | null;
   nextAllowedAt: string | null;
   remainingSeconds: number;
-  intervalOptions: readonly SyncAutoIntervalMinutes[];
 }
 
 export interface PerfilResponse {
   profile: PerfilAluno | null;
-  sync: PerfilSyncSettings;
-}
-
-export interface PatchPerfilBody {
-  syncAutoEnabled?: boolean;
-  syncIntervalMinutes?: SyncAutoIntervalMinutes;
+  sync: PerfilSyncStatus;
 }
