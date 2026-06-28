@@ -4,13 +4,15 @@ export type ScraperErrorCode =
   | "INVALID_CREDENTIALS"
   | "SIGAA_OFFLINE"
   | "SIGAA_TIMEOUT"
-  | "SIGAA_AUTH_FAILED";
+  | "SIGAA_AUTH_FAILED"
+  | "SIGAA_SCRAPE_FAILED";
 
 const SCRAPER_STATUS: Record<ScraperErrorCode, number> = {
   INVALID_CREDENTIALS: 401,
   SIGAA_OFFLINE: 503,
   SIGAA_TIMEOUT: 504,
   SIGAA_AUTH_FAILED: 502,
+  SIGAA_SCRAPE_FAILED: 502,
 };
 
 export class ScraperError extends Error {
@@ -53,6 +55,12 @@ export class ScraperError extends Error {
 
   static authFailed(message: string): ScraperError {
     return new ScraperError("SIGAA_AUTH_FAILED", message);
+  }
+
+  static scrapeFailed(
+    message = "Não foi possível extrair dados do portal do discente."
+  ): ScraperError {
+    return new ScraperError("SIGAA_SCRAPE_FAILED", message);
   }
 }
 

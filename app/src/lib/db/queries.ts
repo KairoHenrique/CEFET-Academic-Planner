@@ -18,6 +18,7 @@ import type {
 import {
   hasUserSemestrePreferences,
   isFaltaProtectedByUser,
+  isIntegralizacaoProtectedByUser,
   isNotaProtectedByUser,
   mergeSemestreUserPreferences,
 } from "@/lib/sync/user-data-priority";
@@ -736,6 +737,38 @@ export function saveIntegralizacao(progresso: Omit<IntegralizacaoRow, "id">): vo
   ).run(progresso);
 }
 
+export function getIntegralizacaoByTipo(tipoCh: string): IntegralizacaoRow | undefined {
+  return db
+    .prepare("SELECT * FROM integralizacao WHERE tipo_ch = ? LIMIT 1")
+    .get(tipoCh) as IntegralizacaoRow | undefined;
+}
+
+export function upsertSyncedIntegralizacao(
+  progresso: Omit<IntegralizacaoRow, "id">
+): void {
+  const existing = getIntegralizacaoByTipo(progresso.tipo_ch);
+
+  if (existing) {
+    if (isIntegralizacaoProtectedByUser(existing)) return;
+
+    db.prepare(
+      `
+      UPDATE integralizacao
+      SET total_necessario = ?, concluido = ?, pendente = ?
+      WHERE id = ?
+    `
+    ).run(
+      progresso.total_necessario,
+      progresso.concluido,
+      progresso.pendente,
+      existing.id
+    );
+    return;
+  }
+
+  saveIntegralizacao({ ...progresso, manual: 0 });
+}
+
 export function insertManualIntegralizacaoHoras(
   tipoCh: string,
   horas: number
@@ -762,6 +795,28 @@ export function insertManualIntegralizacaoHoras(
 
 export function clearIntegralizacaoSynced(): void {
   db.prepare("DELETE FROM integralizacao WHERE manual = 0").run();
+}
+
+function clearSemestreAtualSynced(): void {
+  const rows = getSemestreAtual();
+
+  for (const row of rows) {
+    if (hasUserSemestrePreferences(row)) continue;
+    db.prepare("DELETE FROM semestre_atual WHERE disciplina_id = ?").run(
+      row.disciplina_id
+    );
+  }
+}
+
+/** Remove apenas dados sincronizados do portal do discente (B27). */
+export function clearPortalSyncedData(): void {
+  const reset = db.transaction(() => {
+    clearAluno();
+    clearIntegralizacaoSynced();
+    clearSemestreAtualSynced();
+    clearTarefasSynced();
+  });
+  reset();
 }
 
 // --- CALENDÁRIO ACADÊMICO ---
