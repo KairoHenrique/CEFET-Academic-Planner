@@ -1,3 +1,4 @@
+import { disciplinaDetailPath } from "@/lib/disciplinas/disciplina-path";
 import Link from "next/link";
 import { Icon } from "@/components/ui/Icon";
 import type { CourseMapNode, CourseMapStatus } from "@/lib/types/mapa-api";
@@ -59,7 +60,7 @@ export function CourseMapNodeCard({
 
   return (
     <Link
-      href={`/disciplinas/${encodeURIComponent(node.code)}`}
+      href={disciplinaDetailPath(node.code)}
       className={className}
       aria-label={`${node.name} — ${statusLabel}`}
     >

@@ -6,6 +6,7 @@ import {
   GradeRiskIndicator,
 } from "@/components/grades/GradeRiskIndicator";
 import { SUBJECT_DISPLAY_GRADE_MAX } from "@/lib/disciplinas/grade-display";
+import { disciplinaDetailPath } from "@/lib/disciplinas/disciplina-path";
 import { PrioritySelect } from "@/components/ui/PrioritySelect";
 import { Icon } from "@/components/ui/Icon";
 import { useSubjectPriorities } from "@/hooks/useStoredPriorities";
@@ -20,7 +21,7 @@ export function SubjectCard({ subject }: { subject: SubjectSummary }) {
     subject.gradeRisk
   );
   const absenceRisk = computeAbsenceRisk(subject.absences, subject.maxAbsences);
-  const href = `/disciplinas/${encodeURIComponent(subject.code)}`;
+  const href = disciplinaDetailPath(subject.code);
   const priority = getPriority(subject.code);
   const hasGrade = gradeRisk.zone !== "unknown";
 

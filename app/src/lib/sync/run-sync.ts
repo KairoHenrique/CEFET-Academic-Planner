@@ -8,7 +8,9 @@ import { scrapePortalDiscente } from "@/lib/scraper/portal-discente/scrape-porta
 import type { SigaaSession } from "@/lib/scraper/types";
 import { internalError } from "@/lib/api/errors";
 import { persistPortalSnapshot } from "@/lib/sync/persist-portal-snapshot";
+import { persistTurmaVirtualSnapshot } from "@/lib/sync/persist-turma-virtual-snapshot";
 import { resolveSyncCredentials } from "@/lib/sync/resolve-credentials";
+import { scrapeTurmaVirtual } from "@/lib/scraper/turma-virtual/scrape-turma-virtual";
 import type { SyncRequest, SyncStep } from "@/lib/types/sync";
 
 /**
@@ -58,6 +60,27 @@ async function syncPortalDiscente(session: SigaaSession): Promise<void> {
   }
 }
 
+async function syncTurmaVirtual(session: SigaaSession): Promise<void> {
+  let snapshot;
+
+  try {
+    snapshot = await scrapeTurmaVirtual(session);
+  } catch (error) {
+    if (error instanceof ScraperError) {
+      throw error.toApiError();
+    }
+    throw mapUnknownScraperError(error).toApiError();
+  }
+
+  try {
+    persistTurmaVirtualSnapshot(snapshot);
+  } catch {
+    throw internalError(
+      "Portal sincronizado, mas falhou ao salvar notas e faltas da turma virtual."
+    );
+  }
+}
+
 function persistCredentialsPreference(
   credentials: ReturnType<typeof resolveSyncCredentials>
 ): void {
@@ -81,7 +104,9 @@ export async function runSync(input: SyncRequest): Promise<SyncResult> {
   steps.push({ label: "Carregando portal do discente…", progress: 35 });
   await syncPortalDiscente(session);
 
-  steps.push({ label: "Sincronizando disciplinas…", progress: 55 });
+  steps.push({ label: "Sincronizando turma virtual…", progress: 55 });
+  await syncTurmaVirtual(session);
+
   steps.push({ label: "Baixando notas e faltas…", progress: 75 });
   steps.push({ label: "Atualizando calendário…", progress: 90 });
   steps.push({ label: "Concluído", progress: 100 });

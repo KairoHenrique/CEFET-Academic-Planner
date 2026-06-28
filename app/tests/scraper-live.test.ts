@@ -54,6 +54,29 @@ describe("B27 — portal discente (live)", () => {
   );
 });
 
+describe("B28 — turma virtual (live)", () => {
+  test(
+    "extrai notas e faltas reais da turma virtual",
+    { skip: !hasLiveCredentials },
+    async () => {
+      process.env.SIGAA_SCRAPER_MOCK = "false";
+      process.env.SIGAA_HEADLESS = process.env.SIGAA_HEADLESS ?? "true";
+
+      const { loginSigaa } = await import("../src/lib/scraper/auth");
+      const { scrapeTurmaVirtual } = await import(
+        "../src/lib/scraper/turma-virtual/scrape-turma-virtual"
+      );
+
+      const session = await loginSigaa({ username: user!, password: password! });
+      const snapshot = await scrapeTurmaVirtual(session);
+
+      assert.ok(snapshot.disciplinas.length >= 3);
+      const withNotas = snapshot.disciplinas.filter((item) => item.notas.length > 0);
+      assert.ok(withNotas.length >= 1, "ao menos uma disciplina com notas");
+    }
+  );
+});
+
 if (!hasLiveCredentials) {
   console.log(
     "[test:scraper:live] Pulado — defina SIGAA_TEST_USER e SIGAA_TEST_PASSWORD."

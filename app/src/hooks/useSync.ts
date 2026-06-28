@@ -11,8 +11,30 @@ import type { SyncRequest, SyncStep } from "@/lib/types/sync";
 
 const STEP_DELAY_MS = 280;
 
+/** Etapas exibidas enquanto o servidor raspa o SIGAA (~2 min). */
+const PENDING_SYNC_STEPS: Array<{ label: string; progress: number }> = [
+  { label: "Autenticando no SIGAA…", progress: 8 },
+  { label: "Carregando portal do discente…", progress: 22 },
+  { label: "Sincronizando turma virtual…", progress: 38 },
+  { label: "Baixando notas e faltas…", progress: 52 },
+];
+
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function startPendingSyncProgress(
+  onStep: (step: SyncStep) => void
+): () => void {
+  let index = 0;
+  onStep(PENDING_SYNC_STEPS[0]!);
+
+  const timer = window.setInterval(() => {
+    index = Math.min(index + 1, PENDING_SYNC_STEPS.length - 1);
+    onStep(PENDING_SYNC_STEPS[index]!);
+  }, 12_000);
+
+  return () => window.clearInterval(timer);
 }
 
 function mapSyncError(error: unknown): string {
@@ -51,7 +73,17 @@ export function useSync() {
     }
 
     try {
-      const result = await postSync(creds);
+      const stopPending = startPendingSyncProgress((step) => {
+        setStepLabel(step.label);
+        setProgress(step.progress);
+      });
+
+      let result: Awaited<ReturnType<typeof postSync>>;
+      try {
+        result = await postSync(creds);
+      } finally {
+        stopPending();
+      }
 
       await playSyncSteps(result.steps, (step) => {
         setStepLabel(step.label);

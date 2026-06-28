@@ -721,6 +721,55 @@ export function clearGrupoSynced(): void {
   db.prepare("DELETE FROM grupo_membros").run();
 }
 
+export function replaceSyncedGrupoForDisciplina(
+  disciplinaId: string,
+  membros: Array<Omit<GrupoMembroRow, "id" | "disciplina_id">>
+): void {
+  db.prepare("DELETE FROM grupo_membros WHERE disciplina_id = ?").run(disciplinaId);
+
+  for (const membro of membros) {
+    saveGrupoMembro({
+      disciplina_id: disciplinaId,
+      ...membro,
+    });
+  }
+}
+
+export function patchSyncedSemestreTurmaMetadata(
+  disciplinaId: string,
+  fields: { professor?: string | null; max_faltas?: number | null }
+): void {
+  const sets: string[] = [];
+  const params: Array<string | number | null> = [];
+
+  if (fields.professor !== undefined) {
+    sets.push("professor = ?");
+    params.push(fields.professor);
+  }
+
+  if (fields.max_faltas !== undefined) {
+    sets.push("max_faltas = ?");
+    params.push(fields.max_faltas);
+  }
+
+  if (sets.length === 0) return;
+
+  params.push(disciplinaId);
+  db.prepare(`UPDATE semestre_atual SET ${sets.join(", ")} WHERE disciplina_id = ?`).run(
+    ...params
+  );
+}
+
+/** Remove dados sincronizados da turma virtual (B28). */
+export function clearTurmaVirtualSyncedData(): void {
+  const reset = db.transaction(() => {
+    clearNotasSynced();
+    clearFaltasSynced();
+    clearGrupoSynced();
+  });
+  reset();
+}
+
 // --- INTEGRALIZAÇÃO ---
 export function getIntegralizacao(): IntegralizacaoRow[] {
   return db

@@ -5,6 +5,12 @@ export const SIGAA_LOGIN_URL = `${SIGAA_BASE_URL}verTelaLogin.do`;
 export const SIGAA_PORTAL_DISCENTE_URL =
   `${SIGAA_BASE_URL}portais/discente/discente.jsf`;
 
+export const SIGAA_TURMA_VIRTUAL_URL = `${SIGAA_BASE_URL}ava/index.jsf`;
+
+export const SIGAA_TURMA_SCRAPE_DELAY_MS = Number(
+  process.env.SIGAA_TURMA_SCRAPE_DELAY_MS ?? 400
+);
+
 export const SIGAA_LOGIN_TIMEOUT_MS = Number(
   process.env.SIGAA_LOGIN_TIMEOUT_MS ?? 30_000
 );
