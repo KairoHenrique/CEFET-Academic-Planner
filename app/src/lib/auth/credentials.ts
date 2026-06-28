@@ -1,4 +1,10 @@
 import type { SyncRequest } from "@/lib/types/sync";
+import {
+  clearSessionPassword,
+  readSessionPassword,
+  saveSessionPassword,
+  touchSyncActivity,
+} from "@/lib/auth/sync-session";
 
 const SESSION_PROFILE_KEY = "academic-planner-sync-profile";
 const PERSISTENT_PROFILE_KEY = "academic-planner-sync-profile-persist";
@@ -40,6 +46,10 @@ export function saveSyncCredentials(
 
   sessionStorage.setItem(SESSION_PROFILE_KEY, JSON.stringify(profile));
 
+  if (credentials.password?.trim()) {
+    saveSessionPassword(credentials.password);
+  }
+
   if (persist) {
     localStorage.setItem(PERSISTENT_PROFILE_KEY, JSON.stringify(profile));
   } else {
@@ -56,9 +66,11 @@ export function getSyncCredentials(): SyncRequest | null {
 
   if (!profile) return null;
 
+  touchSyncActivity();
+
   return {
     username: profile.username,
-    password: "",
+    password: readSessionPassword(),
     savePassword: profile.rememberPassword,
   };
 }
@@ -67,4 +79,5 @@ export function clearSyncCredentials(): void {
   if (typeof window === "undefined") return;
   sessionStorage.removeItem(SESSION_PROFILE_KEY);
   localStorage.removeItem(PERSISTENT_PROFILE_KEY);
+  clearSessionPassword();
 }

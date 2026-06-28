@@ -27,6 +27,10 @@ export function buildMockPortalSnapshot(username: string): PortalDiscenteSnapsho
       pendente: category.total - category.done,
       totalNecessario: category.total,
     })),
+    integralizacaoResumo: {
+      totalCurriculo: 4320,
+      percentIntegralizado: 16,
+    },
     semestreAtual: semesterSubjects.map((subject) => ({
       codigo: subject.code,
       nome: subject.name,

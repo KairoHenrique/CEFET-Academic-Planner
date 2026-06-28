@@ -22,6 +22,7 @@ export interface DashboardStats {
 export interface DashboardIntegralizacao {
   totalHours: number;
   totalDone: number;
+  percent: number;
   categories: IntegrationCategory[];
 }
 

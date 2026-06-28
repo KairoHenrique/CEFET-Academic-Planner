@@ -47,6 +47,17 @@ export function shouldHideTaskFromDashboard(
   return now > hideAfter;
 }
 
+/** Prazo de entrega já passou — não importar do SIGAA no sync. */
+export function isAtividadePrazoVencido(
+  dataFim: string,
+  horaFim: string | null | undefined,
+  now = new Date()
+): boolean {
+  if (!dataFim.trim()) return false;
+  const due = getTaskDueDateTime(dataFim, horaFim ?? "23:59");
+  return now > due;
+}
+
 export type TaskDueFilter = "todas" | "semana" | "mes" | "atrasadas" | "concluidas";
 
 export function matchesTaskDueFilter(

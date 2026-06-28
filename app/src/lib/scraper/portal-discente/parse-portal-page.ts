@@ -4,6 +4,7 @@ import type {
   PortalDiscenteSnapshot,
   PortalDisciplinaSemestre,
   PortalIntegralizacaoItem,
+  PortalIntegralizacaoResumo,
   PortalPageRawData,
 } from "@/lib/scraper/types/portal-discente";
 import { ENG_COMPUTACAO_CH_CATALOG } from "@/lib/integralizacao/ch-catalog";
@@ -23,6 +24,17 @@ const CH_PENDENTE_LABEL: Record<(typeof CH_TYPES)[number], RegExp> = {
   Extensão: /ch\.?\s*extensao\s*pendente/,
   Flexibilizada: /ch\.?\s*flexibilizada\s*pendente/,
 };
+
+/** Label de uma única categoria (evita linha agregada "Integralizações: CH. … CH. …"). */
+const CH_PENDENTE_EXACT_LABEL: Record<(typeof CH_TYPES)[number], RegExp> = {
+  Obrigatória: /^ch\.?\s*obrigatoria\s*pendente$/,
+  Optativa: /^ch\.?\s*optativa\s*pendente$/,
+  Complementar: /^ch\.?\s*complementar\s*pendente$/,
+  Extensão: /^ch\.?\s*extensao\s*pendente$/,
+  Flexibilizada: /^ch\.?\s*flexibilizada\s*pendente$/,
+};
+
+const CH_TOTAL_CURRICULO_LABEL = /^ch\.?\s*total\s*curriculo$/;
 
 const DISCIPLINA_CODE_PATTERN = /^[A-Z][A-Z0-9-]{2,}$/;
 const BLOCKED_DISCIPLINA_CODES = new Set([
@@ -155,29 +167,29 @@ function parseAluno(raw: PortalPageRawData): PortalAlunoSnapshot {
   };
 }
 
-function parseIntegralizacaoFromRow(row: string[]): PortalIntegralizacaoItem | null {
-  const joined = row.join(" ");
-  const tipo = CH_TYPES.find((label) =>
-    joined.toLowerCase().includes(label.toLowerCase())
-  );
-  if (!tipo) return null;
+function countMatchingChPendenteLabels(normalized: string): number {
+  return CH_TYPES.filter((tipo) => CH_PENDENTE_LABEL[tipo].test(normalized)).length;
+}
 
-  const numbers =
-    joined.match(/[\d.]+/g)?.map((token) => parseIntegerHours(token) ?? 0) ?? [];
-  if (numbers.length === 0) return null;
+function resolveChTipoFromExactLabel(normalized: string): (typeof CH_TYPES)[number] | null {
+  if (countMatchingChPendenteLabels(normalized) !== 1) return null;
+  return CH_TYPES.find((tipo) => CH_PENDENTE_EXACT_LABEL[tipo].test(normalized)) ?? null;
+}
 
-  const concluido = numbers[0] ?? 0;
-  const totalNecessario = numbers.length >= 3 ? numbers[numbers.length - 1] : numbers[1] ?? null;
-  const pendente =
-    totalNecessario !== null && totalNecessario !== undefined
-      ? Math.max(0, totalNecessario - concluido)
-      : numbers[1] ?? 0;
+function buildIntegralizacaoFromPendente(
+  tipo: (typeof CH_TYPES)[number],
+  pendente: number
+): PortalIntegralizacaoItem {
+  const catalogEntry = ENG_COMPUTACAO_CH_CATALOG.find((entry) => entry.tipoCh === tipo);
+  const totalNecessario = catalogEntry?.totalRequired ?? null;
+  const concluido =
+    totalNecessario !== null ? Math.max(0, totalNecessario - pendente) : 0;
 
   return {
     tipoCh: tipo,
     concluido,
     pendente,
-    totalNecessario: totalNecessario ?? null,
+    totalNecessario,
   };
 }
 
@@ -188,38 +200,92 @@ function parseIntegralizacaoFromPairs(
 
   for (const [label, value] of Object.entries(pairs)) {
     const normalized = normalizeLabel(label);
+    const tipo = resolveChTipoFromExactLabel(normalized);
+    if (!tipo) continue;
 
-    for (const tipo of CH_TYPES) {
-      if (!CH_PENDENTE_LABEL[tipo].test(normalized)) continue;
+    const pendente = parseIntegerHours(value);
+    if (pendente === null) continue;
 
-      const pendente = parseIntegerHours(value) ?? 0;
-      const catalogEntry = ENG_COMPUTACAO_CH_CATALOG.find(
-        (entry) => entry.tipoCh === tipo
-      );
-      const totalNecessario = catalogEntry?.totalRequired ?? null;
-      const concluido =
-        totalNecessario !== null ? Math.max(0, totalNecessario - pendente) : 0;
+    items.set(tipo, buildIntegralizacaoFromPendente(tipo, pendente));
+  }
 
-      items.set(tipo, {
-        tipoCh: tipo,
-        concluido,
-        pendente,
-        totalNecessario,
-      });
+  return items;
+}
+
+function parseIntegralizacaoFromTableRows(
+  rows: string[][]
+): Map<string, PortalIntegralizacaoItem> {
+  const items = new Map<string, PortalIntegralizacaoItem>();
+
+  for (const row of rows) {
+    for (let index = 0; index < row.length - 1; index += 1) {
+      const normalized = normalizeLabel(row[index] ?? "");
+      const tipo = resolveChTipoFromExactLabel(normalized);
+      if (!tipo) continue;
+
+      const pendente = parseIntegerHours(row[index + 1] ?? "");
+      if (pendente === null) continue;
+
+      items.set(tipo, buildIntegralizacaoFromPendente(tipo, pendente));
+      index += 1;
     }
   }
 
   return items;
 }
 
+function parseTotalCurriculoFromPairs(pairs: Record<string, string>): number | null {
+  for (const [label, value] of Object.entries(pairs)) {
+    if (!CH_TOTAL_CURRICULO_LABEL.test(normalizeLabel(label))) continue;
+    return parseIntegerHours(value);
+  }
+  return null;
+}
+
+function parseTotalCurriculoFromTableRows(rows: string[][]): number | null {
+  for (const row of rows) {
+    for (let index = 0; index < row.length - 1; index += 1) {
+      if (!CH_TOTAL_CURRICULO_LABEL.test(normalizeLabel(row[index] ?? ""))) continue;
+      const total = parseIntegerHours(row[index + 1] ?? "");
+      if (total !== null) return total;
+    }
+  }
+  return null;
+}
+
+function parsePercentIntegralizado(raw: PortalPageRawData): number | null {
+  const fromText = raw.plainText.match(/(\d{1,3})\s*%\s*integralizado/i);
+  if (fromText) {
+    const parsed = Number(fromText[1]);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+
+  for (const row of raw.tableRows) {
+    for (const cell of row) {
+      const match = cell.match(/(\d{1,3})\s*%\s*integralizado/i);
+      if (!match) continue;
+      const parsed = Number(match[1]);
+      if (Number.isFinite(parsed)) return parsed;
+    }
+  }
+
+  return null;
+}
+
+function parseIntegralizacaoResumo(raw: PortalPageRawData): PortalIntegralizacaoResumo {
+  return {
+    totalCurriculo:
+      parseTotalCurriculoFromPairs(raw.labelPairs) ??
+      parseTotalCurriculoFromTableRows(raw.tableRows),
+    percentIntegralizado: parsePercentIntegralizado(raw),
+  };
+}
+
 function parseIntegralizacao(raw: PortalPageRawData): PortalIntegralizacaoItem[] {
   const items = parseIntegralizacaoFromPairs(raw.labelPairs);
 
-  for (const row of raw.tableRows) {
-    const parsed = parseIntegralizacaoFromRow(row);
-    if (parsed) {
-      items.set(parsed.tipoCh, parsed);
-    }
+  for (const [tipo, item] of parseIntegralizacaoFromTableRows(raw.tableRows)) {
+    items.set(tipo, item);
   }
 
   return Array.from(items.values());
@@ -374,6 +440,7 @@ export function parsePortalPageData(raw: PortalPageRawData): PortalDiscenteSnaps
     scrapedAt: new Date().toISOString(),
     aluno: parseAluno(raw),
     integralizacao: parseIntegralizacao(raw),
+    integralizacaoResumo: parseIntegralizacaoResumo(raw),
     semestreAtual: parseDisciplinasSemestre(raw),
     atividades: parseAtividades(raw),
   };

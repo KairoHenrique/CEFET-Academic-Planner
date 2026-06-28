@@ -34,7 +34,7 @@ function applyAppearancePatch(
     nickname: nextNickname,
     name: nextName,
     displayName: resolveSubjectDisplayName(nextName, nextNickname),
-    shortLabel: resolveSubjectShortLabel(subject.code, nextNickname),
+    shortLabel: resolveSubjectShortLabel(subject.code, nextNickname, nextName),
   };
 }
 
