@@ -135,3 +135,12 @@ export interface PatchFaltaResponse {
   attendance: AttendanceSummary;
   absences: number;
 }
+
+export interface PatchDisciplinaAppearanceBody {
+  color: string;
+}
+
+export interface PatchDisciplinaAppearanceResponse {
+  code: string;
+  color: string;
+}

@@ -4,8 +4,10 @@ import type {
   CreateCalendarEventBody,
   PatchCalendarEventBody,
 } from "@/lib/types/calendar-api";
+import { normalizeHexColor } from "@/lib/colors/palette";
 import type {
   DisciplinaListFilter,
+  PatchDisciplinaAppearanceBody,
   PatchFaltaBody,
   PatchNotasBody,
   PatchTarefaBody,
@@ -351,6 +353,15 @@ function parseCalendarEventType(value: unknown): (typeof CALENDAR_EVENT_TYPES)[n
   return value as (typeof CALENDAR_EVENT_TYPES)[number];
 }
 
+function parseOptionalHexColor(value: unknown): string | undefined {
+  if (typeof value !== "string" || !value.trim()) return undefined;
+  const normalized = normalizeHexColor(value);
+  if (!normalized) {
+    throw validationError("Cor inválida. Use formato #RRGGBB.");
+  }
+  return normalized;
+}
+
 export function parseCreateCalendarEventBody(
   body: unknown
 ): CreateCalendarEventBody {
@@ -373,8 +384,24 @@ export function parseCreateCalendarEventBody(
     description:
       typeof record.description === "string" ? record.description : undefined,
     subjectCode: subjectCode || undefined,
-    color: typeof record.color === "string" ? record.color : undefined,
+    color: parseOptionalHexColor(record.color),
   };
+}
+
+export function parsePatchDisciplinaAppearanceBody(
+  body: unknown
+): PatchDisciplinaAppearanceBody {
+  if (!body || typeof body !== "object") {
+    throw validationError("Corpo da requisição inválido.");
+  }
+
+  const record = body as Record<string, unknown>;
+  const color = parseOptionalHexColor(record.color);
+  if (!color) {
+    throw validationError("Informe uma cor válida (#RRGGBB).");
+  }
+
+  return { color };
 }
 
 export function parsePatchCalendarEventBody(

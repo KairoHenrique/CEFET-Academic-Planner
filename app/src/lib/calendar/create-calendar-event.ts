@@ -83,7 +83,9 @@ function createAsEventoManual(body: CreateCalendarEventBody): CalendarEvent {
 }
 
 export function createCalendarEvent(body: CreateCalendarEventBody): CalendarEvent {
-  if (body.type === "tarefa" || body.type === "prova") {
+  const hasSubject = Boolean(body.subjectCode?.trim());
+
+  if ((body.type === "tarefa" || body.type === "prova") && hasSubject) {
     return createAsTarefa(body);
   }
 

@@ -186,6 +186,15 @@ export function saveSemestreAtual(entry: SemestreAtualRow): void {
   ).run(entry);
 }
 
+export function updateSemestreAtualColor(
+  disciplinaId: string,
+  cor: string
+): number {
+  return db
+    .prepare("UPDATE semestre_atual SET cor = ? WHERE disciplina_id = ?")
+    .run(cor, disciplinaId).changes;
+}
+
 export function clearSemestreAtual(): void {
   db.prepare("DELETE FROM semestre_atual").run();
 }

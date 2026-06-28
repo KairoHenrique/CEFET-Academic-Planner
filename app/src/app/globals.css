@@ -2525,6 +2525,79 @@ a:hover {
   width: 100%;
 }
 
+.color-picker-field {
+  border: none;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.color-picker-field .form-label {
+  display: block;
+  margin-bottom: var(--space-2);
+}
+
+.color-picker-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.color-picker-swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.color-picker-swatch:hover {
+  transform: scale(1.08);
+}
+
+.color-picker-swatch.is-selected {
+  box-shadow: 0 0 0 2px var(--bg-base), 0 0 0 4px var(--gold);
+}
+
+.color-picker-custom {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 1px dashed color-mix(in srgb, var(--text-secondary) 50%, transparent);
+}
+
+.color-picker-custom-preview {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.color-picker-native {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.color-picker-field-compact {
+  margin-top: var(--space-3);
+}
+
+.color-picker-field-compact .color-picker-swatch,
+.color-picker-field-compact .color-picker-custom {
+  width: 24px;
+  height: 24px;
+}
+
+.subject-detail-header .color-picker-field-compact {
+  margin-bottom: var(--space-3);
+}
+
 @media (max-width: 900px) {
   .calendar-skeleton-panel,
   .calendar-skeleton-panel-lg {
