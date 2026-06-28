@@ -102,11 +102,6 @@ export function CourseMapGrid({ periods, statusLabels }: CourseMapGridProps) {
           rowLabel="Períodos 6 a 10"
         />
       </div>
-
-      <p className="panel-footer-note">
-        Optativas/eletivas não aparecem aqui — acompanhe em Integralização e no
-        histórico SIGAA. Grafo interativo com pré-requisitos: Fase 5.
-      </p>
     </div>
   );
 }
