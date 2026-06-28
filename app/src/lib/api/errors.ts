@@ -6,6 +6,7 @@ export type ApiErrorCode =
   | "SIGAA_AUTH_FAILED"
   | "SIGAA_SCRAPE_FAILED"
   | "NOT_FOUND"
+  | "RATE_LIMITED"
   | "INTERNAL_ERROR";
 
 export class ApiError extends Error {

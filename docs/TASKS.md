@@ -237,11 +237,13 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 
 - [x] **BACK:**  B24 → B25 → B26
 - [%] **BACK:**  B27
+- [%] **BACK:**  B65 *(rate limit sync + prefs auto-sync)*
 - [ ] **BACK:**  B28
 - [ ] **BACK:**  B57 *(OAuth nuvem pessoal — Drive/Dropbox/OneDrive)*
 - [ ] **BACK:**  B29 *(PDFs SIGAA → pasta na nuvem do aluno)*
 - [ ] **BACK:**  B30 → B31
 - [ ] **FRONT:** F18
+- [%] **FRONT:** F37 *(menu perfil: matrícula + sync automático)*
 - [ ] **FRONT:** F35 *(Conectar minha nuvem + preview da estrutura de pastas)*
 
 **Ordem 2a:** `B24–B26` → `B27` → `B28` → `B57` → `B29` → `B30` → `B31` → `F18` → `F35`
@@ -551,6 +553,7 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 | B25 | Back | Criptografia AES-256 | Senha salva cifrada (opcional) | 2.1 | [x] |
 | B26 | Back | Erros de auth | Credencial inválida, timeout, SIGAA offline | 2.1 | [x] |
 | B27 | Back | Scraper portal discente | RG, CH, matérias do semestre, atividades | 2.2 | [%] |
+| B65 | Back | Rate limit + prefs sync | Intervalo mínimo entre syncs; auto-sync no SQLite | 2.2 | [%] |
 | B28 | Back | Scraper turma virtual | Notas, faltas, tarefas e grupo por matéria | 2.3 | [ ] |
 | B57 | Back | OAuth nuvem pessoal | Conectar Google Drive / Dropbox / OneDrive; tokens cifrados | 2.3 | [ ] |
 | B29 | Back | PDFs → nuvem | Materiais SIGAA → `CEFET Academic Planner/{semestre}/{matéria}/` | 2.3 | [ ] |
@@ -558,6 +561,7 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 | B31 | Back | Integrar no `runSync` | Troca seed-demo por pipeline real | 2.x | [ ] |
 | F18 | Front | Erros reais no login | Remove simulação mock de falhas | 2.1 | [ ] |
 | F35 | Front | UI nuvem pessoal | Conectar/desconectar nuvem; preview pastas; toggle por disciplina | 2.3 | [ ] |
+| F37 | Front | Menu perfil (avatar) | Matrícula, dados SIGAA, toggle sync automático | 2.2 | [/] |
 | F19 | Front | `/simulador` via API | Montar grade com turmas ofertadas reais | 2.4 | [ ] |
 
 **Ordem 2a (#2):** `B24 → B25 → B26` → `B27` → `B28` → `B57` → `B29` → `B30` → `B31` → `F18` → `F35`
@@ -833,9 +837,10 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 - [x] Loading state com progresso da sincronização
 - [/] Tratamento de erro visual (credenciais inválidas, SIGAA offline) — mock removido no back; **F18** pendente
 - [x] UI do login dev (card CEFET-MG, `LoginCard`, `PasswordInput`, rodapé "Criar conta")
+- [x] Menu perfil no avatar — matrícula + sync automático (**F37** · **B65** `[/]`)
 - [ ] Cadastro produção: e-mail, telefone, CPF, **curso (Comp/Meca/Moda)**, senha (F29 · B44 · B58 · B63)
 - [ ] Login produção: **apenas CPF + senha** (sem e-mail no login)
-- [ ] Menu Config no avatar + toggle e-mail (F36 · B61)
+- [ ] Menu Config no avatar + toggle e-mail (**F36** · **B61** — produção; perfil dev = **F37**)
 
 ### 3.2 Dashboard Central
 - [x] Header com saudação, nome do aluno e semestre atual — **via API** (`useDashboard`, TanStack Query)
