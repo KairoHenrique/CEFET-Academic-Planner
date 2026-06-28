@@ -6,6 +6,7 @@ import { loginSigaa } from "@/lib/scraper/auth";
 import { ScraperError, mapUnknownScraperError } from "@/lib/scraper/errors";
 import { scrapePortalDiscente } from "@/lib/scraper/portal-discente/scrape-portal-discente";
 import type { SigaaSession } from "@/lib/scraper/types";
+import { internalError } from "@/lib/api/errors";
 import { persistPortalSnapshot } from "@/lib/sync/persist-portal-snapshot";
 import { resolveSyncCredentials } from "@/lib/sync/resolve-credentials";
 import type { SyncRequest, SyncStep } from "@/lib/types/sync";
@@ -37,14 +38,23 @@ async function authenticateSigaa(
 }
 
 async function syncPortalDiscente(session: SigaaSession): Promise<void> {
+  let snapshot;
+
   try {
-    const snapshot = await scrapePortalDiscente(session);
-    persistPortalSnapshot(snapshot);
+    snapshot = await scrapePortalDiscente(session);
   } catch (error) {
     if (error instanceof ScraperError) {
       throw error.toApiError();
     }
     throw mapUnknownScraperError(error).toApiError();
+  }
+
+  try {
+    persistPortalSnapshot(snapshot);
+  } catch {
+    throw internalError(
+      "Login no SIGAA ok, mas falhou ao salvar os dados localmente."
+    );
   }
 }
 
