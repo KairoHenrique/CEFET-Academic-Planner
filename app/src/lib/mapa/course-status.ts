@@ -1,5 +1,7 @@
 import type { HistoricoRow, RequisitoRow } from "@/lib/types/db";
+import type { DisciplinaRow } from "@/lib/types/db";
 import type { CourseMapStatus } from "@/lib/types/mapa-api";
+import { evaluateChGateForDisciplina } from "@/lib/mapa/period-ch-gates";
 
 const DONE_STATUS_KEYWORDS = [
   "aprov",
@@ -61,6 +63,22 @@ export function buildPreRequisitoMap(
   return map;
 }
 
+export interface CourseMapStatusContext {
+  disciplina: DisciplinaRow;
+  current: Set<string>;
+  completed: Set<string>;
+  preRequisitos: Map<string, string[]>;
+  obrigatoriaDone: number;
+  obrigatoriaTotal: number;
+  allDisciplinas: DisciplinaRow[];
+}
+
+export interface CourseMapStatusResult {
+  status: CourseMapStatus;
+  blockedBy?: "prereq" | "ch";
+  chRemaining?: number;
+}
+
 function arePreRequisitosMet(
   disciplinaId: string,
   preRequisitos: Map<string, string[]>,
@@ -70,18 +88,63 @@ function arePreRequisitosMet(
   return required.every((code) => completed.has(code));
 }
 
+export function resolveCourseMapStatusResult(
+  context: CourseMapStatusContext
+): CourseMapStatusResult {
+  const code = normalizeCode(context.disciplina.codigo);
+
+  if (context.current.has(code)) {
+    return { status: "current" };
+  }
+
+  if (context.completed.has(code)) {
+    return { status: "done" };
+  }
+
+  if (!arePreRequisitosMet(code, context.preRequisitos, context.completed)) {
+    return { status: "locked", blockedBy: "prereq" };
+  }
+
+  const chGate = evaluateChGateForDisciplina(
+    context.disciplina,
+    context.obrigatoriaDone,
+    context.obrigatoriaTotal
+  );
+
+  if (!chGate.allowed) {
+    return {
+      status: "locked",
+      blockedBy: "ch",
+      chRemaining: chGate.chRemaining,
+    };
+  }
+
+  return { status: "unlocked" };
+}
+
+/** @deprecated Prefer `resolveCourseMapStatusResult` com contexto de CH. */
 export function resolveCourseMapStatus(
   disciplinaId: string,
   current: Set<string>,
   completed: Set<string>,
   preRequisitos: Map<string, string[]>
 ): CourseMapStatus {
-  const code = normalizeCode(disciplinaId);
-
-  if (current.has(code)) return "current";
-  if (completed.has(code)) return "done";
-  if (!arePreRequisitosMet(code, preRequisitos, completed)) return "locked";
-  return "unlocked";
+  return resolveCourseMapStatusResult({
+    disciplina: {
+      codigo: disciplinaId,
+      nome: "",
+      tipo: "Obrigatória",
+      carga_horaria: 0,
+      periodo: null,
+      ementa: null,
+    },
+    current,
+    completed,
+    preRequisitos,
+    obrigatoriaDone: Number.MAX_SAFE_INTEGER,
+    obrigatoriaTotal: 0,
+    allDisciplinas: [],
+  }).status;
 }
 
 export function countStatusTotals(

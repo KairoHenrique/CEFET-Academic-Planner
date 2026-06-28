@@ -92,8 +92,13 @@ export function ScheduleDetailContent({
 
       <p className="detail-subject">
         <span className="subject-dot" style={{ background: slot.color }} />
-        {slot.name}
+        {slot.displayName && slot.displayName !== slot.name
+          ? slot.displayName
+          : slot.name}
       </p>
+      {slot.displayName && slot.displayName !== slot.name && (
+        <p className="detail-description">{slot.name}</p>
+      )}
 
       <ul className="detail-facts">
         <li><strong>Dia:</strong> {day}</li>
@@ -104,14 +109,16 @@ export function ScheduleDetailContent({
       </ul>
 
       <div className="detail-actions">
-        <Link
-          href={`/disciplinas/${slot.code}`}
-          className="btn-gold"
-          onClick={onClose}
-        >
-          <Icon name="books" size={14} />
-          Ver disciplina
-        </Link>
+        {slot.code !== "EXTRA" && (
+          <Link
+            href={`/disciplinas/${slot.code}`}
+            className="btn-gold"
+            onClick={onClose}
+          >
+            <Icon name="books" size={14} />
+            Ver disciplina
+          </Link>
+        )}
         {onRemove && (
           <button type="button" className="btn-outline btn-danger" onClick={onRemove}>
             Remover da grade

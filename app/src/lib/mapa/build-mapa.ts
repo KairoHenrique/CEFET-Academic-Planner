@@ -3,6 +3,7 @@ import {
   getAluno,
   getDisciplinas,
   getHistorico,
+  getIntegralizacao,
   getRequisitos,
   getSemestreAtual,
 } from "@/lib/db/queries";
@@ -11,8 +12,12 @@ import {
   buildCurrentDisciplinaSet,
   buildPreRequisitoMap,
   countStatusTotals,
-  resolveCourseMapStatus,
+  resolveCourseMapStatusResult,
 } from "@/lib/mapa/course-status";
+import { getObrigatoriaTotalFromCatalog } from "@/lib/mapa/period-ch-gates";
+import { computeChDoneFromDisciplinas } from "@/lib/integralizacao/compute-ch-from-disciplinas";
+import { getChCatalog } from "@/lib/integralizacao/ch-catalog";
+import { mapDisciplineTipoToChType } from "@/lib/integralizacao/map-discipline-tipo-to-ch";
 import type { DisciplinaRow } from "@/lib/types/db";
 import type {
   CourseMapNode,
@@ -20,6 +25,17 @@ import type {
   MapaResponse,
 } from "@/lib/types/mapa-api";
 import { COURSE_MAP_STATUS_LABELS } from "@/lib/types/mapa-api";
+
+/** Mapa PPC: só grade obrigatória (períodos 1–10). Optativas ficam em integralização + sync. */
+function filterGradeObrigatoriaDisciplinas(
+  disciplinas: DisciplinaRow[]
+): DisciplinaRow[] {
+  return disciplinas.filter((disciplina) => {
+    const period = disciplina.periodo ?? 0;
+    if (period <= 0) return false;
+    return mapDisciplineTipoToChType(disciplina.tipo) !== "Optativa";
+  });
+}
 
 function groupDisciplinasByPeriodo(
   disciplinas: DisciplinaRow[]
@@ -44,24 +60,36 @@ function buildPeriods(
   grouped: Map<number, DisciplinaRow[]>,
   current: Set<string>,
   completed: Set<string>,
-  preRequisitos: Map<string, string[]>
+  preRequisitos: Map<string, string[]>,
+  obrigatoriaDone: number,
+  obrigatoriaTotal: number,
+  allDisciplinas: DisciplinaRow[]
 ): CourseMapPeriod[] {
   const periods = [...grouped.keys()].sort((a, b) => a - b);
 
   return periods.map((period) => ({
     period,
-    subjects: (grouped.get(period) ?? []).map((disciplina): CourseMapNode => ({
-      code: disciplina.codigo,
-      name: disciplina.nome,
-      ch: disciplina.carga_horaria ?? 0,
-      type: disciplina.tipo,
-      status: resolveCourseMapStatus(
-        disciplina.codigo,
+    subjects: (grouped.get(period) ?? []).map((disciplina): CourseMapNode => {
+      const resolved = resolveCourseMapStatusResult({
+        disciplina,
         current,
         completed,
-        preRequisitos
-      ),
-    })),
+        preRequisitos,
+        obrigatoriaDone,
+        obrigatoriaTotal,
+        allDisciplinas,
+      });
+
+      return {
+        code: disciplina.codigo,
+        name: disciplina.nome,
+        ch: disciplina.carga_horaria ?? 0,
+        type: disciplina.tipo,
+        status: resolved.status,
+        blockedBy: resolved.blockedBy,
+        chRemaining: resolved.chRemaining,
+      };
+    }),
   }));
 }
 
@@ -89,9 +117,32 @@ export function buildMapa(): MapaResponse {
   );
   const completed = buildCompletedDisciplinaSet(historico);
   const preRequisitos = buildPreRequisitoMap(requisitos);
+  const catalog = getChCatalog();
+  const integralizacaoRows = getIntegralizacao();
+  const syncedObrigatoria =
+    integralizacaoRows.find(
+      (row) => row.tipo_ch === "Obrigatória" && row.manual === 0
+    )?.concluido ?? 0;
 
-  const grouped = groupDisciplinasByPeriodo(disciplinas);
-  const periods = buildPeriods(grouped, current, completed, preRequisitos);
+  const computedCh = computeChDoneFromDisciplinas(
+    disciplinas,
+    historico,
+    semestreAtual.map((row) => row.disciplina_id)
+  );
+  const obrigatoriaDone = Math.max(computedCh.Obrigatória, syncedObrigatoria);
+  const obrigatoriaTotal = getObrigatoriaTotalFromCatalog(catalog);
+
+  const gradeDisciplinas = filterGradeObrigatoriaDisciplinas(disciplinas);
+  const grouped = groupDisciplinasByPeriodo(gradeDisciplinas);
+  const periods = buildPeriods(
+    grouped,
+    current,
+    completed,
+    preRequisitos,
+    obrigatoriaDone,
+    obrigatoriaTotal,
+    gradeDisciplinas
+  );
   const statuses = periods.flatMap((period) =>
     period.subjects.map((subject) => subject.status)
   );

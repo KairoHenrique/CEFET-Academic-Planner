@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { Input } from "@/components/ui/Input";
 import { PlannerSelect } from "@/components/ui/PlannerSelect";
-import { CH_TYPES } from "@/lib/integralizacao/ch-catalog";
+import { MANUAL_CH_TYPES } from "@/lib/integralizacao/ch-catalog";
 import type { ChType } from "@/lib/integralizacao/ch-catalog";
 import type { PostIntegralizacaoBody } from "@/lib/types/integralizacao-api";
 import { ApiClientError } from "@/lib/api/client";
@@ -27,7 +27,7 @@ export function RegisterHoursModal({
   const [error, setError] = useState<string | null>(null);
 
   const categoryOptions = useMemo(
-    () => CH_TYPES.map((type) => ({ value: type, label: type })),
+    () => MANUAL_CH_TYPES.map((type) => ({ value: type, label: type })),
     []
   );
 

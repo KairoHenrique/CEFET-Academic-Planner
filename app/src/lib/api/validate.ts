@@ -14,7 +14,7 @@ import type {
   PatchTarefaBody,
   CreateTarefaBody,
 } from "@/lib/types/disciplinas-api";
-import { isChType } from "@/lib/integralizacao/ch-catalog";
+import { isChType, isManualChType } from "@/lib/integralizacao/ch-catalog";
 import type { PostIntegralizacaoBody } from "@/lib/types/integralizacao-api";
 
 const DISCIPLINA_FILTERS: DisciplinaListFilter[] = [
@@ -509,6 +509,12 @@ export function parsePostIntegralizacaoBody(body: unknown): PostIntegralizacaoBo
   if (!isChType(tipoCh)) {
     throw validationError(
       "Informe uma categoria válida: Obrigatória, Optativa, Complementar, Extensão ou Flexibilizada."
+    );
+  }
+
+  if (!isManualChType(tipoCh)) {
+    throw validationError(
+      "Horas manuais só podem ser lançadas em Complementar, Extensão ou Flexibilizada."
     );
   }
 

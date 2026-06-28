@@ -13,6 +13,10 @@ export interface CourseMapNode {
   ch: number;
   type: string | null;
   status: CourseMapStatus;
+  /** Trava por pré-requisito ou por CH de integralização ainda não atingida. */
+  blockedBy?: "prereq" | "ch";
+  /** Horas de CH obrigatória (ou equivalente) que faltam para desbloquear. */
+  chRemaining?: number;
 }
 
 export interface CourseMapPeriod {

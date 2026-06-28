@@ -10,4 +10,5 @@ export const queryKeys = {
   calendar: () => [...queryKeys.all, "calendar"] as const,
   integralizacao: () => [...queryKeys.all, "integralizacao"] as const,
   mapa: () => [...queryKeys.all, "mapa"] as const,
+  schedule: () => [...queryKeys.all, "schedule"] as const,
 };
