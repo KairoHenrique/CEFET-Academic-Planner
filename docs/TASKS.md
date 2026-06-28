@@ -18,6 +18,8 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
 - `[%]` — Commit local feito; **sem push** (aguardando revisão ou push)
 - `[x]` — Finalizada (push feito ou aprovada 100%)
 
+> **⛔ Regra inviolável:** este arquivo deve estar **100% sincronizado** em **todas** as seções sempre que uma task mudar de status ou escopo — tabela B/F, checklist mestre, contador `X/49`, §1.4, bullets de UI, notas para agentes, **sem texto stale**. Fluxo completo: [`.cursor/rules/tasks-workflow.mdc`](../.cursor/rules/tasks-workflow.mdc) → **Sincronizar TASKS.md (10 pontos)** + **Verificação final**.
+
 ---
 
 ## Fase 0: Planejamento e Documentação
@@ -73,7 +75,7 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
 
 ### 1.4 API e Integração UI ↔ SQLite
 
-> **Progresso:** Etapas 1–2 ✅ · 3A ✅ · 3B ✅ · 3C ✅ · **3D em andamento** (B18 [%] · **próximo: F12**).
+> **Progresso:** Etapas 1–2 ✅ · 3A ✅ · 3B ✅ · 3C ✅ (push `87f2687`) · **3D commit local** — B18 `[%]` (`7f06cd4`) · F12 `[%]` (aguardando push) · **3E** pendente.
 
 Roadmap detalhado: ver **[Ordem oficial](#ordem-oficial-de-execução-v2)** e **[Checklist mestre](#checklist-mestre-ordem-de-execução)**.
 
@@ -85,7 +87,7 @@ Roadmap detalhado: ver **[Ordem oficial](#ordem-oficial-de-execução-v2)** e **
 > **Modo testes global:** URL pública + Supabase free; **RLS/multi-tenant só na fase 6c**, antes do PIX.
 
 ```
-FASE A   Bloco 1 (3C→3E)     SQLite local — integralização, mapa, grade (calendário ✅)
+FASE A   Bloco 1 (3D→3E)     SQLite local — mapa, grade (integralização ✅ · calendário ✅)
     ↓
 FASE B   Bloco 6a            Supabase + deploy global (seed compartilhado, sem RLS rígido)
          Bloco 6b            Auth app + credenciais SIGAA cifradas
@@ -105,7 +107,7 @@ FASE F   Bloco 3             Inteligência acadêmica
 | # | Fase | Bloco | O que fazer | Por quê nesta ordem |
 |---|------|-------|-------------|---------------------|
 | **0** | — | **0** | Planejamento | ✅ Concluído |
-| **1** | A | **1** (3C→3E) | Integralização, mapa, grade semanal (calendário ✅) | UI completa; iteração rápida sem infra |
+| **1** | A | **1** (3D→3E) | Mapa, grade semanal (integralização ✅ · calendário ✅) | UI completa; iteração rápida sem infra |
 | **2** | B | **6a** | Supabase + PG + deploy URL pública | Testes globais; fim do localhost-only |
 | **3** | B | **6b** | Auth + onboarding SIGAA | Contas do app; beta fechado |
 | **4** | C | **2a** | Scraper B24–B31 (dev) | Validar antes do worker |
@@ -138,7 +140,7 @@ Estratégia: **fatias verticais** — backend primeiro, depois frontend.
 | Bloco | Exec. # | Em uma linha |
 |-------|---------|--------------|
 | **0** | #0 | Planejamento ✅ |
-| **1** | #1 | API + SQLite (falta 3C–3E) |
+| **1** | #1 | API + SQLite (falta 3E; 3D `[%]` aguardando push) |
 | **6** | #2–3, #6 | Cloud Supabase — 6a deploy → 6b auth → 6c RLS |
 | **2** | #4–5 | Scraper — 2a dev → 2b worker |
 | **7** | #7 | Assinatura PIX |
@@ -167,7 +169,7 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 
 ---
 
-### #1 — Bloco 1 · API + UI ↔ SQLite `🟡 46/49`
+### #1 — Bloco 1 · API + UI ↔ SQLite `🟡 45/49`
 
 > Fatias verticais: **back → front** por etapa.
 
@@ -190,8 +192,8 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 - [x] **BACK:**  B16 → B17
 - [x] **FRONT:** F11 · F11b
 
-#### Etapa 3D — Mapa do curso
-- [x] **BACK:**  B18
+#### Etapa 3D — Mapa do curso *(B18 `[%]` · F12 `[%]` — aguardando push)*
+- [ ] **BACK:**  B18
 - [ ] **FRONT:** F12
 
 #### Etapa 3E — Grade semanal
@@ -330,7 +332,7 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 | Exec. # | Bloco | Status | Progresso |
 |---------|-------|--------|-----------|
 | #0 | 0 — Planejamento | ✅ | Concluído |
-| **#1** | **1 — SQLite (3C–3E)** | 🟡 **Atual** | 46 / 49 |
+| **#1** | **1 — SQLite (3D–3E)** | 🟡 **Atual** | 45 / 49 |
 | #2–3 | 6 — Cloud Supabase | ⬜ | 0 / 14 |
 | #4–5 | 2 — Scraper SIGAA | ⬜ | 0 / 14 |
 | #7 | 7 — Assinatura PIX | ⬜ | 0 / 12 |
@@ -355,8 +357,8 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 | **2** | Dashboard | Sync mock + `GET /dashboard` + login real + navbar |
 | **3A** | Disciplinas | Listagem, detalhe, notas, tarefas, faltas via API |
 | **3B** | Calendário | Eventos acadêmicos + tarefas/provas na agenda ✅ |
-| **3C** | Integralização | CH por categoria + horas manuais |
-| **3D** | Mapa | Grade PPC com status (concluída/cursando/trancada) |
+| **3C** | Integralização | CH por categoria + horas manuais ✅ |
+| **3D** | Mapa | Grade PPC + status via API (B18 · F12 `[%]` — aguardando push) |
 | **3E** | Grade semanal | Horários do semestre vindos do banco |
 
 #### Etapa 1 — Fundação (só backend) ✅
@@ -397,7 +399,7 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 
 #### Etapa 3 — Demais telas (back → front)
 
-> **3D Mapa:** B18 [%] · **próximo:** F12
+> **3C Integralização:** ✅ (push `87f2687`) · **3D Mapa:** B18 `[%]` · F12 `[%]` (aguardando push)
 
 ##### 3A — Disciplinas
 
@@ -452,12 +454,12 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 
 ##### 3D — Mapa do curso
 
-> **Resumo:** `/mapa` mostra o PPC por período com status calculado (histórico + pré-requisitos).
+> **Resumo:** `/mapa` — PPC por período com status (histórico + pré-requisitos). **B18 + F12 `[%]`** — API + UI via TanStack Query (`useMapa`); aguardando push.
 
 | # | Tipo | Task | Resumo | Status |
 |---|------|------|--------|--------|
-| B18 | Back | `GET /api/mapa` | Disciplinas por período + status | [%] |
-| F12 | Front | `CourseMapGrid` | Grid visual consumindo a API | [ ] |
+| B18 | Back | `GET /api/mapa` | Disciplinas por período + status (histórico + pré-requisitos) | [%] |
+| F12 | Front | `CourseMapGrid` | Grid visual consumindo `GET /api/mapa` + `MapaStatsBar` + skeleton | [%] |
 
 ##### 3E — Grade semanal
 
@@ -665,7 +667,7 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 ```
 #0  Bloco 0   Planejamento                    ✅
       ↓
-#1  Bloco 1   SQLite 3C→3E (integralização…)  🟡 ← agora
+#1  Bloco 1   SQLite 3D→3E (mapa, grade…)     🟡 ← agora
       ↓
 #2  Bloco 6a  Supabase + deploy global       (testes, sem RLS rígido)
 #3  Bloco 6b  Auth app + SIGAA cifrado
@@ -732,7 +734,7 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 
 ## Fase 3: Interface do Usuário — Telas Principais
 
-> **Resumo:** Shell visual de login, dashboard, calendário, mapa, integralização e simulador. Integração SQLite: dashboard ✅ · disciplinas ✅ · calendário ✅ · integralização ✅ · mapa/grade semanal ainda mock ou parcial (F12, F13).
+> **Resumo:** Shell visual de login, dashboard, calendário, mapa, integralização e simulador. Integração SQLite: dashboard ✅ · disciplinas ✅ · calendário ✅ · integralização ✅ · **mapa:** via API (B18 · F12 `[%]`) · grade semanal mock (F13).
 
 ### 3.1 Tela de Login
 - [x] Input de usuário e senha do SIGAA
@@ -775,7 +777,7 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 ### 3.5 Templates de Páginas (UI)
 - [x] Template `/calendario` — calendário mensal, eventos e datas acadêmicas **via API** (F9–F10); grade semanal ainda mock (F13)
 - [x] Template `/disciplinas` — listagem e detalhe **via API** (F6–F8); simulação de notas permanece local
-- [x] Template `/mapa` (grade curricular por período com status)
+- [x] Template `/mapa` — grade por período + resumo de status **via API** (`useMapa`, F12); skeleton + estados vazio/erro
 - [x] Template `/integralizacao` — donut + barras + tabela **via API**; modal cadastrar horas; glossário (F11 · F11b)
 - [x] Template `/simulador` (montar grade / matrícula)
 - [x] Página `not-found` customizada
@@ -862,7 +864,7 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 - [ ] *(Fase 2 — pós-mobile, #11)* `curso_id` / seleção de curso no perfil
 
 ### 5.2 Mapa Mental / Grafo do Curso
-- [x] Template estático: colunas por período com disciplinas e status (mock)
+- [x] Colunas por período com disciplinas e status — **via API** (F12 · B18)
 - [x] Cores dos nós por status: Concluída, Cursando, Desbloqueada, Trancada
 - [x] Clique no nó navega para página da disciplina
 - [ ] Renderizar grafo interativo (usar biblioteca como `react-flow` ou `d3.js`)
@@ -882,8 +884,8 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 - [ ] Botão "Exportar" para levar na hora da matrícula
 
 ### 5.4 Gestão de Integralização (Horas)
-- [x] Tabela com tipos de CH, total necessário, concluído, pendente (template mock)
-- [x] Botão "+ Cadastrar Horas" (UI placeholder)
+- [x] Tabela com tipos de CH, total, concluído, pendente — **via API** (F11)
+- [x] Cadastrar horas manuais — **POST /api/integralizacao** (B17) + modal (F11)
 - [x] Barra de progresso visual por categoria
 - [x] Donut "Total Integralizado" + cards alinhados em altura (`IntegrationDonutChart`)
 - [x] Barras de progresso douradas unificadas no app
@@ -939,14 +941,15 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 4. **O SIGAA é uma aplicação JSF (Java Server Faces).** Os formulários usam `javax.faces.ViewState` e IDs dinâmicos. O scraper deve usar Playwright (não requests simples) por causa do JavaScript.
 5. **URLs do SIGAA mudam de sessão para sessão.** Sempre navegue pelo menu, não por URLs hardcoded.
 6. **O design deve ser PREMIUM.** Cores do Cruzeiro (Azul #0060B1 + Dourado #D4A843), glassmorphism, micro-animações. Nada genérico.
-7. **Atualize o `docs/TASKS.md` sempre que trabalhar em uma task:**
-   - Ao **iniciar**: marque como `[/]` — em andamento.
-   - Após **commit local**: marque como `[%]` — feito, sem push.
-   - Após **push ou aprovação 100%**: marque como `[x]` — finalizada.
+7. **Atualize o `docs/TASKS.md` sempre que trabalhar em uma task** — leia o arquivo inteiro (ou `grep` por ID + etapa) e sincronize **todas** as seções listadas em `.cursor/rules/tasks-workflow.mdc` → **Sincronizar TASKS.md**:
+   - Ao **iniciar**: marque como `[/]` — em andamento (+ checklist mestre / §1.4 se aplicável).
+   - Após **commit local**: marque como `[%]` — feito, sem push (+ contador `X/49`, notas de etapa).
+   - Após **push ou aprovação 100%**: marque como `[x]` — finalizada (+ item 11 “Próximo passo”).
    - Faça **commit** ao concluir cada task (push só quando o usuário pedir).
-   - **Obrigatório:** toda entrega de código ou escopo deve refletir no `TASKS.md` no mesmo ciclo de trabalho.
+   - **Obrigatório:** toda entrega deve refletir no TASKS.md **no mesmo ciclo** — tabela B/F, checklist mestre, progresso, bullets de UI e notas para agentes **sem texto stale**.
 8. **Próximo passo do roadmap:** indique **somente após push** (tasks em `[x]`). Com commits locais `[%]` pendentes, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v2](#ordem-oficial-de-execução-v2) e [Checklist mestre](#checklist-mestre-ordem-de-execução) — **não** a numeração antiga 1→2→3→4. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy com URL pública; Supabase free; RLS **só na 6c** (antes do PIX).
-11. **Próximo passo:** **F12** (CourseMapGrid via API). B18 [%] local.
-12. **Código frontend** está em `app/src/` (não na raiz `src/`). Mock data em `app/src/config/mock/`.
+11. **Próximo passo:** push pendente **B18 + F12** (commits locais) → depois **B19 → F13**. **Mecatrônica e Moda:** bloqueadas até **#11**, após **#8 mobile**.
+12. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial.
+13. **Código frontend** está em `app/src/` (não na raiz `src/`). Mock data em `app/src/config/mock/`.

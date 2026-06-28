@@ -3860,6 +3860,73 @@ a:hover {
   font-size: 0.8125rem;
 }
 
+/* ---- Mapa do curso ---- */
+.mapa-stats-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: var(--space-3);
+}
+
+.mapa-stat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+  background: var(--bg-tertiary);
+  transition: border-color var(--transition-fast);
+}
+
+.mapa-stat-card:hover {
+  border-color: var(--border-emphasis);
+}
+
+.mapa-stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.mapa-stat-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.mapa-stat-done .mapa-stat-value { color: var(--success); }
+.mapa-stat-current .mapa-stat-value { color: var(--jersey-light); }
+.mapa-stat-unlocked .mapa-stat-value { color: var(--gold-300); }
+.mapa-stat-locked .mapa-stat-value { color: var(--danger); }
+
+.mapa-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.mapa-skeleton-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: var(--space-3);
+}
+
+.mapa-skeleton-stat {
+  height: 72px;
+  border-radius: var(--radius-md);
+}
+
+.mapa-skeleton-grid {
+  height: 420px;
+  border-radius: var(--radius-md);
+}
+
 /* ---- Course Map ---- */
 .course-map-legend {
   display: flex;

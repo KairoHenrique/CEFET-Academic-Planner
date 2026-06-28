@@ -1,44 +1,62 @@
 import Link from "next/link";
-import {
-  courseMap,
-  courseStatusLabels,
-  type CourseStatus,
-} from "@/config/mock/course-map";
+import { formatPeriodLabel } from "@/components/mapa/format-period-label";
 import { Icon } from "@/components/ui/Icon";
 import { SectionHeader } from "@/components/ui/SectionHeader";
+import type {
+  CourseMapPeriod,
+  CourseMapStatus,
+} from "@/lib/types/mapa-api";
 
-const statusBadge: Record<CourseStatus, string> = {
+const STATUS_BADGE: Record<CourseMapStatus, string> = {
   done: "success",
   current: "info",
   unlocked: "gold",
   locked: "danger",
 };
 
-export function CourseMapGrid() {
+function nodeIcon(status: CourseMapStatus): "lock" | "unlock" | "check" {
+  if (status === "locked") return "lock";
+  if (status === "unlocked") return "unlock";
+  return "check";
+}
+
+interface CourseMapGridProps {
+  periods: CourseMapPeriod[];
+  statusLabels: Record<CourseMapStatus, string>;
+}
+
+export function CourseMapGrid({ periods, statusLabels }: CourseMapGridProps) {
+  const statusOrder = Object.keys(statusLabels) as CourseMapStatus[];
+
   return (
     <div className="card">
       <SectionHeader title="Grade Curricular" icon="map" />
 
-      <div className="course-map-legend">
-        {(Object.keys(courseStatusLabels) as CourseStatus[]).map((status) => (
-          <span key={status} className="course-legend-item">
-            <span className={`badge ${statusBadge[status]}`}>
-              {courseStatusLabels[status]}
+      <div className="course-map-legend" role="list" aria-label="Legenda de status">
+        {statusOrder.map((status) => (
+          <span key={status} className="course-legend-item" role="listitem">
+            <span className={`badge ${STATUS_BADGE[status]}`}>
+              {statusLabels[status]}
             </span>
           </span>
         ))}
       </div>
 
       <div className="course-map-grid">
-        {courseMap.map((period) => (
+        {periods.map((period) => (
           <div key={period.period} className="course-period-column">
-            <h4 className="course-period-label">{period.period}º período</h4>
+            <h4 className="course-period-label">
+              {formatPeriodLabel(period.period)}
+            </h4>
             <ul className="course-node-list">
               {period.subjects.map((node) => (
                 <li key={node.code}>
                   {node.status === "locked" ? (
-                    <div className={`course-node ${node.status}`}>
-                      <Icon name="lock" size={14} />
+                    <div
+                      className={`course-node ${node.status}`}
+                      aria-label={`${node.name} — trancada`}
+                    >
+                      <Icon name="lock" size={14} aria-hidden />
                       <div>
                         <p className="course-node-code">{node.code}</p>
                         <p className="course-node-name">{node.name}</p>
@@ -46,13 +64,11 @@ export function CourseMapGrid() {
                     </div>
                   ) : (
                     <Link
-                      href={`/disciplinas/${node.code}`}
+                      href={`/disciplinas/${encodeURIComponent(node.code)}`}
                       className={`course-node ${node.status}`}
+                      aria-label={`${node.name} — ${statusLabels[node.status]}`}
                     >
-                      <Icon
-                        name={node.status === "unlocked" ? "unlock" : "check"}
-                        size={14}
-                      />
+                      <Icon name={nodeIcon(node.status)} size={14} aria-hidden />
                       <div>
                         <p className="course-node-code">{node.code}</p>
                         <p className="course-node-name">{node.name}</p>
