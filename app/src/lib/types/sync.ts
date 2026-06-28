@@ -6,6 +6,7 @@ export interface SyncStep {
 export interface SyncRequest {
   username: string;
   password: string;
+  savePassword?: boolean;
 }
 
 export interface SyncSuccessResponse {
@@ -13,7 +14,12 @@ export interface SyncSuccessResponse {
   steps: SyncStep[];
 }
 
-export type SyncErrorCode = "INVALID_CREDENTIALS" | "SIGAA_OFFLINE" | "VALIDATION_ERROR";
+export type SyncErrorCode =
+  | "INVALID_CREDENTIALS"
+  | "SIGAA_OFFLINE"
+  | "SIGAA_TIMEOUT"
+  | "SIGAA_AUTH_FAILED"
+  | "VALIDATION_ERROR";
 
 export interface SyncErrorResponse {
   ok: false;

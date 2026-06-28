@@ -1,60 +1,67 @@
-import type { SyncStep } from "@/lib/types/sync";
 import { seedDemoStudentData } from "@/lib/db/seed-demo";
-import { assertSyncCredentialsAllowed } from "./validate-credentials";
-import type { SyncRequest } from "@/lib/types/sync";
+import {
+  clearSigaaCredentials,
+  persistSigaaCredentials,
+} from "@/lib/crypto/sigaa-credential-store";
+import { loginSigaa } from "@/lib/scraper/auth";
+import { ScraperError, mapUnknownScraperError } from "@/lib/scraper/errors";
+import type { SigaaSession } from "@/lib/scraper/types";
+import { resolveSyncCredentials } from "@/lib/sync/resolve-credentials";
+import type { SyncRequest, SyncStep } from "@/lib/types/sync";
 
 /**
  * Sync pipeline: dados do SIGAA entram via upsert e nunca sobrescrevem
  * registros protegidos pelo usuário — ver lib/sync/user-data-priority.ts.
  */
 
-const SYNC_PIPELINE: Array<{ label: string; progress: number; run: () => void }> =
-  [
-    {
-      label: "Autenticando no SIGAA…",
-      progress: 15,
-      run: () => undefined,
-    },
-    {
-      label: "Carregando portal do discente…",
-      progress: 35,
-      run: () => undefined,
-    },
-    {
-      label: "Sincronizando disciplinas…",
-      progress: 55,
-      run: () => seedDemoStudentData(),
-    },
-    {
-      label: "Baixando notas e faltas…",
-      progress: 75,
-      run: () => undefined,
-    },
-    {
-      label: "Atualizando calendário…",
-      progress: 90,
-      run: () => undefined,
-    },
-    {
-      label: "Concluído",
-      progress: 100,
-      run: () => undefined,
-    },
-  ];
-
 export interface SyncResult {
   steps: SyncStep[];
+  session: SigaaSession;
 }
 
-export function runSync(credentials: SyncRequest): SyncResult {
-  assertSyncCredentialsAllowed(credentials);
+async function authenticateSigaa(
+  credentials: ReturnType<typeof resolveSyncCredentials>
+): Promise<SigaaSession> {
+  try {
+    return await loginSigaa({
+      username: credentials.username,
+      password: credentials.password,
+    });
+  } catch (error) {
+    if (error instanceof ScraperError) {
+      throw error.toApiError();
+    }
+    throw mapUnknownScraperError(error).toApiError();
+  }
+}
 
-  const steps: SyncStep[] = [];
-
-  for (const step of SYNC_PIPELINE) {
-    step.run();
-    steps.push({ label: step.label, progress: step.progress });
+function persistCredentialsPreference(
+  credentials: ReturnType<typeof resolveSyncCredentials>
+): void {
+  if (credentials.savePassword) {
+    persistSigaaCredentials(credentials.username, credentials.password);
+    return;
   }
 
-  return { steps };
+  clearSigaaCredentials();
+}
+
+export async function runSync(input: SyncRequest): Promise<SyncResult> {
+  const credentials = resolveSyncCredentials(input);
+  const session = await authenticateSigaa(credentials);
+  persistCredentialsPreference(credentials);
+
+  const steps: SyncStep[] = [
+    { label: "Autenticando no SIGAA…", progress: 15 },
+  ];
+
+  steps.push({ label: "Carregando portal do discente…", progress: 35 });
+
+  seedDemoStudentData();
+  steps.push({ label: "Sincronizando disciplinas…", progress: 55 });
+  steps.push({ label: "Baixando notas e faltas…", progress: 75 });
+  steps.push({ label: "Atualizando calendário…", progress: 90 });
+  steps.push({ label: "Concluído", progress: 100 });
+
+  return { steps, session };
 }

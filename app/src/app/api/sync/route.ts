@@ -4,11 +4,14 @@ import { withDb } from "@/lib/api/with-db";
 import { runSync } from "@/lib/sync/run-sync";
 import { ApiError } from "@/lib/api/errors";
 
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
 export const POST = withDb(async (request) => {
   try {
     const body = await request.json();
     const credentials = parseSyncRequest(body);
-    const result = runSync(credentials);
+    const result = await runSync(credentials);
 
     return apiSuccess({
       ok: true as const,

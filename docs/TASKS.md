@@ -44,7 +44,7 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
 ### 1.1 Inicialização do Projeto
 - [x] Criar projeto Next.js com TypeScript (`npx create-next-app`)
 - [x] Configurar estrutura de pastas (`src/app`, `src/components`, `src/lib/db`, `src/lib/engine`)
-- [/] Pasta `src/lib/scraper` (prevista na estrutura; código do scraper = Bloco 2)
+- [x] Pasta `src/lib/scraper` — B24–B26 `[%]` (auth + AES + erros); extração portal = B27+
 - [x] Instalar dependências: `better-sqlite3`, `playwright`, `crypto` (para criptografia de senha)
 
 ### 1.2 Design System (CSS)
@@ -75,9 +75,9 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
 
 ### 1.4 API e Integração UI ↔ SQLite
 
-> **Progresso:** Etapas 1–2 ✅ · 3A ✅ · 3B ✅ · 3C ✅ · **3D ✅** · **3E ✅**. **3F não entra no Bloco 1** (simulador mock). **Próximo macro:** Bloco 2a (sync SIGAA).
+> **Progresso:** Bloco 1 ✅ · **Bloco 2a:** B24–B26 `[%]` (commit local, aguardando push). **3F** fora do Bloco 1.
 
-Roadmap detalhado: ver **[Ordem oficial v3](#ordem-oficial-de-execução-v3)** e **[Checklist mestre](#checklist-mestre-ordem-de-execução)**. **Próximo macro:** **Bloco 2a** (sync SIGAA) **antes** do Supabase.
+Roadmap detalhado: ver **[Ordem oficial v3](#ordem-oficial-de-execução-v3)** e **[Checklist mestre](#checklist-mestre-ordem-de-execução)**. **Bloco 2a** em andamento — B24–B26 `[%]`.
 
 ---
 
@@ -181,7 +181,7 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 |-------|-------|------|----------------------|--------|
 | **#0** | 0 | Planejamento | — | ✅ |
 | **#1** | 1 | SQLite local (API + UI) | ✅ **Concluído** | 49/49 |
-| **#2** | 2a | Scraper dev (Playwright local) | **⬜ Próximo** | 0/8 |
+| **#2** | 2a | Scraper dev (Playwright local) | **[%] aguardando push** | 1/8 |
 | **#3** | 2b | Worker sync (servidor) | Depois de #2a (B31 ok) | 0/4 |
 | **#4** | 6a | Supabase + deploy global | Depois de #3 | 0/8 |
 | **#5** | 6b | Auth app + SIGAA cifrado | Depois de #4 | 0/4 |
@@ -231,11 +231,11 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 
 ---
 
-### #2 — Bloco 2a · Scraper SIGAA — dev `⬜ 0/8`
+### #2 — Bloco 2a · Scraper SIGAA — dev `[%] 1/8`
 
 > **⚠️ Prioridade pós-Bloco 1:** validar Playwright com **semestre ativo** antes do Supabase. Dev local + SQLite.
 
-- [ ] **BACK:**  B24 → B25 → B26
+- [%] **BACK:**  B24 → B25 → B26
 - [ ] **BACK:**  B27
 - [ ] **BACK:**  B28
 - [ ] **BACK:**  B57 *(OAuth nuvem pessoal — Drive/Dropbox/OneDrive)*
@@ -362,7 +362,7 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 |---------|-------|--------|-----------|
 | #0 | 0 — Planejamento | ✅ | Concluído |
 | **#1** | **1 — SQLite** | ✅ **Concluído** | 49 / 49 `[%]` |
-| **#2** | **2a — Scraper dev** | ⬜ **Próximo** | 0 / 8 |
+| **#2** | **2a — Scraper dev** | **[%] aguardando push** | 1 / 8 |
 | **#3** | **2b — Worker sync** | ⬜ | 0 / 4 |
 | #4 | 6a — Cloud deploy | ⬜ *(após #3)* | 0 / 8 |
 | #5 | 6b — Cloud auth | ⬜ | 0 / 4 |
@@ -547,9 +547,9 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 
 | # | Tipo | Task | Resumo | Fase | Status |
 |---|------|------|--------|------|--------|
-| B24 | Back | `lib/scraper/auth.ts` | Login Playwright + cookies de sessão | 2.1 | [ ] |
-| B25 | Back | Criptografia AES-256 | Senha salva cifrada (opcional) | 2.1 | [ ] |
-| B26 | Back | Erros de auth | Credencial inválida, timeout, SIGAA offline | 2.1 | [ ] |
+| B24 | Back | `lib/scraper/auth.ts` | Login Playwright + cookies de sessão | 2.1 | [%] |
+| B25 | Back | Criptografia AES-256 | Senha salva cifrada (opcional) | 2.1 | [%] |
+| B26 | Back | Erros de auth | Credencial inválida, timeout, SIGAA offline | 2.1 | [%] |
 | B27 | Back | Scraper portal discente | RG, CH, matérias do semestre, atividades | 2.2 | [ ] |
 | B28 | Back | Scraper turma virtual | Notas, faltas, tarefas e grupo por matéria | 2.3 | [ ] |
 | B57 | Back | OAuth nuvem pessoal | Conectar Google Drive / Dropbox / OneDrive; tokens cifrados | 2.3 | [ ] |
@@ -740,7 +740,7 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
       ↓
 #1  Bloco 1   SQLite local (3E)               ✅
       ↓
-#2  Bloco 2a  Scraper dev + sync REAL          ⬜ ← próximo
+#2  Bloco 2a  Scraper dev + sync REAL          [%] 1/8 (B24–B26 commit local)
 #3  Bloco 2b  Worker servidor
       ↓
 #4  Bloco 6a  Supabase + deploy global       (após sync validado)
@@ -777,10 +777,10 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 > **Resumo:** Playwright automatiza login e extração de dados do SIGAA (portal + turmas). Corresponde ao **Bloco 2** (B24–B31, F18–F19).
 
 ### 2.1 Autenticação
-- [ ] Implementar login no SIGAA via Playwright (POST para `verTelaLogin.do`)
-- [ ] Gerenciar sessão/cookies após login bem-sucedido
-- [ ] Implementar criptografia AES-256 para salvar senha local (opcional do usuário)
-- [ ] Tratamento de erros: senha inválida, SIGAA fora do ar, timeout
+- [%] Implementar login no SIGAA via Playwright (POST para `verTelaLogin.do`) — B24
+- [%] Gerenciar sessão/cookies após login bem-sucedido — B24
+- [%] Implementar criptografia AES-256 para salvar senha local (opcional do usuário) — B25
+- [%] Tratamento de erros: senha inválida, SIGAA fora do ar, timeout — B26
 
 ### 2.2 Scraper: Portal do Discente
 - [ ] Extrair dados institucionais (matrícula, curso, status, email, entrada)
@@ -812,10 +812,10 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 ### 3.1 Tela de Login
 - [x] Input de usuário e senha do SIGAA
 - [x] Senha com mostrar/ocultar (`PasswordInput`)
-- [x] Toggle "Lembrar senha neste computador" — persiste credenciais; **criptografia AES = B25**
+- [x] Toggle "Lembrar senha neste computador" — persiste usuário no client; senha cifrada no SQLite (**B25** `[%]`)
 - [x] Botão "Entrar e Sincronizar"
 - [x] Loading state com progresso da sincronização
-- [x] Tratamento de erro visual (credenciais inválidas, SIGAA offline) — via API mock (`erro` / `offline`)
+- [/] Tratamento de erro visual (credenciais inválidas, SIGAA offline) — mock removido no back; **F18** pendente
 - [x] UI do login (card CEFET-MG, piping dourado, rodapé "Criar conta" → SIGAA, `LoginCard`, `PasswordInput`)
 
 ### 3.2 Dashboard Central
@@ -1026,6 +1026,6 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 8. **Próximo passo do roadmap:** indique **somente após push** (tasks em `[x]`). Com commits locais `[%]` pendentes, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v3](#ordem-oficial-de-execução-v3) — **Bloco 2 (sync) antes do Bloco 6 (Supabase)**. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy **após** sync validado; RLS **só na 6c** (antes do PIX).
-11. **Próximo passo:** **Bloco 2a** (B24 → sync SIGAA real). **3F** (simulador matrícula) só após turmas reais no Bloco 2. **PDFs:** nuvem pessoal do aluno. **Mecatrônica/Moda:** bloqueadas até **#11**, após **#8 mobile**.
+11. **Próximo passo:** Bloco 2a — B24–B26 em `[%]` (aguardando push). **Não** avançar roadmap até push/aprovação. **3F** fora do Bloco 1. **PDFs:** nuvem pessoal do aluno.
 12. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial.
 13. **Código frontend** está em `app/src/` (não na raiz `src/`). Mock data em `app/src/config/mock/`.
