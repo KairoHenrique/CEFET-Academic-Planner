@@ -73,7 +73,7 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
 
 ### 1.4 API e Integração UI ↔ SQLite
 
-> **Progresso:** Etapas 1–2 ✅ · 3A ✅ · 3B ✅ · **3C Integralização ✅** (F11–F11b [%] local) · **próximo: 3D Mapa** (B18 → F12).
+> **Progresso:** Etapas 1–2 ✅ · 3A ✅ · 3B ✅ · **3C Integralização ✅** (push `59c50b2`) · **próximo: 3D Mapa** (B18 → F12).
 
 Roadmap detalhado: ver **[Ordem oficial](#ordem-oficial-de-execução-v2)** e **[Checklist mestre](#checklist-mestre-ordem-de-execução)**.
 
@@ -397,7 +397,7 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 
 #### Etapa 3 — Demais telas (back → front)
 
-> **3C Integralização:** ✅ (B16–B17 + F11–F11b [%] local) · **próximo:** 3D (B18 → F12)
+> **3C Integralização:** ✅ (push `59c50b2`) · **próximo:** 3D (B18 → F12)
 
 ##### 3A — Disciplinas
 
@@ -445,10 +445,10 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 
 | # | Tipo | Task | Resumo | Status |
 |---|------|------|--------|--------|
-| B16 | Back | `GET /api/integralizacao` | Totais por tipo de CH (conforme PPC do curso) | [%] |
-| B17 | Back | `POST /api/integralizacao` | Registrar horas complementares manuais | [%] |
-| F11 | Front | Painéis integralização | Donut + tabela via API + cadastro de horas | [%] |
-| F11b | Front | Glossário de CH | Bloco “Entenda suas horas” + tooltips (obrigatória, optativa/eletiva, complementar, extensão, flexibilizada) | [%] |
+| B16 | Back | `GET /api/integralizacao` | Totais por tipo de CH (conforme PPC do curso) | [x] |
+| B17 | Back | `POST /api/integralizacao` | Registrar horas complementares manuais | [x] |
+| F11 | Front | Painéis integralização | Donut + tabela via API + cadastro de horas | [x] |
+| F11b | Front | Glossário de CH | Modal “Entenda suas horas” + ícone ? (obrigatória, optativa/eletiva, complementar, extensão, flexibilizada) | [x] |
 
 ##### 3D — Mapa do curso
 
@@ -948,5 +948,5 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 8. **Próximo passo do roadmap:** indique **somente após push** (tasks em `[x]`). Com commits locais `[%]` pendentes, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v2](#ordem-oficial-de-execução-v2) e [Checklist mestre](#checklist-mestre-ordem-de-execução) — **não** a numeração antiga 1→2→3→4. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy com URL pública; Supabase free; RLS **só na 6c** (antes do PIX).
-11. **Próximo passo:** **B18 → F12** (mapa do curso). Commits locais `[%]`: B16–B17, F11–F11b. **Mecatrônica e Moda:** bloqueadas até **#11**, após **#8 mobile**.
+11. **Próximo passo:** **B18 → F12** (mapa do curso). **Mecatrônica e Moda:** bloqueadas até **#11**, após **#8 mobile**.
 12. **Código frontend** está em `app/src/` (não na raiz `src/`). Mock data em `app/src/config/mock/`.
