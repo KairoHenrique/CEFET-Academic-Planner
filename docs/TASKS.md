@@ -22,7 +22,7 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
 
 ## Fase 0: Planejamento e Documentação
 
-> **Resumo:** Definir escopo, stack e documentação base antes de codar. PPC de Eng. Computação indexado para o mapa curricular.
+> **Resumo:** Definir escopo, stack e documentação base antes de codar. PPC de Eng. Computação indexado. Outros cursos **após mobile** (§6.2 SCOPE).
 
 - [x] Levantamento de requisitos com o stakeholder
 - [x] Análise do portal SIGAA (estrutura, URLs, dados disponíveis)
@@ -31,6 +31,7 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
 - [x] Criação do SCOPE.md com todas as regras de negócio
 - [x] Criação do TASKS.md (este arquivo)
 - [x] Obter e indexar o PPC de Engenharia da Computação (PDF → dados estruturados)
+- [x] Documentar sequência multi-PPC (Mecatrônica/Moda **só pós-mobile**) e glossário de CH no `SCOPE.md` (§6.2, §6.4)
 
 ---
 
@@ -72,7 +73,7 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
 
 ### 1.4 API e Integração UI ↔ SQLite
 
-> **Progresso:** Etapas 1–2 ✅ · Etapa 3A ✅ (B9–B12 + extensões, F6–F8 + extensões) · próximo: **3B Calendário** (B13–F10).
+> **Progresso:** Etapas 1–2 ✅ · Etapa 3A ✅ (+ extensões F8g–F8i, B12d) · Etapa 3B ✅ · **próximo: 3C Integralização** (B16 → F11 → F11b).
 
 Roadmap detalhado: ver **[Ordem oficial](#ordem-oficial-de-execução-v2)** e **[Checklist mestre](#checklist-mestre-ordem-de-execução)**.
 
@@ -114,6 +115,7 @@ FASE F   Bloco 3             Inteligência acadêmica
 | **8** | E | **8** | Expo Go | Mobile quando API cloud estiver ok |
 | **9** | F | **3** | Grafo, matrícula, alertas | Precisa dados reais do scraper |
 | **10** | F | **4** | Skeletons, transições, favicon | Acabamento final |
+| **11** | — | **9** | Multi-PPC (Mecatrônica, Moda) | **Só após #8 mobile** com Eng. Computação completa |
 
 ### Modo global de testes (6a)
 
@@ -136,7 +138,7 @@ Estratégia: **fatias verticais** — backend primeiro, depois frontend.
 | Bloco | Exec. # | Em uma linha |
 |-------|---------|--------------|
 | **0** | #0 | Planejamento ✅ |
-| **1** | #1 | API + SQLite (falta 3B–3E) |
+| **1** | #1 | API + SQLite (falta 3C–3E) |
 | **6** | #2–3, #6 | Cloud Supabase — 6a deploy → 6b auth → 6c RLS |
 | **2** | #4–5 | Scraper — 2a dev → 2b worker |
 | **7** | #7 | Assinatura PIX |
@@ -164,7 +166,7 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 
 ---
 
-### #1 — Bloco 1 · API + UI ↔ SQLite `🟡 28/34`
+### #1 — Bloco 1 · API + UI ↔ SQLite `🟡 41/49`
 
 > Fatias verticais: **back → front** por etapa.
 
@@ -172,20 +174,20 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 - [x] **BACK:**  B1 → B2 → B3 → B4 → B5
 
 #### Etapa 2 — Sync + Dashboard ✅
-- [x] **BACK:**  B6 → B7 → B8
-- [x] **FRONT:** F1 → F2 → F3 → F4 → F5 · F5b · F5c
+- [x] **BACK:**  B6 → B7 → B7b → B8
+- [x] **FRONT:** F1 → F2 → F3 → F4 → F5 · F5b · F5c · F5d
 
 #### Etapa 3A — Disciplinas ✅
-- [x] **BACK:**  B9 → B10 → B11 → B12 · B12b · B12c
-- [x] **FRONT:** F6 → F7 → F8 · F6b · F8b · F8c · F8d · F8e · F8f
+- [x] **BACK:**  B9 → B10 → B11 → B12 · B12b · B12c · B12d
+- [x] **FRONT:** F6 → F7 → F8 · F6b · F8b · F8c · F8d · F8e · F8f · F8g · F8h · F8i
 
-#### Etapa 3B — Calendário
-- [%] **BACK:**  B13 · B14 · B15
-- [%] **FRONT:** F9 · F10
+#### Etapa 3B — Calendário ✅
+- [x] **BACK:**  B13 · B14 · B15 · B15b
+- [x] **FRONT:** F9 · F10 · F10b
 
 #### Etapa 3C — Integralização
 - [ ] **BACK:**  B16 → B17
-- [ ] **FRONT:** F11
+- [ ] **FRONT:** F11 · F11b
 
 #### Etapa 3D — Mapa do curso
 - [ ] **BACK:**  B18
@@ -309,18 +311,32 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 
 ---
 
+### #11 — Expansão multi-PPC (Mecatrônica + Moda) `🔒 0/4`
+
+> **⛔ Não iniciar antes do #8 (Mobile Expo Go)** com Eng. Computação 100% funcional. Ver `SCOPE.md` §6.2.
+
+- [ ] **PLAN:** Obter PPC oficial Eng. Mecatrônica (Divinópolis)
+- [ ] **PLAN:** Obter PPC oficial Design de Moda (Divinópolis)
+- [ ] **BACK:** Indexar disciplinas + requisitos + metas de CH (Mecatrônica e Moda)
+- [ ] **BACK/FRONT:** `curso_id` no perfil + mapa/integralização multi-curso
+
+**Ordem #11:** `PLAN PPCs` → `indexar seeds` → `curso_id` → smoke por curso
+
+---
+
 ### Resumo de progresso (por ordem de execução)
 
 | Exec. # | Bloco | Status | Progresso |
 |---------|-------|--------|-----------|
 | #0 | 0 — Planejamento | ✅ | Concluído |
-| **#1** | **1 — SQLite (3B–3E)** | 🟡 **Atual** | 28 / 34 |
+| **#1** | **1 — SQLite (3C–3E)** | 🟡 **Atual** | 41 / 49 |
 | #2–3 | 6 — Cloud Supabase | ⬜ | 0 / 14 |
 | #4–5 | 2 — Scraper SIGAA | ⬜ | 0 / 14 |
 | #7 | 7 — Assinatura PIX | ⬜ | 0 / 12 |
 | #8 | 8 — Mobile Expo Go | ⬜ | 0 / 10 |
 | #9 | 3 — Inteligência | ⬜ | 0 / 11 |
 | #10 | 4 — Polimento | ⬜ | 0 / 3 |
+| #11 | 9 — Multi-PPC | 🔒 | 0 / 4 *(após #8)* |
 
 ---
 
@@ -337,7 +353,7 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 | **1** | Fundação | Schema, CRUD, seed, camada API, tipos |
 | **2** | Dashboard | Sync mock + `GET /dashboard` + login real + navbar |
 | **3A** | Disciplinas | Listagem, detalhe, notas, tarefas, faltas via API |
-| **3B** | Calendário | Eventos acadêmicos + tarefas/provas na agenda |
+| **3B** | Calendário | Eventos acadêmicos + tarefas/provas na agenda ✅ |
 | **3C** | Integralização | CH por categoria + horas manuais |
 | **3D** | Mapa | Grade PPC com status (concluída/cursando/trancada) |
 | **3E** | Grade semanal | Horários do semestre vindos do banco |
@@ -371,6 +387,7 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 | F5 | Front | Loading/erro/vazio | Estados de carregamento no dashboard | [x] |
 | F5b | Front | `LogoutButton` | Sair e limpar sessão/credenciais | [x] |
 | F5c | Front | Credenciais salvas | Re-sync rápido pela navbar | [x] |
+| F5d | Front | Sync cruzado tarefas | `invalidate-task-sync.ts` — dashboard, disciplina, calendário | [x] |
 
 > **F5 — escopo parcial:** `WeeklySchedulePreview` no dashboard ainda usa mock/localStorage (conclusão em **F13**).  
 > **Data fetching:** dashboard usa hooks nativos (`useDashboard`); **TanStack Query** desde **F6** (disciplinas + mutations de notas/tarefas).
@@ -379,7 +396,7 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 
 #### Etapa 3 — Demais telas (back → front)
 
-> **3B Calendário:** entregue `[%]` (B13–F10 commitados localmente; **push pendente** — próximo passo só após push)
+> **3B Calendário:** ✅ push `93dd108` · **próximo:** 3C (B16 → F11 → F11b)
 
 ##### 3A — Disciplinas
 
@@ -393,6 +410,7 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 | B12 | Back | `PATCH /api/tarefas/[id]` | Toggle concluída, editar, excluir | [x] |
 | B12b | Back | `POST .../tarefas` | Criar tarefa manual na disciplina | [x] |
 | B12c | Back | `PATCH .../faltas` | Atualizar presença/falta por data | [x] |
+| B12d | Back | `PATCH .../appearance` | Cor, apelido e nome de exibição da matéria | [x] |
 | F6 | Front | `/disciplinas` | `SubjectList` via API + TanStack Query | [x] |
 | F7 | Front | `/disciplinas/[code]` | Painéis de notas, faltas, tarefas via API | [x] |
 | F8 | Front | `useSubjectGrades` | CRUD notas, inline, nota extra | [x] |
@@ -402,6 +420,9 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 | F8d | Front | Risco de nota + recuperação | `GradeRiskIndicator`, `RecoveryGradeEntry`, `grade-risk.ts` (recuperação em localStorage) | [x] |
 | F8e | Front | Prioridade + selects | `PrioritySelect`, `PlannerSelect`, `useStoredPriorities`, `TaskSortSelect` | [x] |
 | F8f | Front | Simulador (polish) | Menu overlay, layout estável com frequência, OK em Necessário, pré-preenche notas reais | [x] |
+| F8g | Front | Aparência da matéria | `ColorDotPicker`, modal nome/apelido, `useSubjectAppearance` | [x] |
+| F8h | Front | Validação de notas | Clamp pontos a distribuir, nota extra até 100, contador no modal | [x] |
+| F8i | Front | TanStack Query dashboard | `useDashboard` migrado para Query + invalidação cruzada | [x] |
 
 ##### 3B — Calendário
 
@@ -409,21 +430,24 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 
 | # | Tipo | Task | Resumo | Status |
 |---|------|------|--------|--------|
-| B13 | Back | `GET /api/calendar` | Tarefas, provas e datas do semestre | [%] |
-| B14 | Back | `POST /api/calendar/events` | Inserir evento manual | [%] |
-| B15 | Back | `PATCH .../events/[id]` | Editar ou marcar concluído | [%] |
-| F9 | Front | `useCalendarEvents` | Hook que alimenta o calendário | [%] |
-| F10 | Front | Views do calendário | `CalendarioView`, datas acadêmicas, form | [%] |
+| B13 | Back | `GET /api/calendar` | Tarefas, provas e datas do semestre | [x] |
+| B14 | Back | `POST /api/calendar/events` | Inserir evento manual | [x] |
+| B15 | Back | `PATCH .../events/[id]` | Editar ou marcar concluído | [x] |
+| B15b | Back | Tipos de evento | Monitoria, estágio, estudo, outro + migration DB | [x] |
+| F9 | Front | `useCalendarEvents` | Hook que alimenta o calendário | [x] |
+| F10 | Front | Views do calendário | `CalendarioView`, datas acadêmicas, form | [x] |
+| F10b | Front | Calendário (polish) | Checkbox concluída ao vivo, scroll painel eventos, tipos pessoais | [x] |
 
 ##### 3C — Integralização
 
-> **Resumo:** Página `/integralizacao` lê CH real (obrigatória, optativa, extensão…) e permite cadastrar horas manuais.
+> **Resumo:** Página `/integralizacao` lê CH real (obrigatória, optativa, extensão…) e permite cadastrar horas manuais. Inclui glossário “O que é cada tipo?” (SCOPE §6.4).
 
 | # | Tipo | Task | Resumo | Status |
 |---|------|------|--------|--------|
-| B16 | Back | `GET /api/integralizacao` | Totais por tipo de carga horária | [ ] |
+| B16 | Back | `GET /api/integralizacao` | Totais por tipo de CH (conforme PPC do curso) | [ ] |
 | B17 | Back | `POST /api/integralizacao` | Registrar horas complementares manuais | [ ] |
 | F11 | Front | Painéis integralização | Donut + tabela via API (hoje mock) | [ ] |
+| F11b | Front | Glossário de CH | Bloco “Entenda suas horas” + tooltips (obrigatória, optativa/eletiva, complementar, extensão, flexibilizada) | [ ] |
 
 ##### 3D — Mapa do curso
 
@@ -640,7 +664,7 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 ```
 #0  Bloco 0   Planejamento                    ✅
       ↓
-#1  Bloco 1   SQLite 3B→3E (calendário…)     🟡 ← agora
+#1  Bloco 1   SQLite 3C→3E (integralização…)  🟡 ← agora
       ↓
 #2  Bloco 6a  Supabase + deploy global       (testes, sem RLS rígido)
 #3  Bloco 6b  Auth app + SIGAA cifrado
@@ -792,6 +816,10 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 - [x] Edição inline de nota (vírgula/ponto, validação min/max)
 - [x] Toggle "Nota extra" (`ToggleOption`) — não entra em pontos a distribuir
 - [x] Excluir qualquer avaliação (SIGAA ou manual)
+- [x] Apelido e nome editável da matéria (`SubjectNicknameModal`, `PATCH .../appearance`)
+- [x] Seletor de cor por matéria (`ColorDotPicker`)
+- [x] Validação de nota máxima ao criar/editar avaliação (não ultrapassar pontos a distribuir)
+- [x] Nota extra pode exceder máximo da linha, limitada ao total de 100 pts
 - [x] Barra de risco com marca 60 acima da barra (painel) e pontos a distribuir só com nota lançada
 - [x] Coluna Necessário com **OK** quando a meta da avaliação ou aprovação (≥ 60) é atingida
 - [x] Recuperação inline (`RecoveryGradeEntry`) quando semestre encerrado (40–59 pts); média `(semestre + recuperação) ÷ 2`
@@ -828,6 +856,9 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
   - Código, nome, tipo (Obrigatória/Optativa/Extensão), CH, período, ementa
 - [x] Popular tabela de requisitos (pré-requisitos e co-requisitos)
 - [x] Dados extraídos do mapa mental existente + PPC oficial
+- [ ] *(Fase 2 — pós-mobile, #11)* Indexar PPC Eng. Mecatrônica
+- [ ] *(Fase 2 — pós-mobile, #11)* Indexar PPC Design de Moda
+- [ ] *(Fase 2 — pós-mobile, #11)* `curso_id` / seleção de curso no perfil
 
 ### 5.2 Mapa Mental / Grafo do Curso
 - [x] Template estático: colunas por período com disciplinas e status (mock)
@@ -855,6 +886,8 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 - [x] Barra de progresso visual por categoria
 - [x] Donut "Total Integralizado" + cards alinhados em altura (`IntegrationDonutChart`)
 - [x] Barras de progresso douradas unificadas no app
+- [x] Documentar glossário de tipos de CH no `SCOPE.md` §6.4 (implementação → **F11b**)
+- [ ] Glossário **“Entenda suas horas”** na UI (obrigatória, eletiva, complementar, extensão, flexibilizada) → **F11b**
 - [ ] Alerta quando estiver perto de concluir uma categoria
 
 ### 5.5 Calendário Acadêmico
@@ -910,8 +943,9 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
    - Após **commit local**: marque como `[%]` — feito, sem push.
    - Após **push ou aprovação 100%**: marque como `[x]` — finalizada.
    - Faça **commit** ao concluir cada task (push só quando o usuário pedir).
+   - **Obrigatório:** toda entrega de código ou escopo deve refletir no `TASKS.md` no mesmo ciclo de trabalho.
 8. **Próximo passo do roadmap:** indique **somente após push** (tasks em `[x]`). Com commits locais `[%]` pendentes, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v2](#ordem-oficial-de-execução-v2) e [Checklist mestre](#checklist-mestre-ordem-de-execução) — **não** a numeração antiga 1→2→3→4. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy com URL pública; Supabase free; RLS **só na 6c** (antes do PIX).
-11. **Após push do Bloco 3B:** próximo passo **B16 → F11** (integralização via API).
+11. **Próximo passo (push `93dd108` feito):** **B16 → F11 → F11b** (integralização Eng. Computação). **Mecatrônica e Moda:** bloqueadas até **#11**, após **#8 mobile**.
 12. **Código frontend** está em `app/src/` (não na raiz `src/`). Mock data em `app/src/config/mock/`.

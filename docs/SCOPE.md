@@ -11,7 +11,7 @@ Este documento detalha as funcionalidades e premissas de domínio do projeto. Se
 
 **Objetivo:** Criar uma plataforma de gestão acadêmica que substitua a experiência do SIGAA do CEFET-MG, oferecendo uma interface premium, automatizada e inteligente.
 
-**Público-alvo:** Alunos do CEFET-MG (inicialmente focado em Engenharia da Computação — Campus Divinópolis).
+**Público-alvo:** Alunos do CEFET-MG (Campus Divinópolis). **Foco de entrega:** **Engenharia da Computação** de ponta a ponta (web → cloud → sync real → PIX → mobile). **Engenharia Mecatrônica** e **Design de Moda** entram **somente depois** desse ciclo completo — ver §6.2.
 
 **Premissas de produto:**
 - O sync do SIGAA **complementa** os dados; o que o aluno cadastrou ou editou tem **prioridade absoluta** (ver §2.4).
@@ -203,9 +203,33 @@ Cada disciplina tem uma página própria com:
 - Ao clicar em uma disciplina, abre o dashboard individual com a ementa.
 
 ### 6.2 Carregamento do PPC
-- Inicialmente, o PPC de **Engenharia da Computação (DCDV - Bacharelado)** será pré-carregado.
-- Para outros cursos, o aluno poderá **importar o PPC** (PDF ou dados manuais) para que o sistema indexe as disciplinas, pré-requisitos e co-requisitos.
-- O sistema terá um parser para extrair esses dados ou um formulário de entrada manual.
+
+Cada curso possui seu **Projeto Pedagógico de Curso (PPC)** próprio. O app usa o PPC do curso do aluno para mapa, pré-requisitos, simulador de matrícula e metas de integralização.
+
+#### Fase 1 — Engenharia da Computação (entrega atual)
+
+| Curso | Status |
+|---|---|
+| **Engenharia da Computação** (Bacharelado — DCDV) | ✅ Indexado (mapa + requisitos) — **único curso até o mobile** |
+
+Todo o produto (SQLite → API → cloud → scraper SIGAA → assinatura → **app mobile Expo Go**) deve funcionar **100% para Eng. Computação** antes de indexar outros PPCs.
+
+#### Fase 2 — Expansão multi-curso (somente após mobile)
+
+| Curso | Status | Pré-requisito |
+|---|---|---|
+| **Engenharia Mecatrônica** | 🔒 Backlog | Eng. Computação completa + mobile em produção |
+| **Design de Moda** | 🔒 Backlog | Eng. Computação completa + mobile em produção |
+
+**Regra de sequência:** Mecatrônica e Moda **não** são desenvolvidas em paralelo ao Bloco 1 nem ao mobile. Só entram quando:
+1. Blocos **1 → 6c → 7 → 8** concluídos para Eng. Computação;
+2. Aluno de Computação consegue usar o fluxo inteiro (sync, notas, mapa, integralização, calendário, PIX, app mobile).
+
+**Regras gerais (quando a Fase 2 iniciar):**
+- O aluno associa seu **curso** no onboarding/perfil; mapa e integralização usam o PPC correspondente.
+- Totais de CH por categoria vêm do PPC do curso — **não são fixos** entre cursos.
+- Importação manual de PPC (PDF) continua disponível para cursos ainda não indexados oficialmente.
+- Disciplinas e requisitos = dados **globais** read-only; ver `SCOPE-CLOUD.md` §5.2.
 
 ### 6.3 Simulador de Matrícula (Pré-horário)
 - Consulta as **turmas ofertadas** para o próximo semestre no SIGAA.
@@ -220,19 +244,41 @@ Cada disciplina tem uma página própria com:
 - Exportar a simulação para referência na hora da matrícula real.
 
 ### 6.4 Gestão de Integralização (Horas)
-- Tela dedicada para o aluno ver e gerenciar suas horas pendentes:
+
+Tela dedicada (`/integralizacao`) para o aluno ver e gerenciar o progresso de **carga horária (CH)** exigida pelo PPC do curso.
+
+**Painel principal:** donut “Total integralizado”, tabela por categoria e barras de progresso.
 
 | Tipo de CH | Total Necessário | Concluído | Pendente |
 |---|:---:|:---:|:---:|
-| Obrigatória | (varia) | X | Y |
-| Optativa | 240 | X | Y |
-| Complementar | 375 | X | Y |
-| Extensão | 450 | X | Y |
-| Flexibilizada | 30 | X | Y |
+| Obrigatória | (conforme PPC) | X | Y |
+| Optativa | (conforme PPC) | X | Y |
+| Complementar | (conforme PPC) | X | Y |
+| Extensão | (conforme PPC) | X | Y |
+| Flexibilizada | (conforme PPC) | X | Y |
 
-- O aluno pode **cadastrar horas manualmente** (ex: certificados de eventos, projetos de extensão).
-- Isso corrige os problemas conhecidos do cálculo do SIGAA, que frequentemente apresenta valores errados ou desatualizados.
-- Barra de progresso visual por categoria.
+> Os totais vêm do **PPC do curso** + sync do SIGAA. Exemplo: Eng. Computação usa metas como 240 h optativas; Moda e Mecatrônica terão valores próprios após indexação.
+
+**Cadastro manual:** o aluno pode registrar horas que o SIGAA não reflete (certificados, projetos, eventos), respeitando a regra §2.4 (dados do usuário têm prioridade).
+
+**Glossário na tela — “O que é cada tipo?”**
+
+Seção fixa ou painel expansível (ícone ℹ️ em cada linha da tabela) explicando **o que conta** em cada categoria, com linguagem simples e exemplos do dia a dia do CEFET:
+
+| Tipo | O que é | Exemplos (contam aqui) |
+|---|---|---|
+| **Obrigatória** | Disciplinas **obrigatórias da grade** do seu curso (PPC). | Cálculo I, Algoritmos, Física I, matérias núcleo de Moda/Mecatrônica conforme PPC. |
+| **Optativa (eletivas)** | Disciplinas **escolhidas pelo aluno** dentro do catálogo de optativas/eletivas **do próprio curso**. | Eletiva de IA, Empreendedorismo, matéria optativa listada no PPC; **não** confundir com “qualquer curso da faculdade”. |
+| **Complementar** | CH **fora do núcleo estrito** da grade — enriquecimento, outras áreas, atividades formais reconhecidas. | Disciplina de **outro curso** (ex.: cursou algo de Administração ou outro campus), curso de idiomas reconhecido, workshop/certificação homologada, atividade curricular complementar. |
+| **Extensão** | Ações de **extensão universitária** ligadas à instituição (interação comunidade ↔ universidade). | Projeto de extensão no CEFET, evento/campanha extensionista dentro da faculdade, atividade extensionista validada pela coordenação. |
+| **Flexibilizada** | CH reconhecida por **experiências práticas ou atividades especiais** previstas no regulamento/PPC. | Estágio curricular supervisionado, monitoria, iniciação científica, intercâmbio ou equivalências validadas — conforme regras do curso. |
+
+**UX sugerida:**
+- Bloco **“Entenda suas horas”** abaixo do donut ou aba lateral.
+- Cada card: título, 1–2 frases, bullet “Exemplos” e link “Ver regulamento / PPC” (futuro).
+- Tooltip no dashboard (barra resumida de integralização) com resumo de 1 linha por tipo.
+
+**Próximo passo de implementação:** API `GET /api/integralizacao` (B16) + painéis via API (F11) **incluindo** este glossário estático ou vindo de config por curso — ver `TASKS.md` §3C.
 
 ### 6.5 Calendário Acadêmico
 - O sistema busca as datas oficiais do semestre no SIGAA (seção Ensino → Calendário Acadêmico):
@@ -266,3 +312,4 @@ Ver **`docs/SCOPE-CLOUD.md` §7** — app **Expo Go**, backend Supabase, sem scr
 5. **Nem todo professor usa o SIGAA.** O sistema deve funcionar mesmo sem dados do SIGAA (modo manual).
 6. **Co-requisitos** são matérias que devem ser cursadas no mesmo semestre (ex: uma teoria e seu laboratório). Não é pré-requisito.
 7. **O sistema não altera dados no SIGAA.** É somente leitura (scraping).
+8. **Um curso por vez até o mobile:** Eng. Computação deve estar completa (web → cloud → sync → PIX → mobile) antes de indexar Mecatrônica ou Moda (§6.2).
