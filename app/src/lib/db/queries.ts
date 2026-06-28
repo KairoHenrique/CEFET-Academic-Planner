@@ -736,6 +736,30 @@ export function saveIntegralizacao(progresso: Omit<IntegralizacaoRow, "id">): vo
   ).run(progresso);
 }
 
+export function insertManualIntegralizacaoHoras(
+  tipoCh: string,
+  horas: number
+): IntegralizacaoRow {
+  const result = db
+    .prepare(
+      `
+    INSERT INTO integralizacao (tipo_ch, total_necessario, concluido, pendente, manual)
+    VALUES (@tipo_ch, NULL, @horas, NULL, 1)
+  `
+    )
+    .run({ tipo_ch: tipoCh, horas });
+
+  const row = db
+    .prepare("SELECT * FROM integralizacao WHERE id = ?")
+    .get(result.lastInsertRowid) as IntegralizacaoRow | undefined;
+
+  if (!row) {
+    throw new Error("Falha ao registrar horas manuais.");
+  }
+
+  return row;
+}
+
 export function clearIntegralizacaoSynced(): void {
   db.prepare("DELETE FROM integralizacao WHERE manual = 0").run();
 }
