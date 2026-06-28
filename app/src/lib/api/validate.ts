@@ -1,5 +1,6 @@
 import { validationError } from "./errors";
 import type { SyncRequest } from "@/lib/types/sync";
+import type { CreateCalendarEventBody } from "@/lib/types/calendar-api";
 import type {
   DisciplinaListFilter,
   PatchFaltaBody,
@@ -326,4 +327,49 @@ export function parsePositiveIntParam(
     throw validationError(`${fieldName} inválido.`);
   }
   return parsed;
+}
+
+const CALENDAR_EVENT_TYPES = ["aula", "tarefa", "prova", "evento"] as const;
+
+function parseIsoDate(value: unknown, fieldName: string): string {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    throw validationError(`${fieldName} deve estar no formato AAAA-MM-DD.`);
+  }
+  return value;
+}
+
+function parseCalendarEventType(value: unknown): (typeof CALENDAR_EVENT_TYPES)[number] {
+  if (
+    typeof value !== "string" ||
+    !CALENDAR_EVENT_TYPES.includes(value as (typeof CALENDAR_EVENT_TYPES)[number])
+  ) {
+    throw validationError("Tipo de evento inválido.");
+  }
+  return value as (typeof CALENDAR_EVENT_TYPES)[number];
+}
+
+export function parseCreateCalendarEventBody(
+  body: unknown
+): CreateCalendarEventBody {
+  if (!body || typeof body !== "object") {
+    throw validationError("Corpo da requisição inválido.");
+  }
+
+  const record = body as Record<string, unknown>;
+  const title = requireNonEmptyString(record.title, "Título");
+  const date = parseIsoDate(record.date, "Data");
+  const type = parseCalendarEventType(record.type);
+
+  const subjectCode =
+    typeof record.subjectCode === "string" ? record.subjectCode.trim() : undefined;
+
+  return {
+    title,
+    date,
+    type,
+    description:
+      typeof record.description === "string" ? record.description : undefined,
+    subjectCode: subjectCode || undefined,
+    color: typeof record.color === "string" ? record.color : undefined,
+  };
 }

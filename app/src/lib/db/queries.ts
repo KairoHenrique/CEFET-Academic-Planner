@@ -631,6 +631,55 @@ export function getEventosCalendario(): EventoCalendarioRow[] {
     .all() as EventoCalendarioRow[];
 }
 
+export function getTarefaCalendarByDisciplinaLatest(
+  disciplinaId: string
+): TarefaCalendarRow | undefined {
+  return db
+    .prepare(
+      `
+    SELECT t.*, d.nome AS disciplina_nome, s.cor AS cor
+    FROM tarefas t
+    JOIN disciplinas d ON t.disciplina_id = d.codigo
+    LEFT JOIN semestre_atual s ON s.disciplina_id = t.disciplina_id
+    WHERE t.disciplina_id = ?
+    ORDER BY t.id DESC
+    LIMIT 1
+  `
+    )
+    .get(disciplinaId) as TarefaCalendarRow | undefined;
+}
+
+export function getEventoCalendarioById(id: number): EventoCalendarioRow | undefined {
+  return db
+    .prepare(
+      `
+    SELECT e.*, d.nome AS disciplina_nome
+    FROM eventos_calendario e
+    LEFT JOIN disciplinas d ON e.disciplina_id = d.codigo
+    WHERE e.id = ?
+  `
+    )
+    .get(id) as EventoCalendarioRow | undefined;
+}
+
+export function insertEventoCalendario(
+  event: Omit<EventoCalendarioRow, "id" | "disciplina_nome">
+): number {
+  const result = db
+    .prepare(
+      `
+    INSERT INTO eventos_calendario (
+      titulo, descricao, data, tipo, disciplina_id, cor, concluida, manual
+    )
+    VALUES (
+      @titulo, @descricao, @data, @tipo, @disciplina_id, @cor, @concluida, @manual
+    )
+  `
+    )
+    .run(event);
+  return Number(result.lastInsertRowid);
+}
+
 // --- CONFIGURAÇÕES ---
 export function getConfig(chave: string): string | null {
   const result = db
