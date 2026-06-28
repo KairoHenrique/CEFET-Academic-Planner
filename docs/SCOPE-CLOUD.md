@@ -162,7 +162,9 @@ Critérios para escolha (fase de implementação):
 ### 5.2 Dados de referência (PPC)
 
 - Disciplinas e requisitos do PPC = tabelas **globais** (read-only para todos).
-- Seed inicial: Eng. Computação Divinópolis (já indexado).
+- Seed inicial e **único curso até o mobile:** **Eng. Computação** Divinópolis (indexado).
+- **Expansão multi-PPC** (Eng. Mecatrônica, Design de Moda): **somente após** Bloco 8 (mobile) com Eng. Computação 100% funcional — ver `SCOPE.md` §6.2.
+- Metas de integralização por categoria de CH variam por PPC/curso.
 
 ### 5.3 Storage (Supabase Storage)
 
