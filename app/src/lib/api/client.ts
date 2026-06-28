@@ -21,6 +21,10 @@ import type {
   PatchCalendarEventBody,
   PatchCalendarEventResponse,
 } from "@/lib/types/calendar-api";
+import type {
+  IntegralizacaoResponse,
+  PostIntegralizacaoBody,
+} from "@/lib/types/integralizacao-api";
 
 export type ClientErrorCode =
   | "VALIDATION_ERROR"
@@ -223,6 +227,19 @@ export async function patchCalendarEvent(
       body: JSON.stringify(body),
     }
   );
+}
+
+export async function getIntegralizacao(): Promise<IntegralizacaoResponse> {
+  return requestJson<IntegralizacaoResponse>("/api/integralizacao");
+}
+
+export async function postIntegralizacaoHours(
+  body: PostIntegralizacaoBody
+): Promise<IntegralizacaoResponse> {
+  return requestJson<IntegralizacaoResponse>("/api/integralizacao", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
 }
 
 export const SYNC_COMPLETE_EVENT = "planner:sync-complete";

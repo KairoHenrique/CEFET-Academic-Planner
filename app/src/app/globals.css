@@ -3200,6 +3200,187 @@ a:hover {
   width: 28%;
 }
 
+.integration-table-category {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.integration-manual-badge {
+  display: block;
+  margin-top: var(--space-1);
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+}
+
+.integration-progress-label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.ch-type-info {
+  position: relative;
+  display: inline-flex;
+}
+
+.ch-type-info-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: color var(--transition-fast), background var(--transition-fast);
+}
+
+.ch-type-info-trigger:hover,
+.ch-type-info-trigger:focus-visible {
+  color: var(--gold-400);
+  background: rgba(212, 168, 67, 0.08);
+  outline: none;
+}
+
+.ch-type-info-popover {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + var(--space-2));
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(18rem, 70vw);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-elevated);
+  box-shadow: var(--shadow-md);
+}
+
+.ch-type-info-summary {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.45;
+}
+
+.ch-type-info-description {
+  margin: var(--space-2) 0 0;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.ch-glossary-card {
+  padding: var(--space-5);
+}
+
+.ch-glossary-intro {
+  margin: var(--space-4) 0 var(--space-5);
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+.ch-glossary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.ch-glossary-item {
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.ch-glossary-item-title {
+  margin: 0 0 var(--space-2);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.ch-glossary-item-description {
+  margin: 0 0 var(--space-3);
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.ch-glossary-examples-label {
+  display: block;
+  margin-bottom: var(--space-2);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--gold-400);
+}
+
+.ch-glossary-examples ul {
+  margin: 0;
+  padding-left: var(--space-4);
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+.ch-glossary-examples li + li {
+  margin-top: var(--space-1);
+}
+
+.integralizacao-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.integralizacao-skeleton-top {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: var(--space-4);
+}
+
+.integralizacao-skeleton-donut {
+  min-height: 18rem;
+  border-radius: var(--radius-lg);
+}
+
+.integralizacao-skeleton-summary {
+  min-height: 18rem;
+  border-radius: var(--radius-lg);
+}
+
+.integralizacao-skeleton-glossary {
+  min-height: 12rem;
+  border-radius: var(--radius-lg);
+}
+
+.integralizacao-skeleton-table {
+  min-height: 16rem;
+  border-radius: var(--radius-lg);
+}
+
+@media (max-width: 960px) {
+  .ch-glossary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .integralizacao-skeleton-top {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 961px) and (max-width: 1200px) {
+  .ch-glossary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 .panel-footer-note {
   margin-top: var(--space-4);
   font-size: 0.8125rem;
@@ -4758,6 +4939,18 @@ a:hover {
 
 .form-input:focus {
   border-color: var(--gold-400);
+}
+
+.form-select {
+  appearance: none;
+  cursor: pointer;
+  background-image: linear-gradient(45deg, transparent 50%, var(--text-tertiary) 50%),
+    linear-gradient(135deg, var(--text-tertiary) 50%, transparent 50%);
+  background-position: calc(100% - 18px) calc(50% + 2px),
+    calc(100% - 12px) calc(50% + 2px);
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+  padding-right: var(--space-8);
 }
 
 .form-input-error {
