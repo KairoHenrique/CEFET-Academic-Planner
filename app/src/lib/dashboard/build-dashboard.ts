@@ -1,25 +1,18 @@
 import { notFoundError } from "@/lib/api/errors";
 import {
   getAluno,
-  getIntegralizacao,
   getSemestreAtual,
   getTarefas,
 } from "@/lib/db/queries";
 import type { DashboardResponse } from "@/lib/types/dashboard";
-import type { IntegrationCategory } from "@/lib/types/integration";
-import { INTEGRATION_TOTAL_HOURS } from "@/lib/types/integration";
 import type { AcademicTask } from "@/lib/types/task";
 import { buildSubjectSummary } from "@/lib/disciplinas/build-subject";
 import { mapTarefaToAcademicTask } from "@/lib/disciplinas/mappers";
 import { shouldHideTaskFromDashboard } from "@/lib/tasks/dates";
-
-const INTEGRATION_COLORS: Record<string, IntegrationCategory["color"]> = {
-  Obrigatória: "blue",
-  Optativa: "gold",
-  Complementar: "success",
-  Extensão: "warning",
-  Flexibilizada: "blue",
-};
+import {
+  buildIntegralizacao,
+  toIntegrationCategories,
+} from "@/lib/integralizacao/build-integralizacao";
 
 export function buildDashboard(): DashboardResponse {
   const aluno = getAluno();
@@ -32,18 +25,10 @@ export function buildDashboard(): DashboardResponse {
   const semestreRows = getSemestreAtual();
   const disciplinas = semestreRows.map(buildSubjectSummary);
 
-  const integralizacaoRows = getIntegralizacao();
-  const categories: IntegrationCategory[] = integralizacaoRows.map((row) => ({
-    label: row.tipo_ch,
-    done: row.concluido ?? 0,
-    total: row.total_necessario ?? 0,
-    color: INTEGRATION_COLORS[row.tipo_ch] ?? "blue",
-  }));
-
-  const totalDone = categories.reduce((acc, item) => acc + item.done, 0);
-  const integralizacaoPercent = Math.round(
-    (totalDone / INTEGRATION_TOTAL_HOURS) * 100
-  );
+  const integralizacaoPayload = buildIntegralizacao();
+  const categories = toIntegrationCategories(integralizacaoPayload);
+  const { totalHours, totalDone, percent: integralizacaoPercent } =
+    integralizacaoPayload;
 
   const tarefasDb = getTarefas();
   const colorByCode = new Map(
@@ -85,7 +70,7 @@ export function buildDashboard(): DashboardResponse {
       tarefasPendentes,
     },
     integralizacao: {
-      totalHours: INTEGRATION_TOTAL_HOURS,
+      totalHours,
       totalDone,
       categories,
     },

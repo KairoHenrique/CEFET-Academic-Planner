@@ -73,7 +73,7 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
 
 ### 1.4 API e Integração UI ↔ SQLite
 
-> **Progresso:** Etapas 1–2 ✅ · Etapa 3A ✅ (+ extensões F8g–F8i, B12d) · Etapa 3B ✅ · **próximo: 3C Integralização** (B16 → F11 → F11b).
+> **Progresso:** Etapas 1–2 ✅ · Etapa 3A ✅ (+ extensões F8g–F8i, B12d) · Etapa 3B ✅ · **3C em andamento** (B16–B17 backend ✅ local · **próximo: F11 → F11b**).
 
 Roadmap detalhado: ver **[Ordem oficial](#ordem-oficial-de-execução-v2)** e **[Checklist mestre](#checklist-mestre-ordem-de-execução)**.
 
@@ -167,7 +167,7 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 
 ---
 
-### #1 — Bloco 1 · API + UI ↔ SQLite `🟡 41/49`
+### #1 — Bloco 1 · API + UI ↔ SQLite `🟡 43/49`
 
 > Fatias verticais: **back → front** por etapa.
 
@@ -187,7 +187,7 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 - [x] **FRONT:** F9 · F10 · F10b
 
 #### Etapa 3C — Integralização
-- [ ] **BACK:**  B16 → B17
+- [x] **BACK:**  B16 → B17
 - [ ] **FRONT:** F11 · F11b
 
 #### Etapa 3D — Mapa do curso
@@ -330,7 +330,7 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 | Exec. # | Bloco | Status | Progresso |
 |---------|-------|--------|-----------|
 | #0 | 0 — Planejamento | ✅ | Concluído |
-| **#1** | **1 — SQLite (3C–3E)** | 🟡 **Atual** | 41 / 49 |
+| **#1** | **1 — SQLite (3C–3E)** | 🟡 **Atual** | 43 / 49 |
 | #2–3 | 6 — Cloud Supabase | ⬜ | 0 / 14 |
 | #4–5 | 2 — Scraper SIGAA | ⬜ | 0 / 14 |
 | #7 | 7 — Assinatura PIX | ⬜ | 0 / 12 |
@@ -397,7 +397,7 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 
 #### Etapa 3 — Demais telas (back → front)
 
-> **3B Calendário:** ✅ (push `93dd108`) · **próximo:** 3C (B16 → F11 → F11b)
+> **3B Calendário:** ✅ (push `93dd108`) · **3C:** B16–B17 [%] · **próximo:** F11 → F11b
 
 ##### 3A — Disciplinas
 
@@ -445,8 +445,8 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 
 | # | Tipo | Task | Resumo | Status |
 |---|------|------|--------|--------|
-| B16 | Back | `GET /api/integralizacao` | Totais por tipo de CH (conforme PPC do curso) | [ ] |
-| B17 | Back | `POST /api/integralizacao` | Registrar horas complementares manuais | [ ] |
+| B16 | Back | `GET /api/integralizacao` | Totais por tipo de CH (conforme PPC do curso) | [%] |
+| B17 | Back | `POST /api/integralizacao` | Registrar horas complementares manuais | [%] |
 | F11 | Front | Painéis integralização | Donut + tabela via API (hoje mock) | [ ] |
 | F11b | Front | Glossário de CH | Bloco “Entenda suas horas” + tooltips (obrigatória, optativa/eletiva, complementar, extensão, flexibilizada) | [ ] |
 
@@ -948,5 +948,5 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 8. **Próximo passo do roadmap:** indique **somente após push** (tasks em `[x]`). Com commits locais `[%]` pendentes, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v2](#ordem-oficial-de-execução-v2) e [Checklist mestre](#checklist-mestre-ordem-de-execução) — **não** a numeração antiga 1→2→3→4. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy com URL pública; Supabase free; RLS **só na 6c** (antes do PIX).
-11. **Próximo passo:** **B16 → F11 → F11b** (integralização Eng. Computação). **Mecatrônica e Moda:** bloqueadas até **#11**, após **#8 mobile**.
+11. **Próximo passo:** **F11 → F11b** (UI integralização via API). Backend B16–B17 [%] local. **Mecatrônica e Moda:** bloqueadas até **#11**, após **#8 mobile**.
 12. **Código frontend** está em `app/src/` (não na raiz `src/`). Mock data em `app/src/config/mock/`.

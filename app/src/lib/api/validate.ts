@@ -14,6 +14,8 @@ import type {
   PatchTarefaBody,
   CreateTarefaBody,
 } from "@/lib/types/disciplinas-api";
+import { isChType } from "@/lib/integralizacao/ch-catalog";
+import type { PostIntegralizacaoBody } from "@/lib/types/integralizacao-api";
 
 const DISCIPLINA_FILTERS: DisciplinaListFilter[] = [
   "todas",
@@ -487,4 +489,36 @@ export function parsePatchCalendarEventBody(
   }
 
   throw validationError('Ação inválida. Use "toggle", "update" ou "delete".');
+}
+
+export function parsePostIntegralizacaoBody(body: unknown): PostIntegralizacaoBody {
+  if (!body || typeof body !== "object") {
+    throw validationError("Corpo da requisição inválido.");
+  }
+
+  const record = body as Record<string, unknown>;
+  const tipoChRaw = record.tipoCh ?? record.tipo_ch;
+
+  if (typeof tipoChRaw !== "string") {
+    throw validationError(
+      "Informe uma categoria válida: Obrigatória, Optativa, Complementar, Extensão ou Flexibilizada."
+    );
+  }
+
+  const tipoCh = tipoChRaw.trim();
+  if (!isChType(tipoCh)) {
+    throw validationError(
+      "Informe uma categoria válida: Obrigatória, Optativa, Complementar, Extensão ou Flexibilizada."
+    );
+  }
+
+  const horas = record.horas;
+  if (typeof horas !== "number" || Number.isNaN(horas)) {
+    throw validationError("Informe a quantidade de horas (número inteiro).");
+  }
+
+  return {
+    tipoCh,
+    horas: Math.trunc(horas),
+  };
 }
