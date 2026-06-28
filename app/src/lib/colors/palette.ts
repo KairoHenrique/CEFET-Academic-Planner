@@ -17,6 +17,11 @@ export const CRUZEIRO_PALETTE: ColorOption[] = [
 
 export const DEFAULT_EVENT_COLOR = CRUZEIRO_PALETTE[2].value;
 
+export function pickRandomPaletteColor(): string {
+  const index = Math.floor(Math.random() * CRUZEIRO_PALETTE.length);
+  return CRUZEIRO_PALETTE[index]?.value ?? DEFAULT_EVENT_COLOR;
+}
+
 export function normalizeHexColor(value: string): string | null {
   const trimmed = value.trim();
   if (/^#[0-9A-Fa-f]{6}$/.test(trimmed)) {

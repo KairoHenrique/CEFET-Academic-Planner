@@ -5,6 +5,9 @@ import type { AttendanceSummary } from "./attendance";
 
 export interface SubjectListItem {
   name: string;
+  nickname: string | null;
+  displayName: string;
+  shortLabel: string;
   code: string;
   room: string;
   grade: number | null;
@@ -137,10 +140,14 @@ export interface PatchFaltaResponse {
 }
 
 export interface PatchDisciplinaAppearanceBody {
-  color: string;
+  color?: string;
+  apelido?: string | null;
+  nome?: string | null;
 }
 
 export interface PatchDisciplinaAppearanceResponse {
   code: string;
-  color: string;
+  color?: string;
+  apelido?: string | null;
+  nome?: string | null;
 }

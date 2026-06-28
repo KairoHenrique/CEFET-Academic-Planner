@@ -5,6 +5,7 @@ import type {
   PatchCalendarEventBody,
 } from "@/lib/types/calendar-api";
 import { normalizeHexColor } from "@/lib/colors/palette";
+import { CALENDAR_EVENT_TYPES } from "@/lib/calendar/event-types";
 import type {
   DisciplinaListFilter,
   PatchDisciplinaAppearanceBody,
@@ -334,7 +335,7 @@ export function parsePositiveIntParam(
   return parsed;
 }
 
-const CALENDAR_EVENT_TYPES = ["aula", "tarefa", "prova", "evento"] as const;
+const CALENDAR_EVENT_TYPES_LIST = [...CALENDAR_EVENT_TYPES] as const;
 
 function parseIsoDate(value: unknown, fieldName: string): string {
   if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
@@ -343,14 +344,14 @@ function parseIsoDate(value: unknown, fieldName: string): string {
   return value;
 }
 
-function parseCalendarEventType(value: unknown): (typeof CALENDAR_EVENT_TYPES)[number] {
+function parseCalendarEventType(value: unknown): (typeof CALENDAR_EVENT_TYPES_LIST)[number] {
   if (
     typeof value !== "string" ||
-    !CALENDAR_EVENT_TYPES.includes(value as (typeof CALENDAR_EVENT_TYPES)[number])
+    !CALENDAR_EVENT_TYPES_LIST.includes(value as (typeof CALENDAR_EVENT_TYPES_LIST)[number])
   ) {
     throw validationError("Tipo de evento inválido.");
   }
-  return value as (typeof CALENDAR_EVENT_TYPES)[number];
+  return value as (typeof CALENDAR_EVENT_TYPES_LIST)[number];
 }
 
 function parseOptionalHexColor(value: unknown): string | undefined {
@@ -396,12 +397,38 @@ export function parsePatchDisciplinaAppearanceBody(
   }
 
   const record = body as Record<string, unknown>;
-  const color = parseOptionalHexColor(record.color);
-  if (!color) {
+  const color =
+    record.color === undefined
+      ? undefined
+      : parseOptionalHexColor(record.color);
+
+  if (record.color !== undefined && !color) {
     throw validationError("Informe uma cor válida (#RRGGBB).");
   }
 
-  return { color };
+  let apelido: string | null | undefined;
+  if (record.apelido === null || record.apelido === "") {
+    apelido = null;
+  } else if (typeof record.apelido === "string") {
+    apelido = record.apelido;
+  }
+
+  let nome: string | null | undefined;
+  if (record.nome === null || record.nome === "") {
+    nome = null;
+  } else if (typeof record.nome === "string") {
+    nome = record.nome;
+  }
+
+  if (color === undefined && apelido === undefined && nome === undefined) {
+    throw validationError("Informe cor, apelido ou nome para atualizar.");
+  }
+
+  return {
+    ...(color !== undefined ? { color } : {}),
+    ...(apelido !== undefined ? { apelido } : {}),
+    ...(nome !== undefined ? { nome } : {}),
+  };
 }
 
 export function parsePatchCalendarEventBody(

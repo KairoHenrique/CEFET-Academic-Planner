@@ -9,7 +9,7 @@ import { TaskDetailContent } from "@/components/ui/ActivityDetail";
 import { TaskListRow } from "@/components/tasks/TaskListRow";
 import { TaskSortSelect } from "@/components/tasks/TaskSortSelect";
 import { patchTarefa } from "@/lib/api/client";
-import { queryKeys } from "@/lib/query/keys";
+import { invalidateTaskSyncQueries } from "@/lib/query/invalidate-task-sync";
 import { sortTasks } from "@/lib/priority/sort";
 import type { AcademicTask } from "@/lib/types/task";
 import {
@@ -51,7 +51,10 @@ export function UpcomingTasks({ tasks: initialTasks }: UpcomingTasksProps) {
     mutationFn: ({ id, concluida }: { id: number; concluida: boolean }) =>
       patchTarefa(id, { action: "toggle", concluida }),
     onSuccess: (_data, variables) => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.dashboard() });
+      const task = tasks.find((item) => item.id === variables.id);
+      invalidateTaskSyncQueries(queryClient, {
+        subjectCode: task?.subjectCode,
+      });
       setTasks((prev) =>
         prev.map((t) =>
           t.id === variables.id ? { ...t, done: variables.concluida } : t

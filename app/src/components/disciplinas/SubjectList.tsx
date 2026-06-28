@@ -133,7 +133,7 @@ export function SubjectList() {
                         />
                         <div>
                           <p className="table-subject-name">{subject.name}</p>
-                          <p className="table-subject-code">{subject.code}</p>
+                          <p className="table-subject-code">{subject.shortLabel}</p>
                         </div>
                       </div>
                     </td>

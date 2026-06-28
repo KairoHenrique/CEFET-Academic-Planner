@@ -12,6 +12,10 @@ export interface SubjectEvaluation {
 
 export interface Subject {
   name: string;
+  officialName: string;
+  nickname: string | null;
+  displayName: string;
+  shortLabel: string;
   code: string;
   room: string;
   grade: number | null;
@@ -33,6 +37,9 @@ export interface Subject {
 
 export interface SubjectSummary {
   name: string;
+  nickname: string | null;
+  displayName: string;
+  shortLabel: string;
   code: string;
   room: string;
   grade: number | null;

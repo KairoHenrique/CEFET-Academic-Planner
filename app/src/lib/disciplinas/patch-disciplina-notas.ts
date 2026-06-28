@@ -15,14 +15,60 @@ import type {
 } from "@/lib/types/disciplinas-api";
 import { computeGrade } from "./grade";
 import { mapNotasToEvaluations } from "./mappers";
+import { SUBJECT_DISPLAY_GRADE_MAX } from "@/lib/disciplinas/grade-display";
+import { computeRemainingDistributionBudget } from "@/lib/disciplinas/grade-risk";
 
 function validateNotaScore(
   score: number | null | undefined,
-  max: number
+  max: number,
+  extra: boolean,
+  disciplinaId: string,
+  notaId?: number
 ): void {
   if (score === null || score === undefined) return;
-  if (score < 0 || score > max) {
+  if (score < 0) {
+    throw validationError("Nota obtida não pode ser negativa.");
+  }
+
+  if (!extra && score > max) {
     throw validationError(`Nota obtida deve estar entre 0 e ${max}.`);
+  }
+
+  if (extra) {
+    const notas = getNotasByDisciplina(disciplinaId);
+    const othersTotal = notas
+      .filter((nota) => nota.id !== notaId)
+      .reduce((acc, nota) => acc + (nota.nota_obtida ?? 0), 0);
+
+    if (othersTotal + score > SUBJECT_DISPLAY_GRADE_MAX) {
+      const remaining = Math.max(0, SUBJECT_DISPLAY_GRADE_MAX - othersTotal);
+      throw validationError(
+        `Nota extra não pode ultrapassar ${remaining} pts (total máximo ${SUBJECT_DISPLAY_GRADE_MAX}).`
+      );
+    }
+  }
+}
+
+function validateDistributionBudget(
+  disciplinaId: string,
+  newMax: number,
+  isExtra: boolean,
+  excludeNotaId?: number
+): void {
+  if (isExtra) return;
+
+  const notas = getNotasByDisciplina(disciplinaId);
+  const evaluations = mapNotasToEvaluations(notas);
+  const budget = computeRemainingDistributionBudget(evaluations, SUBJECT_DISPLAY_GRADE_MAX, {
+    excludeEvaluationId: excludeNotaId,
+  });
+
+  if (newMax > budget) {
+    throw validationError(
+      budget <= 0
+        ? "Não há pontos disponíveis para distribuir nesta matéria."
+        : `Só restam ${budget} pts para distribuir nesta matéria.`
+    );
   }
 }
 
@@ -59,7 +105,17 @@ function addManualNota(
   if (notaNomeExists(disciplinaId, nome)) {
     throw validationError("Já existe uma avaliação com este nome.");
   }
-  validateNotaScore(body.nota_obtida, body.nota_maxima);
+  validateDistributionBudget(
+    disciplinaId,
+    body.nota_maxima,
+    body.nota_extra ?? false
+  );
+  validateNotaScore(
+    body.nota_obtida,
+    body.nota_maxima,
+    body.nota_extra ?? false,
+    disciplinaId
+  );
 
   saveNota({
     disciplina_id: disciplinaId,
@@ -78,7 +134,8 @@ function updateNotaScoreEntry(
 ): void {
   const nota = assertNotaDisciplina(body.id, disciplinaId);
   const max = nota.nota_maxima ?? 0;
-  validateNotaScore(body.nota_obtida, max);
+  const extra = nota.nota_extra === 1;
+  validateNotaScore(body.nota_obtida, max, extra, disciplinaId, body.id);
 
   const changes = updateNotaScore(body.id, body.nota_obtida);
   if (changes === 0) {
@@ -104,7 +161,14 @@ function updateNotaEntry(
   }
 
   const max = body.nota_maxima ?? nota.nota_maxima ?? 0;
-  validateNotaScore(body.nota_obtida, max);
+  const extra =
+    body.nota_extra !== undefined ? body.nota_extra : nota.nota_extra === 1;
+
+  if (body.nota_maxima !== undefined) {
+    validateDistributionBudget(disciplinaId, body.nota_maxima, extra, body.id);
+  }
+
+  validateNotaScore(body.nota_obtida, max, extra, disciplinaId, body.id);
 
   const changes = updateNotaFields(body.id, {
     avaliacao_nome: nome,
@@ -113,6 +177,7 @@ function updateNotaEntry(
     nota_override: body.nota_obtida !== undefined ? 1 : undefined,
     nota_extra:
       body.nota_extra === undefined ? undefined : body.nota_extra ? 1 : 0,
+    manual: 1,
   });
   if (changes === 0) {
     throw validationError("Nenhuma alteração informada.");

@@ -26,7 +26,7 @@ const labEvaluations = (
 
 type SubjectSeed = Omit<
   Subject,
-  "ementa" | "downloadedFiles" | "pdfAutoDownload" | "gradeRisk"
+  "ementa" | "downloadedFiles" | "pdfAutoDownload" | "gradeRisk" | "nickname" | "displayName" | "shortLabel" | "officialName"
 >;
 
 const semesterSubjectsSeed: SubjectSeed[] = [
@@ -205,6 +205,10 @@ const subjectMeta: Record<
 
 export const semesterSubjects: Subject[] = semesterSubjectsSeed.map((subject) => ({
   ...subject,
+  officialName: subject.name,
+  nickname: null,
+  displayName: subject.name,
+  shortLabel: subject.code,
   ...(subjectMeta[subject.code] ?? defaultSubjectMeta),
   gradeRisk: computeGradeRisk({
     evaluations: subject.evaluations,

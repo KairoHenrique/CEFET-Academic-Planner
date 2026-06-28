@@ -40,8 +40,26 @@ function computeCurrentTotal(
   return grade ?? 0;
 }
 
-function distributedMax(evaluations: SubjectEvaluation[]): number {
+export function computeDistributedMax(evaluations: SubjectEvaluation[]): number {
   return nonExtraEvaluations(evaluations).reduce((acc, ev) => acc + ev.max, 0);
+}
+
+/** Pontos ainda disponíveis para definir nota máxima (exclui extras). */
+export function computeRemainingDistributionBudget(
+  evaluations: SubjectEvaluation[],
+  gradeMax: number = SUBJECT_DISPLAY_GRADE_MAX,
+  options?: { excludeEvaluationId?: number }
+): number {
+  const excludeId = options?.excludeEvaluationId;
+  const allocated = nonExtraEvaluations(evaluations)
+    .filter((ev) => ev.id !== excludeId)
+    .reduce((acc, ev) => acc + ev.max, 0);
+
+  return Math.max(0, gradeMax - allocated);
+}
+
+function distributedMax(evaluations: SubjectEvaluation[]): number {
+  return computeDistributedMax(evaluations);
 }
 
 /** Pontos ainda recuperáveis só entre avaliações já cadastradas pelo professor. */

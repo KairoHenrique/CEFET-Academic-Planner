@@ -15,6 +15,7 @@ import {
 import { mapNotasToEvaluations } from "./mappers";
 import { computeGrade } from "./grade";
 import { computeGradeRisk } from "./grade-risk";
+import { resolveSubjectDisplayName, resolveSubjectShortLabel } from "./subject-display-name";
 
 function buildGradeRisk(
   semestre: SemestreAtualWithDisciplina,
@@ -42,8 +43,15 @@ export function buildSubjectSummary(
   const evaluations = mapNotasToEvaluations(notas);
   const grade = computeGrade(semestre.disciplina_id);
 
+  const nickname = semestre.apelido?.trim() || null;
+  const officialName = semestre.nome;
+  const displayName = semestre.nome_exibicao?.trim() || officialName;
+
   return {
-    name: semestre.nome,
+    name: displayName,
+    nickname,
+    displayName: resolveSubjectDisplayName(displayName, nickname),
+    shortLabel: resolveSubjectShortLabel(semestre.disciplina_id, nickname),
     code: semestre.disciplina_id,
     room: semestre.local ?? "—",
     grade,
@@ -74,11 +82,13 @@ export function buildSubjectFromSemestre(
 ): Subject {
   const disciplina = getDisciplinaByCodigo(semestre.disciplina_id);
   const summary = buildSubjectSummary(semestre);
+  const officialName = semestre.nome;
   const notas = getNotasByDisciplina(semestre.disciplina_id);
   const evaluations = mapNotasToEvaluations(notas);
 
   return {
     ...summary,
+    officialName,
     gradeRisk: buildGradeRisk(semestre, evaluations, summary.grade),
     evaluations,
     professor: semestre.professor ?? undefined,

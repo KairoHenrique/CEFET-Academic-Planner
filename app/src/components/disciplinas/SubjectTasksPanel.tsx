@@ -15,7 +15,7 @@ import {
   createDisciplinaTarefa,
   patchTarefa,
 } from "@/lib/api/client";
-import { queryKeys } from "@/lib/query/keys";
+import { invalidateTaskSyncQueries } from "@/lib/query/invalidate-task-sync";
 import type { AcademicTask } from "@/lib/types/task";
 import {
   matchesTaskDueFilter,
@@ -63,12 +63,10 @@ export function SubjectTasksPanel({
     setTasks(initialTasks);
   }, [initialTasks]);
 
-  const invalidate = () => {
-    void queryClient.invalidateQueries({
-      queryKey: queryKeys.disciplina(subjectCode),
+  const invalidate = (subjectCodeOverride?: string) => {
+    invalidateTaskSyncQueries(queryClient, {
+      subjectCode: subjectCodeOverride ?? subjectCode,
     });
-    void queryClient.invalidateQueries({ queryKey: queryKeys.dashboard() });
-    void queryClient.invalidateQueries({ queryKey: queryKeys.disciplinas() });
   };
 
   const toggleMutation = useMutation({

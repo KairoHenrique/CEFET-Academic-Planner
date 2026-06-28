@@ -1,9 +1,10 @@
 import Link from "next/link";
 import type { CalendarEvent } from "@/lib/types/calendar";
+import { formatEventDate } from "@/lib/types/calendar";
 import {
   eventTypeLabels,
-  formatEventDate,
-} from "@/lib/types/calendar";
+  canToggleCalendarEvent,
+} from "@/lib/calendar/event-types";
 import type { ScheduleSlotData } from "@/config/mock/schedule";
 import type { AcademicTask } from "@/config/mock/tasks";
 import { Icon } from "./Icon";
@@ -45,7 +46,7 @@ export function EventDetailContent({ event, onClose, onToggleDone }: EventDetail
           Ver disciplina
         </Link>
       )}
-      {event.type === "tarefa" && onToggleDone && (
+      {canToggleCalendarEvent(event.id) && onToggleDone && (
         <button
           type="button"
           className="btn-outline"
@@ -247,12 +248,19 @@ export function DayEventsContent({
         <ul className="day-events-list">
           {events.map((event) => (
             <li key={event.id} className="day-event-row">
-              {event.type === "tarefa" && onToggleDone && (
+              {canToggleCalendarEvent(event.id) && onToggleDone && (
                 <button
                   type="button"
                   className={`task-checkbox ${event.done ? "checked" : ""}`}
-                  onClick={() => onToggleDone(event.id)}
-                  aria-label={`Marcar ${event.title}`}
+                  onClick={(clickEvent) => {
+                    clickEvent.stopPropagation();
+                    onToggleDone(event.id);
+                  }}
+                  aria-label={
+                    event.done
+                      ? `Marcar ${event.title} como pendente`
+                      : `Marcar ${event.title} como concluída`
+                  }
                 >
                   {event.done && <Icon name="check" size={11} />}
                 </button>

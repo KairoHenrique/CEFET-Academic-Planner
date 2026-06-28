@@ -15,6 +15,12 @@ import type {
   TarefaCalendarRow,
   TarefaRow,
 } from "@/lib/types/db";
+import {
+  hasUserSemestrePreferences,
+  isFaltaProtectedByUser,
+  isNotaProtectedByUser,
+  mergeSemestreUserPreferences,
+} from "@/lib/sync/user-data-priority";
 
 // --- ALUNO ---
 export function getAluno(): AlunoRow | undefined {
@@ -163,12 +169,12 @@ export function saveSemestreAtual(entry: SemestreAtualRow): void {
     `
     INSERT INTO semestre_atual (
       disciplina_id, local, codigo_horario, horario_traduzido,
-      cor, professor, max_faltas, nota_maxima, nota_aprovacao,
+      cor, apelido, nome_exibicao, professor, max_faltas, nota_maxima, nota_aprovacao,
       arquivos_baixados, pdf_auto_download
     )
     VALUES (
       @disciplina_id, @local, @codigo_horario, @horario_traduzido,
-      @cor, @professor, @max_faltas, @nota_maxima, @nota_aprovacao,
+      @cor, @apelido, @nome_exibicao, @professor, @max_faltas, @nota_maxima, @nota_aprovacao,
       @arquivos_baixados, @pdf_auto_download
     )
     ON CONFLICT(disciplina_id) DO UPDATE SET
@@ -176,6 +182,8 @@ export function saveSemestreAtual(entry: SemestreAtualRow): void {
       codigo_horario = excluded.codigo_horario,
       horario_traduzido = excluded.horario_traduzido,
       cor = excluded.cor,
+      apelido = excluded.apelido,
+      nome_exibicao = excluded.nome_exibicao,
       professor = excluded.professor,
       max_faltas = excluded.max_faltas,
       nota_maxima = excluded.nota_maxima,
@@ -183,16 +191,69 @@ export function saveSemestreAtual(entry: SemestreAtualRow): void {
       arquivos_baixados = excluded.arquivos_baixados,
       pdf_auto_download = excluded.pdf_auto_download
   `
-  ).run(entry);
+  ).run({
+    ...entry,
+    apelido: entry.apelido ?? null,
+    nome_exibicao: entry.nome_exibicao ?? null,
+  });
+}
+
+/** Atualiza dados do SIGAA preservando personalizações do usuário. */
+export function upsertSyncedSemestreAtual(entry: SemestreAtualRow): void {
+  const existing = getSemestreDisciplina(entry.disciplina_id);
+  saveSemestreAtual(mergeSemestreUserPreferences(entry, existing));
+}
+
+export function pruneSyncedSemestreAtual(activeDisciplinaIds: string[]): void {
+  const rows = getSemestreAtual();
+  const active = new Set(activeDisciplinaIds.map((id) => id.toLowerCase()));
+
+  for (const row of rows) {
+    if (active.has(row.disciplina_id.toLowerCase())) continue;
+    if (hasUserSemestrePreferences(row)) continue;
+    db.prepare("DELETE FROM semestre_atual WHERE disciplina_id = ?").run(
+      row.disciplina_id
+    );
+  }
 }
 
 export function updateSemestreAtualColor(
   disciplinaId: string,
   cor: string
 ): number {
+  return updateSemestreAtualAppearance(disciplinaId, { cor });
+}
+
+export function updateSemestreAtualAppearance(
+  disciplinaId: string,
+  fields: { cor?: string; apelido?: string | null; nome_exibicao?: string | null }
+): number {
+  const sets: string[] = [];
+  const params: unknown[] = [];
+
+  if (fields.cor !== undefined) {
+    sets.push("cor = ?");
+    params.push(fields.cor);
+  }
+
+  if (fields.apelido !== undefined) {
+    sets.push("apelido = ?");
+    params.push(fields.apelido);
+  }
+
+  if (fields.nome_exibicao !== undefined) {
+    sets.push("nome_exibicao = ?");
+    params.push(fields.nome_exibicao);
+  }
+
+  if (sets.length === 0) return 0;
+
+  params.push(disciplinaId);
   return db
-    .prepare("UPDATE semestre_atual SET cor = ? WHERE disciplina_id = ?")
-    .run(cor, disciplinaId).changes;
+    .prepare(
+      `UPDATE semestre_atual SET ${sets.join(", ")} WHERE disciplina_id = ?`
+    )
+    .run(...params).changes;
 }
 
 export function clearSemestreAtual(): void {
@@ -230,7 +291,7 @@ export function upsertSyncedNota(
   );
 
   if (existing) {
-    if ((existing.nota_override ?? 0) === 1) return;
+    if (isNotaProtectedByUser(existing)) return;
 
     db.prepare(
       `UPDATE notas
@@ -309,6 +370,7 @@ export function updateNotaFields(
     nota_obtida?: number | null;
     nota_override?: number;
     nota_extra?: number;
+    manual?: number;
   }
 ): number {
   const sets: string[] = [];
@@ -333,6 +395,10 @@ export function updateNotaFields(
   if (fields.nota_extra !== undefined) {
     sets.push("nota_extra = ?");
     params.push(fields.nota_extra);
+  }
+  if (fields.manual !== undefined) {
+    sets.push("manual = ?");
+    params.push(fields.manual);
   }
 
   if (sets.length === 0) return 0;
@@ -382,10 +448,40 @@ export function countFaltasByDisciplina(disciplinaId: string): number {
 export function saveFalta(falta: Omit<FaltaRow, "id">): void {
   db.prepare(
     `
-    INSERT INTO faltas (disciplina_id, data, status)
-    VALUES (@disciplina_id, @data, @status)
+    INSERT INTO faltas (disciplina_id, data, status, manual, status_override)
+    VALUES (@disciplina_id, @data, @status, @manual, @status_override)
   `
-  ).run(falta);
+  ).run({
+    ...falta,
+    manual: falta.manual ?? 0,
+    status_override: falta.status_override ?? 0,
+  });
+}
+
+export function getFaltaByDisciplinaAndData(
+  disciplinaId: string,
+  data: string
+): FaltaRow | undefined {
+  return db
+    .prepare(
+      `SELECT * FROM faltas
+       WHERE disciplina_id = ? COLLATE NOCASE AND data = ?`
+    )
+    .get(disciplinaId, data) as FaltaRow | undefined;
+}
+
+export function upsertSyncedFalta(falta: Omit<FaltaRow, "id">): void {
+  const existing = getFaltaByDisciplinaAndData(falta.disciplina_id, falta.data);
+  if (existing) {
+    if (isFaltaProtectedByUser(existing)) return;
+    db.prepare("UPDATE faltas SET status = ? WHERE id = ?").run(
+      falta.status,
+      existing.id
+    );
+    return;
+  }
+
+  saveFalta({ ...falta, manual: 0, status_override: 0 });
 }
 
 export function getFaltaById(id: number): FaltaRow | undefined {
@@ -399,13 +495,15 @@ export function updateFaltaStatus(
   status: FaltaRow["status"]
 ): number {
   const result = db
-    .prepare(`UPDATE faltas SET status = ? WHERE id = ?`)
+    .prepare(`UPDATE faltas SET status = ?, status_override = 1 WHERE id = ?`)
     .run(status, id);
   return result.changes;
 }
 
 export function clearFaltasSynced(): void {
-  db.prepare("DELETE FROM faltas").run();
+  db.prepare(
+    "DELETE FROM faltas WHERE manual = 0 AND COALESCE(status_override, 0) = 0"
+  ).run();
 }
 
 // --- TAREFAS ---
@@ -519,6 +617,8 @@ export function updateTarefaFields(
   if (fields.concluida !== undefined) {
     sets.push("concluida = ?");
     params.push(fields.concluida);
+    sets.push("concluida_override = ?");
+    params.push(1);
   }
   if (fields.pontuacao_maxima !== undefined) {
     sets.push("pontuacao_maxima = ?");
@@ -539,14 +639,65 @@ export function deleteTarefa(id: number): number {
 }
 
 export function updateTarefaConcluida(id: number, concluida: boolean): void {
-  db.prepare("UPDATE tarefas SET concluida = ? WHERE id = ?").run(
-    concluida ? 1 : 0,
-    id
+  db.prepare(
+    "UPDATE tarefas SET concluida = ?, concluida_override = 1 WHERE id = ?"
+  ).run(concluida ? 1 : 0, id);
+}
+
+export function getTarefaByDisciplinaAndTitulo(
+  disciplinaId: string,
+  titulo: string
+): TarefaRow | undefined {
+  return db
+    .prepare(
+      `SELECT * FROM tarefas
+       WHERE disciplina_id = ? COLLATE NOCASE
+         AND titulo = ? COLLATE NOCASE
+         AND manual = 0`
+    )
+    .get(disciplinaId, titulo) as TarefaRow | undefined;
+}
+
+export function upsertSyncedTarefa(tarefa: Omit<TarefaRow, "id">): void {
+  const existing = getTarefaByDisciplinaAndTitulo(
+    tarefa.disciplina_id,
+    tarefa.titulo
   );
+
+  if (existing) {
+    if (existing.manual === 1) return;
+
+    db.prepare(
+      `
+      UPDATE tarefas
+      SET descricao = ?, data_inicio = ?, data_fim = ?, hora_fim = ?, tipo = ?,
+          possui_nota = ?, instrucoes = ?, entregaveis = ?, pontuacao_maxima = ?,
+          concluida = CASE WHEN COALESCE(concluida_override, 0) = 1 THEN concluida ELSE ? END
+      WHERE id = ?
+    `
+    ).run(
+      tarefa.descricao,
+      tarefa.data_inicio,
+      tarefa.data_fim,
+      tarefa.hora_fim ?? "23:59",
+      tarefa.tipo,
+      tarefa.possui_nota,
+      tarefa.instrucoes,
+      tarefa.entregaveis,
+      tarefa.pontuacao_maxima,
+      tarefa.concluida,
+      existing.id
+    );
+    return;
+  }
+
+  saveTarefa({ ...tarefa, manual: 0, concluida_override: 0 });
 }
 
 export function clearTarefasSynced(): void {
-  db.prepare("DELETE FROM tarefas WHERE manual = 0").run();
+  db.prepare(
+    "DELETE FROM tarefas WHERE manual = 0 AND COALESCE(concluida_override, 0) = 0"
+  ).run();
 }
 
 // --- GRUPO ---
@@ -616,7 +767,7 @@ export function getTarefasForCalendar(): TarefaCalendarRow[] {
   return db
     .prepare(
       `
-    SELECT t.*, d.nome AS disciplina_nome, s.cor AS cor
+    SELECT t.*, d.nome AS disciplina_nome, s.apelido AS disciplina_apelido, s.cor AS cor
     FROM tarefas t
     JOIN disciplinas d ON t.disciplina_id = d.codigo
     LEFT JOIN semestre_atual s ON s.disciplina_id = t.disciplina_id
@@ -631,9 +782,10 @@ export function getEventosCalendario(): EventoCalendarioRow[] {
   return db
     .prepare(
       `
-    SELECT e.*, d.nome AS disciplina_nome
+    SELECT e.*, d.nome AS disciplina_nome, s.apelido AS disciplina_apelido
     FROM eventos_calendario e
     LEFT JOIN disciplinas d ON e.disciplina_id = d.codigo
+    LEFT JOIN semestre_atual s ON s.disciplina_id = e.disciplina_id
     ORDER BY e.data, e.id
   `
     )
@@ -646,7 +798,7 @@ export function getTarefaCalendarByDisciplinaLatest(
   return db
     .prepare(
       `
-    SELECT t.*, d.nome AS disciplina_nome, s.cor AS cor
+    SELECT t.*, d.nome AS disciplina_nome, s.apelido AS disciplina_apelido, s.cor AS cor
     FROM tarefas t
     JOIN disciplinas d ON t.disciplina_id = d.codigo
     LEFT JOIN semestre_atual s ON s.disciplina_id = t.disciplina_id
@@ -662,9 +814,10 @@ export function getEventoCalendarioById(id: number): EventoCalendarioRow | undef
   return db
     .prepare(
       `
-    SELECT e.*, d.nome AS disciplina_nome
+    SELECT e.*, d.nome AS disciplina_nome, s.apelido AS disciplina_apelido
     FROM eventos_calendario e
     LEFT JOIN disciplinas d ON e.disciplina_id = d.codigo
+    LEFT JOIN semestre_atual s ON s.disciplina_id = e.disciplina_id
     WHERE e.id = ?
   `
     )
@@ -693,7 +846,7 @@ export function getTarefaCalendarById(id: number): TarefaCalendarRow | undefined
   return db
     .prepare(
       `
-    SELECT t.*, d.nome AS disciplina_nome, s.cor AS cor
+    SELECT t.*, d.nome AS disciplina_nome, s.apelido AS disciplina_apelido, s.cor AS cor
     FROM tarefas t
     JOIN disciplinas d ON t.disciplina_id = d.codigo
     LEFT JOIN semestre_atual s ON s.disciplina_id = t.disciplina_id
@@ -786,7 +939,6 @@ export function setConfig(chave: string, valor: string): void {
 export function clearSyncedStudentData(): void {
   const reset = db.transaction(() => {
     clearAluno();
-    clearSemestreAtual();
     clearHistorico();
     clearNotasSynced();
     clearFaltasSynced();

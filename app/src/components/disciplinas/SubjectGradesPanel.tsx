@@ -1,10 +1,18 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   SUBJECT_DISPLAY_GRADE_MAX,
   SUBJECT_DISPLAY_PASSING_GRADE,
 } from "@/lib/disciplinas/grade-display";
+import { computeRemainingDistributionBudget } from "@/lib/disciplinas/grade-risk";
+import {
+  clampEvaluationMaxDraft,
+  clampEvaluationScoreDraft,
+  formatGradePoints,
+  parseScoreInput,
+  sanitizeScoreInput,
+} from "@/lib/disciplinas/grade-input";
 import { GradeRiskIndicator } from "@/components/grades/GradeRiskIndicator";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Icon } from "@/components/ui/Icon";
@@ -48,46 +56,6 @@ function renderNecessarioCell(
   return "—";
 }
 
-function normalizeScoreForParse(value: string): string {
-  return value.trim().replace(",", ".");
-}
-
-function parseScoreInput(value: string): number | null {
-  const trimmed = normalizeScoreForParse(value);
-  if (!trimmed || trimmed === ".") return null;
-  const parsed = parseFloat(trimmed);
-  return Number.isNaN(parsed) ? null : parsed;
-}
-
-function sanitizeScoreInput(value: string): string {
-  const withoutMinus = value.replace(/-/g, "");
-  let result = "";
-  let hasSeparator = false;
-
-  for (const char of withoutMinus) {
-    if (char >= "0" && char <= "9") {
-      result += char;
-    } else if ((char === "." || char === ",") && !hasSeparator) {
-      hasSeparator = true;
-      result += char;
-    }
-  }
-
-  return result;
-}
-
-function clampScoreDraft(value: string, max: number): string {
-  const trimmed = value.trim();
-  if (!trimmed || trimmed === "." || trimmed === ",") return "";
-
-  const parsed = parseScoreInput(trimmed);
-  if (parsed === null) return "";
-
-  if (parsed > max) return String(max);
-  if (parsed < 0) return "0";
-  return trimmed;
-}
-
 export function SubjectGradesPanel({ subject }: SubjectGradesPanelProps) {
   const grades = useSubjectGrades(subject);
   const { gradeRisk, recoveryScore, setRecoveryScore } = useSubjectRecovery(
@@ -126,9 +94,43 @@ export function SubjectGradesPanel({ subject }: SubjectGradesPanelProps) {
     saveError,
   } = grades;
 
+  const addDistributionBudget = useMemo(
+    () =>
+      computeRemainingDistributionBudget(
+        evaluations,
+        SUBJECT_DISPLAY_GRADE_MAX
+      ),
+    [evaluations]
+  );
+
+  const editDistributionBudget = useMemo(() => {
+    if (!editRow?.id) return addDistributionBudget;
+    return computeRemainingDistributionBudget(
+      evaluations,
+      SUBJECT_DISPLAY_GRADE_MAX,
+      { excludeEvaluationId: editRow.id }
+    );
+  }, [addDistributionBudget, editRow?.id, evaluations]);
+
   useEffect(() => {
     setScoreDrafts({});
   }, [evaluations]);
+
+  useEffect(() => {
+    if (addOpen && !newExtra) {
+      setNewMax((current) =>
+        clampEvaluationMaxDraft(current, addDistributionBudget)
+      );
+    }
+  }, [addOpen, newExtra, addDistributionBudget]);
+
+  useEffect(() => {
+    if (editRow && !editExtra) {
+      setEditMax((current) =>
+        clampEvaluationMaxDraft(current, editDistributionBudget)
+      );
+    }
+  }, [editRow, editExtra, editDistributionBudget]);
 
   const getScoreValue = useCallback(
     (row: SubjectEvaluation) => {
@@ -140,11 +142,25 @@ export function SubjectGradesPanel({ subject }: SubjectGradesPanelProps) {
     [scoreDrafts]
   );
 
+  const evaluationsForScoreClamp = useCallback(
+    (row: SubjectEvaluation, draftValue?: string) =>
+      evaluations.map((ev) =>
+        ev.id === row.id
+          ? { ...ev, score: draftValue !== undefined ? parseScoreInput(draftValue) : ev.score }
+          : ev
+      ),
+    [evaluations]
+  );
+
   const handleScoreBlur = async (row: SubjectEvaluation) => {
     if (!row.id || simulateMode) return;
 
     const raw = getScoreValue(row);
-    const clamped = clampScoreDraft(raw, row.max);
+    const clamped = clampEvaluationScoreDraft(
+      raw,
+      row,
+      evaluationsForScoreClamp(row, raw)
+    );
 
     if (clamped !== raw) {
       setScoreDrafts((prev) => ({ ...prev, [row.id!]: clamped }));
@@ -176,9 +192,27 @@ export function SubjectGradesPanel({ subject }: SubjectGradesPanelProps) {
     }
   };
 
+  const handleNewMaxChange = (value: string) => {
+    if (newExtra) {
+      setNewMax(value);
+      return;
+    }
+    setNewMax(clampEvaluationMaxDraft(value, addDistributionBudget));
+  };
+
+  const handleEditMaxChange = (value: string) => {
+    if (editExtra) {
+      setEditMax(value);
+      return;
+    }
+    setEditMax(clampEvaluationMaxDraft(value, editDistributionBudget));
+  };
+
   const handleAddEvaluation = async () => {
     const max = parseFloat(newMax);
     if (!newName.trim() || Number.isNaN(max) || max <= 0) return;
+    if (!newExtra && max > addDistributionBudget) return;
+
     try {
       await addEvaluation({
         name: newName.trim().toUpperCase(),
@@ -212,6 +246,7 @@ export function SubjectGradesPanel({ subject }: SubjectGradesPanelProps) {
     const max = parseFloat(editMax);
 
     if (!editName.trim() || Number.isNaN(max) || max <= 0) return;
+    if (!editExtra && max > editDistributionBudget) return;
 
     try {
       await updateManualEvaluation({
@@ -236,10 +271,23 @@ export function SubjectGradesPanel({ subject }: SubjectGradesPanelProps) {
     }
   };
 
-  const pendingLabel =
-    pendingTeacherPoints % 1 === 0
-      ? String(pendingTeacherPoints)
-      : pendingTeacherPoints.toFixed(1);
+  const pendingLabel = formatGradePoints(pendingTeacherPoints);
+  const addBudgetLabel = formatGradePoints(addDistributionBudget);
+  const editBudgetLabel = formatGradePoints(editDistributionBudget);
+
+  const addModalAside =
+    !newExtra && addDistributionBudget > 0 ? (
+      <>Faltam {addBudgetLabel} pts para distribuir</>
+    ) : !newExtra ? (
+      <>Distribuição completa</>
+    ) : undefined;
+
+  const editModalAside =
+    editRow && !editExtra && editDistributionBudget > 0 ? (
+      <>Faltam {editBudgetLabel} pts para distribuir</>
+    ) : editRow && !editExtra ? (
+      <>Distribuição completa</>
+    ) : undefined;
 
   return (
     <>
@@ -313,6 +361,10 @@ export function SubjectGradesPanel({ subject }: SubjectGradesPanelProps) {
                     .slice(0, index)
                     .every((e) => e.extra || e.score !== null);
                 const canEditMeta = !simulateMode && row.id !== undefined;
+                const simulationEvaluations = evaluationsForScoreClamp(
+                  row,
+                  simulated[row.name]
+                );
 
                 return (
                   <tr
@@ -354,7 +406,11 @@ export function SubjectGradesPanel({ subject }: SubjectGradesPanelProps) {
                           value={simulated[row.name] ?? ""}
                           onChange={(e) => {
                             const cleaned = sanitizeScoreInput(e.target.value);
-                            const clamped = clampScoreDraft(cleaned, row.max);
+                            const clamped = clampEvaluationScoreDraft(
+                              cleaned,
+                              row,
+                              simulationEvaluations
+                            );
                             handleChange(row.name, clamped);
                           }}
                         />
@@ -430,7 +486,12 @@ export function SubjectGradesPanel({ subject }: SubjectGradesPanelProps) {
         )}
       </div>
 
-      <Modal open={addOpen} onClose={() => setAddOpen(false)} title="Nova avaliação">
+      <Modal
+        open={addOpen}
+        onClose={() => setAddOpen(false)}
+        title="Nova avaliação"
+        headerAside={addModalAside}
+      >
         <div className="modal-form-stack">
           <Input
             label="Nome"
@@ -442,8 +503,16 @@ export function SubjectGradesPanel({ subject }: SubjectGradesPanelProps) {
             label="Nota máxima"
             type="number"
             min={1}
+            max={newExtra ? undefined : addDistributionBudget || undefined}
             value={newMax}
-            onChange={(e) => setNewMax(e.target.value)}
+            onChange={(e) => handleNewMaxChange(e.target.value)}
+            hint={
+              newExtra
+                ? "Notas extras não entram no limite de distribuição."
+                : addDistributionBudget > 0
+                  ? `Até ${addBudgetLabel} pts disponíveis nesta matéria.`
+                  : "Não há pontos disponíveis para distribuir."
+            }
           />
           <ToggleOption
             label="Nota extra"
@@ -463,7 +532,11 @@ export function SubjectGradesPanel({ subject }: SubjectGradesPanelProps) {
             type="button"
             className="btn-gold"
             onClick={() => void handleAddEvaluation()}
-            disabled={isSaving}
+            disabled={
+              isSaving ||
+              (!newExtra && addDistributionBudget <= 0) ||
+              !newName.trim()
+            }
           >
             {isSaving ? "Salvando..." : "Adicionar"}
           </button>
@@ -473,7 +546,12 @@ export function SubjectGradesPanel({ subject }: SubjectGradesPanelProps) {
         </div>
       </Modal>
 
-      <Modal open={editRow !== null} onClose={closeEdit} title="Editar avaliação">
+      <Modal
+        open={editRow !== null}
+        onClose={closeEdit}
+        title="Editar avaliação"
+        headerAside={editModalAside}
+      >
         <div className="modal-form-stack">
           <Input
             label="Nome"
@@ -484,8 +562,16 @@ export function SubjectGradesPanel({ subject }: SubjectGradesPanelProps) {
             label="Nota máxima"
             type="number"
             min={1}
+            max={editExtra ? undefined : editDistributionBudget || undefined}
             value={editMax}
-            onChange={(e) => setEditMax(e.target.value)}
+            onChange={(e) => handleEditMaxChange(e.target.value)}
+            hint={
+              editExtra
+                ? "Notas extras não entram no limite de distribuição."
+                : editDistributionBudget > 0
+                  ? `Até ${editBudgetLabel} pts disponíveis nesta matéria.`
+                  : "Não há pontos disponíveis para distribuir."
+            }
           />
           <ToggleOption
             label="Nota extra"
@@ -516,7 +602,11 @@ export function SubjectGradesPanel({ subject }: SubjectGradesPanelProps) {
             type="button"
             className="btn-gold"
             onClick={() => void handleSaveEdit()}
-            disabled={isSaving}
+            disabled={
+              isSaving ||
+              (!editExtra && editDistributionBudget <= 0 && editMax !== String(editRow?.max)) ||
+              !editName.trim()
+            }
           >
             {isSaving ? "Salvando..." : "Salvar"}
           </button>

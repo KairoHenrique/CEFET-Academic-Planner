@@ -5,14 +5,15 @@ import { semesterSubjects } from "@/config/mock/subjects";
 import { academicTasks } from "@/config/mock/tasks";
 import {
   clearSyncedStudentData,
+  pruneSyncedSemestreAtual,
   saveAluno,
   saveCalendarioEvent,
   saveDisciplina,
-  saveFalta,
   saveIntegralizacao,
+  upsertSyncedFalta,
   upsertSyncedNota,
-  saveSemestreAtual,
-  saveTarefa,
+  upsertSyncedSemestreAtual,
+  upsertSyncedTarefa,
 } from "./queries";
 import { seedPpcIfEmpty } from "./seed-ppc";
 
@@ -56,7 +57,11 @@ export function seedDemoStudentData(): void {
     status: "Regular",
   });
 
+  const activeDisciplinaIds: string[] = [];
+
   for (const subject of semesterSubjects) {
+    activeDisciplinaIds.push(subject.code);
+
     saveDisciplina({
       codigo: subject.code,
       nome: subject.name,
@@ -66,12 +71,14 @@ export function seedDemoStudentData(): void {
       ementa: subject.ementa,
     });
 
-    saveSemestreAtual({
+    upsertSyncedSemestreAtual({
       disciplina_id: subject.code,
       local: subject.room,
       codigo_horario: null,
       horario_traduzido: subject.schedule ?? null,
       cor: subject.color,
+      apelido: null,
+      nome_exibicao: null,
       professor: subject.professor ?? null,
       max_faltas: subject.maxAbsences,
       nota_maxima: subject.gradeMax,
@@ -92,7 +99,7 @@ export function seedDemoStudentData(): void {
 
     const attendance = getAttendanceByCode(subject.code);
     for (const record of attendance.records) {
-      saveFalta({
+      upsertSyncedFalta({
         disciplina_id: subject.code,
         data: record.date,
         status: record.status,
@@ -100,8 +107,10 @@ export function seedDemoStudentData(): void {
     }
   }
 
+  pruneSyncedSemestreAtual(activeDisciplinaIds);
+
   for (const task of academicTasks) {
-    saveTarefa({
+    upsertSyncedTarefa({
       disciplina_id: task.subjectCode,
       titulo: task.title,
       descricao: task.description,

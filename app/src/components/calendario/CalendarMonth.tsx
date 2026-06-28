@@ -8,22 +8,18 @@ import {
   eventTypeLabels,
   formatEventDate,
   parseLocalDate,
+  CALENDAR_FILTER_OPTIONS,
+  filterLabelToType,
   type CalendarEvent,
   type EventTypeFilter,
 } from "@/lib/types/calendar";
+import type { ManualCalendarEventInput } from "@/lib/types/calendar-api";
 import { FilterBar } from "@/components/ui/FilterBar";
 import { DayEventsContent, EventDetailContent } from "@/components/ui/ActivityDetail";
 
 const WEEKDAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
-const FILTER_OPTIONS = ["Todas", "Tarefa", "Prova", "Evento", "Aula"];
-
-const filterMap: Record<string, EventTypeFilter> = {
-  Todas: "todas",
-  Tarefa: "tarefa",
-  Prova: "prova",
-  Evento: "evento",
-  Aula: "aula",
-};
+const FILTER_OPTIONS = [...CALENDAR_FILTER_OPTIONS];
+const filterMap = filterLabelToType;
 
 function densityClass(count: number): string {
   if (count >= 4) return "density-4";
@@ -39,7 +35,7 @@ interface CalendarMonthProps {
   isAdding?: boolean;
   onEventSelect: (event: CalendarEvent) => void;
   onToggleDone: (id: string) => void;
-  onAddManualEvent: (event: Omit<CalendarEvent, "id" | "manual">) => void;
+  onAddManualEvent: (event: ManualCalendarEventInput) => void;
 }
 
 export function CalendarMonth({
@@ -54,7 +50,7 @@ export function CalendarMonth({
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
   });
-  const [dayModal, setDayModal] = useState<{ day: number; events: CalendarEvent[] } | null>(null);
+  const [dayModalDay, setDayModalDay] = useState<number | null>(null);
   const [addModal, setAddModal] = useState<string | null>(null);
 
   const year = month.getFullYear();
@@ -78,6 +74,9 @@ export function CalendarMonth({
       return acc;
     }, {});
   }, [events, filter, monthIndex, year]);
+
+  const dayModalEvents =
+    dayModalDay != null ? eventsByDay[dayModalDay] ?? [] : [];
 
   const dayIso = (day: number) =>
     `${year}-${String(monthIndex + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
@@ -110,7 +109,7 @@ export function CalendarMonth({
                 type="button"
                 disabled={!day}
                 className={`calendar-day calendar-day-btn ${day ? "" : "empty"} ${day && isToday(day) ? "today" : ""} ${dayEvents.length ? "has-events" : ""} ${densityClass(dayEvents.length)}`}
-                onClick={() => day && setDayModal({ day, events: dayEvents })}
+                onClick={() => day && setDayModalDay(day)}
               >
                 {day && (
                   <>
@@ -144,15 +143,21 @@ export function CalendarMonth({
         </div>
       </div>
 
-      <Modal open={Boolean(dayModal)} onClose={() => setDayModal(null)} title="Eventos do dia">
-        {dayModal && (
+      <Modal open={dayModalDay != null} onClose={() => setDayModalDay(null)} title="Eventos do dia">
+        {dayModalDay != null && (
           <DayEventsContent
-            day={dayModal.day}
+            day={dayModalDay}
             monthLabel={monthLabel}
-            events={dayModal.events}
-            onSelectEvent={(event) => { setDayModal(null); onEventSelect(event); }}
+            events={dayModalEvents}
+            onSelectEvent={(event) => {
+              setDayModalDay(null);
+              onEventSelect(event);
+            }}
             onToggleDone={onToggleDone}
-            onAddEvent={() => { setAddModal(dayIso(dayModal.day)); setDayModal(null); }}
+            onAddEvent={() => {
+              setAddModal(dayIso(dayModalDay));
+              setDayModalDay(null);
+            }}
           />
         )}
       </Modal>
@@ -177,6 +182,7 @@ interface CalendarEventsListProps {
   onFilterChange: (filter: EventTypeFilter) => void;
   onEventSelect: (event: CalendarEvent) => void;
   showFilters?: boolean;
+  panelHeight?: number;
 }
 
 export function CalendarEventsList({
@@ -185,19 +191,30 @@ export function CalendarEventsList({
   onFilterChange,
   onEventSelect,
   showFilters = true,
+  panelHeight,
 }: CalendarEventsListProps) {
   const activeLabel = Object.entries(filterMap).find(([, v]) => v === filter)?.[0] ?? "Todas";
   const filteredEvents = events.filter((e) => filter === "todas" || e.type === filter);
 
   return (
-    <div className="card calendar-events-card">
+    <div
+      className="card calendar-events-card"
+      style={
+        panelHeight != null
+          ? {
+              height: `${panelHeight}px`,
+              maxHeight: `${panelHeight}px`,
+            }
+          : undefined
+      }
+    >
       <div className="calendar-events-header">
         <h3 className="section-header-title">Próximos Eventos</h3>
         {showFilters && (
           <FilterBar filters={FILTER_OPTIONS} active={activeLabel} onChange={(l) => onFilterChange(filterMap[l] ?? "todas")} />
         )}
       </div>
-      <ul className="event-list">
+      <ul className="event-list event-list--scroll">
         {filteredEvents.length === 0 ? (
           <li className="calendar-empty-state">Nenhum evento neste filtro.</li>
         ) : (

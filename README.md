@@ -10,18 +10,18 @@
 
 ## 🎯 O que é?
 
-O CEFET Academic Planner é uma **web app local (self-hosted)** que roda no PC do aluno. Ele se conecta ao SIGAA automaticamente, extrai todos os dados acadêmicos e apresenta em uma interface premium com cores inspiradas no Cruzeiro (💙 Azul + 💛 Dourado).
+O CEFET Academic Planner é uma **plataforma web** para alunos do CEFET-MG. Sincroniza dados do SIGAA automaticamente e apresenta uma interface premium com cores inspiradas no Cruzeiro (💙 Azul + 💛 Dourado).
 
-**Resumo:** O aluno roda `npm start`, abre `localhost:3000` no navegador e tem acesso a um painel completo com calendário, grade de horários, simulador de notas, mapa de pré-requisitos e muito mais.
+**Resumo:** SaaS com backend **Supabase**, sync SIGAA via **worker Playwright** no servidor, **assinatura PIX** e app **mobile Expo Go**. Em desenvolvimento local, o app roda em `localhost:3000` com SQLite.
 
 ---
 
 ## ✨ Funcionalidades Principais
 
 ### 🔐 Autenticação e Sincronização com o SIGAA
-- Login usando as credenciais do SIGAA (scraping via Playwright).
+- Login com credenciais do SIGAA; sync via **worker Playwright** no servidor.
 - **Sync automático** a cada login: puxa dados institucionais, notas, faltas, tarefas e horários.
-- O aluno escolhe se quer salvar a senha criptografada localmente ou digitar a cada sync.
+- O aluno escolhe se quer salvar as credenciais SIGAA cifradas no perfil ou digitar a cada sync.
 
 ### 📊 Dashboard Central
 - Visão geral do semestre: **RG (Rendimento Global)**, progresso de integralização (barra visual), próximas entregas.
@@ -54,7 +54,7 @@ Como nem todo professor usa o SIGAA corretamente, o aluno pode cadastrar e edita
   | 120h | 30 | 15 |
 
 - **Tarefas Individuais e em Grupo:** Sincronizadas do SIGAA com opção de baixar arquivos de instrução.
-- **Download Automático de PDFs:** Toggle por matéria para salvar materiais na pasta `docs/` local automaticamente.
+- **Download Automático de PDFs:** Toggle por matéria; materiais vão para o Supabase Storage.
 - **Grupos de Estudo:** Visualização dos membros do grupo cadastrado pelo professor.
 
 ### 🗺️ Mapa Mental do Curso (Motor do PPC)
@@ -89,32 +89,32 @@ Como nem todo professor usa o SIGAA corretamente, o aluno pode cadastrar e edita
 ## 🏗️ Arquitetura e Stack Tecnológica
 
 ```
-┌─────────────────────────────────────────────┐
-│              PC do Aluno (localhost)         │
-│                                             │
-│  ┌─────────────┐    ┌───────────────────┐   │
-│  │  Next.js     │    │   Playwright      │   │
-│  │  (Frontend   │◄──►│   (Scraper SIGAA) │   │
-│  │   + API)     │    └───────────────────┘   │
-│  └──────┬───────┘                            │
-│         │                                    │
-│  ┌──────▼───────┐    ┌───────────────────┐   │
-│  │   SQLite     │───►│  Pasta do Google  │   │
-│  │   (Banco     │    │  Drive/OneDrive   │   │
-│  │    Local)    │    │  (Sync gratuito)  │   │
-│  └──────────────┘    └───────────────────┘   │
-│                                              │
-│  Navegador: http://localhost:3000            │
-└─────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│  Clientes: Next.js (web) · Expo Go (mobile)                 │
+└────────────────────────────┬────────────────────────────────┘
+                             │ HTTPS / JWT
+                             ▼
+┌─────────────────────────────────────────────────────────────┐
+│  Supabase — Auth · PostgreSQL (RLS) · Storage (PDFs)        │
+└────────────────────────────┬────────────────────────────────┘
+                             │
+                             ▼
+┌─────────────────────────────────────────────────────────────┐
+│  Worker Playwright — sync SIGAA (fila assíncrona)           │
+└────────────────────────────┬────────────────────────────────┘
+                             ▼
+                    https://sig.cefetmg.br
 ```
 
-| Componente | Tecnologia | Justificativa |
+| Componente | Tecnologia | Observação |
 |---|---|---|
-| **Framework Full-Stack** | Next.js (React + API Routes) | Frontend e backend em um único projeto |
-| **Scraper SIGAA** | Playwright (Node.js) | Automação robusta de browser, roda local |
-| **Banco de Dados** | SQLite (better-sqlite3) | Arquivo único, zero config, portátil |
-| **Estilização** | CSS Moderno (variáveis CSS) | Flexibilidade total, sem dependências extras |
-| **Tipografia** | Inter / Outfit (Google Fonts) | Moderna e limpa |
+| **Frontend Web** | Next.js (App Router) | Deploy Vercel ou similar |
+| **Backend / API** | Next.js API Routes + Supabase | Dev local: SQLite (Bloco 1) |
+| **Banco (prod)** | Supabase PostgreSQL | Multi-tenant com RLS |
+| **Scraper SIGAA** | Playwright (worker servidor) | Não roda no browser/celular |
+| **Pagamentos** | PIX (gateway TBD) | Assinatura por período |
+| **Mobile** | Expo (React Native) | Testes via Expo Go |
+| **Estilização** | CSS (design system Cruzeiro) | Dark mode padrão |
 
 ### 🎨 Paleta de Cores (Estilo Cruzeiro 💙💛)
 
@@ -135,27 +135,9 @@ Como nem todo professor usa o SIGAA corretamente, o aluno pode cadastrar e edita
 
 ---
 
-## 🔄 Sincronização Gratuita (Sem Servidor)
+## 📱 Mobile
 
-O banco de dados é um **único arquivo SQLite** (`.db`). Para sincronizar entre PCs:
-
-1. Nas configurações do app, aponte a pasta do banco para dentro da **pasta do Google Drive** (ou OneDrive/Dropbox) sincronizada no seu PC.
-2. O serviço de nuvem sincroniza o arquivo automaticamente.
-3. Ao abrir o app em outro PC com a mesma pasta, seus dados estarão lá.
-
-**Custo: R$ 0,00** 🎉
-
----
-
-## 📱 Plano Futuro: App Mobile (React Native)
-
-A interface é construída em React, o que permite reaproveitar a lógica para um app mobile com **React Native (Expo)**. O plano para mobile:
-
-1. **Leitura do banco:** O app mobile leria o mesmo arquivo `.db` sincronizado via Google Drive (usando a API do Google Drive para download do arquivo).
-2. **Modo offline:** O app baixa o banco na inicialização, funciona offline, e sobe as alterações quando houver conexão.
-3. **Scraper via PC:** Como o Playwright não roda em celular, a sincronização com o SIGAA continuaria sendo feita no Desktop. O mobile seria um "leitor inteligente" dos dados já sincronizados.
-
-> ⚠️ O foco atual é 100% Desktop. O mobile será implementado em uma fase futura.
+App **Expo Go** para testes no celular — mesmo backend Supabase. Detalhes em [`docs/SCOPE-CLOUD.md`](docs/SCOPE-CLOUD.md) §7.
 
 ---
 
@@ -187,20 +169,13 @@ Abra o navegador em: **http://localhost:3000**
 
 ```
 CEFET-Academic-Planner/
-├── docs/                    # Documentação detalhada
-│   ├── SCOPE.md             # Escopo completo com regras de negócio
-│   ├── TASKS.md             # Roadmap e tasks detalhadas
-│   └── ppc/                 # PPC e grade curricular dos cursos
-├── src/                     # Código-fonte (Next.js)
-│   ├── app/                 # Páginas e rotas (App Router)
-│   ├── components/          # Componentes React reutilizáveis
-│   ├── lib/                 # Lógica de negócio, DB, scraper
-│   │   ├── db/              # Schema SQLite e queries
-│   │   ├── scraper/         # Módulos Playwright (SIGAA)
-│   │   └── engine/          # Motor de pré-requisitos, simulador
-│   └── styles/              # CSS global e design system
-├── data/                    # Banco de dados SQLite (local)
-├── docs-downloads/          # PDFs baixados automaticamente
+├── app/                     # Next.js (código em app/src/)
+├── docs/
+│   ├── SCOPE.md             # Regras acadêmicas
+│   ├── SCOPE-CLOUD.md       # Arquitetura cloud, PIX, mobile
+│   ├── TASKS.md             # Roadmap e tasks
+│   └── ppc/                 # PPC e grade curricular
+├── mobile/                  # Expo (futuro — Bloco 8)
 ├── package.json
 └── README.md
 ```
@@ -209,8 +184,9 @@ CEFET-Academic-Planner/
 
 ## 📄 Documentação Adicional
 
-- **[docs/SCOPE.md](docs/SCOPE.md)** — Escopo completo com todas as regras de negócio, detalhes de cada funcionalidade e premissas do projeto.
-- **[docs/TASKS.md](docs/TASKS.md)** — Roadmap detalhado com todas as tasks, organizadas por fase, com status de progresso.
+- **[docs/SCOPE.md](docs/SCOPE.md)** — Regras de negócio acadêmicas (notas, faltas, PPC, calendário).
+- **[docs/SCOPE-CLOUD.md](docs/SCOPE-CLOUD.md)** — Arquitetura cloud, assinatura PIX e mobile.
+- **[docs/TASKS.md](docs/TASKS.md)** — Roadmap com ordem de execução e status das tasks.
 
 ---
 

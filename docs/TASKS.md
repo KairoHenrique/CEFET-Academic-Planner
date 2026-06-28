@@ -362,6 +362,7 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 |---|------|------|--------|--------|
 | B6 | Back | `run-sync.ts` | Orquestra sync (hoje seed; scraper no B31) | [x] |
 | B7 | Back | `POST /api/sync` | Dispara sincronização com credenciais | [x] |
+| B7b | Back | Prioridade dados usuário | Regra #1: sync não apaga/sobrescreve dados do aluno (`user-data-priority.ts`, `upsertSynced*`) | [x] |
 | B8 | Back | `GET /api/dashboard` | Agrega header, stats, tarefas, matérias | [x] |
 | F1 | Front | `lib/api/client.ts` | Fetch tipado + tratamento de erro | [x] |
 | F2 | Front | `useSync` | Hook que chama sync e expõe loading/erro | [x] |
@@ -378,7 +379,7 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 
 #### Etapa 3 — Demais telas (back → front)
 
-> **3B Calendário:** entregue `[%]` (B13–F10 commitados localmente; push pendente) · próximo: **B16** (integralização)
+> **3B Calendário:** entregue `[%]` (B13–F10 commitados localmente; **push pendente** — próximo passo só após push)
 
 ##### 3A — Disciplinas
 
@@ -909,7 +910,8 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
    - Após **commit local**: marque como `[%]` — feito, sem push.
    - Após **push ou aprovação 100%**: marque como `[x]` — finalizada.
    - Faça **commit** ao concluir cada task (push só quando o usuário pedir).
-8. **Código frontend** está em `app/src/` (não na raiz `src/`). Mock data em `app/src/config/mock/`.
+8. **Próximo passo do roadmap:** indique **somente após push** (tasks em `[x]`). Com commits locais `[%]` pendentes, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v2](#ordem-oficial-de-execução-v2) e [Checklist mestre](#checklist-mestre-ordem-de-execução) — **não** a numeração antiga 1→2→3→4. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy com URL pública; Supabase free; RLS **só na 6c** (antes do PIX).
-11. **Próximo passo imediato:** **B16 → F11** (integralização via API).
+11. **Após push do Bloco 3B:** próximo passo **B16 → F11** (integralização via API).
+12. **Código frontend** está em `app/src/` (não na raiz `src/`). Mock data em `app/src/config/mock/`.

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { PageGrid } from "@/components/layout/PageGrid";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { ModuleGrid } from "@/components/layout/ModuleGrid";
@@ -13,6 +13,10 @@ import { Modal } from "@/components/ui/Modal";
 import { FilterBar } from "@/components/ui/FilterBar";
 import { EventDetailContent } from "@/components/ui/ActivityDetail";
 import type { CalendarEvent, EventTypeFilter } from "@/lib/types/calendar";
+import {
+  CALENDAR_FILTER_OPTIONS,
+  filterLabelToType,
+} from "@/lib/types/calendar";
 import { useModuleLayout, type ModuleDefinition } from "@/hooks/useModuleLayout";
 import { useCalendarEvents } from "@/hooks/useCalendarEvents";
 
@@ -23,16 +27,35 @@ const MODULES: ModuleDefinition[] = [
   { id: "schedule", label: "Grade semanal", colClass: "col-7" },
 ];
 
-const FILTER_OPTIONS = ["Todas", "Tarefa", "Prova", "Evento", "Aula"];
-const filterMap: Record<string, EventTypeFilter> = {
-  Todas: "todas", Tarefa: "tarefa", Prova: "prova", Evento: "evento", Aula: "aula",
-};
+const FILTER_OPTIONS = [...CALENDAR_FILTER_OPTIONS];
+const filterMap = filterLabelToType;
 
 export function CalendarioView() {
   const calendar = useCalendarEvents();
+  const calendarPanelRef = useRef<HTMLDivElement>(null);
+  const [eventsPanelHeight, setEventsPanelHeight] = useState<number>();
   const [filter, setFilter] = useState<EventTypeFilter>("todas");
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const layout = useModuleLayout("calendario", MODULES);
+
+  useLayoutEffect(() => {
+    const panel = calendarPanelRef.current;
+    if (!panel) return;
+
+    const syncHeight = () => {
+      setEventsPanelHeight(panel.offsetHeight);
+    };
+
+    syncHeight();
+    const observer = new ResizeObserver(syncHeight);
+    observer.observe(panel);
+    window.addEventListener("resize", syncHeight);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", syncHeight);
+    };
+  }, [calendar.isLoading, layout.hydrated, calendar.events.length, filter]);
 
   const activeLabel = Object.entries(filterMap).find(([, v]) => v === filter)?.[0] ?? "Todas";
 
@@ -43,7 +66,7 @@ export function CalendarioView() {
     switch (id) {
       case "calendar":
         return (
-          <div className="card">
+          <div ref={calendarPanelRef} className="card calendar-panel-card">
             <CalendarMonth
               filter={filter}
               events={calendar.events}
@@ -62,6 +85,7 @@ export function CalendarioView() {
             onFilterChange={setFilter}
             onEventSelect={setSelectedEvent}
             showFilters={false}
+            panelHeight={eventsPanelHeight}
           />
         );
       case "academic":

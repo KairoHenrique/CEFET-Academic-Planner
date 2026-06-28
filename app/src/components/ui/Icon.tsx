@@ -35,6 +35,7 @@ export type IconName =
   | "priority-low"
   | "priority-very-low"
   | "grip"
+  | "edit"
   | "logout";
 
 interface IconProps extends SVGProps<SVGSVGElement> {
@@ -227,6 +228,12 @@ const paths: Record<IconName, React.ReactNode> = {
       <circle cx="15" cy="12" r="1.25" fill="currentColor" stroke="none" />
       <circle cx="9" cy="18" r="1.25" fill="currentColor" stroke="none" />
       <circle cx="15" cy="18" r="1.25" fill="currentColor" stroke="none" />
+    </>
+  ),
+  edit: (
+    <>
+      <path d="M12 20h9" />
+      <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
     </>
   ),
   logout: (

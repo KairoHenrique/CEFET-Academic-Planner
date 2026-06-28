@@ -19,6 +19,8 @@ function addColumnIfMissing(
 
 function runMigrations(): void {
   addColumnIfMissing("semestre_atual", "cor", "TEXT");
+  addColumnIfMissing("semestre_atual", "apelido", "TEXT");
+  addColumnIfMissing("semestre_atual", "nome_exibicao", "TEXT");
   addColumnIfMissing("semestre_atual", "professor", "TEXT");
   addColumnIfMissing("semestre_atual", "max_faltas", "INTEGER DEFAULT 15");
   addColumnIfMissing("semestre_atual", "nota_maxima", "REAL DEFAULT 100");
@@ -35,6 +37,42 @@ function runMigrations(): void {
   addColumnIfMissing("tarefas", "hora_fim", "TEXT DEFAULT '23:59'");
   addColumnIfMissing("notas", "nota_override", "INTEGER DEFAULT 0");
   addColumnIfMissing("notas", "nota_extra", "INTEGER DEFAULT 0");
+  addColumnIfMissing("faltas", "manual", "INTEGER DEFAULT 0");
+  addColumnIfMissing("faltas", "status_override", "INTEGER DEFAULT 0");
+  addColumnIfMissing("tarefas", "concluida_override", "INTEGER DEFAULT 0");
+  migrateEventosCalendarioTypes();
+}
+
+function migrateEventosCalendarioTypes(): void {
+  const table = db
+    .prepare(
+      "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'eventos_calendario'"
+    )
+    .get() as { sql: string } | undefined;
+
+  if (!table?.sql.includes("'monitoria'")) {
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS eventos_calendario_new (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        titulo TEXT NOT NULL,
+        descricao TEXT,
+        data TEXT NOT NULL,
+        tipo TEXT NOT NULL CHECK( tipo IN (
+          'aula', 'tarefa', 'prova', 'evento',
+          'monitoria', 'estagio', 'estudo', 'outro'
+        ) ),
+        disciplina_id TEXT,
+        cor TEXT,
+        concluida INTEGER DEFAULT 0,
+        manual INTEGER DEFAULT 1,
+        FOREIGN KEY (disciplina_id) REFERENCES disciplinas(codigo)
+      );
+      INSERT INTO eventos_calendario_new
+        SELECT * FROM eventos_calendario;
+      DROP TABLE eventos_calendario;
+      ALTER TABLE eventos_calendario_new RENAME TO eventos_calendario;
+    `);
+  }
 }
 
 export function initDB(): void {
@@ -148,7 +186,10 @@ export function initDB(): void {
       titulo TEXT NOT NULL,
       descricao TEXT,
       data TEXT NOT NULL,
-      tipo TEXT NOT NULL CHECK( tipo IN ('aula', 'tarefa', 'prova', 'evento') ),
+      tipo TEXT NOT NULL CHECK( tipo IN (
+        'aula', 'tarefa', 'prova', 'evento',
+        'monitoria', 'estagio', 'estudo', 'outro'
+      ) ),
       disciplina_id TEXT,
       cor TEXT,
       concluida INTEGER DEFAULT 0,
