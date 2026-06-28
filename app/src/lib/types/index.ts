@@ -8,3 +8,4 @@ export * from "./dashboard";
 export * from "./sync";
 export * from "./db";
 export * from "./disciplinas-api";
+export * from "./calendar-api";
