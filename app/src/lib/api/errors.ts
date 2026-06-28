@@ -4,6 +4,7 @@ export type ApiErrorCode =
   | "SIGAA_OFFLINE"
   | "SIGAA_TIMEOUT"
   | "SIGAA_AUTH_FAILED"
+  | "SIGAA_SCRAPE_FAILED"
   | "NOT_FOUND"
   | "INTERNAL_ERROR";
 

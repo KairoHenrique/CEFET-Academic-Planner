@@ -26,6 +26,31 @@ describe("B24 — login SIGAA (live)", () => {
   );
 });
 
+describe("B27 — portal discente (live)", () => {
+  test(
+    "extrai snapshot real do portal",
+    { skip: !hasLiveCredentials },
+    async () => {
+      process.env.SIGAA_SCRAPER_MOCK = "false";
+      process.env.SIGAA_HEADLESS = process.env.SIGAA_HEADLESS ?? "true";
+
+      const { loginSigaa } = await import("../src/lib/scraper/auth");
+      const { scrapePortalDiscente } = await import(
+        "../src/lib/scraper/portal-discente/scrape-portal-discente"
+      );
+
+      const session = await loginSigaa({ username: user!, password: password! });
+      const snapshot = await scrapePortalDiscente(session);
+
+      assert.ok(snapshot.aluno.matricula.length >= 8);
+      assert.notEqual(snapshot.aluno.nome, "Discente");
+      assert.ok(snapshot.aluno.rg !== null && snapshot.aluno.rg < 100);
+      assert.ok(snapshot.semestreAtual.length >= 5);
+      assert.ok(snapshot.integralizacao.length >= 4);
+    }
+  );
+});
+
 if (!hasLiveCredentials) {
   console.log(
     "[test:scraper:live] Pulado — defina SIGAA_TEST_USER e SIGAA_TEST_PASSWORD."

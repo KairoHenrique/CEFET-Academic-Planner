@@ -22,6 +22,16 @@ export function pickRandomPaletteColor(): string {
   return CRUZEIRO_PALETTE[index]?.value ?? DEFAULT_EVENT_COLOR;
 }
 
+/** Cor estável por código de disciplina (sync SIGAA). */
+export function pickStablePaletteColor(seed: string): string {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i += 1) {
+    hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
+  }
+  const index = hash % CRUZEIRO_PALETTE.length;
+  return CRUZEIRO_PALETTE[index]?.value ?? DEFAULT_EVENT_COLOR;
+}
+
 export function normalizeHexColor(value: string): string | null {
   const trimmed = value.trim();
   if (/^#[0-9A-Fa-f]{6}$/.test(trimmed)) {
