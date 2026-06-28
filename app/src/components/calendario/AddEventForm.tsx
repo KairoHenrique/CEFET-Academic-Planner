@@ -1,29 +1,44 @@
 "use client";
 
-import { useState } from "react";
-import type { CalendarEvent } from "@/config/mock/calendar";
-import { semesterSubjects } from "@/config/mock/subjects";
+import { useEffect, useState } from "react";
+import type { CalendarEvent } from "@/lib/types/calendar";
+import { useDisciplinas } from "@/hooks/useDisciplinas";
 import { Input } from "@/components/ui/Input";
 import { PlannerSelect } from "@/components/ui/PlannerSelect";
 
 interface AddEventFormProps {
   defaultDate: string;
+  isSubmitting?: boolean;
   onSubmit: (event: Omit<CalendarEvent, "id" | "manual">) => void;
   onCancel: () => void;
 }
 
-export function AddEventForm({ defaultDate, onSubmit, onCancel }: AddEventFormProps) {
+export function AddEventForm({
+  defaultDate,
+  isSubmitting = false,
+  onSubmit,
+  onCancel,
+}: AddEventFormProps) {
+  const { items: subjects } = useDisciplinas();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [type, setType] = useState<CalendarEvent["type"]>("tarefa");
-  const [subjectCode, setSubjectCode] = useState(semesterSubjects[0]?.code ?? "");
+  const [subjectCode, setSubjectCode] = useState("");
   const [date, setDate] = useState(defaultDate);
 
-  const subject = semesterSubjects.find((s) => s.code === subjectCode);
+  useEffect(() => {
+    if (!subjectCode && subjects[0]?.code) {
+      setSubjectCode(subjects[0].code);
+    }
+  }, [subjectCode, subjects]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!title.trim()) return;
+  const subject = subjects.find((item) => item.code === subjectCode);
+  const needsSubject = type === "tarefa" || type === "prova";
+
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!title.trim() || isSubmitting) return;
+    if (needsSubject && !subjectCode) return;
 
     onSubmit({
       title: title.trim(),
@@ -31,7 +46,7 @@ export function AddEventForm({ defaultDate, onSubmit, onCancel }: AddEventFormPr
       type,
       date,
       subject: subject?.name,
-      subjectCode: subject?.code,
+      subjectCode: needsSubject ? subjectCode : undefined,
       color: subject?.color ?? "#D4A843",
       done: false,
     });
@@ -45,17 +60,20 @@ export function AddEventForm({ defaultDate, onSubmit, onCancel }: AddEventFormPr
         onChange={(e) => setTitle(e.target.value)}
         placeholder="Ex.: Revisar capítulo 3"
         required
+        disabled={isSubmitting}
       />
-      <PlannerSelect
-        label="Disciplina"
-        value={subjectCode}
-        fullWidth
-        options={semesterSubjects.map((s) => ({
-          value: s.code,
-          label: `${s.code} — ${s.name}`,
-        }))}
-        onChange={setSubjectCode}
-      />
+      {needsSubject && (
+        <PlannerSelect
+          label="Disciplina"
+          value={subjectCode}
+          fullWidth
+          options={subjects.map((item) => ({
+            value: item.code,
+            label: `${item.code} — ${item.name}`,
+          }))}
+          onChange={setSubjectCode}
+        />
+      )}
       <PlannerSelect
         label="Tipo"
         value={type}
@@ -74,6 +92,7 @@ export function AddEventForm({ defaultDate, onSubmit, onCancel }: AddEventFormPr
         value={date}
         onChange={(e) => setDate(e.target.value)}
         required
+        disabled={isSubmitting}
       />
       <label className="form-field">
         <span className="form-label">Descrição</span>
@@ -83,11 +102,19 @@ export function AddEventForm({ defaultDate, onSubmit, onCancel }: AddEventFormPr
           onChange={(e) => setDescription(e.target.value)}
           rows={3}
           placeholder="O que precisa ser feito?"
+          disabled={isSubmitting}
         />
       </label>
       <div className="detail-actions">
-        <button type="submit" className="btn-gold">Salvar tarefa</button>
-        <button type="button" className="btn-outline" onClick={onCancel}>
+        <button type="submit" className="btn-gold" disabled={isSubmitting}>
+          {isSubmitting ? "Salvando…" : "Salvar tarefa"}
+        </button>
+        <button
+          type="button"
+          className="btn-outline"
+          onClick={onCancel}
+          disabled={isSubmitting}
+        >
           Cancelar
         </button>
       </div>

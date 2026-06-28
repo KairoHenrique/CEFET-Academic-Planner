@@ -6,12 +6,13 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { ModuleGrid } from "@/components/layout/ModuleGrid";
 import { CalendarMonth, CalendarEventsList } from "@/components/calendario/CalendarMonth";
 import { CalendarAcademicDates } from "@/components/calendario/CalendarAcademicDates";
+import { CalendarSkeleton } from "@/components/calendario/CalendarSkeleton";
 import { EditableSchedulePanel } from "@/components/schedule/EditableSchedulePanel";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Modal } from "@/components/ui/Modal";
 import { FilterBar } from "@/components/ui/FilterBar";
 import { EventDetailContent } from "@/components/ui/ActivityDetail";
-import type { CalendarEvent, EventTypeFilter } from "@/config/mock/calendar";
+import type { CalendarEvent, EventTypeFilter } from "@/lib/types/calendar";
 import { useModuleLayout, type ModuleDefinition } from "@/hooks/useModuleLayout";
 import { useCalendarEvents } from "@/hooks/useCalendarEvents";
 
@@ -46,6 +47,7 @@ export function CalendarioView() {
             <CalendarMonth
               filter={filter}
               events={calendar.events}
+              isAdding={calendar.isAdding}
               onEventSelect={setSelectedEvent}
               onToggleDone={calendar.toggleDone}
               onAddManualEvent={calendar.addManualEvent}
@@ -63,7 +65,12 @@ export function CalendarioView() {
           />
         );
       case "academic":
-        return <CalendarAcademicDates />;
+        return (
+          <CalendarAcademicDates
+            items={calendar.academicDates}
+            isLoading={calendar.isLoading}
+          />
+        );
       case "schedule":
         return (
           <div className="card">
@@ -75,11 +82,51 @@ export function CalendarioView() {
     }
   };
 
-  if (!layout.hydrated || !calendar.hydrated) return null;
+  if (!layout.hydrated) return null;
+
+  if (calendar.isLoading) {
+    return (
+      <PageGrid>
+        <PageHeader eyebrow="Agenda" title="Calendário" subtitle="Carregando eventos…" />
+        <CalendarSkeleton />
+      </PageGrid>
+    );
+  }
+
+  if (calendar.error && calendar.events.length === 0) {
+    return (
+      <PageGrid>
+        <PageHeader eyebrow="Agenda" title="Calendário" subtitle="Não foi possível carregar a agenda." />
+        <div className="col-12">
+          <div className="card calendar-error-card">
+            <p className="calendar-error-message">{calendar.error}</p>
+            <button type="button" className="btn-gold" onClick={() => void calendar.refetch()}>
+              Tentar novamente
+            </button>
+          </div>
+        </div>
+      </PageGrid>
+    );
+  }
 
   return (
     <PageGrid>
-      <PageHeader eyebrow="Agenda" title="Calendário" subtitle="Clique em qualquer atividade para ver detalhes · personalize os módulos" />
+      <PageHeader
+        eyebrow="Agenda"
+        title="Calendário"
+        subtitle={
+          calendar.isFetching
+            ? "Atualizando eventos…"
+            : "Clique em qualquer atividade para ver detalhes · personalize os módulos"
+        }
+      />
+      {calendar.error && (
+        <div className="col-12">
+          <p className="calendar-inline-error" role="alert">
+            {calendar.error}
+          </p>
+        </div>
+      )}
       <ModuleGrid
         layout={layout}
         modules={MODULES}

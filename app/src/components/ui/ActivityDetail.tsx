@@ -1,9 +1,9 @@
 import Link from "next/link";
-import type { CalendarEvent } from "@/config/mock/calendar";
+import type { CalendarEvent } from "@/lib/types/calendar";
 import {
   eventTypeLabels,
   formatEventDate,
-} from "@/config/mock/calendar";
+} from "@/lib/types/calendar";
 import type { ScheduleSlotData } from "@/config/mock/schedule";
 import type { AcademicTask } from "@/config/mock/tasks";
 import { Icon } from "./Icon";
