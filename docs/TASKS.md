@@ -16,9 +16,25 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
 - `[ ]` — Não iniciada
 - `[/]` — Em andamento (marcar **antes** de codar)
 - `[%]` — Commit local feito; **sem push** (aguardando revisão ou push)
-- `[x]` — Finalizada (push feito ou aprovada 100%)
+- `[@]` — **Push feito**; no remoto mas **sem aprovação 100%** (bugs/validação pendente — usuário avisa)
+- `[x]` — Finalizada e **aprovada 100%** pelo stakeholder
 
 > **⛔ Regra inviolável:** este arquivo deve estar **100% sincronizado** em **todas** as seções sempre que uma task mudar de status ou escopo — tabela B/F, checklist mestre, contador `X/49`, §1.4, bullets de UI, notas para agentes, **sem texto stale**. Fluxo completo: [`.cursor/rules/tasks-workflow.mdc`](../.cursor/rules/tasks-workflow.mdc) → **Sincronizar TASKS.md (10 pontos)** + **Verificação final**.
+
+### Status `@` — push sem aprovação 100%
+
+Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a task **ainda não está 100% validada** (bugs conhecidos, scraper parcial, UX a refinar).
+
+| Situação | Marcação |
+|----------|----------|
+| Commit local, ainda sem push | `[%]` |
+| Push feito; usuário avisa que **não** está 100% | **`[@]`** |
+| Push feito **e** usuário aprova 100% | `[x]` |
+| Task em `[@]`; usuário aprova depois | `[@]` → `[x]` |
+
+**Regra:** o stakeholder **avisa explicitamente** quando a entrega **não** está 100% aprovada. Após push com ressalvas → **`[@]`**, nunca `[x]`.
+
+**Tasks em `[@]` agora (jun/2026):** **B27**, **B65**, **F37** — scraper portal + sync automático + menu perfil no remoto; bugs conhecidos (parser de atividades, integralização zerada, descrição de tarefas = B28).
 
 ---
 
@@ -44,7 +60,7 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
 ### 1.1 Inicialização do Projeto
 - [x] Criar projeto Next.js com TypeScript (`npx create-next-app`)
 - [x] Configurar estrutura de pastas (`src/app`, `src/components`, `src/lib/db`, `src/lib/engine`)
-- [x] Pasta `src/lib/scraper` — B24–B26 ✅ (auth + AES + erros); B27 `[%]` (portal discente); turma virtual = B28+
+- [x] Pasta `src/lib/scraper` — B24–B26 ✅ (auth + AES + erros); B27 `[@]` (portal discente); turma virtual = B28+
 - [x] Instalar dependências: `better-sqlite3`, `playwright`, `crypto` (para criptografia de senha)
 
 ### 1.2 Design System (CSS)
@@ -75,9 +91,9 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
 
 ### 1.4 API e Integração UI ↔ SQLite
 
-> **Progresso:** Bloco 1 ✅ · **Bloco 2a:** B27 `[%]` (commit local — aguardando push) · **3F** fora do Bloco 1.
+> **Progresso:** Bloco 1 ✅ · **Bloco 2a:** B27·B65·F37 `[@]` (push feito — bugs pendentes) · **3F** fora do Bloco 1.
 
-Roadmap detalhado: ver **[Ordem oficial v3](#ordem-oficial-de-execução-v3)** e **[Checklist mestre](#checklist-mestre-ordem-de-execução)**. **Bloco 2a** — B27 portal `[%]` · aguardando push/aprovação.
+Roadmap detalhado: ver **[Ordem oficial v3](#ordem-oficial-de-execução-v3)** e **[Checklist mestre](#checklist-mestre-ordem-de-execução)**. **Bloco 2a** — portal/sync no remoto `[@]`; próximo **B28** (turma virtual).
 
 ---
 
@@ -173,7 +189,7 @@ Estratégia: **fatias verticais** — backend primeiro, depois frontend.
 > Siga **exatamente** a sequência **#0 → #11** abaixo. Não pule blocos (ex.: Supabase **#4** só depois do sync **#2–#3**).  
 > **Regra:** dentro de cada bloco → **`BACK` (B) primeiro**, depois **`FRONT` (F)**. Detalhes nas [tabelas por bloco](#detalhe-dos-blocos).
 
-Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento · `[ ]` pendente · `·` = task extra
+Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit local (sem push) · `[/]` andamento · `[ ]` pendente · `·` = task extra
 
 ### Sequência completa — o que fazer e em qual ordem
 
@@ -236,14 +252,14 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 > **⚠️ Prioridade pós-Bloco 1:** validar Playwright com **semestre ativo** antes do Supabase. Dev local + SQLite.
 
 - [x] **BACK:**  B24 → B25 → B26
-- [%] **BACK:**  B27
-- [%] **BACK:**  B65 *(rate limit + sync automático da plataforma)*
+- [@] **BACK:**  B27 *(scraper portal — bugs parser/integralização)*
+- [@] **BACK:**  B65 *(sync automático 30 min; rate limit manual removido)*
 - [ ] **BACK:**  B28
 - [ ] **BACK:**  B57 *(OAuth nuvem pessoal — Drive/Dropbox/OneDrive)*
 - [ ] **BACK:**  B29 *(PDFs SIGAA → pasta na nuvem do aluno)*
 - [ ] **BACK:**  B30 → B31
 - [ ] **FRONT:** F18
-- [%] **FRONT:** F37 *(menu perfil: matrícula + status sync)*
+- [@] **FRONT:** F37 *(menu perfil: matrícula + badge sync automático)*
 - [ ] **FRONT:** F35 *(Conectar minha nuvem + preview da estrutura de pastas)*
 
 **Ordem 2a:** `B24–B26` → `B27` → `B28` → `B57` → `B29` → `B30` → `B31` → `F18` → `F35`
@@ -552,8 +568,8 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 | B24 | Back | `lib/scraper/auth.ts` | Login Playwright + cookies de sessão | 2.1 | [x] |
 | B25 | Back | Criptografia AES-256 | Senha salva cifrada (opcional) | 2.1 | [x] |
 | B26 | Back | Erros de auth | Credencial inválida, timeout, SIGAA offline | 2.1 | [x] |
-| B27 | Back | Scraper portal discente | RG, CH, matérias do semestre, atividades | 2.2 | [%] |
-| B65 | Back | Rate limit + sync automático | Sync a cada 30 min (plataforma); mín. 5 min entre tentativas | 2.2 | [%] |
+| B27 | Back | Scraper portal discente | RG, CH, matérias do semestre, atividades | 2.2 | [@] |
+| B65 | Back | Sync automático + last_run | Auto a cada 30 min; manual sem rate limit (dev) | 2.2 | [@] |
 | B28 | Back | Scraper turma virtual | Notas, faltas, tarefas e grupo por matéria | 2.3 | [ ] |
 | B57 | Back | OAuth nuvem pessoal | Conectar Google Drive / Dropbox / OneDrive; tokens cifrados | 2.3 | [ ] |
 | B29 | Back | PDFs → nuvem | Materiais SIGAA → `CEFET Academic Planner/{semestre}/{matéria}/` | 2.3 | [ ] |
@@ -561,7 +577,7 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 | B31 | Back | Integrar no `runSync` | Troca seed-demo por pipeline real | 2.x | [ ] |
 | F18 | Front | Erros reais no login | Remove simulação mock de falhas | 2.1 | [ ] |
 | F35 | Front | UI nuvem pessoal | Conectar/desconectar nuvem; preview pastas; toggle por disciplina | 2.3 | [ ] |
-| F37 | Front | Menu perfil (avatar) | Matrícula, dados SIGAA; sync automático informativo | 2.2 | [%] |
+| F37 | Front | Menu perfil (avatar) | Matrícula, dados SIGAA; sync automático informativo | 2.2 | [@] |
 | F19 | Front | `/simulador` via API | Montar grade com turmas ofertadas reais | 2.4 | [ ] |
 
 **Ordem 2a (#2):** `B24 → B25 → B26` → `B27` → `B28` → `B57` → `B29` → `B30` → `B31` → `F18` → `F35`
@@ -756,7 +772,7 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
       ↓
 #1  Bloco 1   SQLite local (3E)               ✅
       ↓
-#2  Bloco 2a  Scraper dev + sync REAL          ⬜ 2/8 — B27 [%] aguardando push
+#2  Bloco 2a  Scraper dev + sync REAL          ⬜ 3 [@] no remoto — bugs pendentes; próximo B28
 #3  Bloco 2b  Worker servidor
       ↓
 #4  Bloco 6a  Supabase + deploy global       (após sync validado)
@@ -837,7 +853,7 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 - [x] Loading state com progresso da sincronização
 - [/] Tratamento de erro visual (credenciais inválidas, SIGAA offline) — mock removido no back; **F18** pendente
 - [x] UI do login dev (card CEFET-MG, `LoginCard`, `PasswordInput`, rodapé "Criar conta")
-- [x] Menu perfil no avatar — matrícula; sync automático da plataforma (**F37** · **B65** `[%]`)
+- [x] Menu perfil no avatar — matrícula; sync automático da plataforma (**F37** · **B65** `[@]`)
 - [ ] Cadastro produção: e-mail, telefone, CPF, **curso (Comp/Meca/Moda)**, senha (F29 · B44 · B58 · B63)
 - [ ] Login produção: **apenas CPF + senha** (sem e-mail no login)
 - [ ] Menu Config no avatar + toggle e-mail (**F36** · **B61** — produção; perfil dev = **F37**)
@@ -1044,12 +1060,13 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 7. **Atualize o `docs/TASKS.md` sempre que trabalhar em uma task** — leia o arquivo inteiro (ou `grep` por ID + etapa) e sincronize **todas** as seções listadas em `.cursor/rules/tasks-workflow.mdc` → **Sincronizar TASKS.md**:
    - Ao **iniciar**: marque como `[/]` — em andamento (+ checklist mestre / §1.4 se aplicável).
    - Após **commit local**: marque como `[%]` — feito, sem push (+ contador `X/49`, notas de etapa).
-   - Após **push ou aprovação 100%**: marque como `[x]` — finalizada (+ item 11 “Próximo passo”).
+   - Após **push sem aprovação 100%** (usuário avisa): marque como **`[@]`** — no remoto, bugs/validação pendente.
+   - Após **push com aprovação 100%** ou aprovação explícita depois: marque como `[x]` — finalizada (+ item 11 “Próximo passo”).
    - Faça **commit** ao concluir cada task (push só quando o usuário pedir).
    - **Obrigatório:** toda entrega deve refletir no TASKS.md **no mesmo ciclo** — tabela B/F, checklist mestre, progresso, bullets de UI e notas para agentes **sem texto stale**.
-8. **Próximo passo do roadmap:** indique **somente após push** (tasks em `[x]`). Com commits locais `[%]` pendentes, **não** avance o roadmap na resposta.
+8. **Próximo passo do roadmap:** informe **depois do push** (tasks em `[@]` ou `[x]`). Com commits locais só `[%]`, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v3](#ordem-oficial-de-execução-v3) — **Bloco 2 (sync) antes do Bloco 6 (Supabase)**. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy **após** sync validado; RLS **só na 6c** (antes do PIX).
-11. **Próximo passo:** push/aprovação **B27** → depois **B28** (turma virtual). **3F** fora do Bloco 1. **PDFs:** nuvem pessoal do aluno.
+11. **Próximo passo:** **B28** (turma virtual — notas, faltas, descrição completa das tarefas). B27·B65·F37 em `[@]` até aprovação 100%. **3F** fora do Bloco 1. **PDFs:** nuvem pessoal do aluno.
 12. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial.
 13. **Código frontend** está em `app/src/` (não na raiz `src/`). Mock data em `app/src/config/mock/`.

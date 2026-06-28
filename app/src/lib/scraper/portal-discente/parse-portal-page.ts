@@ -50,6 +50,10 @@ const BLOCKED_DISCIPLINA_CODES = new Set([
   "COMPONENTE",
 ]);
 const BR_DATE_PATTERN = /(\d{2})\/(\d{2})\/(\d{4})/;
+/** Prazo de "Minhas Atividades": `08/07/2026 23:59 (8 dias)` */
+const ATIVIDADE_PRAZO_KEY_PATTERN = /^\d{2}\/\d{2}\/\d{4}\s+\d{2}:\d{2}/;
+const ATIVIDADE_EXCLUDE_PATTERN =
+  /nova\s+not[ií]cia|indica(?:ç|c)(?:ã|a)o\s+de\s+site|novo\s+t[oó]pico|últimas\s+atualiza|ultimas\s+atualiza|avalia(?:ç|c)(?:ã|a)o\s+marcada/i;
 const SIGAA_HORARIO_PATTERN = /\b[2-6][MTN](?:12|34|56)\b/gi;
 const DISCIPLINA_PAIR_SKIP = /^(ch\.|matricula|curso|data|titulo|rg|integraliz|ultimas|componente|nivel|status|e-?mail|entrada|ensino)/i;
 
@@ -306,26 +310,33 @@ function inferTipoAtividade(text: string): "individual" | "grupo" | null {
 }
 
 function parseAtividadeFromPair(key: string, value: string): PortalAtividadePendente | null {
-  const dateMatch = key.match(BR_DATE_PATTERN);
+  const trimmedKey = key.trim();
+  const trimmedValue = value.trim();
+  if (!ATIVIDADE_PRAZO_KEY_PATTERN.test(trimmedKey)) return null;
+  if (ATIVIDADE_EXCLUDE_PATTERN.test(trimmedKey) || ATIVIDADE_EXCLUDE_PATTERN.test(trimmedValue)) {
+    return null;
+  }
+
+  const tarefaMatch = trimmedValue.match(/Tarefa:\s*(.+)/i);
+  if (!tarefaMatch) return null;
+
+  const dateMatch = trimmedKey.match(BR_DATE_PATTERN);
   if (!dateMatch) return null;
 
   const dataFim = parseBrDateToIso(dateMatch[0]);
   if (!dataFim) return null;
 
-  const horaFim = key.match(/\b(\d{2}:\d{2})\b/)?.[1] ?? "23:59";
-  const tarefaMatch =
-    value.match(/Tarefa:\s*(.+)/i) ??
-    value.match(/Avalia(?:ç|c)(?:ã|a)o[^:]*:\s*(.+)/i);
-  const titulo = tarefaMatch?.[1]?.trim() ?? value.trim().slice(0, 120);
-  const disciplinaNome = value.split(/\s+Tarefa:/i)[0]?.trim() ?? value.trim();
+  const horaFim = trimmedKey.match(/\b(\d{2}:\d{2})\b/)?.[1] ?? "23:59";
+  const titulo = tarefaMatch[1].trim();
+  const disciplinaNome = trimmedValue.split(/\s+Tarefa:/i)[0]?.trim() ?? trimmedValue;
 
   return {
     disciplinaCodigo: disciplinaNome,
     titulo,
     dataFim,
     horaFim,
-    tipo: inferTipoAtividade(value),
-    descricao: value.trim(),
+    tipo: inferTipoAtividade(trimmedValue),
+    descricao: trimmedValue,
   };
 }
 
@@ -344,50 +355,15 @@ function parseAtividades(raw: PortalPageRawData): PortalAtividadePendente[] {
   }
 
   for (const row of raw.tableRows) {
-    const joined = row.join(" ");
-    const dateMatch = joined.match(BR_DATE_PATTERN);
-    if (!dateMatch) continue;
+    if (row.length < 2) continue;
 
-    if (/tarefa|avalia/i.test(joined)) {
-      const parsed = parseAtividadeFromPair(row[0] ?? joined, row[1] ?? joined);
-      if (!parsed) continue;
+    const parsed = parseAtividadeFromPair(row[0] ?? "", row.slice(1).join(" "));
+    if (!parsed) continue;
 
-      const dedupeKey = `${parsed.dataFim}:${parsed.titulo}`;
-      if (seen.has(dedupeKey)) continue;
-      seen.add(dedupeKey);
-      atividades.push(parsed);
-      continue;
-    }
-
-    const disciplinaCodigo =
-      row.find((cell) => DISCIPLINA_CODE_PATTERN.test(cell.trim()))?.trim().toUpperCase() ??
-      null;
-    if (!disciplinaCodigo) continue;
-
-    const titulo =
-      row.find(
-        (cell) =>
-          cell.length > 3 &&
-          !BR_DATE_PATTERN.test(cell) &&
-          !DISCIPLINA_CODE_PATTERN.test(cell.trim())
-      ) ?? "Atividade";
-
-    const dataFim = parseBrDateToIso(dateMatch[0]);
-    if (!dataFim) continue;
-
-    const legacy: PortalAtividadePendente = {
-      disciplinaCodigo,
-      titulo: titulo.trim(),
-      dataFim,
-      horaFim: joined.match(/\b(\d{2}:\d{2})\b/)?.[1] ?? "23:59",
-      tipo: inferTipoAtividade(joined),
-      descricao: null,
-    };
-
-    const dedupeKey = `${legacy.dataFim}:${legacy.titulo}`;
+    const dedupeKey = `${parsed.dataFim}:${parsed.titulo}`;
     if (seen.has(dedupeKey)) continue;
     seen.add(dedupeKey);
-    atividades.push(legacy);
+    atividades.push(parsed);
   }
 
   return atividades;

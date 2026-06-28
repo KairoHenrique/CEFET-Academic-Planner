@@ -2,10 +2,7 @@ import { apiErrorResponse, apiSuccess } from "@/lib/api/response";
 import { parseSyncRequest } from "@/lib/api/validate";
 import { withDb } from "@/lib/api/with-db";
 import { runSync } from "@/lib/sync/run-sync";
-import {
-  assertSyncRateLimit,
-  recordSyncCompleted,
-} from "@/lib/sync/sync-rate-limit";
+import { recordSyncCompletedAt } from "@/lib/sync/sync-preferences";
 import { ApiError } from "@/lib/api/errors";
 
 export const runtime = "nodejs";
@@ -13,11 +10,10 @@ export const maxDuration = 60;
 
 export const POST = withDb(async (request) => {
   try {
-    assertSyncRateLimit();
     const body = await request.json();
     const credentials = parseSyncRequest(body);
     const result = await runSync(credentials);
-    recordSyncCompleted();
+    recordSyncCompletedAt();
 
     return apiSuccess({
       ok: true as const,

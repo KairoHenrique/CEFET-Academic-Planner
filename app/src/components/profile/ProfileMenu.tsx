@@ -92,8 +92,8 @@ export function ProfileMenu() {
             <h3 className="profile-menu-section-title">Sincronização</h3>
             <p className="profile-menu-sync-badge">Automática</p>
             <p className="profile-menu-hint">
-              A plataforma sincroniza com o SIGAA a cada {sync?.intervalMinutes ?? 30}{" "}
-              min (mín. {sync?.minIntervalMinutes ?? 5} min entre tentativas).
+              Sync automático a cada {sync?.intervalMinutes ?? 30} min. O botão
+              Sync SIGAA pode ser usado a qualquer momento.
             </p>
             {sync?.lastSyncAt && (
               <p className="profile-menu-hint">

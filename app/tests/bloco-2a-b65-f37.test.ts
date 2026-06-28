@@ -1,5 +1,5 @@
 /**
- * B65 — rate limit e sync automático da plataforma.
+ * B65 — sync automático da plataforma.
  */
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -14,26 +14,10 @@ after(() => {
   fs.rmSync(tmpDir, { recursive: true, force: true });
 });
 
-describe("B65 — sync rate limit", () => {
+describe("B65 — sync automático", () => {
   before(async () => {
     const { ensureDbReady } = await import("../src/lib/db/bootstrap");
     ensureDbReady();
-  });
-
-  test("bloqueia sync antes do intervalo mínimo", async () => {
-    const rateLimit = await import("../src/lib/sync/sync-rate-limit");
-    const prefs = await import("../src/lib/sync/sync-preferences");
-
-    prefs.recordSyncCompletedAt(new Date().toISOString());
-
-    assert.throws(() => rateLimit.assertSyncRateLimit(), (error: unknown) => {
-      return (
-        typeof error === "object" &&
-        error !== null &&
-        "code" in error &&
-        error.code === "RATE_LIMITED"
-      );
-    });
   });
 
   test("intervalo automático é fixo da plataforma", async () => {
@@ -41,6 +25,15 @@ describe("B65 — sync rate limit", () => {
 
     assert.equal(prefs.getSyncAutoIntervalMinutes(), prefs.SYNC_AUTO_INTERVAL_MINUTES);
     assert.equal(prefs.SYNC_AUTO_INTERVAL_MINUTES, 30);
+  });
+
+  test("clearSyncLastAt remove timer de último sync", async () => {
+    const prefs = await import("../src/lib/sync/sync-preferences");
+
+    prefs.recordSyncCompletedAt(new Date().toISOString());
+    assert.ok(prefs.getSyncLastAt());
+    prefs.clearSyncLastAt();
+    assert.equal(prefs.getSyncLastAt(), null);
   });
 });
 
