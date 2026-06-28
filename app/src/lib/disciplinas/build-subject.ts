@@ -52,7 +52,7 @@ export function buildSubjectSummary(
     name: displayName,
     nickname,
     displayName: resolveSubjectDisplayName(displayName, nickname),
-    shortLabel: resolveSubjectShortLabel(semestre.disciplina_id, nickname),
+    shortLabel: resolveSubjectShortLabel(semestre.disciplina_id, nickname, officialName),
     code: semestre.disciplina_id,
     room: semestre.local ?? "—",
     grade,

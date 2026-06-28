@@ -34,7 +34,20 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 **Regra:** o stakeholder **avisa explicitamente** quando a entrega **não** está 100% aprovada. Após push com ressalvas → **`[@]`**, nunca `[x]`.
 
-**Tasks em `[@]` agora (jun/2026):** **B27**, **B65**, **F37** — scraper portal + sync automático + menu perfil no remoto; bugs conhecidos (parser de atividades, integralização zerada, descrição de tarefas = B28).
+**Tasks em `[@]` agora (jun/2026):** **B27**, **B65**, **F37** — scraper portal + sync automático + menu perfil no remoto; melhorias recentes (CH portal, apelidos, sessão de senha, tarefas vencidas); descrição completa de tarefas = **B28**.
+
+### Decisão — Integralização via histórico (jun/2026)
+
+> **Fonte de verdade da CH concluída:** tabela `historico` (matérias aprovadas/cursadas) + PPC (`disciplinas.carga_horaria`) via `computeChDoneFromDisciplinas` — **não** os blocos “CH pendente” do portal SIGAA.
+
+| Camada | Papel |
+|--------|--------|
+| **B27** (portal) | RG, semestre atual, tarefas, % integralizado e total currículo — **referência/auxiliar** |
+| **B30** (histórico escolar) | Popular `historico` com matérias já passadas → alimenta mapa + integralização |
+| **B16/B17** (já ✅) | API/UI; após B30, `build-integralizacao` passa a priorizar cálculo local |
+| **Manual** | CH complementar/extensão/flexibilizada continua via `POST /api/integralizacao` |
+
+**Pendente pós-B30:** refatorar `build-integralizacao` para usar histórico como primário e portal só como fallback/validação.
 
 ---
 
@@ -91,9 +104,9 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ### 1.4 API e Integração UI ↔ SQLite
 
-> **Progresso:** Bloco 1 ✅ · **Bloco 2a:** B27·B65·F37 `[@]` (push feito — bugs pendentes) · **3F** fora do Bloco 1.
+> **Progresso:** Bloco 1 ✅ · **Bloco 2a:** B27·B65·F37 `[@]` · integralização **via histórico** (decisão jun/2026 — scraper **B30**) · **3F** fora do Bloco 1.
 
-Roadmap detalhado: ver **[Ordem oficial v3](#ordem-oficial-de-execução-v3)** e **[Checklist mestre](#checklist-mestre-ordem-de-execução)**. **Bloco 2a** — portal/sync no remoto `[@]`; próximo **B28** (turma virtual).
+Roadmap detalhado: ver **[Ordem oficial v3](#ordem-oficial-de-execução-v3)** e **[Checklist mestre](#checklist-mestre-ordem-de-execução)**. **Bloco 2a** — portal/sync no remoto `[@]`; CH concluída = **histórico + PPC** (B30); próximo **B28**.
 
 ---
 
@@ -252,7 +265,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 > **⚠️ Prioridade pós-Bloco 1:** validar Playwright com **semestre ativo** antes do Supabase. Dev local + SQLite.
 
 - [x] **BACK:**  B24 → B25 → B26
-- [@] **BACK:**  B27 *(scraper portal — bugs parser/integralização)*
+- [@] **BACK:**  B27 *(portal: semestre, RG, tarefas; CH portal auxiliar; apelidos auto)*
 - [@] **BACK:**  B65 *(sync automático 30 min; rate limit manual removido)*
 - [ ] **BACK:**  B28
 - [ ] **BACK:**  B57 *(OAuth nuvem pessoal — Drive/Dropbox/OneDrive)*
@@ -508,12 +521,14 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 ##### 3C — Integralização
 
-> **Resumo:** Página `/integralizacao` lê CH real (obrigatória, optativa, extensão…) e permite cadastrar horas manuais. Inclui glossário “O que é cada tipo?” (SCOPE §6.4).
+> **Resumo:** Página `/integralizacao` — **CH concluída calculada no app** (`historico` + PPC + semestre atual; ver [decisão integralização](#decisão--integralização-via-histórico-jun2026)). Portal SIGAA = % e total currículo (auxiliar). Horas manuais complementares/extensão. Glossário SCOPE §6.4.
 
 | # | Tipo | Task | Resumo | Status |
 |---|------|------|--------|--------|
-| B16 | Back | `GET /api/integralizacao` | Totais por tipo de CH (conforme PPC do curso) | [x] |
+| B16 | Back | `GET /api/integralizacao` | Totais por tipo de CH (PPC + histórico local) | [x] |
 | B17 | Back | `POST /api/integralizacao` | Registrar horas complementares manuais | [x] |
+| — | Decisão | CH via histórico | Primário = `historico` sync (**B30**); portal = auxiliar | [x] |
+| — | Back | Refino pós-B30 | `build-integralizacao` prioriza histórico sobre CH pendente SIGAA | [ ] |
 | F11 | Front | Painéis integralização | Donut + tabela via API + cadastro de horas | [x] |
 | F11b | Front | Glossário de CH | Modal “Entenda suas horas” + ícone ? (obrigatória, optativa/eletiva, complementar, extensão, flexibilizada) | [x] |
 
@@ -559,21 +574,21 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | Fase scraper | O que raspa |
 |--------------|-------------|
 | **2.1 Auth** | Login Playwright, sessão, senha AES opcional, erros |
-| **2.2 Portal** | RG, integralização, semestre, tarefas pendentes |
+| **2.2 Portal** | RG, semestre, tarefas; CH portal (% / total) **auxiliar** |
 | **2.3 Turma** | Notas, faltas, grupo, tarefas, download PDFs |
-| **2.4 Extra** | Turmas ofertadas, calendário acadêmico, histórico PDF |
+| **2.4 Extra** | Turmas ofertadas, calendário, **histórico escolar → integralização** |
 
 | # | Tipo | Task | Resumo | Fase | Status |
 |---|------|------|--------|------|--------|
 | B24 | Back | `lib/scraper/auth.ts` | Login Playwright + cookies de sessão | 2.1 | [x] |
 | B25 | Back | Criptografia AES-256 | Senha salva cifrada (opcional) | 2.1 | [x] |
 | B26 | Back | Erros de auth | Credencial inválida, timeout, SIGAA offline | 2.1 | [x] |
-| B27 | Back | Scraper portal discente | RG, CH, matérias do semestre, atividades | 2.2 | [@] |
+| B27 | Back | Scraper portal discente | RG, semestre, atividades; CH portal auxiliar (% / total) | 2.2 | [@] |
 | B65 | Back | Sync automático + last_run | Auto a cada 30 min; manual sem rate limit (dev) | 2.2 | [@] |
 | B28 | Back | Scraper turma virtual | Notas, faltas, tarefas e grupo por matéria | 2.3 | [ ] |
 | B57 | Back | OAuth nuvem pessoal | Conectar Google Drive / Dropbox / OneDrive; tokens cifrados | 2.3 | [ ] |
 | B29 | Back | PDFs → nuvem | Materiais SIGAA → `CEFET Academic Planner/{semestre}/{matéria}/` | 2.3 | [ ] |
-| B30 | Back | Turmas + calendário | Ofertas próximo sem + datas oficiais + histórico | 2.4 | [ ] |
+| B30 | Back | Turmas + calendário + histórico | Ofertas próximo sem + datas oficiais + **histórico escolar → `historico`** | 2.4 | [ ] |
 | B31 | Back | Integrar no `runSync` | Troca seed-demo por pipeline real | 2.x | [ ] |
 | F18 | Front | Erros reais no login | Remove simulação mock de falhas | 2.1 | [ ] |
 | F35 | Front | UI nuvem pessoal | Conectar/desconectar nuvem; preview pastas; toggle por disciplina | 2.3 | [ ] |
@@ -772,7 +787,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
       ↓
 #1  Bloco 1   SQLite local (3E)               ✅
       ↓
-#2  Bloco 2a  Scraper dev + sync REAL          ⬜ 3 [@] no remoto — bugs pendentes; próximo B28
+#2  Bloco 2a  Scraper dev + sync REAL          ⬜ 3 [@] — integralização via histórico (B30); próximo B28
 #3  Bloco 2b  Worker servidor
       ↓
 #4  Bloco 6a  Supabase + deploy global       (após sync validado)
@@ -817,7 +832,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 ### 2.2 Scraper: Portal do Discente
 - [x] Extrair dados institucionais (matrícula, curso, status, email, entrada)
 - [x] Extrair índices acadêmicos (RG)
-- [x] Extrair dados de integralização (CH Obrigatória, Optativa, Complementar, Extensão, Flexibilizada, % integralizado)
+- [x] Extrair CH pendente, total currículo e % integralizado do portal (**auxiliar** — cálculo fiel = histórico **B30**)
 - [x] Extrair componentes curriculares do semestre (nome, local, código de horário)
 - [x] Extrair atividades pendentes (data, tipo, disciplina)
 
@@ -833,7 +848,8 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 ### 2.4 Scraper: Funcionalidades Adicionais
 - [ ] Consultar turmas ofertadas para o próximo semestre (Ensino → Consultar Turmas)
 - [ ] Extrair calendário acadêmico (Ensino → Calendário Acadêmico)
-- [ ] Emitir/baixar histórico escolar (PDF)
+- [ ] Scraper histórico escolar → popular tabela `historico` (disciplina, semestre, status, nota) — **base da integralização**
+- [ ] Emitir/baixar histórico escolar (PDF ou HTML SIGAA)
 
 ---
 
@@ -1067,6 +1083,7 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 8. **Próximo passo do roadmap:** informe **depois do push** (tasks em `[@]` ou `[x]`). Com commits locais só `[%]`, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v3](#ordem-oficial-de-execução-v3) — **Bloco 2 (sync) antes do Bloco 6 (Supabase)**. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy **após** sync validado; RLS **só na 6c** (antes do PIX).
-11. **Próximo passo:** **B28** (turma virtual — notas, faltas, descrição completa das tarefas). B27·B65·F37 em `[@]` até aprovação 100%. **3F** fora do Bloco 1. **PDFs:** nuvem pessoal do aluno.
-12. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial.
-13. **Código frontend** está em `app/src/` (não na raiz `src/`). Mock data em `app/src/config/mock/`.
+11. **Próximo passo:** **B28** (turma virtual). **Integralização fiel:** popular `historico` na **B30** + refino `build-integralizacao`. B27·B65·F37 em `[@]`. **PDFs:** nuvem pessoal do aluno.
+12. **Integralização:** CH concluída = `historico` + PPC (`computeChDoneFromDisciplinas`); portal SIGAA só % / total currículo; matérias já passadas = **B30**.
+13. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial.
+14. **Código frontend** está em `app/src/` (não na raiz `src/`). Mock data em `app/src/config/mock/`.

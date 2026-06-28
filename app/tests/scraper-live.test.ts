@@ -47,6 +47,9 @@ describe("B27 — portal discente (live)", () => {
       assert.ok(snapshot.aluno.rg !== null && snapshot.aluno.rg < 100);
       assert.ok(snapshot.semestreAtual.length >= 5);
       assert.ok(snapshot.integralizacao.length >= 4);
+      const obrigatoria = snapshot.integralizacao.find((item) => item.tipoCh === "Obrigatória");
+      assert.ok(obrigatoria && obrigatoria.concluido > 0, "CH obrigatória concluída deve ser > 0");
+      assert.equal(obrigatoria?.pendente, 2535);
     }
   );
 });

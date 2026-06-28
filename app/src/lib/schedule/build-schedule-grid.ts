@@ -37,7 +37,11 @@ function buildSlotData(
   room: string
 ): ScheduleApiSlot {
   const displayName = row.nome_exibicao?.trim() || row.nome;
-  const shortLabel = resolveSubjectShortLabel(row.disciplina_id, row.apelido);
+  const shortLabel = resolveSubjectShortLabel(
+    row.disciplina_id,
+    row.apelido,
+    row.nome_exibicao?.trim() || row.nome
+  );
 
   return {
     code: row.disciplina_id,

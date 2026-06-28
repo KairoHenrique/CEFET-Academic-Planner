@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { getSyncCredentials } from "@/lib/auth/credentials";
+import { needsSyncPassword } from "@/lib/auth/sync-session";
 import type { PerfilSyncStatus } from "@/lib/types/perfil-api";
 
 function canAutoSyncNow(settings: PerfilSyncStatus): boolean {
@@ -35,6 +37,10 @@ export function useAutoSync(
       const settings = settingsRef.current;
       if (!settings || syncingRef.current) return;
       if (!canAutoSyncNow(settings)) return;
+
+      const creds = getSyncCredentials();
+      if (!creds?.username || needsSyncPassword(creds.username)) return;
+
       void startSyncRef.current();
     };
 

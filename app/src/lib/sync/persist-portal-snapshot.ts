@@ -1,4 +1,5 @@
 import { pickStablePaletteColor } from "@/lib/colors/palette";
+import { suggestSubjectNickname } from "@/lib/disciplinas/subject-display-name";
 import {
   SUBJECT_DISPLAY_GRADE_MAX,
   SUBJECT_DISPLAY_PASSING_GRADE,
@@ -17,7 +18,9 @@ import {
   upsertSyncedSemestreAtual,
   upsertSyncedTarefa,
 } from "@/lib/db/queries";
+import { persistSigaaIntegralizacaoResumo } from "@/lib/integralizacao/sigaa-ch-config";
 import { seedPpcIfEmpty } from "@/lib/db/seed-ppc";
+import { isAtividadePrazoVencido } from "@/lib/tasks/dates";
 import type { PortalDiscenteSnapshot } from "@/lib/scraper/types/portal-discente";
 
 function buildSemestreCodigoByNome(
@@ -59,6 +62,8 @@ export function persistPortalSnapshot(snapshot: PortalDiscenteSnapshot): void {
     });
   }
 
+  persistSigaaIntegralizacaoResumo(snapshot.integralizacaoResumo);
+
   const activeDisciplinaIds = new Set<string>();
   const semestreByNome = buildSemestreCodigoByNome(snapshot);
 
@@ -83,7 +88,7 @@ export function persistPortalSnapshot(snapshot: PortalDiscenteSnapshot): void {
       codigo_horario: disciplina.codigoHorario,
       horario_traduzido: disciplina.horarioTraduzido,
       cor: pickStablePaletteColor(codigo),
-      apelido: null,
+      apelido: suggestSubjectNickname(disciplina.nome, codigo),
       nome_exibicao: null,
       professor: null,
       max_faltas: null,
@@ -97,6 +102,8 @@ export function persistPortalSnapshot(snapshot: PortalDiscenteSnapshot): void {
   pruneSyncedSemestreAtual(Array.from(activeDisciplinaIds));
 
   for (const atividade of snapshot.atividades) {
+    if (isAtividadePrazoVencido(atividade.dataFim, atividade.horaFim)) continue;
+
     const disciplinaId = resolveDisciplinaCodigoFromSemestre(
       atividade.disciplinaCodigo,
       semestreByNome,

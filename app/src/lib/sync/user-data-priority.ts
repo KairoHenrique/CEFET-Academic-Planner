@@ -43,8 +43,10 @@ export function mergeSemestreUserPreferences(
 
   return {
     ...incoming,
-    apelido: existing.apelido,
-    nome_exibicao: existing.nome_exibicao,
+    apelido: existing.apelido?.trim() ? existing.apelido : incoming.apelido,
+    nome_exibicao: existing.nome_exibicao?.trim()
+      ? existing.nome_exibicao
+      : incoming.nome_exibicao,
     cor: existing.cor ?? incoming.cor,
     pdf_auto_download: existing.pdf_auto_download ?? incoming.pdf_auto_download,
   };

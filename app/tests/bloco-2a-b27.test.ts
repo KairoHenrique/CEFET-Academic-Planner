@@ -25,8 +25,8 @@ const PORTAL_FIXTURE_HTML = `
   <tr><th>Semestre de Ingresso</th><td>2024.1</td></tr>
   <tr><th>Situação</th><td>Regular</td></tr>
   <tr><th>RG</th><td>72,50</td></tr>
-  <tr><td>Obrigatória</td><td>1200 h</td><td>3080 h</td></tr>
-  <tr><td>Optativa</td><td>0 h</td><td>240 h</td></tr>
+  <tr><td>CH. Obrigatória Pendente</td><td>1880</td></tr>
+  <tr><td>CH. Optativa Pendente</td><td>240</td></tr>
   <tr><td>AEDI</td><td>Algoritmos e Estruturas de Dados I</td><td>303/620</td><td>2M56 6M56</td></tr>
   <tr><td>LAOCI</td><td>Lab. Arq. e Org. de Comp. I</td><td>Lab 01</td><td>5M34</td></tr>
   <tr><td>20/05/2026 23:59 (5 dias)</td><td>ENGENHARIA DE SOFTWARE Tarefa: Diagramas UML</td></tr>
@@ -119,8 +119,63 @@ describe("B27 — parse portal discente", () => {
     assert.equal(snapshot.semestreAtual.length, 2);
     assert.equal(snapshot.integralizacao.length, 2);
     assert.equal(snapshot.integralizacao[0]?.pendente, 2535);
+    assert.equal(snapshot.integralizacao[0]?.concluido, 545);
+    assert.equal(snapshot.integralizacao[0]?.totalNecessario, 3080);
     assert.equal(snapshot.atividades.length, 1);
     assert.match(snapshot.atividades[0]?.titulo ?? "", /MIC1/i);
+  });
+
+  test("extrai CH do layout agregado CEFET (linha Integralizações)", async () => {
+    const { parsePortalPageData } = await import(
+      "../src/lib/scraper/portal-discente/parse-portal-page"
+    );
+
+    const snapshot = parsePortalPageData({
+      labelPairs: {},
+      tableRows: [
+        [
+          "Integralizações: CH. Obrigatória Pendente 2535 CH. Optativa Pendente 240",
+          "CH. Obrigatória Pendente",
+          "2535",
+          "CH. Optativa Pendente",
+          "240",
+          "CH. Complementar Pendente",
+          "375",
+          "CH. Extensão Pendente",
+          "450",
+          "CH. Flexibilizada Pendente",
+          "30",
+          "16% Integralizado",
+        ],
+        ["CH. Obrigatória Pendente", "2535"],
+      ],
+      plainText: "Integralizações CH. Obrigatória Pendente 2535 16% Integralizado",
+    });
+
+    const obrigatoria = snapshot.integralizacao.find((item) => item.tipoCh === "Obrigatória");
+    assert.ok(obrigatoria);
+    assert.equal(obrigatoria?.pendente, 2535);
+    assert.equal(obrigatoria?.concluido, 545);
+    assert.equal(obrigatoria?.totalNecessario, 3080);
+    assert.equal(snapshot.integralizacao.length, 5);
+  });
+
+  test("extrai CH. Total Currículo e percentual integralizado", async () => {
+    const { parsePortalPageData } = await import(
+      "../src/lib/scraper/portal-discente/parse-portal-page"
+    );
+
+    const snapshot = parsePortalPageData({
+      labelPairs: {
+        "CH. Total Currículo": "4510",
+        "CH. Obrigatória Pendente": "2535",
+      },
+      tableRows: [["16% Integralizado"]],
+      plainText: "Integralizações CH. Total Currículo 4510 10% Integralizado",
+    });
+
+    assert.equal(snapshot.integralizacaoResumo.totalCurriculo, 4510);
+    assert.equal(snapshot.integralizacaoResumo.percentIntegralizado, 10);
   });
 });
 
@@ -198,6 +253,42 @@ describe("B27 — persistPortalSnapshot", () => {
       .find((row) => row.id === manualBefore?.id);
     assert.equal(manualAfter?.concluido, 42);
     assert.equal(manualAfter?.manual, 1);
+  });
+
+  test("não persiste tarefas com prazo vencido", async () => {
+    const { buildMockPortalSnapshot } = await import(
+      "../src/lib/scraper/portal-discente/mock-portal-snapshot"
+    );
+    const { persistPortalSnapshot } = await import(
+      "../src/lib/sync/persist-portal-snapshot"
+    );
+    const queries = await import("../src/lib/db/queries");
+
+    const snapshot = buildMockPortalSnapshot("12345678901");
+    snapshot.atividades = [
+      {
+        disciplinaCodigo: "AEDI",
+        titulo: "Tarefa antiga",
+        dataFim: "2020-01-01",
+        horaFim: "23:59",
+        tipo: "individual",
+        descricao: null,
+      },
+      {
+        disciplinaCodigo: "AEDI",
+        titulo: "Tarefa futura",
+        dataFim: "2099-12-31",
+        horaFim: "23:59",
+        tipo: "individual",
+        descricao: null,
+      },
+    ];
+
+    persistPortalSnapshot(snapshot);
+
+    const titulos = queries.getTarefas().map((row) => row.titulo);
+    assert.ok(!titulos.some((titulo) => titulo.includes("antiga")));
+    assert.ok(titulos.some((titulo) => titulo.includes("futura")));
   });
 });
 

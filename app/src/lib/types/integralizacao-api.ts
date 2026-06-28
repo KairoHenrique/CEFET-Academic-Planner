@@ -8,7 +8,6 @@ export interface IntegralizacaoManualEntry {
 }
 
 export interface IntegralizacaoCategoryDetail extends IntegrationCategory {
-  pending: number;
   manualEntries: IntegralizacaoManualEntry[];
 }
 
@@ -16,6 +15,7 @@ export interface IntegralizacaoResponse {
   totalHours: number;
   totalDone: number;
   percent: number;
+  percentSigaa: number | null;
   categories: IntegralizacaoCategoryDetail[];
 }
 

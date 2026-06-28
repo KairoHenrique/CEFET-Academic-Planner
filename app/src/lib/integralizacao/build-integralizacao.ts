@@ -5,6 +5,7 @@ import {
   getChCatalog,
   getIntegrationTotalHours,
 } from "@/lib/integralizacao/ch-catalog";
+import { readSigaaIntegralizacaoResumo } from "@/lib/integralizacao/sigaa-ch-config";
 import {
   getAluno,
   getDisciplinas,
@@ -40,14 +41,27 @@ export function buildIntegralizacao(): IntegralizacaoResponse {
     catalog,
     computedByType
   );
-  const totalHours = getIntegrationTotalHours();
-  const totalDone = categories.reduce((sum, category) => sum + category.done, 0);
-  const percent = Math.round((totalDone / totalHours) * 100);
+
+  const sigaaResumo = readSigaaIntegralizacaoResumo();
+  const totalHours = sigaaResumo.totalCurriculo ?? getIntegrationTotalHours();
+  const totalDoneFromCategories = categories.reduce(
+    (sum, category) => sum + category.done,
+    0
+  );
+  const totalDoneFromSigaa =
+    sigaaResumo.percentIntegralizado !== null
+      ? Math.round((totalHours * sigaaResumo.percentIntegralizado) / 100)
+      : null;
+  const totalDone = totalDoneFromSigaa ?? totalDoneFromCategories;
+  const percent =
+    sigaaResumo.percentIntegralizado ??
+    Math.round((totalDone / totalHours) * 100);
 
   return {
     totalHours,
     totalDone,
     percent,
+    percentSigaa: sigaaResumo.percentIntegralizado,
     categories,
   };
 }
@@ -55,10 +69,11 @@ export function buildIntegralizacao(): IntegralizacaoResponse {
 export function toIntegrationCategories(
   response: IntegralizacaoResponse
 ): IntegrationCategory[] {
-  return response.categories.map(({ label, done, total, color }) => ({
+  return response.categories.map(({ label, done, total, pending, color }) => ({
     label,
     done,
     total,
+    pending,
     color,
   }));
 }

@@ -9,9 +9,7 @@ interface IntegrationProgressProps {
 }
 
 export function IntegrationProgress({ integralizacao }: IntegrationProgressProps) {
-  const percentage = Math.round(
-    (integralizacao.totalDone / integralizacao.totalHours) * 100
-  );
+  const percentage = integralizacao.percent;
 
   return (
     <div className="card card-full-height">
@@ -48,7 +46,9 @@ export function IntegrationProgress({ integralizacao }: IntegrationProgressProps
               <div className="progress-label-row">
                 <span className="progress-label">{cat.label}</span>
                 <span className="progress-value">
-                  {cat.done}h / {cat.total}h
+                  {cat.pending > 0
+                    ? `${cat.pending}h pendentes`
+                    : `${cat.done}h / ${cat.total}h`}
                 </span>
               </div>
               <div className="progress-bar">

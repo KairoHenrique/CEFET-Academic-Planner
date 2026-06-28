@@ -15,6 +15,11 @@ export interface PortalIntegralizacaoItem {
   totalNecessario: number | null;
 }
 
+export interface PortalIntegralizacaoResumo {
+  totalCurriculo: number | null;
+  percentIntegralizado: number | null;
+}
+
 export interface PortalDisciplinaSemestre {
   codigo: string;
   nome: string;
@@ -36,6 +41,7 @@ export interface PortalDiscenteSnapshot {
   scrapedAt: string;
   aluno: PortalAlunoSnapshot;
   integralizacao: PortalIntegralizacaoItem[];
+  integralizacaoResumo: PortalIntegralizacaoResumo;
   semestreAtual: PortalDisciplinaSemestre[];
   atividades: PortalAtividadePendente[];
 }

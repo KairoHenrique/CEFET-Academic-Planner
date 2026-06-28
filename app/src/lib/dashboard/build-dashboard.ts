@@ -72,6 +72,7 @@ export function buildDashboard(): DashboardResponse {
     integralizacao: {
       totalHours,
       totalDone,
+      percent: integralizacaoPercent,
       categories,
     },
     tarefas,

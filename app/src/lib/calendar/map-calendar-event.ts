@@ -16,7 +16,7 @@ function mapDisciplinaLabel(
   officialName?: string | null
 ): string | undefined {
   if (code) {
-    return resolveSubjectShortLabel(code, nickname);
+    return resolveSubjectShortLabel(code, nickname, name);
   }
   return officialName ?? undefined;
 }
