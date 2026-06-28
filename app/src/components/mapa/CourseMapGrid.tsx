@@ -1,6 +1,7 @@
-import Link from "next/link";
-import { formatPeriodLabel } from "@/components/mapa/format-period-label";
-import { Icon } from "@/components/ui/Icon";
+import { useMemo } from "react";
+import { CourseMapElectivesStrip } from "@/components/mapa/CourseMapElectivesStrip";
+import { CourseMapPeriodColumn } from "@/components/mapa/CourseMapPeriodColumn";
+import { isElectivePeriod } from "@/components/mapa/format-period-label";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import type {
   CourseMapPeriod,
@@ -14,25 +15,75 @@ const STATUS_BADGE: Record<CourseMapStatus, string> = {
   locked: "danger",
 };
 
-function nodeIcon(status: CourseMapStatus): "lock" | "unlock" | "check" {
-  if (status === "locked") return "lock";
-  if (status === "unlocked") return "unlock";
-  return "check";
-}
+const PERIODS_ROW_ONE = [1, 2, 3, 4, 5] as const;
+const PERIODS_ROW_TWO = [6, 7, 8, 9, 10] as const;
 
 interface CourseMapGridProps {
   periods: CourseMapPeriod[];
   statusLabels: Record<CourseMapStatus, string>;
 }
 
+function splitPeriods(periods: CourseMapPeriod[]) {
+  const regularByNumber = new Map<number, CourseMapPeriod>();
+  const electiveSubjects: CourseMapPeriod["subjects"] = [];
+
+  for (const period of periods) {
+    if (isElectivePeriod(period.period)) {
+      electiveSubjects.push(...period.subjects);
+      continue;
+    }
+    regularByNumber.set(period.period, period);
+  }
+
+  return { regularByNumber, electiveSubjects };
+}
+
+function emptyPeriod(period: number): CourseMapPeriod {
+  return { period, subjects: [] };
+}
+
+interface CourseMapPeriodRowProps {
+  periodNumbers: readonly number[];
+  regularByNumber: Map<number, CourseMapPeriod>;
+  statusLabels: Record<CourseMapStatus, string>;
+  rowLabel: string;
+}
+
+function CourseMapPeriodRow({
+  periodNumbers,
+  regularByNumber,
+  statusLabels,
+  rowLabel,
+}: CourseMapPeriodRowProps) {
+  return (
+    <div className="course-map-row" role="row" aria-label={rowLabel}>
+      {periodNumbers.map((periodNumber) => (
+        <CourseMapPeriodColumn
+          key={periodNumber}
+          period={regularByNumber.get(periodNumber) ?? emptyPeriod(periodNumber)}
+          statusLabels={statusLabels}
+        />
+      ))}
+    </div>
+  );
+}
+
 export function CourseMapGrid({ periods, statusLabels }: CourseMapGridProps) {
   const statusOrder = Object.keys(statusLabels) as CourseMapStatus[];
+  const { regularByNumber, electiveSubjects } = useMemo(
+    () => splitPeriods(periods),
+    [periods]
+  );
 
   return (
     <div className="card">
       <SectionHeader title="Grade Curricular" icon="map" />
 
-      <div className="course-map-legend" role="list" aria-label="Legenda de status">
+      <div
+        className="course-map-legend"
+        role="list"
+        aria-label="Legenda de status"
+      >
         {statusOrder.map((status) => (
           <span key={status} className="course-legend-item" role="listitem">
             <span className={`badge ${STATUS_BADGE[status]}`}>
@@ -42,46 +93,25 @@ export function CourseMapGrid({ periods, statusLabels }: CourseMapGridProps) {
         ))}
       </div>
 
-      <div className="course-map-grid">
-        {periods.map((period) => (
-          <div key={period.period} className="course-period-column">
-            <h4 className="course-period-label">
-              {formatPeriodLabel(period.period)}
-            </h4>
-            <ul className="course-node-list">
-              {period.subjects.map((node) => (
-                <li key={node.code}>
-                  {node.status === "locked" ? (
-                    <div
-                      className={`course-node ${node.status}`}
-                      aria-label={`${node.name} — trancada`}
-                    >
-                      <Icon name="lock" size={14} aria-hidden />
-                      <div>
-                        <p className="course-node-code">{node.code}</p>
-                        <p className="course-node-name">{node.name}</p>
-                      </div>
-                    </div>
-                  ) : (
-                    <Link
-                      href={`/disciplinas/${encodeURIComponent(node.code)}`}
-                      className={`course-node ${node.status}`}
-                      aria-label={`${node.name} — ${statusLabels[node.status]}`}
-                    >
-                      <Icon name={nodeIcon(node.status)} size={14} aria-hidden />
-                      <div>
-                        <p className="course-node-code">{node.code}</p>
-                        <p className="course-node-name">{node.name}</p>
-                        <p className="course-node-ch">{node.ch}h</p>
-                      </div>
-                    </Link>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
+      <div className="course-map-layout" role="table" aria-label="Grade por período">
+        <CourseMapPeriodRow
+          periodNumbers={PERIODS_ROW_ONE}
+          regularByNumber={regularByNumber}
+          statusLabels={statusLabels}
+          rowLabel="Períodos 1 a 5"
+        />
+        <CourseMapPeriodRow
+          periodNumbers={PERIODS_ROW_TWO}
+          regularByNumber={regularByNumber}
+          statusLabels={statusLabels}
+          rowLabel="Períodos 6 a 10"
+        />
       </div>
+
+      <CourseMapElectivesStrip
+        subjects={electiveSubjects}
+        statusLabels={statusLabels}
+      />
 
       <p className="panel-footer-note">
         Grafo interativo com pré-requisitos será implementado na Fase 5.

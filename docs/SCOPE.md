@@ -177,9 +177,27 @@ Cada disciplina tem uma página própria com:
 - O aluno pode **criar tarefas manualmente** para matérias cujo professor não usa o SIGAA.
 
 ### 5.6 Download Automático de PDFs
+
+> **Decisão (jun/2025):** PDFs **não** são armazenados no Supabase nem no servidor do app (exceto buffer temporário durante upload). Ficam na **nuvem pessoal** do aluno.
+
 - Toggle (ativar/desativar) **por disciplina**.
-- Quando ativo, materiais da disciplina são baixados pelo worker e armazenados no **Supabase Storage** (`user_id/{disciplina}/`).
-- No web, o aluno acessa/baixa pelo app; no mobile v1, download automático fica fora do escopo.
+- Aluno conecta **sua** conta de nuvem via OAuth: **Google Drive**, **Dropbox** ou **OneDrive** (v1 pode começar com um provedor).
+- O app cria (ou reutiliza) a pasta raiz **`CEFET Academic Planner/`** na nuvem do usuário.
+- Estrutura de pastas:
+
+```
+CEFET Academic Planner/
+  {semestre}/              ← ex.: 2025-1
+    {disciplina}/           ← nome ou código da matéria
+      material-01.pdf
+      lista-exercicios.pdf
+```
+
+- Quando o toggle está ativo, o worker/scraper baixa materiais do SIGAA (Turma Virtual → Materiais) e faz upload na pasta `{semestre}/{disciplina}/`.
+- Na UI web, o aluno vê quantidade de arquivos e link para abrir a pasta/arquivo na nuvem.
+- Tokens OAuth ficam **cifrados** no banco (SQLite dev → Postgres prod) — ver **B57**.
+- No mobile v1, download automático fica fora do escopo; leitura via link da nuvem é opcional.
+- **LGPD:** arquivos permanecem na conta do titular; o app só solicita permissão de escrita na pasta do programa.
 
 ### 5.7 Grupos de Estudo
 - Exibe os membros do grupo cadastrado pelo professor (nome, matrícula, email, curso).
@@ -212,7 +230,7 @@ Cada curso possui seu **Projeto Pedagógico de Curso (PPC)** próprio. O app usa
 |---|---|
 | **Engenharia da Computação** (Bacharelado — DCDV) | ✅ Indexado (mapa + requisitos) — **único curso até o mobile** |
 
-Todo o produto (SQLite → API → cloud → scraper SIGAA → assinatura → **app mobile Expo Go**) deve funcionar **100% para Eng. Computação** antes de indexar outros PPCs.
+Todo o produto (SQLite → API → **scraper SIGAA** → cloud → assinatura → **app mobile Expo Go**) deve funcionar **100% para Eng. Computação** antes de indexar outros PPCs.
 
 #### Fase 2 — Expansão multi-curso (somente após mobile)
 

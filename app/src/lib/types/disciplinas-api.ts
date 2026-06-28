@@ -47,6 +47,8 @@ export interface SubjectDetailResponse {
   tasks: AcademicTask[];
   attendance: AttendanceSummary;
   grupo: GrupoMembroDto[];
+  /** Disciplina do PPC sem matrícula no semestre atual (só ementa/perfil estático). */
+  catalogOnly?: boolean;
 }
 
 export interface PatchNotasAddBody {

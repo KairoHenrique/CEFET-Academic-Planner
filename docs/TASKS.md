@@ -2,15 +2,15 @@
 
 Este documento contém todas as tasks do projeto, organizadas por fase. Cada task tem um status e detalhes suficientes para qualquer desenvolvedor (humano ou IA) entender e implementar.
 
-> ## Direção atual — Cloud + Assinatura PIX + Mobile
+> ## Direção atual — Sync SIGAA → Cloud → PIX → Mobile
 >
-> App hospedado (Supabase), assinatura PIX, mobile Expo Go — ver [`docs/SCOPE-CLOUD.md`](./SCOPE-CLOUD.md).
+> **Prioridade:** terminar Bloco 1 (SQLite) → **Scraper/sync real (Bloco 2) enquanto o semestre está ativo** → depois Supabase/deploy. PDFs **não** vão para o Supabase — vão para a **nuvem pessoal** do aluno. Ver [`docs/SCOPE-CLOUD.md`](./SCOPE-CLOUD.md).
 >
 > - **Regras acadêmicas:** [`docs/SCOPE.md`](./SCOPE.md)
-> - **Ordem de execução:** [§ Ordem oficial](#ordem-oficial-de-execução-v2)
-> - **Modo testes:** deploy global; RLS na fase 6c (antes do PIX)
+> - **Ordem de execução:** [§ Ordem oficial](#ordem-oficial-de-execução-v3)
+> - **Modo testes:** deploy global após sync validado; RLS na fase 6c (antes do PIX)
 
-**Navegação rápida:** [Ordem oficial v2](#ordem-oficial-de-execução-v2) · [Checklist BACK→FRONT](#checklist-mestre-ordem-de-execução) · [Detalhe por bloco](#detalhe-dos-blocos) · [Escopo cloud](./SCOPE-CLOUD.md)
+**Navegação rápida:** [Ordem oficial v3](#ordem-oficial-de-execução-v3) · [Checklist BACK→FRONT](#checklist-mestre-ordem-de-execução) · [Detalhe por bloco](#detalhe-dos-blocos) · [Escopo cloud](./SCOPE-CLOUD.md) · [PDFs na nuvem pessoal](./SCOPE.md#56-download-automático-de-pdfs)
 
 **Legenda:**
 - `[ ]` — Não iniciada
@@ -75,25 +75,26 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
 
 ### 1.4 API e Integração UI ↔ SQLite
 
-> **Progresso:** Etapas 1–2 ✅ · 3A ✅ · 3B ✅ · 3C ✅ (push `87f2687`) · **3D commit local** — B18 `[%]` (`7f06cd4`) · F12 `[%]` (aguardando push) · **3E** pendente.
+> **Progresso:** Etapas 1–2 ✅ · 3A ✅ · 3B ✅ · 3C ✅ · **3D ✅** · **3E pendente** (B19 → F13).
 
-Roadmap detalhado: ver **[Ordem oficial](#ordem-oficial-de-execução-v2)** e **[Checklist mestre](#checklist-mestre-ordem-de-execução)**.
+Roadmap detalhado: ver **[Ordem oficial v3](#ordem-oficial-de-execução-v3)** e **[Checklist mestre](#checklist-mestre-ordem-de-execução)**. **Próximo macro:** Bloco 2 (sync) **antes** do Supabase.
 
 ---
 
-## Ordem oficial de execução (v2)
+## Ordem oficial de execução (v3)
 
-> **Princípio:** terminar produto em SQLite → subir **global** para testes → dados reais (SIGAA) → cobrar (PIX) → mobile → inteligência → polimento.  
-> **Modo testes global:** URL pública + Supabase free; **RLS/multi-tenant só na fase 6c**, antes do PIX.
+> **Princípio (jun/2025):** terminar Bloco 1 no SQLite → **sync SIGAA real (Bloco 2) antes do Supabase** — semestre acaba em breve e só com turma ativa dá para validar Playwright de verdade → depois cloud (6a/6b) → RLS (6c) → PIX → mobile → inteligência → polimento.  
+> **PDFs:** **nunca** no Supabase Storage; scraper envia para a **nuvem pessoal** do aluno (OAuth Drive/Dropbox/OneDrive) em pastas `{App}/{semestre}/{matéria}/`.  
+> **Modo testes global (6a):** URL pública + Supabase free; **RLS/multi-tenant só na 6c**, antes do PIX.
 
 ```
-FASE A   Bloco 1 (3D→3E)     SQLite local — mapa, grade (integralização ✅ · calendário ✅)
+FASE A   Bloco 1 (3E)          SQLite local — grade semanal (integralização ✅ · calendário ✅ · mapa ✅)
     ↓
-FASE B   Bloco 6a            Supabase + deploy global (seed compartilhado, sem RLS rígido)
-         Bloco 6b            Auth app + credenciais SIGAA cifradas
-    ↓
-FASE C   Bloco 2a            Scraper dev (B24–B31) — validar Playwright
+FASE B   Bloco 2a            Scraper dev (B24–B31, B57) — sync REAL ⚠️ prioridade semestre
          Bloco 2b            Worker servidor (B54–B56)
+    ↓
+FASE C   Bloco 6a            Supabase + deploy global (seed, sem RLS rígido)
+         Bloco 6b            Auth app + credenciais SIGAA cifradas
          Bloco 6c            RLS multi-tenant — obrigatório antes de cobrar
     ↓
 FASE D   Bloco 7             Assinatura PIX
@@ -107,11 +108,11 @@ FASE F   Bloco 3             Inteligência acadêmica
 | # | Fase | Bloco | O que fazer | Por quê nesta ordem |
 |---|------|-------|-------------|---------------------|
 | **0** | — | **0** | Planejamento | ✅ Concluído |
-| **1** | A | **1** (3D→3E) | Mapa, grade semanal (integralização ✅ · calendário ✅) | UI completa; iteração rápida sem infra |
-| **2** | B | **6a** | Supabase + PG + deploy URL pública | Testes globais; fim do localhost-only |
-| **3** | B | **6b** | Auth + onboarding SIGAA | Contas do app; beta fechado |
-| **4** | C | **2a** | Scraper B24–B31 (dev) | Validar antes do worker |
-| **5** | C | **2b** | Worker B54–B56 | Sync em produção |
+| **1** | A | **1** (3E) | Grade semanal (integralização ✅ · calendário ✅ · mapa ✅) | Fechar Bloco 1 antes do sync |
+| **2** | B | **2a** | Scraper B24–B31 + OAuth nuvem (B57) | **Validar sync com SIGAA real antes do fim do semestre** |
+| **3** | B | **2b** | Worker B54–B56 | Sync assíncrono em produção |
+| **4** | C | **6a** | Supabase + PG + deploy URL pública | Testes globais **depois** do sync funcionar |
+| **5** | C | **6b** | Auth + onboarding SIGAA | Contas do app; beta fechado |
 | **6** | C | **6c** | RLS por usuário | Segurança antes de abrir pagamento |
 | **7** | D | **7** | PIX + gate de acesso | Monetização com produto estável |
 | **8** | E | **8** | Expo Go | Mobile quando API cloud estiver ok |
@@ -119,12 +120,17 @@ FASE F   Bloco 3             Inteligência acadêmica
 | **10** | F | **4** | Skeletons, transições, favicon | Acabamento final |
 | **11** | — | **9** | Multi-PPC (Mecatrônica, Moda) | **Só após #8 mobile** com Eng. Computação completa |
 
+### Sync antes da cloud (decisão de produto)
+
+- Bloco **2a** roda em **dev local + SQLite** — não precisa Supabase para testar login SIGAA, portal, turmas e PDFs.
+- Objetivo: substituir `seed-demo` por pipeline Playwright **ainda com semestre ativo**.
+- Supabase (**6a**) só depois que B31 (integração no `runSync`) estiver validado.
+
 ### Modo global de testes (6a)
 
 - Deploy Vercel com URL compartilhável.
-- Supabase free; seed-demo ou dados de demonstração.
+- Supabase free; seed-demo ou dados já sincronizados do scraper.
 - RLS **permissivo ou desligado** — ok para beta fechado.
-- Sync SIGAA ainda mock/seed até **2a** estar pronto.
 - **6c obrigatório** antes do **Bloco 7** (PIX) e divulgação ampla.
 
 ---
@@ -140,9 +146,9 @@ Estratégia: **fatias verticais** — backend primeiro, depois frontend.
 | Bloco | Exec. # | Em uma linha |
 |-------|---------|--------------|
 | **0** | #0 | Planejamento ✅ |
-| **1** | #1 | API + SQLite (falta 3E; 3D `[%]` aguardando push) |
-| **6** | #2–3, #6 | Cloud Supabase — 6a deploy → 6b auth → 6c RLS |
-| **2** | #4–5 | Scraper — 2a dev → 2b worker |
+| **1** | #1 | API + SQLite (falta 3E) |
+| **2** | #2–3 | Scraper SIGAA — **prioridade pós-Bloco 1** |
+| **6** | #4–6 | Cloud Supabase — **após sync validado** |
 | **7** | #7 | Assinatura PIX |
 | **8** | #8 | Mobile Expo Go |
 | **3** | #9 | Inteligência acadêmica |
@@ -162,14 +168,14 @@ Estratégia: **fatias verticais** — backend primeiro, depois frontend.
 
 ## Checklist mestre (ordem de execução)
 
-> Siga a **[Ordem oficial](#ordem-oficial-de-execução-v2)** (#0→#10).  
+> Siga a **[Ordem oficial v3](#ordem-oficial-de-execução-v3)** (#0→#10).  
 > **Regra:** dentro de cada fatia → **`BACK` (B) primeiro**, depois **`FRONT` (F)**. Detalhes nas [tabelas por bloco](#detalhe-dos-blocos).
 
 Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento · `[ ]` pendente · `·` = task extra
 
 ---
 
-### #1 — Bloco 1 · API + UI ↔ SQLite `🟡 45/49`
+### #1 — Bloco 1 · API + UI ↔ SQLite `🟡 47/49`
 
 > Fatias verticais: **back → front** por etapa.
 
@@ -192,9 +198,9 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 - [x] **BACK:**  B16 → B17
 - [x] **FRONT:** F11 · F11b
 
-#### Etapa 3D — Mapa do curso *(B18 `[%]` · F12 `[%]` — aguardando push)*
-- [ ] **BACK:**  B18
-- [ ] **FRONT:** F12
+#### Etapa 3D — Mapa do curso ✅
+- [x] **BACK:**  B18
+- [x] **FRONT:** F12
 
 #### Etapa 3E — Grade semanal
 - [ ] **BACK:**  B19
@@ -204,9 +210,36 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 
 ---
 
-### #2 — Bloco 6a · Cloud — deploy global (testes) `⬜ 0/8`
+### #2 — Bloco 2a · Scraper SIGAA — dev `⬜ 0/8`
 
-> Supabase + Postgres + URL pública. RLS flexível nesta fase.
+> **⚠️ Prioridade pós-Bloco 1:** validar Playwright com **semestre ativo** antes do Supabase. Dev local + SQLite.
+
+- [ ] **BACK:**  B24 → B25 → B26
+- [ ] **BACK:**  B27
+- [ ] **BACK:**  B28
+- [ ] **BACK:**  B57 *(OAuth nuvem pessoal — Drive/Dropbox/OneDrive)*
+- [ ] **BACK:**  B29 *(PDFs SIGAA → pasta na nuvem do aluno)*
+- [ ] **BACK:**  B30 → B31
+- [ ] **FRONT:** F18
+- [ ] **FRONT:** F35 *(Conectar minha nuvem + preview da estrutura de pastas)*
+
+**Ordem 2a:** `B24–B26` → `B27` → `B28` → `B57` → `B29` → `B30` → `B31` → `F18` → `F35`
+
+---
+
+### #3 — Bloco 2b · Scraper SIGAA — worker `⬜ 0/4`
+
+- [ ] **BACK:**  B54 → B55 → B56
+- [ ] **OPS:**   O3
+- [ ] **FRONT:** F19
+
+**Ordem 2b:** `B54 → B55 → B56` → `O3` → `F19`
+
+---
+
+### #4 — Bloco 6a · Cloud — deploy global (testes) `⬜ 0/8`
+
+> Supabase + Postgres + URL pública. **Só após B31 validado.** RLS flexível nesta fase.
 
 - [ ] **PLAN:** Projeto Supabase free + env dev/prod
 - [ ] **BACK:**  B39 → B41 → B42 → B43
@@ -217,37 +250,12 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 
 ---
 
-### #3 — Bloco 6b · Cloud — Auth `⬜ 0/5`
+### #5 — Bloco 6b · Cloud — Auth `⬜ 0/4`
 
-- [ ] **BACK:**  B44 → B45 → B46
+- [ ] **BACK:**  B44 → B45
 - [ ] **FRONT:** F29 → F30
 
-**Ordem 6b:** `B44 → B45 → B46` → `F29 → F30`
-
----
-
-### #4 — Bloco 2a · Scraper SIGAA — dev `⬜ 0/6`
-
-> Validar Playwright localmente antes do worker.
-
-- [ ] **BACK:**  B24 → B25 → B26
-- [ ] **BACK:**  B27
-- [ ] **BACK:**  B28 → B29
-- [ ] **BACK:**  B30
-- [ ] **BACK:**  B31
-- [ ] **FRONT:** F18
-
-**Ordem 2a:** `B24–B26` → `B27` → `B28–B29` → `B30` → `B31` → `F18`
-
----
-
-### #5 — Bloco 2b · Scraper SIGAA — worker `⬜ 0/4`
-
-- [ ] **BACK:**  B54 → B55 → B56
-- [ ] **OPS:**   O3
-- [ ] **FRONT:** F19
-
-**Ordem 2b:** `B54 → B55 → B56` → `O3` → `F19`
+**Ordem 6b:** `B44 → B45` → `F29 → F30`
 
 ---
 
@@ -332,9 +340,9 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 | Exec. # | Bloco | Status | Progresso |
 |---------|-------|--------|-----------|
 | #0 | 0 — Planejamento | ✅ | Concluído |
-| **#1** | **1 — SQLite (3D–3E)** | 🟡 **Atual** | 45 / 49 |
-| #2–3 | 6 — Cloud Supabase | ⬜ | 0 / 14 |
-| #4–5 | 2 — Scraper SIGAA | ⬜ | 0 / 14 |
+| **#1** | **1 — SQLite (3E)** | 🟡 **Atual** | 47 / 49 |
+| **#2** | **2 — Scraper SIGAA (2a→2b)** | ⬜ **Próximo** | 0 / 12 |
+| #4–6 | 6 — Cloud Supabase | ⬜ | 0 / 14 *(após sync)* |
 | #7 | 7 — Assinatura PIX | ⬜ | 0 / 12 |
 | #8 | 8 — Mobile Expo Go | ⬜ | 0 / 10 |
 | #9 | 3 — Inteligência | ⬜ | 0 / 11 |
@@ -358,7 +366,7 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 | **3A** | Disciplinas | Listagem, detalhe, notas, tarefas, faltas via API |
 | **3B** | Calendário | Eventos acadêmicos + tarefas/provas na agenda ✅ |
 | **3C** | Integralização | CH por categoria + horas manuais ✅ |
-| **3D** | Mapa | Grade PPC + status via API (B18 · F12 `[%]` — aguardando push) |
+| **3D** | Mapa | Grade PPC + status via API (B18 · F12 ✅) |
 | **3E** | Grade semanal | Horários do semestre vindos do banco |
 
 #### Etapa 1 — Fundação (só backend) ✅
@@ -399,7 +407,7 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 
 #### Etapa 3 — Demais telas (back → front)
 
-> **3C Integralização:** ✅ (push `87f2687`) · **3D Mapa:** B18 `[%]` · F12 `[%]` (aguardando push)
+> **3C Integralização:** ✅ · **3D Mapa:** ✅ (B18 · F12) · **3E Grade:** pendente
 
 ##### 3A — Disciplinas
 
@@ -454,12 +462,12 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 
 ##### 3D — Mapa do curso
 
-> **Resumo:** `/mapa` — PPC por período com status (histórico + pré-requisitos). **B18 + F12 `[%]`** — API + UI via TanStack Query (`useMapa`); aguardando push.
+> **Resumo:** `/mapa` — PPC por período (1–5 / 6–10 + optativas), status via API, `useMapa`, perfil PPC com ementas ao clicar.
 
 | # | Tipo | Task | Resumo | Status |
 |---|------|------|--------|--------|
-| B18 | Back | `GET /api/mapa` | Disciplinas por período + status (histórico + pré-requisitos) | [%] |
-| F12 | Front | `CourseMapGrid` | Grid visual consumindo `GET /api/mapa` + `MapaStatsBar` + skeleton | [%] |
+| B18 | Back | `GET /api/mapa` | Disciplinas por período + status (histórico + pré-requisitos) | [x] |
+| F12 | Front | `CourseMapGrid` | Grid via API + layout 1–5/6–10 + optativas + ementas PPC | [x] |
 
 ##### 3E — Grade semanal
 
@@ -509,11 +517,12 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 |---|------|------|--------|--------|
 | B44 | Back | Supabase Auth | Cadastro/login/recuperação (conta app) | [ ] |
 | B45 | Back | SIGAA cifrado | Credenciais portal no perfil | [ ] |
-| B46 | Back | Storage PDFs | Bucket por usuário | [ ] |
 | F29 | Front | Auth UI | Login/cadastro Supabase | [ ] |
 | F30 | Front | Onboarding | Vincular credenciais SIGAA | [ ] |
 
-**Ordem:** `B44 → B45 → B46` → `F29 → F30`
+**Ordem:** `B44 → B45` → `F29 → F30`
+
+> **PDFs:** OAuth nuvem pessoal = **B57** (Bloco 2a), não Supabase Storage.
 
 #### 6c — Multi-tenant
 
@@ -603,16 +612,18 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 | B26 | Back | Erros de auth | Credencial inválida, timeout, SIGAA offline | 2.1 | [ ] |
 | B27 | Back | Scraper portal discente | RG, CH, matérias do semestre, atividades | 2.2 | [ ] |
 | B28 | Back | Scraper turma virtual | Notas, faltas, tarefas e grupo por matéria | 2.3 | [ ] |
-| B29 | Back | Download PDFs | Materiais → Supabase Storage | 2.3 | [ ] |
+| B57 | Back | OAuth nuvem pessoal | Conectar Google Drive / Dropbox / OneDrive; tokens cifrados | 2.3 | [ ] |
+| B29 | Back | PDFs → nuvem | Materiais SIGAA → `CEFET Academic Planner/{semestre}/{matéria}/` | 2.3 | [ ] |
 | B30 | Back | Turmas + calendário | Ofertas próximo sem + datas oficiais + histórico | 2.4 | [ ] |
 | B31 | Back | Integrar no `runSync` | Troca seed-demo por pipeline real | 2.x | [ ] |
 | F18 | Front | Erros reais no login | Remove simulação mock de falhas | 2.1 | [ ] |
+| F35 | Front | UI nuvem pessoal | Conectar/desconectar nuvem; preview pastas; toggle por disciplina | 2.3 | [ ] |
 | F19 | Front | `/simulador` via API | Montar grade com turmas ofertadas reais | 2.4 | [ ] |
 
-**Ordem 2a:** `B24 → B25 → B26` → `B27` → `B28 → B29` → `B30` → `B31` → `F18`  
+**Ordem 2a:** `B24 → B25 → B26` → `B27` → `B28` → `B57` → `B29` → `B30` → `B31` → `F18` → `F35`  
 **Ordem 2b:** ver [Worker SIGAA](#worker-sigaa--bloco-2b-detalhe) → `F19`
 
-> Checklist: **#4–#5** no [Checklist mestre](#checklist-mestre-ordem-de-execução)
+> Checklist: **#2–#3** no [Checklist mestre](#checklist-mestre-ordem-de-execução)
 
 ---
 
@@ -662,18 +673,18 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 
 ---
 
-### Visão geral (ordem de execução v2)
+### Visão geral (ordem de execução v3)
 
 ```
 #0  Bloco 0   Planejamento                    ✅
       ↓
-#1  Bloco 1   SQLite 3D→3E (mapa, grade…)     🟡 ← agora
+#1  Bloco 1   SQLite 3E (grade…)              🟡 ← agora
       ↓
-#2  Bloco 6a  Supabase + deploy global       (testes, sem RLS rígido)
-#3  Bloco 6b  Auth app + SIGAA cifrado
+#2  Bloco 2a  Scraper dev + sync REAL          ⚠️ prioridade semestre
+#3  Bloco 2b  Worker servidor
       ↓
-#4  Bloco 2a  Scraper dev (B24–B31)
-#5  Bloco 2b  Worker servidor (B54–B56)
+#4  Bloco 6a  Supabase + deploy global       (após sync validado)
+#5  Bloco 6b  Auth app + SIGAA cifrado
 #6  Bloco 6c  RLS multi-tenant               (antes do PIX)
       ↓
 #7  Bloco 7   Assinatura PIX
@@ -723,7 +734,7 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 - [ ] Extrair tooltip de cada nota (hover → "Avaliação: X | Nota Máxima: Y")
 - [ ] Extrair grupo (Alunos → Ver Grupo): membros, matrícula, email
 - [ ] Extrair tarefas (Atividades → Tarefas): individuais e em grupo, com links de download
-- [ ] Download de materiais/PDFs (Materiais): gravar no Supabase Storage
+- [ ] Download de materiais/PDFs (Materiais): enviar para **nuvem pessoal** do aluno (`CEFET Academic Planner/{semestre}/{matéria}/`) — **B57 + B29**
 
 ### 2.4 Scraper: Funcionalidades Adicionais
 - [ ] Consultar turmas ofertadas para o próximo semestre (Ensino → Consultar Turmas)
@@ -734,7 +745,7 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 
 ## Fase 3: Interface do Usuário — Telas Principais
 
-> **Resumo:** Shell visual de login, dashboard, calendário, mapa, integralização e simulador. Integração SQLite: dashboard ✅ · disciplinas ✅ · calendário ✅ · integralização ✅ · **mapa:** via API (B18 · F12 `[%]`) · grade semanal mock (F13).
+> **Resumo:** Shell visual de login, dashboard, calendário, mapa, integralização e simulador. Integração SQLite: dashboard ✅ · disciplinas ✅ · calendário ✅ · integralização ✅ · **mapa ✅** (B18 · F12) · grade semanal mock (F13).
 
 ### 3.1 Tela de Login
 - [x] Input de usuário e senha do SIGAA
@@ -844,9 +855,11 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 - [x] Atualização de presença via `PATCH /api/disciplinas/[code]/faltas`
 
 ### 4.5 Download Automático de PDFs
-- [/] Toggle on/off por disciplina — **na página da disciplina** (`SubjectDownloadsPanel`); persistência via Supabase Storage (Bloco 6)
+- [/] Toggle on/off por disciplina — **na página da disciplina** (`SubjectDownloadsPanel`); persistência local até **F35**
 - [x] Indicador de "X arquivos baixados" por matéria
-- [ ] Listar e baixar PDFs do Storage na UI (substitui placeholder de pasta local)
+- [ ] Conectar nuvem pessoal (Google Drive / Dropbox / OneDrive) — **B57 + F35**
+- [ ] Listar PDFs na UI com link para pasta/arquivo na nuvem do aluno — **B29 + F35**
+- [ ] Estrutura de pastas na nuvem: `CEFET Academic Planner/{semestre}/{matéria}/*.pdf` — ver `SCOPE.md` §5.6
 
 ---
 
@@ -948,8 +961,8 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
    - Faça **commit** ao concluir cada task (push só quando o usuário pedir).
    - **Obrigatório:** toda entrega deve refletir no TASKS.md **no mesmo ciclo** — tabela B/F, checklist mestre, progresso, bullets de UI e notas para agentes **sem texto stale**.
 8. **Próximo passo do roadmap:** indique **somente após push** (tasks em `[x]`). Com commits locais `[%]` pendentes, **não** avance o roadmap na resposta.
-9. **Ordem de execução:** seguir [Ordem oficial v2](#ordem-oficial-de-execução-v2) e [Checklist mestre](#checklist-mestre-ordem-de-execução) — **não** a numeração antiga 1→2→3→4. Dentro de cada fatia: `B` antes de `F`.
-10. **Modo testes global (6a):** deploy com URL pública; Supabase free; RLS **só na 6c** (antes do PIX).
-11. **Próximo passo:** push pendente **B18 + F12** (commits locais) → depois **B19 → F13**. **Mecatrônica e Moda:** bloqueadas até **#11**, após **#8 mobile**.
+9. **Ordem de execução:** seguir [Ordem oficial v3](#ordem-oficial-de-execução-v3) — **Bloco 2 (sync) antes do Bloco 6 (Supabase)**. Dentro de cada fatia: `B` antes de `F`.
+10. **Modo testes global (6a):** deploy **após** sync validado; RLS **só na 6c** (antes do PIX).
+11. **Próximo passo:** **B19 → F13** (grade semanal) → **Bloco 2a** (sync SIGAA real). **PDFs:** nuvem pessoal do aluno. **Mecatrônica/Moda:** bloqueadas até **#11**, após **#8 mobile**.
 12. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial.
 13. **Código frontend** está em `app/src/` (não na raiz `src/`). Mock data em `app/src/config/mock/`.

@@ -1,4 +1,3 @@
-import { notFoundError } from "@/lib/api/errors";
 import {
   getFaltasByDisciplina,
   getGrupoByDisciplina,
@@ -6,6 +5,7 @@ import {
   getTarefasByDisciplina,
 } from "@/lib/db/queries";
 import type { SubjectDetailResponse } from "@/lib/types/disciplinas-api";
+import { buildDisciplinaPpcProfile } from "./build-disciplina-ppc-profile";
 import { buildAttendanceSummary } from "./attendance";
 import { buildSubjectFromSemestre } from "./build-subject";
 import { mapGrupoMembros, mapTarefaToAcademicTask } from "./mappers";
@@ -13,7 +13,7 @@ import { mapGrupoMembros, mapTarefaToAcademicTask } from "./mappers";
 export function buildDisciplinaDetail(code: string): SubjectDetailResponse {
   const semestre = getSemestreAtualByCodigo(code);
   if (!semestre) {
-    throw notFoundError("Disciplina não encontrada no semestre atual.");
+    return buildDisciplinaPpcProfile(code);
   }
 
   const subject = buildSubjectFromSemestre(semestre);

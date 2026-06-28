@@ -1,5 +1,5 @@
 ---
-description: Tasks — [/] andamento · [%] commit local · [x] push/aprovado · 1 task = 1 commit
+description: TASKS.md sempre 100% sincronizado · [/]→commit→[%]→push→[x] · próximos passos só após push
 alwaysApply: true
 ---
 
@@ -7,68 +7,148 @@ alwaysApply: true
 
 Roadmap: `docs/TASKS.md`
 
+## ⛔ Regra inviolável — TASKS.md 100% atualizado
+
+**`docs/TASKS.md` é a fonte única de verdade do roadmap.** Deve estar **sempre 100% sincronizado** — não “quase”, não “só a tabela B/F”.
+
+Qualquer agente ou dev que tocar em task, status, escopo ou entrega **obrigatoriamente**:
+
+1. **`grep`** o ID da task + etapa (`B18`, `F12`, `3D`, contador `45/49`, etc.) em `docs/TASKS.md`.
+2. Atualiza **todas** as seções do [checklist de 10 pontos](#sincronizar-tasksmd-obrigatório--100-atualizado) no **mesmo ciclo** de trabalho.
+3. **Verifica** antes de commitar ou encerrar o turno (ver [Verificação final](#verificação-final-obrigatória)).
+4. Inclui `docs/TASKS.md` no **mesmo commit** da task quando houve mudança de status ou escopo.
+
+**Nunca considerar trabalho concluído** se restar texto stale (“ainda mock”, “próximo: B16”, B18 como `[x]`/`✅` quando está `[%]`, contador errado, checklist mestre desalinhado da tabela B/F).
+
+Esta regra vale **sempre** — implementação, docs-only, sync manual, push, aprovação do usuário.
+
+---
+
 ## Legenda de status
 
 | Símbolo | Significado |
 |---------|-------------|
 | `[ ]` | Não iniciada |
 | `[/]` | **Em andamento** — marcar **antes** de codar |
-| `[%]` | **Commit local feito** — task entregue, **sem push** (aguardando revisão ou `git push`) |
-| `[x]` | **Finalizada** — push feito **ou** aprovada 100% pelo usuário |
+| `[%]` | **Commit local** — entregue, **sem push** (aguardando revisão/aprovação) |
+| `[x]` | **Aprovada** — push feito **e/ou** aprovada 100% pelo usuário |
 
 ## Ciclo por task (obrigatório)
 
 ```
-[ ] → [/] → implementar → commit (só esta task) → [%] → mini resumo
-                                                          ↓
-                                              (usuário pede push / aprova)
-                                                          ↓
-                                                        [x]
+[ ] → [/] → implementar → sync 100% TASKS.md → commit (só esta task) → [%] → mini resumo
+                                                                                    ↓
+                                                                        (usuário pede push / aprova)
+                                                                                    ↓
+                                                                        sync 100% TASKS.md → [x]
+                                                                                    ↓
+                                                          só agora: indicar próximo passo do roadmap
 ```
 
-**Próxima task:** só marque `[/]` na seguinte **depois** de `[%]` + commit da anterior.
+**Próxima task (`[/]`):** só iniciar a seguinte **depois** de `[%]` + commit da anterior.
+
+**Próximo passo do roadmap:** só informar **depois do push** (tasks em `[x]`). Enquanto houver `[%]` pendente, **não** sugira a task seguinte.
 
 ## Ao iniciar
 
-1. Localize a task em `docs/TASKS.md`.
-2. Marque **`[/]`** antes de implementar.
-3. Ajuste o texto da task se o escopo mudar.
+1. **Leia** `docs/TASKS.md` (checklist mestre, detalhe do bloco atual, §1.4, notas para agentes).
+2. Localize a task nas tabelas B/F.
+3. Marque **`[/]`** antes de implementar (+ sync §1.4 / checklist se aplicável).
+4. Se o escopo mudar, ajuste a task **em todos os lugares** onde aparece (checklist de 10 pontos).
+
+## Sincronizar TASKS.md (obrigatório — 100% atualizado)
+
+> **Regra de ouro:** nunca mude só a linha da tabela B/F. **`grep` + leia** o arquivo e alinhe **todas** as ocorrências no mesmo ciclo (`[/]` → `[%]` → `[x]`).
+
+### Quando marcar `[/]`, `[%]` ou `[x]`, atualize **todos** estes pontos:
+
+| # | Onde no TASKS.md | O que manter alinhado |
+|---|------------------|------------------------|
+| 1 | **Tabela B/F** do bloco (ex.: §3D — `B18`, `F12`) | Coluna Status + resumo se mudou o escopo |
+| 2 | **Checklist mestre** — etapa BACK/FRONT (ex.: `#### Etapa 3D`) | `[ ]` / `[/]` / `[x]` coerente com B e F |
+| 3 | **Cabeçalho do Bloco 1** — `🟡 X/49` | Contagem: +1 por task `[x]` |
+| 4 | **§1.4 Progresso** (bloco API/UI) | Etapa atual, tasks `[%]`/`[x]`, próximo oficial |
+| 5 | **Nota da etapa** em §Detalhe (ex.: `> **3D Mapa:** …`) | Status e próximo passo |
+| 6 | **Tabela Resumo de progresso** (`Exec. #` / `Progresso`) | Ex.: `45 / 49` |
+| 7 | **Ordem oficial / visão geral** (FASE A, `#1 Bloco 1…`) | Etapa atual (ex.: 3D→3E, não 3C se 3C já ✅) |
+| 8 | **Fases UI** (§3.x, §5.x) — bullets da tela | Mock vs API, referência à task F/B correta |
+| 9 | **Notas para Outros Agentes** — item **11. Próximo passo** | Só após push/aprovação (`[x]`) |
+| 10 | Textos **stale** + **SCOPE.md** (se regra de negócio mudou) | Remover “ainda mock”, IDs antigos, próximos passos obsoletos |
+
+### Fluxo de leitura antes de editar
+
+```bash
+grep -n "{ID}" docs/TASKS.md          # todas as menções da task
+grep -n "{Etapa}\|{contador}" docs/TASKS.md   # ex.: 3D, 45/49, Mapa
+# Abrir: checklist mestre · detalhe bloco · §1.4 · resumo progresso · §3.x · notas agentes
+```
+
+### Proibido
+
+- Status `[x]` na tabela com checklist mestre ainda `[ ]`.
+- `[%]` na tabela com texto dizendo `✅` ou “API pronta” sem marcar `[%]`.
+- Progresso `45/49` com 46 tasks `[x]`.
+- “Próximo: F11” quando F11 já está `[x]`.
+- Commit de código **sem** `docs/TASKS.md` quando houve mudança de status/escopo.
+- Encerrar turno ou responder “tasks atualizadas” **sem** ter rodado a verificação final.
+
+## Verificação final (obrigatória)
+
+Antes de **commit**, **push** ou dizer ao usuário que o TASKS está ok:
+
+1. `grep` cada ID alterado — **zero** linhas stale restantes.
+2. Contador `X/49` bate com tasks `[x]` do Bloco 1.
+3. Tabela B/F ↔ checklist mestre ↔ §1.4 ↔ item 11 (agentes) **coerentes**.
+4. Bullets de UI (§3.x / §5.x) refletem mock vs API real.
+5. Nenhum “próximo passo” apontando para task já `[x]`.
+
+Se falhar qualquer item → **corrigir antes de commitar**.
 
 ## Ao concluir (antes do push)
 
 1. Implementação pronta.
-2. Atualize `docs/TASKS.md` (status, contadores, checklist).
-3. **Commit dedicado** — só arquivos desta task + `docs/TASKS.md`.
-4. Marque **`[%]`** (não `[x]`) após o commit.
-5. **Mini resumo** obrigatório (bloco `### ✅ {ID}`).
+2. **Sync 100%** `docs/TASKS.md` → **`[%]`** (nunca `[x]` aqui).
+3. **Verificação final** (checklist acima).
+4. **Commit dedicado** — só arquivos desta task + `docs/TASKS.md`.
+5. **Mini resumo** (sem “próximo passo do roadmap”).
 6. **Nunca** `git push` automaticamente.
+7. **Não** diga qual task vem depois — aguardar push/aprovação.
 
 ## Ao push ou aprovação
 
-- Quando o usuário pedir push (ex.: "dá push"): rode `git push`, depois troque **`[%]` → `[x]`** nas tasks incluídas no push.
-- Se o usuário aprovar sem push: **`[%]` → `[x]`** na task aprovada.
+1. Usuário pede push → `git push` → **`[%]` → `[x]`** nas tasks enviadas.
+2. Aprovação explícita sem push → **`[%]` → `[x]`** na task aprovada.
+3. **Re-sincronize 100%** o TASKS.md (10 pontos + verificação final).
+4. **Só então** informe o próximo passo oficial de `docs/TASKS.md`.
+
+## Mini resumo (após commit → `[%]`)
+
+```markdown
+### ✅ {ID} — {nome}
+- **O que entregou:** …
+- **Arquivos-chave:** …
+- **TASKS.md:** sincronizado (10 pontos)
+- **Status:** [%] commit local — aguardando push/aprovação
+```
+
+**Proibido** no resumo pós-`[%]`: “Próximo na ordem: …”, etc.
+
+Após push → pode incluir: **Próximo na ordem:** {ID}.
 
 ## Múltiplas tasks no mesmo pedido
 
 ```
-A: [/] → … → commit A → [%] → resumo
-B: [/] → … → commit B → [%] → resumo
-C: [/] → … → commit C → [%] → resumo
+A: [/] → sync → commit → [%] → resumo (sem próximo passo)
+B: [/] → sync → commit → [%] → resumo (sem próximo passo)
+(push do usuário → sync → [x] → aí sim: próximo passo)
 ```
 
-Proibido: um commit com A+B+C · push automático.
+Proibido: commit A+B+C · push automático · roadmap adiante com `[%]` pendente · TASKS parcialmente atualizado.
 
 ## Commits
 
-- Mensagem com ID: `feat: … (F9)`
-- Incluir `docs/TASKS.md` quando mudar status
-- Nunca commitar `app/.data/planner.db`, `.env`, credenciais
-- Sem `Co-authored-by: Cursor` · não alterar `git config`
-
-## Exemplo
-
-```markdown
-| B13 | Back | GET /api/calendar | … | [/] |   ← antes de codar
-| B13 | Back | GET /api/calendar | … | [%] |   ← após commit local
-| B13 | Back | GET /api/calendar | … | [x] |   ← após push/aprovação
-```
+- Um commit por task · mensagem com ID: `feat: … (F9)`
+- **`docs/TASKS.md` no mesmo commit** sempre que mudar status, contador ou escopo
+- Antes do commit: **verificação final** (10 pontos)
+- Nunca commitar `.db`, `.env`, credenciais
+- Push só quando o usuário mandar

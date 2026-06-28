@@ -49,7 +49,7 @@ export function SubjectDetailView({ code }: SubjectDetailViewProps) {
       <PageGrid>
         <DashboardStateCard
           title="Disciplina não encontrada"
-          message="Esta matéria não está no semestre atual ou o código é inválido."
+          message="Código inválido ou disciplina ausente do PPC indexado."
           actionLabel="Voltar para disciplinas"
           actionHref="/disciplinas"
         />
@@ -71,7 +71,7 @@ export function SubjectDetailView({ code }: SubjectDetailViewProps) {
     );
   }
 
-  const { subject, tasks, attendance } = data;
+  const { subject, tasks, attendance, catalogOnly } = data;
 
   const renderModule = (id: string) => {
     switch (id) {
@@ -116,6 +116,14 @@ export function SubjectDetailView({ code }: SubjectDetailViewProps) {
       <div className="col-12">
         <SubjectDetailHeader subject={subject} />
       </div>
+      {catalogOnly && (
+        <div className="col-12">
+          <p className="subject-catalog-notice" role="status">
+            Perfil do PPC — disciplina ainda não matriculada neste semestre. Notas,
+            faltas e tarefas ficam disponíveis ao cursar.
+          </p>
+        </div>
+      )}
       <ModuleGrid layout={layout} modules={MODULES} renderModule={renderModule} />
     </PageGrid>
   );
