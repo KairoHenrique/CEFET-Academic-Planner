@@ -44,7 +44,7 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
 ### 1.1 Inicialização do Projeto
 - [x] Criar projeto Next.js com TypeScript (`npx create-next-app`)
 - [x] Configurar estrutura de pastas (`src/app`, `src/components`, `src/lib/db`, `src/lib/engine`)
-- [x] Pasta `src/lib/scraper` — B24–B26 `[%]` (auth + AES + erros); extração portal = B27+
+- [x] Pasta `src/lib/scraper` — B24–B26 ✅ (auth + AES + erros); extração portal = B27+
 - [x] Instalar dependências: `better-sqlite3`, `playwright`, `crypto` (para criptografia de senha)
 
 ### 1.2 Design System (CSS)
@@ -75,9 +75,9 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
 
 ### 1.4 API e Integração UI ↔ SQLite
 
-> **Progresso:** Bloco 1 ✅ · **Bloco 2a:** B24–B26 `[%]` (commit local, aguardando push). **3F** fora do Bloco 1.
+> **Progresso:** Bloco 1 ✅ · **Bloco 2a:** B24–B26 ✅ · **próximo: B27**. **3F** fora do Bloco 1.
 
-Roadmap detalhado: ver **[Ordem oficial v3](#ordem-oficial-de-execução-v3)** e **[Checklist mestre](#checklist-mestre-ordem-de-execução)**. **Bloco 2a** em andamento — B24–B26 `[%]`.
+Roadmap detalhado: ver **[Ordem oficial v3](#ordem-oficial-de-execução-v3)** e **[Checklist mestre](#checklist-mestre-ordem-de-execução)**. **Bloco 2a** — auth ✅; **próximo: B27** (portal discente).
 
 ---
 
@@ -114,7 +114,7 @@ FASE G   Bloco 9             Multi-PPC (Mecatrônica, Moda) 🔒 só após mobil
 | **2** | B | **2a** | Scraper B24–B31 + OAuth nuvem (B57) | **Validar sync com SIGAA real antes do fim do semestre** |
 | **3** | B | **2b** | Worker B54–B56 | Sync assíncrono em produção |
 | **4** | C | **6a** | Supabase + PG + deploy URL pública | Testes globais **depois** do sync funcionar |
-| **5** | C | **6b** | Auth + onboarding SIGAA | Contas do app; beta fechado |
+| **5** | C | **6b** | Auth: login CPF; cadastro e-mail/tel/curso | Contas + PPC + gate |
 | **6** | C | **6c** | RLS por usuário | Segurança antes de abrir pagamento |
 | **7** | D | **7** | PIX + gate de acesso | Monetização com produto estável |
 | **8** | E | **8** | Expo Go | Mobile quando API cloud estiver ok |
@@ -181,10 +181,10 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 |-------|-------|------|----------------------|--------|
 | **#0** | 0 | Planejamento | — | ✅ |
 | **#1** | 1 | SQLite local (API + UI) | ✅ **Concluído** | 49/49 |
-| **#2** | 2a | Scraper dev (Playwright local) | **[%] aguardando push** | 1/8 |
+| **#2** | 2a | Scraper dev (Playwright local) | **⬜ Em andamento** | 1/8 |
 | **#3** | 2b | Worker sync (servidor) | Depois de #2a (B31 ok) | 0/4 |
 | **#4** | 6a | Supabase + deploy global | Depois de #3 | 0/8 |
-| **#5** | 6b | Auth app + SIGAA cifrado | Depois de #4 | 0/4 |
+| **#5** | 6b | Auth: CPF login, cadastro completo | Depois de #4 | 0/9 |
 | **#6** | 6c | RLS multi-tenant | **Obrigatório antes do PIX** | 0/2 |
 | **#7** | 7 | Assinatura PIX | Depois de #6 | 0/12 |
 | **#8** | 8 | Mobile Expo Go | Depois de #7 | 0/10 |
@@ -231,11 +231,11 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 
 ---
 
-### #2 — Bloco 2a · Scraper SIGAA — dev `[%] 1/8`
+### #2 — Bloco 2a · Scraper SIGAA — dev `⬜ 1/8`
 
 > **⚠️ Prioridade pós-Bloco 1:** validar Playwright com **semestre ativo** antes do Supabase. Dev local + SQLite.
 
-- [%] **BACK:**  B24 → B25 → B26
+- [x] **BACK:**  B24 → B25 → B26
 - [ ] **BACK:**  B27
 - [ ] **BACK:**  B28
 - [ ] **BACK:**  B57 *(OAuth nuvem pessoal — Drive/Dropbox/OneDrive)*
@@ -271,12 +271,12 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 
 ---
 
-### #5 — Bloco 6b · Cloud — Auth `⬜ 0/4`
+### #5 — Bloco 6b · Cloud — Auth `⬜ 0/9`
 
-- [ ] **BACK:**  B44 → B45
-- [ ] **FRONT:** F29 → F30
+- [ ] **BACK:**  B44 → B45 → B58 → B63 → B59 → B61 → B62
+- [ ] **FRONT:** F29 · F36
 
-**Ordem 6b:** `B44 → B45` → `F29 → F30`
+**Ordem 6b:** `B44 → B45 → B58 → B63` → `B59` → `F29 → F36` → `B61 → B62`
 
 ---
 
@@ -350,7 +350,7 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 - [ ] **PLAN:** Obter PPC oficial Eng. Mecatrônica (Divinópolis)
 - [ ] **PLAN:** Obter PPC oficial Design de Moda (Divinópolis)
 - [ ] **BACK:** Indexar disciplinas + requisitos + metas de CH (Mecatrônica e Moda)
-- [ ] **BACK/FRONT:** `curso_id` no perfil + mapa/integralização multi-curso
+- [ ] **BACK/FRONT:** indexar PPCs Meca/Moda + mapa/integralização por `curso_id` (cadastro já grava curso no 6b)
 
 **Ordem #11:** `PLAN PPCs` → `indexar seeds` → `curso_id` → smoke por curso
 
@@ -361,11 +361,11 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 | Exec. # | Bloco | Status | Progresso |
 |---------|-------|--------|-----------|
 | #0 | 0 — Planejamento | ✅ | Concluído |
-| **#1** | **1 — SQLite** | ✅ **Concluído** | 49 / 49 `[%]` |
-| **#2** | **2a — Scraper dev** | **[%] aguardando push** | 1 / 8 |
+| **#1** | **1 — SQLite** | ✅ **Concluído** | 49 / 49 |
+| **#2** | **2a — Scraper dev** | ⬜ **Em andamento** | 1 / 8 |
 | **#3** | **2b — Worker sync** | ⬜ | 0 / 4 |
 | #4 | 6a — Cloud deploy | ⬜ *(após #3)* | 0 / 8 |
-| #5 | 6b — Cloud auth | ⬜ | 0 / 4 |
+| #5 | 6b — Cloud auth | ⬜ | 0 / 9 |
 | #6 | 6c — RLS | ⬜ *(antes PIX)* | 0 / 2 |
 | #7 | 7 — Assinatura PIX | ⬜ | 0 / 12 |
 | #8 | 8 — Mobile Expo Go | ⬜ | 0 / 10 |
@@ -547,9 +547,9 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 
 | # | Tipo | Task | Resumo | Fase | Status |
 |---|------|------|--------|------|--------|
-| B24 | Back | `lib/scraper/auth.ts` | Login Playwright + cookies de sessão | 2.1 | [%] |
-| B25 | Back | Criptografia AES-256 | Senha salva cifrada (opcional) | 2.1 | [%] |
-| B26 | Back | Erros de auth | Credencial inválida, timeout, SIGAA offline | 2.1 | [%] |
+| B24 | Back | `lib/scraper/auth.ts` | Login Playwright + cookies de sessão | 2.1 | [x] |
+| B25 | Back | Criptografia AES-256 | Senha salva cifrada (opcional) | 2.1 | [x] |
+| B26 | Back | Erros de auth | Credencial inválida, timeout, SIGAA offline | 2.1 | [x] |
 | B27 | Back | Scraper portal discente | RG, CH, matérias do semestre, atividades | 2.2 | [ ] |
 | B28 | Back | Scraper turma virtual | Notas, faltas, tarefas e grupo por matéria | 2.3 | [ ] |
 | B57 | Back | OAuth nuvem pessoal | Conectar Google Drive / Dropbox / OneDrive; tokens cifrados | 2.3 | [ ] |
@@ -598,14 +598,26 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 
 #### 6b — Auth (#5)
 
+> **Escopo (regras):** `SCOPE.md` §2.0–§2.2, §2.5 · `SCOPE-CLOUD.md` §3–§4.  
+> **Resumo:** cadastro = **e-mail + telefone + CPF + senha SIGAA + curso (PPC)**; **login só CPF + senha**; trial **7 dias / 1× por CPF**.
+
 | # | Tipo | Task | Resumo | Status |
 |---|------|------|--------|--------|
-| B44 | Back | Supabase Auth | Cadastro/login/recuperação (conta app) | [ ] |
-| B45 | Back | SIGAA cifrado | Credenciais portal no perfil | [ ] |
-| F29 | Front | Auth UI | Login/cadastro Supabase | [ ] |
-| F30 | Front | Onboarding | Vincular credenciais SIGAA | [ ] |
+| B44 | Back | Conta do aluno | Cadastro: e-mail, telefone, CPF, `curso_id`, senha cifrada; **login só CPF** | [ ] |
+| B45 | Back | Credenciais cifradas | Persistência AES (CPF + senha) — estende B25 para conta cloud | [ ] |
+| B58 | Back | Trial por CPF | Registro `trial_por_cpf`: 7 dias **uma vez** por CPF (anti-abuso) | [ ] |
+| B59 | Back | Gate de acesso | Middleware: `trial_active` \| `active` liberam; expirado → billing | [ ] |
+| B63 | Back | `curso_id` na conta | Enum Comp/Meca/Moda; mapa/integralização filtram PPC por curso | [ ] |
+| B61 | Back | Preferências contato | `notificacoes_email_ativas` + PATCH configurações | [ ] |
+| F29 | Front | Cadastro + login | Cadastro: e-mail, tel, CPF, curso, senha · Login: **só CPF + senha** | [ ] |
+| F36 | Front | Menu Config (avatar) | Configurações; toggle notificações e-mail | [ ] |
+| B62 | Back | E-mails transacionais | Fila: atividades + nota de prova (respeita toggle) | [ ] |
 
-**Ordem:** `B44 → B45` → `F29 → F30`
+**Ordem 6b:** `B44 → B45 → B58 → B63` → `B59` → `F29 → F36` → `B61 → B62`
+
+> **Fora do 6b:** pagamento PIX e planos pagos = **Bloco 7** (B47–B53). Dev local Bloco 1–2 mantém login SIGAA simples até cloud.
+
+**Removido / absorvido:** F30 (onboarding SIGAA separado) — credenciais entram no **cadastro** (F29).
 
 > **PDFs:** OAuth nuvem pessoal = **B57** (Bloco 2a), não Supabase Storage.
 
@@ -628,14 +640,14 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 
 | # | Tipo | Task | Resumo | Status |
 |---|------|------|--------|--------|
-| B47 | Plan | Planos e preços | Semestre / ano / trial? (TBD) | [ ] |
+| B47 | Plan | Planos e preços | Semestre / ano; **trial 7d fechado** (1×/CPF) | [ ] |
 | B48 | Plan | Gateway PIX | Mercado Pago, Asaas, etc. | [ ] |
 | B49 | Back | Tabelas billing | `plans`, `subscriptions`, `payments` | [ ] |
 | B50 | Back | Checkout PIX | `POST /api/billing/checkout` | [ ] |
 | B51 | Back | Webhook | Confirmação → `subscription.active` | [ ] |
-| B52 | Back | Gate middleware | Bloqueia `pending_payment` / `expired` | [ ] |
+| B52 | Back | Gate middleware | Bloqueia `trial_expired` / `pending_payment` / `expired` → PIX | [ ] |
 | B53 | Back | Renovação | Novo PIX + grace period (TBD) | [ ] |
-| F31 | Front | Cadastro + plano | Escolha de plano no signup | [ ] |
+| F31 | Front | Cadastro + plano | Após trial ou CPF já usado: escolha semestre/ano + PIX | [ ] |
 | F32 | Front | Tela PIX | QR + copia-e-cola + aguardando | [ ] |
 | F33 | Front | Renovação | Assinatura expirada | [ ] |
 | F34 | Front | Minha assinatura | Plano, validade, histórico | [ ] |
@@ -740,11 +752,11 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
       ↓
 #1  Bloco 1   SQLite local (3E)               ✅
       ↓
-#2  Bloco 2a  Scraper dev + sync REAL          [%] 1/8 (B24–B26 commit local)
+#2  Bloco 2a  Scraper dev + sync REAL          ⬜ 1/8 — próximo: B27
 #3  Bloco 2b  Worker servidor
       ↓
 #4  Bloco 6a  Supabase + deploy global       (após sync validado)
-#5  Bloco 6b  Auth app + SIGAA cifrado
+#5  Bloco 6b  Auth: cadastro + login CPF (0/9)
 #6  Bloco 6c  RLS multi-tenant               (antes do PIX)
       ↓
 #7  Bloco 7   Assinatura PIX
@@ -777,10 +789,10 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 > **Resumo:** Playwright automatiza login e extração de dados do SIGAA (portal + turmas). Corresponde ao **Bloco 2** (B24–B31, F18–F19).
 
 ### 2.1 Autenticação
-- [%] Implementar login no SIGAA via Playwright (POST para `verTelaLogin.do`) — B24
-- [%] Gerenciar sessão/cookies após login bem-sucedido — B24
-- [%] Implementar criptografia AES-256 para salvar senha local (opcional do usuário) — B25
-- [%] Tratamento de erros: senha inválida, SIGAA fora do ar, timeout — B26
+- [x] Implementar login no SIGAA via Playwright (POST para `verTelaLogin.do`) — B24
+- [x] Gerenciar sessão/cookies após login bem-sucedido — B24
+- [x] Implementar criptografia AES-256 para salvar senha local (opcional do usuário) — B25
+- [x] Tratamento de erros: senha inválida, SIGAA fora do ar, timeout — B26
 
 ### 2.2 Scraper: Portal do Discente
 - [ ] Extrair dados institucionais (matrícula, curso, status, email, entrada)
@@ -809,14 +821,21 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 
 > **Resumo:** Integração SQLite completa no Bloco 1 — incl. **grade semanal via API** (B19 · F13 ✅). Extras na grade continuam no client.
 
-### 3.1 Tela de Login
-- [x] Input de usuário e senha do SIGAA
+### 3.1 Tela de Login / Cadastro
+
+> **Produção (6b+):** cadastro = e-mail + telefone + CPF + curso + senha SIGAA · **login = só CPF + senha**.  
+> **Dev local (Bloco 1–2):** login SIGAA direto (CPF + senha) sem trial/cloud.
+
+- [x] Input de usuário e senha do SIGAA *(dev — vira CPF explícito no F29)*
 - [x] Senha com mostrar/ocultar (`PasswordInput`)
-- [x] Toggle "Lembrar senha neste computador" — persiste usuário no client; senha cifrada no SQLite (**B25** `[%]`)
+- [x] Toggle "Lembrar senha neste computador" — persiste usuário no client; senha cifrada no SQLite (B25 ✅)
 - [x] Botão "Entrar e Sincronizar"
 - [x] Loading state com progresso da sincronização
 - [/] Tratamento de erro visual (credenciais inválidas, SIGAA offline) — mock removido no back; **F18** pendente
-- [x] UI do login (card CEFET-MG, piping dourado, rodapé "Criar conta" → SIGAA, `LoginCard`, `PasswordInput`)
+- [x] UI do login dev (card CEFET-MG, `LoginCard`, `PasswordInput`, rodapé "Criar conta")
+- [ ] Cadastro produção: e-mail, telefone, CPF, **curso (Comp/Meca/Moda)**, senha (F29 · B44 · B58 · B63)
+- [ ] Login produção: **apenas CPF + senha** (sem e-mail no login)
+- [ ] Menu Config no avatar + toggle e-mail (F36 · B61)
 
 ### 3.2 Dashboard Central
 - [x] Header com saudação, nome do aluno e semestre atual — **via API** (`useDashboard`, TanStack Query)
@@ -935,9 +954,9 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 - [x] Popular tabela de requisitos (pré-requisitos e co-requisitos)
 - [x] Dados extraídos do mapa mental existente + PPC oficial
 - [x] **Decisão:** não indexar catálogo de optativas/eletivas no mapa — oferta mutável no SIGAA; CH optativa (240 h) via sync + `/integralizacao`
-- [ ] *(Fase 2 — pós-mobile, #11)* Indexar PPC Eng. Mecatrônica
-- [ ] *(Fase 2 — pós-mobile, #11)* Indexar PPC Design de Moda
-- [ ] *(Fase 2 — pós-mobile, #11)* `curso_id` / seleção de curso no perfil
+- [x] **Decisão:** curso escolhido no **cadastro** (B63 · F29); indexação PPC Meca/Moda = Bloco 9 (#11)
+- [ ] *(Bloco 9 — #11)* Indexar PPC Eng. Mecatrônica
+- [ ] *(Bloco 9 — #11)* Indexar PPC Design de Moda
 
 ### 5.2 Mapa Mental / Grafo do Curso
 - [x] Colunas por período (1–10) com disciplinas obrigatórias e status — **via API** (F12 · B18)
@@ -1026,6 +1045,6 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 8. **Próximo passo do roadmap:** indique **somente após push** (tasks em `[x]`). Com commits locais `[%]` pendentes, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v3](#ordem-oficial-de-execução-v3) — **Bloco 2 (sync) antes do Bloco 6 (Supabase)**. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy **após** sync validado; RLS **só na 6c** (antes do PIX).
-11. **Próximo passo:** Bloco 2a — B24–B26 em `[%]` (aguardando push). **Não** avançar roadmap até push/aprovação. **3F** fora do Bloco 1. **PDFs:** nuvem pessoal do aluno.
+11. **Próximo passo:** **B27** (scraper portal do discente). **3F** fora do Bloco 1. **PDFs:** nuvem pessoal do aluno.
 12. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial.
 13. **Código frontend** está em `app/src/` (não na raiz `src/`). Mock data em `app/src/config/mock/`.
