@@ -34,18 +34,20 @@ export function parseSyncRequest(body: unknown): SyncRequest {
   const record = body as Record<string, unknown>;
   const username = record.username;
   const password = record.password;
+  const savePassword = record.savePassword === true;
 
   if (typeof username !== "string" || username.trim().length === 0) {
     throw validationError("Informe o usuário do SIGAA.");
   }
 
-  if (typeof password !== "string" || password.length === 0) {
-    throw validationError("Informe a senha do SIGAA.");
+  if (password !== undefined && typeof password !== "string") {
+    throw validationError("Senha inválida.");
   }
 
   return {
     username: username.trim(),
-    password,
+    password: typeof password === "string" ? password : "",
+    savePassword,
   };
 }
 

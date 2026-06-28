@@ -36,6 +36,7 @@ export function LoginForm() {
     const credentials = {
       username: trimmedUsername,
       password,
+      savePassword,
     };
 
     const ok = await sync.startSync(credentials);

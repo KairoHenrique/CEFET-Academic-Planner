@@ -2,6 +2,8 @@ export type ApiErrorCode =
   | "VALIDATION_ERROR"
   | "INVALID_CREDENTIALS"
   | "SIGAA_OFFLINE"
+  | "SIGAA_TIMEOUT"
+  | "SIGAA_AUTH_FAILED"
   | "NOT_FOUND"
   | "INTERNAL_ERROR";
 
