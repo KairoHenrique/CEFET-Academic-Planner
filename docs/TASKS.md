@@ -73,7 +73,7 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
 
 ### 1.4 API e Integração UI ↔ SQLite
 
-> **Progresso:** Etapas 1–2 ✅ · 3A ✅ · 3B ✅ · **3C Integralização ✅** (push `59c50b2`) · **próximo: 3D Mapa** (B18 → F12).
+> **Progresso:** Etapas 1–2 ✅ · 3A ✅ · 3B ✅ · 3C ✅ · **3D em andamento** (B18 [%] · **próximo: F12**).
 
 Roadmap detalhado: ver **[Ordem oficial](#ordem-oficial-de-execução-v2)** e **[Checklist mestre](#checklist-mestre-ordem-de-execução)**.
 
@@ -167,7 +167,7 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 
 ---
 
-### #1 — Bloco 1 · API + UI ↔ SQLite `🟡 45/49`
+### #1 — Bloco 1 · API + UI ↔ SQLite `🟡 46/49`
 
 > Fatias verticais: **back → front** por etapa.
 
@@ -191,7 +191,7 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 - [x] **FRONT:** F11 · F11b
 
 #### Etapa 3D — Mapa do curso
-- [ ] **BACK:**  B18
+- [x] **BACK:**  B18
 - [ ] **FRONT:** F12
 
 #### Etapa 3E — Grade semanal
@@ -330,7 +330,7 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 | Exec. # | Bloco | Status | Progresso |
 |---------|-------|--------|-----------|
 | #0 | 0 — Planejamento | ✅ | Concluído |
-| **#1** | **1 — SQLite (3C–3E)** | 🟡 **Atual** | 45 / 49 |
+| **#1** | **1 — SQLite (3C–3E)** | 🟡 **Atual** | 46 / 49 |
 | #2–3 | 6 — Cloud Supabase | ⬜ | 0 / 14 |
 | #4–5 | 2 — Scraper SIGAA | ⬜ | 0 / 14 |
 | #7 | 7 — Assinatura PIX | ⬜ | 0 / 12 |
@@ -397,7 +397,7 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 
 #### Etapa 3 — Demais telas (back → front)
 
-> **3C Integralização:** ✅ (push `59c50b2`) · **próximo:** 3D (B18 → F12)
+> **3D Mapa:** B18 [%] · **próximo:** F12
 
 ##### 3A — Disciplinas
 
@@ -456,7 +456,7 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 
 | # | Tipo | Task | Resumo | Status |
 |---|------|------|--------|--------|
-| B18 | Back | `GET /api/mapa` | Disciplinas por período + status | [ ] |
+| B18 | Back | `GET /api/mapa` | Disciplinas por período + status | [%] |
 | F12 | Front | `CourseMapGrid` | Grid visual consumindo a API | [ ] |
 
 ##### 3E — Grade semanal
@@ -948,5 +948,5 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 8. **Próximo passo do roadmap:** indique **somente após push** (tasks em `[x]`). Com commits locais `[%]` pendentes, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v2](#ordem-oficial-de-execução-v2) e [Checklist mestre](#checklist-mestre-ordem-de-execução) — **não** a numeração antiga 1→2→3→4. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy com URL pública; Supabase free; RLS **só na 6c** (antes do PIX).
-11. **Próximo passo:** **B18 → F12** (mapa do curso). **Mecatrônica e Moda:** bloqueadas até **#11**, após **#8 mobile**.
+11. **Próximo passo:** **F12** (CourseMapGrid via API). B18 [%] local.
 12. **Código frontend** está em `app/src/` (não na raiz `src/`). Mock data em `app/src/config/mock/`.
