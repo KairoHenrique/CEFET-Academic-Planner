@@ -1,6 +1,9 @@
 import { validationError } from "./errors";
 import type { SyncRequest } from "@/lib/types/sync";
-import type { CreateCalendarEventBody } from "@/lib/types/calendar-api";
+import type {
+  CreateCalendarEventBody,
+  PatchCalendarEventBody,
+} from "@/lib/types/calendar-api";
 import type {
   DisciplinaListFilter,
   PatchFaltaBody,
@@ -372,4 +375,62 @@ export function parseCreateCalendarEventBody(
     subjectCode: subjectCode || undefined,
     color: typeof record.color === "string" ? record.color : undefined,
   };
+}
+
+export function parsePatchCalendarEventBody(
+  body: unknown
+): PatchCalendarEventBody {
+  if (!body || typeof body !== "object") {
+    throw validationError("Corpo da requisição inválido.");
+  }
+
+  const record = body as Record<string, unknown>;
+  const action = record.action ?? "toggle";
+
+  if (action === "toggle") {
+    if (typeof record.done !== "boolean") {
+      throw validationError("Campo done deve ser boolean.");
+    }
+    return { action: "toggle", done: record.done };
+  }
+
+  if (action === "delete") {
+    return { action: "delete" };
+  }
+
+  if (action === "update") {
+    const title =
+      record.title === undefined
+        ? undefined
+        : requireNonEmptyString(record.title, "Título");
+
+    const date =
+      record.date === undefined
+        ? undefined
+        : parseIsoDate(record.date, "Data");
+
+    const type =
+      record.type === undefined ? undefined : parseCalendarEventType(record.type);
+
+    let subjectCode: string | null | undefined;
+    if (record.subjectCode === null) {
+      subjectCode = null;
+    } else if (typeof record.subjectCode === "string") {
+      subjectCode = record.subjectCode.trim();
+    }
+
+    return {
+      action: "update",
+      title,
+      description:
+        typeof record.description === "string" ? record.description : undefined,
+      date,
+      type,
+      subjectCode,
+      color: typeof record.color === "string" ? record.color : undefined,
+      done: typeof record.done === "boolean" ? record.done : undefined,
+    };
+  }
+
+  throw validationError('Ação inválida. Use "toggle", "update" ou "delete".');
 }
