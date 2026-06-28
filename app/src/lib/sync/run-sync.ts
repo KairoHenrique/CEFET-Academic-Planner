@@ -3,6 +3,11 @@ import { seedDemoStudentData } from "@/lib/db/seed-demo";
 import { assertSyncCredentialsAllowed } from "./validate-credentials";
 import type { SyncRequest } from "@/lib/types/sync";
 
+/**
+ * Sync pipeline: dados do SIGAA entram via upsert e nunca sobrescrevem
+ * registros protegidos pelo usuário — ver lib/sync/user-data-priority.ts.
+ */
+
 const SYNC_PIPELINE: Array<{ label: string; progress: number; run: () => void }> =
   [
     {

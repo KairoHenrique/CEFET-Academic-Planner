@@ -1,21 +1,31 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { CalendarEvent } from "@/lib/types/calendar";
+import {
+  CALENDAR_EVENT_TYPES,
+  eventTypeLabels,
+  UNLINKED_SUBJECT_VALUE,
+} from "@/lib/types/calendar";
 import { DEFAULT_EVENT_COLOR } from "@/lib/colors/palette";
 import { useDisciplinas } from "@/hooks/useDisciplinas";
 import { Input } from "@/components/ui/Input";
 import { PlannerSelect } from "@/components/ui/PlannerSelect";
-import { ColorPickerField } from "@/components/ui/ColorPickerField";
+import { ColorDotPicker } from "@/components/ui/ColorDotPicker";
 
-type LinkMode = "personal" | "subject";
+import type { ManualCalendarEventInput } from "@/lib/types/calendar-api";
 
 interface AddEventFormProps {
   defaultDate: string;
   isSubmitting?: boolean;
-  onSubmit: (event: Omit<CalendarEvent, "id" | "manual">) => void;
+  onSubmit: (event: ManualCalendarEventInput) => void;
   onCancel: () => void;
 }
+
+const TYPE_OPTIONS = CALENDAR_EVENT_TYPES.map((value) => ({
+  value,
+  label: eventTypeLabels[value],
+}));
 
 export function AddEventForm({
   defaultDate,
@@ -27,43 +37,65 @@ export function AddEventForm({
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [type, setType] = useState<CalendarEvent["type"]>("tarefa");
-  const [linkMode, setLinkMode] = useState<LinkMode>("personal");
   const [subjectCode, setSubjectCode] = useState("");
-  const [color, setColor] = useState(DEFAULT_EVENT_COLOR);
+  const [color, setColor] = useState("");
   const [colorTouched, setColorTouched] = useState(false);
   const [date, setDate] = useState(defaultDate);
 
-  useEffect(() => {
-    if (!subjectCode && subjects[0]?.code) {
-      setSubjectCode(subjects[0].code);
-    }
-  }, [subjectCode, subjects]);
-
-  const subject = subjects.find((item) => item.code === subjectCode);
+  const defaultSubjectCode = subjects[0]?.code ?? UNLINKED_SUBJECT_VALUE;
+  const activeSubjectCode = subjectCode || defaultSubjectCode;
+  const isUnlinked = activeSubjectCode === UNLINKED_SUBJECT_VALUE;
+  const subject = subjects.find((item) => item.code === activeSubjectCode);
 
   useEffect(() => {
-    if (linkMode === "subject" && subject && !colorTouched) {
-      setColor(subject.color);
+    if (!subjectCode && subjects.length > 0) {
+      setSubjectCode(defaultSubjectCode);
     }
-  }, [linkMode, subject, colorTouched]);
+  }, [subjectCode, subjects, defaultSubjectCode]);
+
+  const previewColor = useMemo(() => {
+    if (colorTouched && color) return color;
+    if (!isUnlinked && subject) return subject.color;
+    return DEFAULT_EVENT_COLOR;
+  }, [color, colorTouched, isUnlinked, subject]);
+
+  const subjectOptions = useMemo(
+    () => [
+      ...subjects.map((item) => ({
+        value: item.code,
+        label: `${item.code} — ${item.name}`,
+      })),
+      { value: UNLINKED_SUBJECT_VALUE, label: "Não associado à matéria" },
+    ],
+    [subjects]
+  );
+
+  const handleSubjectChange = (next: string) => {
+    setSubjectCode(next);
+    if (colorTouched) return;
+    setColor("");
+  };
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     if (!title.trim() || isSubmitting) return;
-    if (linkMode === "subject" && !subjectCode) return;
+
+    const resolvedColor =
+      colorTouched && color ? color : !isUnlinked && subject ? subject.color : "";
 
     onSubmit({
       title: title.trim(),
       description:
         description.trim() ||
-        (linkMode === "personal"
+        (isUnlinked
           ? "Evento pessoal adicionado manualmente."
           : "Tarefa adicionada manualmente."),
       type,
       date,
-      subject: linkMode === "subject" ? subject?.name : undefined,
-      subjectCode: linkMode === "subject" ? subjectCode : undefined,
-      color,
+      subject: isUnlinked ? undefined : subject?.name,
+      subjectCode: isUnlinked ? undefined : activeSubjectCode,
+      color: resolvedColor || DEFAULT_EVENT_COLOR,
+      colorOverride: colorTouched,
       done: false,
     });
   };
@@ -79,48 +111,41 @@ export function AddEventForm({
         disabled={isSubmitting}
       />
       <PlannerSelect
-        label="Vínculo"
-        value={linkMode}
+        label="Disciplina"
+        value={activeSubjectCode}
         fullWidth
-        options={[
-          { value: "personal", label: "Pessoal — sem matéria" },
-          { value: "subject", label: "Vinculado a uma disciplina" },
-        ]}
-        onChange={(next) => setLinkMode(next as LinkMode)}
+        options={subjectOptions}
+        onChange={handleSubjectChange}
       />
-      {linkMode === "subject" && (
-        <PlannerSelect
-          label="Disciplina"
-          value={subjectCode}
-          fullWidth
-          options={subjects.map((item) => ({
-            value: item.code,
-            label: `${item.code} — ${item.name}`,
-          }))}
-          onChange={setSubjectCode}
-        />
-      )}
       <PlannerSelect
         label="Tipo"
         value={type}
         fullWidth
-        options={[
-          { value: "tarefa", label: "Tarefa" },
-          { value: "prova", label: "Prova" },
-          { value: "evento", label: "Evento" },
-          { value: "aula", label: "Aula" },
-        ]}
-        onChange={(next) => setType(next)}
+        options={TYPE_OPTIONS}
+        onChange={(next) => setType(next as CalendarEvent["type"])}
       />
-      <ColorPickerField
-        label="Cor no calendário"
-        value={color}
-        onChange={(next) => {
-          setColorTouched(true);
-          setColor(next);
-        }}
-        disabled={isSubmitting}
-      />
+      <div className="form-field add-event-color-field">
+        <div className="add-event-color-row">
+          <span className="form-label">Cor no calendário</span>
+          <ColorDotPicker
+            value={color || previewColor}
+            onChange={(next) => {
+              setColorTouched(true);
+              setColor(next);
+            }}
+            disabled={isSubmitting}
+            ariaLabel="Personalizar cor do evento"
+            modalTitle="Cor do evento"
+            pickerLabel="Cor personalizada"
+            size="sm"
+          />
+        </div>
+        <p className="add-event-color-hint">
+          {isUnlinked
+            ? "Cor automática se você não personalizar."
+            : "Usando a cor da matéria. Toque na bolinha para outra cor neste evento."}
+        </p>
+      </div>
       <Input
         label="Data"
         type="date"
@@ -137,8 +162,8 @@ export function AddEventForm({
           onChange={(e) => setDescription(e.target.value)}
           rows={3}
           placeholder={
-            linkMode === "personal"
-              ? "Estágio, projeto pessoal, lembrete…"
+            isUnlinked
+              ? "Estágio, monitoria, projeto pessoal…"
               : "O que precisa ser feito?"
           }
           disabled={isSubmitting}

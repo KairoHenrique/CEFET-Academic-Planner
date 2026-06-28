@@ -37,6 +37,8 @@ export interface SemestreAtualRow {
   codigo_horario: string | null;
   horario_traduzido: string | null;
   cor: string | null;
+  apelido: string | null;
+  nome_exibicao: string | null;
   professor: string | null;
   max_faltas: number | null;
   nota_maxima: number | null;
@@ -66,6 +68,8 @@ export interface FaltaRow {
   disciplina_id: string;
   data: string;
   status: "presente" | "falta" | "nao_registrada";
+  manual?: number;
+  status_override?: number;
 }
 
 export interface TarefaRow {
@@ -80,6 +84,7 @@ export interface TarefaRow {
   possui_nota: number;
   concluida: number;
   manual: number;
+  concluida_override?: number;
   instrucoes: string | null;
   entregaveis: string | null;
   pontuacao_maxima: number | null;
@@ -116,15 +121,17 @@ export interface EventoCalendarioRow {
   titulo: string;
   descricao: string | null;
   data: string;
-  tipo: "aula" | "tarefa" | "prova" | "evento";
+  tipo: "aula" | "tarefa" | "prova" | "evento" | "monitoria" | "estagio" | "estudo" | "outro";
   disciplina_id: string | null;
   cor: string | null;
   concluida: number;
   manual: number;
   disciplina_nome?: string | null;
+  disciplina_apelido?: string | null;
 }
 
 export interface TarefaCalendarRow extends TarefaRow {
   disciplina_nome: string;
+  disciplina_apelido?: string | null;
   cor: string | null;
 }

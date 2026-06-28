@@ -1,9 +1,10 @@
 import { notFoundError, validationError } from "@/lib/api/errors";
+import { isAcademicTaskType } from "@/lib/calendar/event-types";
+import { DEFAULT_EVENT_COLOR, pickRandomPaletteColor } from "@/lib/colors/palette";
 import {
   getEventoCalendarioById,
   getSemestreAtualByCodigo,
   getTarefaCalendarByDisciplinaLatest,
-  getTarefaCalendarById,
   insertEventoCalendario,
   saveTarefa,
 } from "@/lib/db/queries";
@@ -26,6 +27,23 @@ function resolveSubject(subjectCode?: string) {
     nome: semestre.nome,
     cor: semestre.cor,
   };
+}
+
+function resolveEventColor(
+  body: CreateCalendarEventBody,
+  subjectCor: string | null
+): string {
+  if (body.color) return body.color;
+  if (subjectCor) return subjectCor;
+  return pickRandomPaletteColor();
+}
+
+function shouldCreateAsTarefa(body: CreateCalendarEventBody): boolean {
+  return (
+    isAcademicTaskType(body.type) &&
+    Boolean(body.subjectCode?.trim()) &&
+    !body.color
+  );
 }
 
 function createAsTarefa(body: CreateCalendarEventBody): CalendarEvent {
@@ -69,7 +87,7 @@ function createAsEventoManual(body: CreateCalendarEventBody): CalendarEvent {
     data: body.date,
     tipo: body.type,
     disciplina_id: subject.disciplinaId,
-    cor: body.color ?? subject.cor ?? "#D4A843",
+    cor: resolveEventColor(body, subject.cor) ?? DEFAULT_EVENT_COLOR,
     concluida: 0,
     manual: 1,
   });
@@ -83,9 +101,7 @@ function createAsEventoManual(body: CreateCalendarEventBody): CalendarEvent {
 }
 
 export function createCalendarEvent(body: CreateCalendarEventBody): CalendarEvent {
-  const hasSubject = Boolean(body.subjectCode?.trim());
-
-  if ((body.type === "tarefa" || body.type === "prova") && hasSubject) {
+  if (shouldCreateAsTarefa(body)) {
     return createAsTarefa(body);
   }
 

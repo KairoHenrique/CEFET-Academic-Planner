@@ -1,6 +1,9 @@
-# 📋 CEFET Academic Planner — Escopo Completo
+# 📋 CEFET Academic Planner — Escopo (Regras de Negócio)
 
-Este documento detalha **todas** as funcionalidades, regras de negócio e premissas do projeto. Serve como referência definitiva para qualquer desenvolvedor (humano ou IA) que precise dar continuidade ao desenvolvimento.
+> **Infraestrutura, cloud, PIX e mobile:** [`docs/SCOPE-CLOUD.md`](./SCOPE-CLOUD.md)  
+> Este documento cobre **funcionalidades acadêmicas**, regras de negócio e comportamento do produto.
+
+Este documento detalha as funcionalidades e premissas de domínio do projeto. Serve como referência para qualquer desenvolvedor (humano ou IA) que implemente features acadêmicas.
 
 ---
 
@@ -10,12 +13,10 @@ Este documento detalha **todas** as funcionalidades, regras de negócio e premis
 
 **Público-alvo:** Alunos do CEFET-MG (inicialmente focado em Engenharia da Computação — Campus Divinópolis).
 
-**Premissas fundamentais:**
-- O app roda **localmente** no PC do aluno (localhost). Sem custos de servidor/domínio.
-- Funciona em **Windows e Linux**.
-- Os dados são armazenados em um **arquivo SQLite local**.
-- A sincronização entre dispositivos é feita colocando o arquivo `.db` em uma pasta sincronizada com **Google Drive, OneDrive ou Dropbox**.
-- O scraper do SIGAA roda via **Playwright** no PC do aluno.
+**Premissas de produto:**
+- O sync do SIGAA **complementa** os dados; o que o aluno cadastrou ou editou tem **prioridade absoluta** (ver §2.4).
+- O scraper do SIGAA roda no **servidor** (worker Playwright) — detalhes em `SCOPE-CLOUD.md`.
+- Cada aluno tem **conta isolada** na nuvem (Supabase + RLS).
 - O design segue a paleta de cores do **Cruzeiro** (Azul Vivo + Dourado).
 
 ---
@@ -23,10 +24,10 @@ Este documento detalha **todas** as funcionalidades, regras de negócio e premis
 ## 2. Autenticação e Motor de Sincronização (Scraper SIGAA)
 
 ### 2.1 Login
-- O aluno fornece seu **login e senha do SIGAA** (sig.cefetmg.br).
-- O sistema oferece **duas opções de persistência:**
-  1. **Salvar senha criptografada localmente** → Sync automático e silencioso a cada abertura do app.
-  2. **Digitar a cada sync** → Mais seguro, o aluno controla quando sincronizar.
+- O aluno fornece seu **login e senha do SIGAA** (sig.cefetmg.br) após criar a conta do app.
+- O sistema oferece **duas opções de persistência** (credenciais cifradas no perfil, servidor):
+  1. **Salvar credenciais cifradas** → sync automático ao abrir o app (worker no servidor).
+  2. **Digitar a cada sync** → mais seguro; credenciais não ficam armazenadas.
 
 ### 2.2 Dados Sincronizados (o que o scraper busca)
 A cada sincronização, o Playwright navega pelo SIGAA e extrai:
@@ -53,6 +54,28 @@ Login:                https://sig.cefetmg.br/sigaa/verTelaLogin.do
 Portal do Discente:   https://sig.cefetmg.br/sigaa/portais/discente/discente.jsf
 Turma Virtual:        https://sig.cefetmg.br/sigaa/ava/index.jsf
 ```
+
+### 2.4 Prioridade de Dados (Regra #1)
+
+**O que o usuário colocou no app nunca pode ser apagado nem sobrescrito pelo sync do SIGAA.**
+
+Ordem de precedência:
+
+1. **Dados do usuário** — cadastros manuais, edições e preferências (notas, avaliações, tarefas, eventos, apelido, nome da matéria, cor, frequência corrigida, integralização manual, etc.).
+2. **Dados do SIGAA** — preenchem lacunas e atualizam apenas registros ainda “puros” (nunca tocados pelo usuário).
+
+Comportamento esperado em cada sync:
+
+| Entidade | Protegido quando | O sync pode |
+|---|---|---|
+| **Notas / avaliações** | `manual = true` ou nota editada pelo aluno | Inserir novas do SIGAA; atualizar linhas ainda puras |
+| **Tarefas** | `manual = true` | Atualizar tarefas do SIGAA; respeitar “concluída” marcada pelo aluno |
+| **Faltas** | status alterado pelo aluno | Atualizar datas ainda puras do SIGAA |
+| **Semestre atual** | apelido, nome de exibição, cor, toggle de PDF | Atualizar sala, horário, professor, limites |
+| **Eventos de calendário** | `manual = true` | Inserir/atualizar só eventos automáticos |
+| **Integralização** | `manual = true` | Atualizar só linhas vindas do SIGAA |
+
+Implementação de referência: `app/src/lib/sync/user-data-priority.ts` e funções `upsertSynced*` em `queries.ts`.
 
 ---
 
@@ -153,10 +176,10 @@ Cada disciplina tem uma página própria com:
 - Também aparecem no **Dashboard Central** e na **Agenda Mensal**.
 - O aluno pode **criar tarefas manualmente** para matérias cujo professor não usa o SIGAA.
 
-### 5.6 Download Automático de PDFs (Desktop)
+### 5.6 Download Automático de PDFs
 - Toggle (ativar/desativar) **por disciplina**.
-- Quando ativo, todos os PDFs/materiais da disciplina são baixados automaticamente para a pasta `docs-downloads/{nome-da-disciplina}/`.
-- Funcionalidade exclusiva do Desktop (não disponível no mobile futuro).
+- Quando ativo, materiais da disciplina são baixados pelo worker e armazenados no **Supabase Storage** (`user_id/{disciplina}/`).
+- No web, o aluno acessa/baixa pelo app; no mobile v1, download automático fica fora do escopo.
 
 ### 5.7 Grupos de Estudo
 - Exibe os membros do grupo cadastrado pelo professor (nome, matrícula, email, curso).
@@ -222,40 +245,22 @@ Cada disciplina tem uma página própria com:
 
 ---
 
-## 7. Exportação e Portabilidade
+## 7. Histórico Escolar (SIGAA)
 
-### 7.1 Exportar/Importar JSON
-- O aluno pode exportar **todos os seus dados** em um arquivo JSON para:
-  - Backup manual.
-  - Migração entre computadores.
-  - Compartilhar com outro agente de IA para análise.
-
-### 7.2 Sincronização via Google Drive
-- O banco SQLite fica em uma pasta configurável.
-- Se essa pasta estiver dentro do Google Drive / OneDrive / Dropbox → sincronização automática e gratuita.
-
-### 7.3 Histórico Escolar
-- O sistema pode emitir/baixar o PDF do Histórico Escolar oficial via SIGAA.
+- O sistema pode emitir/baixar o PDF do Histórico Escolar oficial via SIGAA (scraper — Bloco 2).
 
 ---
 
-## 8. Plano Futuro: App Mobile
+## 8. Mobile
 
-| Aspecto | Estratégia |
-|---|---|
-| **Framework** | React Native (Expo) — reaproveita componentes React |
-| **Banco de dados** | Lê o mesmo `.db` sincronizado via Google Drive API |
-| **Scraper** | Não roda no mobile. A sincronização com SIGAA é feita no Desktop |
-| **Modo** | Leitor inteligente offline dos dados já sincronizados |
-| **Funcionalidades** | Dashboard, Calendário, Notas, Faltas, Mapa do PPC |
-| **Exclusões** | Download automático de PDFs (somente Desktop) |
+Ver **`docs/SCOPE-CLOUD.md` §7** — app **Expo Go**, backend Supabase, sem scraper no device.
 
 ---
 
 ## 9. Regras de Negócio Importantes
 
-1. **Cada aluno é isolado:** O sistema é single-user por instância. Cada aluno roda no seu PC com seus dados.
-2. **Dados do SIGAA são a fonte primária**, mas o aluno pode adicionar/editar por cima.
+1. **Isolamento por conta:** cada aluno acessa apenas seus dados (RLS no Supabase).
+2. **Prioridade do usuário sobre o SIGAA** — o que o aluno cadastrou ou editou nunca é apagado nem sobrescrito pelo sync (detalhes em §2.4).
 3. **A falta conta como horário-aula, não como dia.** Cada dia de falta = 2 faltas no sistema.
 4. **O RG (Rendimento Global)** é a média ponderada pela carga horária das notas finais dos componentes concluídos.
 5. **Nem todo professor usa o SIGAA.** O sistema deve funcionar mesmo sem dados do SIGAA (modo manual).

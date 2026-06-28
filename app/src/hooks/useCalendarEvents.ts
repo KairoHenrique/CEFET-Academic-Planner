@@ -7,11 +7,13 @@ import {
   getCalendar,
   patchCalendarEvent as apiPatchCalendarEvent,
 } from "@/lib/api/client";
+import { invalidateTaskSyncQueries } from "@/lib/query/invalidate-task-sync";
 import { queryKeys } from "@/lib/query/keys";
 import type { CalendarEvent } from "@/lib/types/calendar";
 import type {
   CalendarResponse,
   CreateCalendarEventBody,
+  ManualCalendarEventInput,
 } from "@/lib/types/calendar-api";
 
 function sortEvents(events: CalendarEvent[]): CalendarEvent[] {
@@ -22,16 +24,14 @@ function sortEvents(events: CalendarEvent[]): CalendarEvent[] {
   });
 }
 
-function toCreateBody(
-  event: Omit<CalendarEvent, "id" | "manual">
-): CreateCalendarEventBody {
+function toCreateBody(event: ManualCalendarEventInput): CreateCalendarEventBody {
   return {
     title: event.title,
     description: event.description,
     type: event.type,
     date: event.date,
     subjectCode: event.subjectCode,
-    color: event.color,
+    color: event.colorOverride ? event.color : undefined,
   };
 }
 
@@ -51,8 +51,14 @@ export function useCalendarEvents() {
   const academicDates = query.data?.academicDates ?? [];
 
   const toggleMutation = useMutation({
-    mutationFn: ({ id, done }: { id: string; done: boolean }) =>
-      apiPatchCalendarEvent(id, { action: "toggle", done }),
+    mutationFn: ({
+      id,
+      done,
+    }: {
+      id: string;
+      done: boolean;
+      subjectCode?: string;
+    }) => apiPatchCalendarEvent(id, { action: "toggle", done }),
     onMutate: async ({ id, done }) => {
       await queryClient.cancelQueries({ queryKey: queryKeys.calendar() });
       const previous = queryClient.getQueryData<CalendarResponse>(
@@ -73,10 +79,10 @@ export function useCalendarEvents() {
         queryClient.setQueryData(queryKeys.calendar(), context.previous);
       }
     },
-    onSettled: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.calendar() });
-      void queryClient.invalidateQueries({ queryKey: queryKeys.dashboard() });
-      void queryClient.invalidateQueries({ queryKey: queryKeys.disciplinas() });
+    onSettled: (_data, _error, variables) => {
+      invalidateTaskSyncQueries(queryClient, {
+        subjectCode: variables.subjectCode,
+      });
     },
   });
 
@@ -93,8 +99,7 @@ export function useCalendarEvents() {
           };
         }
       );
-      void queryClient.invalidateQueries({ queryKey: queryKeys.dashboard() });
-      void queryClient.invalidateQueries({ queryKey: queryKeys.disciplinas() });
+      void invalidateTaskSyncQueries(queryClient);
     },
   });
 
@@ -102,12 +107,14 @@ export function useCalendarEvents() {
     if (!canToggleEvent(id)) return;
     const event = events.find((item) => item.id === id);
     if (!event) return;
-    toggleMutation.mutate({ id, done: !event.done });
+    toggleMutation.mutate({
+      id,
+      done: !event.done,
+      subjectCode: event.subjectCode,
+    });
   };
 
-  const addManualEvent = (
-    event: Omit<CalendarEvent, "id" | "manual">
-  ): void => {
+  const addManualEvent = (event: ManualCalendarEventInput): void => {
     addMutation.mutate(toCreateBody(event));
   };
 

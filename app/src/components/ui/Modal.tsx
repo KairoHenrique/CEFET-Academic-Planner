@@ -8,9 +8,10 @@ interface ModalProps {
   onClose: () => void;
   title: string;
   children: React.ReactNode;
+  headerAside?: React.ReactNode;
 }
 
-export function Modal({ open, onClose, title, children }: ModalProps) {
+export function Modal({ open, onClose, title, children, headerAside }: ModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
@@ -35,7 +36,12 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
     >
       <div className="modal-panel">
         <header className="modal-header">
-          <h2 className="modal-title">{title}</h2>
+          <div className="modal-header-main">
+            <h2 className="modal-title">{title}</h2>
+            {headerAside ? (
+              <span className="modal-header-aside">{headerAside}</span>
+            ) : null}
+          </div>
           <button
             type="button"
             className="modal-close"

@@ -1,56 +1,52 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   ApiClientError,
   getDashboard,
   SYNC_COMPLETE_EVENT,
 } from "@/lib/api/client";
+import { queryKeys } from "@/lib/query/keys";
 import type { DashboardResponse } from "@/lib/types/dashboard";
 
 export function useDashboard() {
-  const [data, setData] = useState<DashboardResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [needsSync, setNeedsSync] = useState(false);
-
-  const refetch = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    setNeedsSync(false);
-
-    try {
-      const dashboard = await getDashboard();
-      setData(dashboard);
-    } catch (err) {
-      setData(null);
-      if (err instanceof ApiClientError && err.status === 404) {
-        setNeedsSync(true);
-      } else {
-        setError(
-          err instanceof ApiClientError
-            ? err.message
-            : "Não foi possível carregar o dashboard."
-        );
+  const query = useQuery({
+    queryKey: queryKeys.dashboard(),
+    queryFn: (): Promise<DashboardResponse> => getDashboard(),
+    retry: (failureCount, error) => {
+      if (error instanceof ApiClientError && error.status === 404) {
+        return false;
       }
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void refetch();
-  }, [refetch]);
+      return failureCount < 1;
+    },
+  });
 
   useEffect(() => {
     const handleSyncComplete = () => {
-      void refetch();
+      void query.refetch();
     };
 
     window.addEventListener(SYNC_COMPLETE_EVENT, handleSyncComplete);
     return () =>
       window.removeEventListener(SYNC_COMPLETE_EVENT, handleSyncComplete);
-  }, [refetch]);
+  }, [query.refetch]);
 
-  return { data, loading, error, needsSync, refetch };
+  const needsSync =
+    query.error instanceof ApiClientError && query.error.status === 404;
+
+  const errorMessage =
+    !needsSync && query.error
+      ? query.error instanceof ApiClientError
+        ? query.error.message
+        : "Não foi possível carregar o dashboard."
+      : null;
+
+  return {
+    data: needsSync ? null : (query.data ?? null),
+    loading: query.isLoading,
+    error: errorMessage,
+    needsSync,
+    refetch: query.refetch,
+  };
 }

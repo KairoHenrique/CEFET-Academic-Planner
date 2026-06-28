@@ -6,7 +6,20 @@ import type {
   TarefaCalendarRow,
 } from "@/lib/types/db";
 
+import { resolveSubjectShortLabel } from "@/lib/disciplinas/subject-display-name";
+
 const DEFAULT_EVENT_COLOR = "#D4A843";
+
+function mapDisciplinaLabel(
+  code?: string | null,
+  nickname?: string | null,
+  officialName?: string | null
+): string | undefined {
+  if (code) {
+    return resolveSubjectShortLabel(code, nickname);
+  }
+  return officialName ?? undefined;
+}
 
 function mapTarefaRow(row: TarefaCalendarRow): CalendarEvent {
   return {
@@ -14,7 +27,7 @@ function mapTarefaRow(row: TarefaCalendarRow): CalendarEvent {
     date: row.data_fim ?? row.data_inicio ?? "",
     title: row.titulo,
     type: row.possui_nota === 1 ? "prova" : "tarefa",
-    subject: row.disciplina_nome,
+    subject: mapDisciplinaLabel(row.disciplina_id, row.disciplina_apelido, row.disciplina_nome),
     subjectCode: row.disciplina_id,
     color: row.cor ?? "#3AA0E8",
     description: row.descricao?.trim() || "Sem descrição.",
@@ -29,7 +42,7 @@ function mapEventoManualRow(row: EventoCalendarioRow): CalendarEvent {
     date: row.data,
     title: row.titulo,
     type: row.tipo,
-    subject: row.disciplina_nome ?? undefined,
+    subject: mapDisciplinaLabel(row.disciplina_id, row.disciplina_apelido, row.disciplina_nome),
     subjectCode: row.disciplina_id ?? undefined,
     color: row.cor ?? DEFAULT_EVENT_COLOR,
     description: row.descricao?.trim() || "Evento adicionado manualmente.",

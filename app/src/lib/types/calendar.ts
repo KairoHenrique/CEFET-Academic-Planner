@@ -2,7 +2,15 @@ export interface CalendarEvent {
   id: string;
   date: string;
   title: string;
-  type: "aula" | "tarefa" | "prova" | "evento";
+  type:
+    | "aula"
+    | "tarefa"
+    | "prova"
+    | "evento"
+    | "monitoria"
+    | "estagio"
+    | "estudo"
+    | "outro";
   subject?: string;
   subjectCode?: string;
   color: string;
@@ -11,12 +19,15 @@ export interface CalendarEvent {
   manual?: boolean;
 }
 
-export const eventTypeLabels = {
-  aula: "Aula",
-  tarefa: "Tarefa",
-  prova: "Prova",
-  evento: "Evento",
-} as const;
+export type { CalendarEventType } from "@/lib/calendar/event-types";
+export {
+  CALENDAR_EVENT_TYPES,
+  eventTypeLabels,
+  CALENDAR_FILTER_OPTIONS,
+  filterLabelToType,
+  UNLINKED_SUBJECT_VALUE,
+  isAcademicTaskType,
+} from "@/lib/calendar/event-types";
 
 export type EventTypeFilter = "todas" | CalendarEvent["type"];
 

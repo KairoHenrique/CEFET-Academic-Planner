@@ -6,6 +6,8 @@ import {
   weeklySchedule,
   type ScheduleSlotData,
 } from "@/config/mock/schedule";
+import { useDisciplinas } from "@/hooks/useDisciplinas";
+import type { SubjectListItem } from "@/lib/types/disciplinas-api";
 
 const STORAGE_KEY = "schedule-extras";
 
@@ -29,9 +31,33 @@ function slotKey(dayIdx: number, slotIdx: number) {
   return `${dayIdx}-${slotIdx}`;
 }
 
+function applySubjectOverlay(
+  grid: ReturnType<typeof cloneSchedule>,
+  subjectByCode: Record<string, SubjectListItem>
+) {
+  grid.forEach((row) => {
+    row.forEach((slot, slotIdx) => {
+      if (!slot?.code) return;
+      const subject = subjectByCode[slot.code];
+      if (!subject) return;
+      row[slotIdx] = {
+        ...slot,
+        color: subject.color,
+        name: subject.shortLabel,
+      };
+    });
+  });
+}
+
 export function useScheduleExtras() {
+  const { items: subjects } = useDisciplinas();
   const [extras, setExtras] = useState<Record<string, ExtraScheduleSlot>>({});
   const [hydrated, setHydrated] = useState(false);
+
+  const subjectByCode = useMemo(
+    () => Object.fromEntries(subjects.map((subject) => [subject.code, subject])),
+    [subjects]
+  );
 
   useEffect(() => {
     setExtras(loadExtras());
@@ -40,6 +66,7 @@ export function useScheduleExtras() {
 
   const mergedSchedule = useMemo(() => {
     const base = cloneSchedule(weeklySchedule);
+    applySubjectOverlay(base, subjectByCode);
     Object.entries(extras).forEach(([key, slot]) => {
       const [dayIdx, slotIdx] = key.split("-").map(Number);
       if (!base[dayIdx]?.[slotIdx]) {
@@ -47,7 +74,7 @@ export function useScheduleExtras() {
       }
     });
     return base;
-  }, [extras]);
+  }, [extras, subjectByCode]);
 
   const addExtra = useCallback(
     (dayIdx: number, slotIdx: number, slot: ExtraScheduleSlot) => {

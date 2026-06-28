@@ -19,6 +19,10 @@ export interface CreateCalendarEventBody {
   color?: string;
 }
 
+export type ManualCalendarEventInput = Omit<CalendarEvent, "id" | "manual"> & {
+  colorOverride?: boolean;
+};
+
 export type PatchCalendarEventBody =
   | { action: "toggle"; done: boolean }
   | {
