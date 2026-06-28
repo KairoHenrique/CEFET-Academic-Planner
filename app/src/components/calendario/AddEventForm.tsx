@@ -2,9 +2,13 @@
 
 import { useEffect, useState } from "react";
 import type { CalendarEvent } from "@/lib/types/calendar";
+import { DEFAULT_EVENT_COLOR } from "@/lib/colors/palette";
 import { useDisciplinas } from "@/hooks/useDisciplinas";
 import { Input } from "@/components/ui/Input";
 import { PlannerSelect } from "@/components/ui/PlannerSelect";
+import { ColorPickerField } from "@/components/ui/ColorPickerField";
+
+type LinkMode = "personal" | "subject";
 
 interface AddEventFormProps {
   defaultDate: string;
@@ -23,7 +27,10 @@ export function AddEventForm({
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [type, setType] = useState<CalendarEvent["type"]>("tarefa");
+  const [linkMode, setLinkMode] = useState<LinkMode>("personal");
   const [subjectCode, setSubjectCode] = useState("");
+  const [color, setColor] = useState(DEFAULT_EVENT_COLOR);
+  const [colorTouched, setColorTouched] = useState(false);
   const [date, setDate] = useState(defaultDate);
 
   useEffect(() => {
@@ -33,21 +40,30 @@ export function AddEventForm({
   }, [subjectCode, subjects]);
 
   const subject = subjects.find((item) => item.code === subjectCode);
-  const needsSubject = type === "tarefa" || type === "prova";
+
+  useEffect(() => {
+    if (linkMode === "subject" && subject && !colorTouched) {
+      setColor(subject.color);
+    }
+  }, [linkMode, subject, colorTouched]);
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     if (!title.trim() || isSubmitting) return;
-    if (needsSubject && !subjectCode) return;
+    if (linkMode === "subject" && !subjectCode) return;
 
     onSubmit({
       title: title.trim(),
-      description: description.trim() || "Tarefa adicionada manualmente.",
+      description:
+        description.trim() ||
+        (linkMode === "personal"
+          ? "Evento pessoal adicionado manualmente."
+          : "Tarefa adicionada manualmente."),
       type,
       date,
-      subject: subject?.name,
-      subjectCode: needsSubject ? subjectCode : undefined,
-      color: subject?.color ?? "#D4A843",
+      subject: linkMode === "subject" ? subject?.name : undefined,
+      subjectCode: linkMode === "subject" ? subjectCode : undefined,
+      color,
       done: false,
     });
   };
@@ -62,7 +78,17 @@ export function AddEventForm({
         required
         disabled={isSubmitting}
       />
-      {needsSubject && (
+      <PlannerSelect
+        label="Vínculo"
+        value={linkMode}
+        fullWidth
+        options={[
+          { value: "personal", label: "Pessoal — sem matéria" },
+          { value: "subject", label: "Vinculado a uma disciplina" },
+        ]}
+        onChange={(next) => setLinkMode(next as LinkMode)}
+      />
+      {linkMode === "subject" && (
         <PlannerSelect
           label="Disciplina"
           value={subjectCode}
@@ -86,6 +112,15 @@ export function AddEventForm({
         ]}
         onChange={(next) => setType(next)}
       />
+      <ColorPickerField
+        label="Cor no calendário"
+        value={color}
+        onChange={(next) => {
+          setColorTouched(true);
+          setColor(next);
+        }}
+        disabled={isSubmitting}
+      />
       <Input
         label="Data"
         type="date"
@@ -101,13 +136,17 @@ export function AddEventForm({
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           rows={3}
-          placeholder="O que precisa ser feito?"
+          placeholder={
+            linkMode === "personal"
+              ? "Estágio, projeto pessoal, lembrete…"
+              : "O que precisa ser feito?"
+          }
           disabled={isSubmitting}
         />
       </label>
       <div className="detail-actions">
         <button type="submit" className="btn-gold" disabled={isSubmitting}>
-          {isSubmitting ? "Salvando…" : "Salvar tarefa"}
+          {isSubmitting ? "Salvando…" : "Salvar evento"}
         </button>
         <button
           type="button"

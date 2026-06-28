@@ -9,6 +9,8 @@ import type {
   PatchNotasResponse,
   PatchTarefaBody,
   SubjectDetailResponse,
+  PatchDisciplinaAppearanceBody,
+  PatchDisciplinaAppearanceResponse,
 } from "@/lib/types/disciplinas-api";
 import type { AcademicTask } from "@/lib/types/task";
 import type { SyncRequest, SyncSuccessResponse } from "@/lib/types/sync";
@@ -154,6 +156,19 @@ export async function patchDisciplinaFalta(
 ): Promise<PatchFaltaResponse> {
   return requestJson<PatchFaltaResponse>(
     `/api/disciplinas/${encodeURIComponent(code)}/faltas`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    }
+  );
+}
+
+export async function patchDisciplinaAppearance(
+  code: string,
+  body: PatchDisciplinaAppearanceBody
+): Promise<PatchDisciplinaAppearanceResponse> {
+  return requestJson<PatchDisciplinaAppearanceResponse>(
+    `/api/disciplinas/${encodeURIComponent(code)}/appearance`,
     {
       method: "PATCH",
       body: JSON.stringify(body),

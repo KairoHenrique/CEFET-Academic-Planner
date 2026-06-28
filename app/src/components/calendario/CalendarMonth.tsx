@@ -157,7 +157,7 @@ export function CalendarMonth({
         )}
       </Modal>
 
-      <Modal open={Boolean(addModal)} onClose={() => setAddModal(null)} title="Nova tarefa">
+      <Modal open={Boolean(addModal)} onClose={() => setAddModal(null)} title="Novo evento">
         {addModal && (
           <AddEventForm
             defaultDate={addModal}
