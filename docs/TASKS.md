@@ -34,7 +34,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 **Regra:** o stakeholder **avisa explicitamente** quando a entrega **não** está 100% aprovada. Após push com ressalvas → **`[@]`**, nunca `[x]`.
 
-**Tasks em `[@]` agora (jun/2026):** **B27**, **B65**, **F37** — scraper portal + sync automático + menu perfil no remoto. **B28** `[%]` — turma virtual (notas, faltas, grupo, tarefas enriquecidas) integrada ao `runSync`; validação live pendente.
+**Tasks em `[@]` agora (jun/2026):** **B27**, **B28**, **B65**, **F37** — portal + turma virtual (bugfix CEFET: nav JSF, rotas PPC, sync ~2 min); validação live B28 ainda pendente.
 
 ### Decisão — Integralização via histórico (jun/2026)
 
@@ -73,7 +73,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 ### 1.1 Inicialização do Projeto
 - [x] Criar projeto Next.js com TypeScript (`npx create-next-app`)
 - [x] Configurar estrutura de pastas (`src/app`, `src/components`, `src/lib/db`, `src/lib/engine`)
-- [x] Pasta `src/lib/scraper` — B24–B26 ✅; B27 `[@]` portal; B28 `[%]` turma virtual (`lib/scraper/turma-virtual/`)
+- [x] Pasta `src/lib/scraper` — B24–B26 ✅; B27 `[@]` portal; B28 `[@]` turma virtual (`lib/scraper/turma-virtual/`)
 - [x] Instalar dependências: `better-sqlite3`, `playwright`, `crypto` (para criptografia de senha)
 
 ### 1.2 Design System (CSS)
@@ -106,7 +106,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 > **Progresso:** Bloco 1 ✅ · **Bloco 2a:** B27·B65·F37 `[@]` · integralização **via histórico** (decisão jun/2026 — scraper **B30**) · **3F** fora do Bloco 1.
 
-Roadmap detalhado: ver **[Ordem oficial v3](#ordem-oficial-de-execução-v3)** e **[Checklist mestre](#checklist-mestre-ordem-de-execução)**. **Bloco 2a** — B28 `[%]` (turma virtual); próximo **B57** (OAuth nuvem).
+Roadmap detalhado: ver **[Ordem oficial v3](#ordem-oficial-de-execução-v3)** e **[Checklist mestre](#checklist-mestre-ordem-de-execução)**. **Bloco 2a** — B28 `[@]` (turma virtual, validação live pendente); próximo **B57** (OAuth nuvem).
 
 ---
 
@@ -210,7 +210,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 |-------|-------|------|----------------------|--------|
 | **#0** | 0 | Planejamento | — | ✅ |
 | **#1** | 1 | SQLite local (API + UI) | ✅ **Concluído** | 49/49 |
-| **#2** | 2a | Scraper dev (Playwright local) | **⬜ Em andamento** | 3/8 |
+| **#2** | 2a | Scraper dev (Playwright local) | **⬜ Em andamento** | 4/8 |
 | **#3** | 2b | Worker sync (servidor) | Depois de #2a (B31 ok) | 0/4 |
 | **#4** | 6a | Supabase + deploy global | Depois de #3 | 0/8 |
 | **#5** | 6b | Auth: CPF login, cadastro completo | Depois de #4 | 0/9 |
@@ -267,7 +267,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] **BACK:**  B24 → B25 → B26
 - [@] **BACK:**  B27 *(portal: semestre, RG, tarefas; CH portal auxiliar; apelidos auto)*
 - [@] **BACK:**  B65 *(sync automático 30 min; rate limit manual removido)*
-- [%] **BACK:**  B28 *(turma virtual: notas, faltas, grupo, tarefas com descrição — mock + parsers; live pendente validação)*
+- [@] **BACK:**  B28 *(turma virtual: notas, faltas, grupo, tarefas — bugfix nav CEFET; validação live pendente)*
 - [ ] **BACK:**  B57 *(OAuth nuvem pessoal — Drive/Dropbox/OneDrive)*
 - [ ] **BACK:**  B29 *(PDFs SIGAA → pasta na nuvem do aluno)*
 - [ ] **BACK:**  B30 → B31
@@ -585,7 +585,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | B26 | Back | Erros de auth | Credencial inválida, timeout, SIGAA offline | 2.1 | [x] |
 | B27 | Back | Scraper portal discente | RG, semestre, atividades; CH portal auxiliar (% / total) | 2.2 | [@] |
 | B65 | Back | Sync automático + last_run | Auto a cada 30 min; manual sem rate limit (dev) | 2.2 | [@] |
-| B28 | Back | Scraper turma virtual | Notas, faltas, tarefas e grupo por matéria | 2.3 | [%] |
+| B28 | Back | Scraper turma virtual | Notas, faltas, tarefas e grupo por matéria | 2.3 | [@] |
 | B57 | Back | OAuth nuvem pessoal | Conectar Google Drive / Dropbox / OneDrive; tokens cifrados | 2.3 | [ ] |
 | B29 | Back | PDFs → nuvem | Materiais SIGAA → `CEFET Academic Planner/{semestre}/{matéria}/` | 2.3 | [ ] |
 | B30 | Back | Turmas + calendário + histórico | Ofertas próximo sem + datas oficiais + **histórico escolar → `historico`** | 2.4 | [ ] |
@@ -787,7 +787,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
       ↓
 #1  Bloco 1   SQLite local (3E)               ✅
       ↓
-#2  Bloco 2a  Scraper dev + sync REAL          ⬜ 3/8 [@][%] — B28 turma virtual; próximo B57
+#2  Bloco 2a  Scraper dev + sync REAL          ⬜ 4/8 [@] — B28 turma virtual (live pendente); próximo B57
 #3  Bloco 2b  Worker servidor
       ↓
 #4  Bloco 6a  Supabase + deploy global       (após sync validado)
@@ -1083,7 +1083,7 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 8. **Próximo passo do roadmap:** informe **depois do push** (tasks em `[@]` ou `[x]`). Com commits locais só `[%]`, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v3](#ordem-oficial-de-execução-v3) — **Bloco 2 (sync) antes do Bloco 6 (Supabase)**. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy **após** sync validado; RLS **só na 6c** (antes do PIX).
-11. **Próximo passo:** **B57** (OAuth nuvem pessoal) → **B29** (PDFs). **B28** `[%]` — validar scraper live na turma virtual. B27·B65·F37 em `[@]`. **Integralização fiel:** `historico` na **B30**.
+11. **Próximo passo:** validar **B28** live (sync ~2 min, notas em Eng. Software). Depois **B57** → **B29**. B27·B28·B65·F37 em `[@]`. **Integralização fiel:** `historico` na **B30**.
 12. **Integralização:** CH concluída = `historico` + PPC (`computeChDoneFromDisciplinas`); portal SIGAA só % / total currículo; matérias já passadas = **B30**.
 13. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial.
 14. **Código frontend** está em `app/src/` (não na raiz `src/`). Mock data em `app/src/config/mock/`.
