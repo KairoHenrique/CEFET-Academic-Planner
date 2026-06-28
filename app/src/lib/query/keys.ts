@@ -9,4 +9,5 @@ export const queryKeys = {
     [...queryKeys.all, "disciplina", code] as const,
   calendar: () => [...queryKeys.all, "calendar"] as const,
   integralizacao: () => [...queryKeys.all, "integralizacao"] as const,
+  mapa: () => [...queryKeys.all, "mapa"] as const,
 };
