@@ -9,7 +9,6 @@ export function IntegralizacaoSkeleton() {
         <div className="skeleton integralizacao-skeleton-donut" />
         <div className="skeleton integralizacao-skeleton-summary" />
       </div>
-      <div className="skeleton integralizacao-skeleton-glossary" />
       <div className="skeleton integralizacao-skeleton-table" />
     </div>
   );

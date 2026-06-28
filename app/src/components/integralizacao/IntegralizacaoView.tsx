@@ -5,7 +5,6 @@ import { PageGrid } from "@/components/layout/PageGrid";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { ModuleGrid } from "@/components/layout/ModuleGrid";
 import { DashboardStateCard } from "@/components/dashboard/DashboardStateCard";
-import { ChGlossarySection } from "@/components/integralizacao/ChGlossarySection";
 import { IntegrationDetailTable } from "@/components/integralizacao/IntegrationDetailTable";
 import { IntegrationSummaryCard } from "@/components/integralizacao/IntegrationSummaryCard";
 import { IntegrationTotalCard } from "@/components/integralizacao/IntegrationTotalCard";
@@ -21,7 +20,6 @@ import type { IntegralizacaoResponse } from "@/lib/types/integralizacao-api";
 const MODULES: ModuleDefinition[] = [
   { id: "total", label: "Total integralizado", colClass: "col-4" },
   { id: "summary", label: "Resumo por categoria", colClass: "col-8" },
-  { id: "glossary", label: "Entenda suas horas", colClass: "col-12" },
   { id: "table", label: "Detalhamento de horas", colClass: "col-12" },
 ];
 
@@ -41,8 +39,6 @@ function renderIntegralizacaoModule(
       );
     case "summary":
       return <IntegrationSummaryCard categories={data.categories} />;
-    case "glossary":
-      return <ChGlossarySection />;
     case "table":
       return (
         <IntegrationDetailTable

@@ -1,8 +1,7 @@
 "use client";
 
+import { ChGlossaryHelpButton } from "@/components/integralizacao/ChGlossaryHelpButton";
 import { SectionHeader } from "@/components/ui/SectionHeader";
-import { ChTypeInfoButton } from "@/components/integralizacao/ChTypeInfoButton";
-import type { ChType } from "@/lib/integralizacao/ch-catalog";
 import type { DashboardIntegralizacao } from "@/lib/types/dashboard";
 
 interface IntegrationProgressProps {
@@ -16,11 +15,14 @@ export function IntegrationProgress({ integralizacao }: IntegrationProgressProps
 
   return (
     <div className="card card-full-height">
-      <SectionHeader
-        title="Integralização"
-        icon="chart"
-        badge={<span className="badge info">{percentage}%</span>}
-      />
+      <div className="integration-progress-header">
+        <SectionHeader
+          title="Integralização"
+          icon="chart"
+          badge={<span className="badge info">{percentage}%</span>}
+        />
+        <ChGlossaryHelpButton callout="Tipos de carga horária no PPC" />
+      </div>
 
       <div className="progress-overall">
         <div className="progress-label-row">
@@ -44,13 +46,7 @@ export function IntegrationProgress({ integralizacao }: IntegrationProgressProps
           return (
             <div key={cat.label} className="progress-category-item">
               <div className="progress-label-row">
-                <span className="progress-label integration-progress-label">
-                  {cat.label}
-                  <ChTypeInfoButton
-                    tipoCh={cat.label as ChType}
-                    compact
-                  />
-                </span>
+                <span className="progress-label">{cat.label}</span>
                 <span className="progress-value">
                   {cat.done}h / {cat.total}h
                 </span>

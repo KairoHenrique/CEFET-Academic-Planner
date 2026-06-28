@@ -1,9 +1,7 @@
 "use client";
 
-import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Icon } from "@/components/ui/Icon";
-import { ChTypeInfoButton } from "@/components/integralizacao/ChTypeInfoButton";
-import type { ChType } from "@/lib/integralizacao/ch-catalog";
+import { ChGlossaryHelpButton } from "@/components/integralizacao/ChGlossaryHelpButton";
 import type { IntegralizacaoCategoryDetail } from "@/lib/types/integralizacao-api";
 
 interface IntegrationDetailTableProps {
@@ -18,7 +16,13 @@ export function IntegrationDetailTable({
   return (
     <div className="data-table-wrap card integration-detail-card">
       <div className="table-toolbar">
-        <SectionHeader title="Detalhamento de Horas" icon="clipboard" />
+        <div className="integration-table-header">
+          <span className="section-header-icon" aria-hidden="true">
+            <Icon name="clipboard" size={16} />
+          </span>
+          <h3 className="section-header-title">Detalhamento de Horas</h3>
+          <ChGlossaryHelpButton />
+        </div>
         <button type="button" className="btn-gold" onClick={onRegisterClick}>
           <Icon name="plus" size={14} />
           Cadastrar Horas
@@ -43,13 +47,7 @@ export function IntegrationDetailTable({
             return (
               <tr key={cat.label}>
                 <td>
-                  <span className="integration-table-category">
-                    {cat.label}
-                    <ChTypeInfoButton
-                      tipoCh={cat.label as ChType}
-                      compact
-                    />
-                  </span>
+                  <span className="integration-table-category">{cat.label}</span>
                   {manualCount > 0 ? (
                     <span className="integration-manual-badge">
                       {manualCount}{" "}
