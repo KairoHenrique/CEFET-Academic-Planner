@@ -7,6 +7,24 @@ alwaysApply: true
 
 Roadmap: `docs/TASKS.md`
 
+## Status `@` — push sem aprovação 100%
+
+Use **`[@]`** quando a task foi **enviada ao remoto** (`git push`) mas **ainda não está 100% aprovada** pelo stakeholder (bugs conhecidos, validação parcial, WIP em produção).
+
+| Quem decide | Ação |
+|-------------|------|
+| **Usuário pede push** e avisa que **não está 100%** | `[%]` → **`[@]`** (padrão quando houver bugs/ressalvas) |
+| **Usuário pede push** e **aprova 100%** | `[%]` → **`[x]`** |
+| **Usuário aprova depois** (sem novo push) | **`[@]` → `[x]`** |
+
+**Regra:** o usuário **avisa explicitamente** quando a task **não** está 100% aprovada. Na dúvida após push → marque **`[@]`**, não `[x]`.
+
+**Permitido com `[@]` pendente:** indicar próximo passo do roadmap e iniciar **`[/]`** na task seguinte (código já está no remoto).
+
+**Proibido com `[@]`:** marcar `[x]` sem aprovação explícita · esquecer bugs conhecidos no resumo do push.
+
+---
+
 ## ⛔ Regra inviolável — TASKS.md 100% atualizado
 
 **`docs/TASKS.md` é a fonte única de verdade do roadmap.** Deve estar **sempre 100% sincronizado** — não “quase”, não “só a tabela B/F”.
@@ -30,24 +48,29 @@ Esta regra vale **sempre** — implementação, docs-only, sync manual, push, ap
 |---------|-------------|
 | `[ ]` | Não iniciada |
 | `[/]` | **Em andamento** — marcar **antes** de codar |
-| `[%]` | **Commit local** — entregue, **sem push** (aguardando revisão/aprovação) |
-| `[x]` | **Aprovada** — push feito **e/ou** aprovada 100% pelo usuário |
+| `[%]` | **Commit local** — entregue, **sem push** (aguardando revisão ou push) |
+| `[@]` | **Push feito** — no remoto, **sem aprovação 100%** (bugs/validação pendente; usuário avisa) |
+| `[x]` | **Aprovada 100%** — push feito **e** aprovada explicitamente pelo usuário |
 
 ## Ciclo por task (obrigatório)
 
 ```
 [ ] → [/] → implementar → sync 100% TASKS.md → commit (só esta task) → [%] → mini resumo
                                                                                     ↓
-                                                                        (usuário pede push / aprova)
+                                                                        (usuário pede push)
                                                                                     ↓
-                                                                        sync 100% TASKS.md → [x]
-                                                                                    ↓
-                                                          só agora: indicar próximo passo do roadmap
+                                              ┌─────────────────────────────────────┴─────────────────────────────────────┐
+                                              ↓                                                                               ↓
+                                    não 100% aprovada                                                              100% aprovada
+                                              ↓                                                                               ↓
+                                    sync TASKS.md → [@]                                                              sync → [x]
+                                              ↓                                                                               ↓
+                                    pode indicar próximo passo / iniciar [/] na seguinte                    idem
 ```
 
-**Próxima task (`[/]`):** só iniciar a seguinte **depois** de `[%]` + commit da anterior.
+**Próxima task (`[/]`):** só iniciar a seguinte **depois** de `[%]` + commit da anterior (ou após `[@]`/`[x]` se já houve push).
 
-**Próximo passo do roadmap:** só informar **depois do push** (tasks em `[x]`). Enquanto houver `[%]` pendente, **não** sugira a task seguinte.
+**Próximo passo do roadmap:** informar **depois do push** (`[@]` ou `[x]`). Enquanto houver só `[%]` local, **não** sugira a task seguinte.
 
 ## Ao iniciar
 
@@ -60,7 +83,7 @@ Esta regra vale **sempre** — implementação, docs-only, sync manual, push, ap
 
 > **Regra de ouro:** nunca mude só a linha da tabela B/F. **`grep` + leia** o arquivo e alinhe **todas** as ocorrências no mesmo ciclo (`[/]` → `[%]` → `[x]`).
 
-### Quando marcar `[/]`, `[%]` ou `[x]`, atualize **todos** estes pontos:
+### Quando marcar `[/]`, `[%]`, `[@]` ou `[x]`, atualize **todos** estes pontos:
 
 | # | Onde no TASKS.md | O que manter alinhado |
 |---|------------------|------------------------|
@@ -86,7 +109,8 @@ grep -n "{Etapa}\|{contador}" docs/TASKS.md   # ex.: 3D, 45/49, Mapa
 ### Proibido
 
 - Status `[x]` na tabela com checklist mestre ainda `[ ]`.
-- `[%]` na tabela com texto dizendo `✅` ou “API pronta” sem marcar `[%]`.
+- `[x]` sem aprovação explícita do usuário (use `[@]` após push com ressalvas).
+- `[%]` na tabela com texto dizendo `✅` ou “API pronta” sem marcar `[%]`/`[@]`.
 - Progresso `45/49` com 46 tasks `[x]`.
 - “Próximo: F11” quando F11 já está `[x]`.
 - Commit de código **sem** `docs/TASKS.md` quando houve mudança de status/escopo.
@@ -116,10 +140,12 @@ Se falhar qualquer item → **corrigir antes de commitar**.
 
 ## Ao push ou aprovação
 
-1. Usuário pede push → `git push` → **`[%]` → `[x]`** nas tasks enviadas.
-2. Aprovação explícita sem push → **`[%]` → `[x]`** na task aprovada.
-3. **Re-sincronize 100%** o TASKS.md (10 pontos + verificação final).
-4. **Só então** informe o próximo passo oficial de `docs/TASKS.md`.
+1. Usuário pede push → `git push`.
+2. **Push sem aprovação 100%** (usuário avisa bugs/ressalvas) → **`[%]` → `[@]`** nas tasks enviadas.
+3. **Push com aprovação 100%** → **`[%]` → `[x]`**.
+4. **Aprovação explícita depois** (task já em `[@]`) → **`[@]` → `[x]`** (push opcional se já no remoto).
+5. **Re-sincronize 100%** o TASKS.md (10 pontos + verificação final).
+6. Informe o próximo passo oficial de `docs/TASKS.md` (permitido após `[@]` ou `[x]`).
 
 ## Mini resumo (após commit → `[%]`)
 
@@ -133,7 +159,7 @@ Se falhar qualquer item → **corrigir antes de commitar**.
 
 **Proibido** no resumo pós-`[%]`: “Próximo na ordem: …”, etc.
 
-Após push → pode incluir: **Próximo na ordem:** {ID}.
+Após push (`[@]` ou `[x]`) → pode incluir: **Próximo na ordem:** {ID}. Se `[@]`, mencionar bugs/ressalvas conhecidos.
 
 ## Múltiplas tasks no mesmo pedido
 

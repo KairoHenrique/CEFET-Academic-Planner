@@ -3,11 +3,14 @@
 import { useEffect, useRef } from "react";
 import type { PerfilSyncStatus } from "@/lib/types/perfil-api";
 
-function canSyncNow(settings: PerfilSyncStatus): boolean {
-  if (settings.nextAllowedAt) {
-    return Date.parse(settings.nextAllowedAt) <= Date.now();
-  }
-  return settings.remainingSeconds <= 0;
+function canAutoSyncNow(settings: PerfilSyncStatus): boolean {
+  if (!settings.lastSyncAt) return true;
+
+  const lastMs = Date.parse(settings.lastSyncAt);
+  if (!Number.isFinite(lastMs)) return true;
+
+  const intervalMs = settings.intervalMinutes * 60_000;
+  return Date.now() - lastMs >= intervalMs;
 }
 
 export function useAutoSync(
@@ -31,7 +34,7 @@ export function useAutoSync(
     const runIfDue = () => {
       const settings = settingsRef.current;
       if (!settings || syncingRef.current) return;
-      if (!canSyncNow(settings)) return;
+      if (!canAutoSyncNow(settings)) return;
       void startSyncRef.current();
     };
 

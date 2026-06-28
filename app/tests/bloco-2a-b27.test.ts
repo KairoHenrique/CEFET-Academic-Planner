@@ -29,7 +29,7 @@ const PORTAL_FIXTURE_HTML = `
   <tr><td>Optativa</td><td>0 h</td><td>240 h</td></tr>
   <tr><td>AEDI</td><td>Algoritmos e Estruturas de Dados I</td><td>303/620</td><td>2M56 6M56</td></tr>
   <tr><td>LAOCI</td><td>Lab. Arq. e Org. de Comp. I</td><td>Lab 01</td><td>5M34</td></tr>
-  <tr><td>Diagramas UML</td><td>ENG-SOFT</td><td>20/05/2026</td><td>individual</td></tr>
+  <tr><td>20/05/2026 23:59 (5 dias)</td><td>ENGENHARIA DE SOFTWARE Tarefa: Diagramas UML</td></tr>
 </table>
 `;
 
@@ -59,8 +59,31 @@ describe("B27 — parse portal discente", () => {
     assert.equal(snapshot.semestreAtual[0]?.codigoHorario, "2M56 6M56");
 
     assert.equal(snapshot.atividades.length, 1);
-    assert.equal(snapshot.atividades[0]?.disciplinaCodigo, "ENG-SOFT");
+    assert.equal(snapshot.atividades[0]?.disciplinaCodigo, "ENGENHARIA DE SOFTWARE");
+    assert.equal(snapshot.atividades[0]?.titulo, "Diagramas UML");
     assert.equal(snapshot.atividades[0]?.dataFim, "2026-05-20");
+  });
+
+  test("ignora notícias e atualizações do portal", async () => {
+    const { parsePortalPageData } = await import(
+      "../src/lib/scraper/portal-discente/parse-portal-page"
+    );
+
+    const snapshot = parsePortalPageData({
+      labelPairs: {
+        "23/06/2026":
+          "EMPREENDEDORISMO E PLANO DE NEGÓCIOS (2026.1) Indicação de Site: Nascente Incubadora",
+        "25/06/2026 - ENGENHARIA DE SOFTWARE (2026.1) Nova Notícia: VEM AÍ! CONECT.AI":
+          "25/06/2026 - ENGENHARIA DE SOFTWARE (2026.1) Nova Notícia: VEM AÍ! CONECT.AI STARTUP",
+        "08/07/2026 23:59 (8 dias)":
+          "LABORATÓRIO DE ARQUITETURA E ORGANIZAÇÃO DE COMPUTADORES I Tarefa: MIC1 - ULA",
+      },
+      tableRows: [],
+      plainText: "Últimas Atualizações Minhas Atividades",
+    });
+
+    assert.equal(snapshot.atividades.length, 1);
+    assert.match(snapshot.atividades[0]?.titulo ?? "", /MIC1/i);
   });
 
   test("extrai layout real CEFET-MG (label-pairs)", async () => {
