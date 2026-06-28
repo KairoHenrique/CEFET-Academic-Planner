@@ -23,13 +23,43 @@ Este documento detalha as funcionalidades e premissas de domínio do projeto. Se
 
 ## 2. Autenticação e Motor de Sincronização (Scraper SIGAA)
 
-### 2.1 Login
-- O aluno fornece seu **login e senha do SIGAA** (sig.cefetmg.br) após criar a conta do app.
-- O sistema oferece **duas opções de persistência** (credenciais cifradas no perfil, servidor):
-  1. **Salvar credenciais cifradas** → sync automático ao abrir o app (worker no servidor).
-  2. **Digitar a cada sync** → mais seguro; credenciais não ficam armazenadas.
+> **Dev local (Blocos 1–2):** login direto SIGAA (CPF + senha) no SQLite, sem conta cloud nem trial.  
+> **Produção (Blocos 6b+):** cadastro completo conforme §2.0 e `SCOPE-CLOUD.md` §3–§4.
 
-### 2.2 Dados Sincronizados (o que o scraper busca)
+### 2.0 Conta do aluno, trial e acesso *(decisão de produto)*
+
+**Login do app = CPF + senha SIGAA** — e-mail **não** entra no login.
+
+| Campo | Onde | Regra de negócio |
+|---|---|---|
+| **CPF** | Cadastro + **login** | Login SIGAA (só números). **Chave anti-abuso** do trial (§2.1). |
+| **Senha SIGAA** | Cadastro + login | Mesma senha do portal. Cifrada no servidor; validada pelo **SIGAA no sync**. |
+| **E-mail** | **Só cadastro** | Contato e **notificações** (atividades, nota de prova). **Não** é usuário de login. Opt-out em Configurações (§2.5). |
+| **Telefone** | **Só cadastro** | Contato (WhatsApp/SMS futuro, suporte). **Não** é login na v1. |
+| **Curso** | **Cadastro** (obrigatório) | **Eng. Computação**, **Eng. Mecatrônica** ou **Design de Moda** — define qual **PPC** alimenta mapa, integralização e simulador (§6.2). |
+
+**Quem valida a senha:** o **SIGAA**, no sync (Playwright). O app valida **formato de CPF**, **curso escolhido** e **status de acesso** (trial/assinatura).
+
+**Fluxo de acesso após cadastro:**
+
+1. CPF válido + conta com trial ou assinatura **ativa** → permite login e sync.
+2. Trial **esgotado** ou assinatura **expirada** → bloqueia app e redireciona para **renovar/pagar** (não para “login SIGAA” genérico).
+3. Sync falha por credencial SIGAA → mensagem de erro do scraper (senha errada, portal offline, etc.).
+
+### 2.1 Trial gratuito (7 dias por CPF)
+
+- Todo **CPF novo** recebe **7 dias** de uso gratuito a partir do **primeiro cadastro** com aquele CPF.
+- **Um trial por CPF, para sempre** — criar nova conta com outro e-mail mas **mesmo CPF** **não** reinicia o trial.
+- Após os 7 dias: acesso bloqueado até **pagamento PIX** (semestre/ano — ver `SCOPE-CLOUD.md` §3).
+- Dados acadêmicos **permanecem** após expirar; só o **acesso** é bloqueado.
+
+### 2.2 Login e persistência de credenciais
+
+- **Login** = **CPF + senha SIGAA** (e-mail e telefone **não** autenticam).
+- Opção **“Lembrar senha neste computador”** → senha cifrada no perfil (servidor).
+- Sync automático usa credenciais cifradas quando o aluno optou por lembrar.
+
+### 2.3 Dados Sincronizados (o que o scraper busca)
 A cada sincronização, o Playwright navega pelo SIGAA e extrai:
 
 | Dado | Fonte no SIGAA | Frequência |
@@ -47,7 +77,7 @@ A cada sincronização, o Playwright navega pelo SIGAA e extrai:
 | Calendário Acadêmico | Ensino → Calendário Acadêmico | Periódico (início/fim de semestre) |
 | Histórico Escolar (PDF) | Ensino → Emitir Histórico | Sob demanda |
 
-### 2.3 URLs Importantes do SIGAA
+### 2.4 URLs Importantes do SIGAA
 ```
 Base:                 https://sig.cefetmg.br/sigaa/
 Login:                https://sig.cefetmg.br/sigaa/verTelaLogin.do
@@ -55,7 +85,15 @@ Portal do Discente:   https://sig.cefetmg.br/sigaa/portais/discente/discente.jsf
 Turma Virtual:        https://sig.cefetmg.br/sigaa/ava/index.jsf
 ```
 
-### 2.4 Prioridade de Dados (Regra #1)
+### 2.5 Configurações, contato e notificações
+
+- Menu **Configurações** ao clicar na **foto/avatar** (navbar).
+- Toggle: **“Receber notificações por e-mail”** (padrão: ligado).
+- E-mails vão para o **e-mail cadastrado** (campo de contato, não de login).
+- Telefone cadastrado fica disponível para **contato futuro** (suporte, lembretes — canal a definir nas tasks).
+- Quando e-mail desligado: sem alertas acadêmicos por e-mail (billing/recuperação podem usar e-mail ou SMS conforme implementação).
+
+### 2.6 Prioridade de Dados (Regra #1)
 
 **O que o usuário colocou no app nunca pode ser apagado nem sobrescrito pelo sync do SIGAA.**
 
@@ -220,34 +258,29 @@ CEFET Academic Planner/
   - 🔴 **Trancada** — Falta pré-requisito.
 - Ao clicar em uma disciplina, abre o dashboard individual com a ementa.
 
-### 6.2 Carregamento do PPC
+### 6.2 Carregamento do PPC**
 
-Cada curso possui seu **Projeto Pedagógico de Curso (PPC)** próprio. O app usa o PPC do curso do aluno para mapa, pré-requisitos, simulador de matrícula e metas de integralização.
+Cada curso tem seu **PPC**. O aluno escolhe o **curso no cadastro**; mapa, integralização e simulador usam o PPC associado.
 
-#### Fase 1 — Engenharia da Computação (entrega atual)
+#### Cursos disponíveis no cadastro
 
-| Curso | Status |
-|---|---|
-| **Engenharia da Computação** (Bacharelado — DCDV) | ✅ Indexado (mapa + requisitos) — **único curso até o mobile** |
-
-Todo o produto (SQLite → API → **scraper SIGAA** → cloud → assinatura → **app mobile Expo Go**) deve funcionar **100% para Eng. Computação** antes de indexar outros PPCs.
-
-#### Fase 2 — Expansão multi-curso (somente após mobile)
-
-| Curso | Status | Pré-requisito |
+| Curso | `curso_id` (ex.) | PPC no app |
 |---|---|---|
-| **Engenharia Mecatrônica** | 🔒 Backlog | Eng. Computação completa + mobile em produção |
-| **Design de Moda** | 🔒 Backlog | Eng. Computação completa + mobile em produção |
+| **Engenharia da Computação** (DCDV) | `eng-computacao` | ✅ Indexado (Bloco 1) |
+| **Engenharia Mecatrônica** | `eng-mecatronica` | 🔒 Indexação Bloco 9 (#11) — cadastro já associa PPC quando indexado |
+| **Design de Moda** | `design-moda` | 🔒 Indexação Bloco 9 (#11) |
 
-**Regra de sequência:** Mecatrônica e Moda **não** são desenvolvidas em paralelo ao Bloco 1 nem ao mobile. Só entram quando:
-1. Blocos **1 → 6c → 7 → 8** concluídos para Eng. Computação;
-2. Aluno de Computação consegue usar o fluxo inteiro (sync, notas, mapa, integralização, calendário, PIX, app mobile).
+**Regra:** o formulário de **criar conta** sempre pergunta o curso (radio/select). Eng. Computação funciona ponta a ponta primeiro; Mecatrônica/Moda podem exibir “PPC em preparação” até a indexação, mas a **conta já guarda** `curso_id` para quando o PPC existir.
 
-**Regras gerais (quando a Fase 2 iniciar):**
-- O aluno associa seu **curso** no onboarding/perfil; mapa e integralização usam o PPC correspondente.
+#### Fase 1 — Eng. Computação (entrega atual)
+
+Todo o fluxo (sync → cloud → PIX → mobile) deve estar **100% para Eng. Computação** antes de exigir paridade para os outros PPCs.
+
+#### Fase 2 — Indexação Mecatrônica e Moda (Bloco 9, pós-mobile)
+
+- PPCs completos no banco; mapa/integralização passam a funcionar para quem escolheu esses cursos no cadastro.
 - Totais de CH por categoria vêm do PPC do curso — **não são fixos** entre cursos.
-- Importação manual de PPC (PDF) continua disponível para cursos ainda não indexados oficialmente.
-- Disciplinas e requisitos = dados **globais** read-only; ver `SCOPE-CLOUD.md` §5.2.
+- Disciplinas e requisitos = dados **globais** read-only por `curso_id`; ver `SCOPE-CLOUD.md` §5.2.
 
 ### 6.3 Simulador de Matrícula (Pré-horário)
 - Consulta as **turmas ofertadas** para o próximo semestre no SIGAA.

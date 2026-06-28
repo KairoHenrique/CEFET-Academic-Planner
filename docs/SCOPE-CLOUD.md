@@ -67,37 +67,38 @@ SaaS para alunos do CEFET-MG: app web hospedado, dados no **Supabase** (Postgres
 
 ### 3.1 Planos
 
-Assinatura **por período de acesso**, não mensalidade recorrente automática (v1):
+Assinatura **por período de acesso** (v1):
 
-| Plano (exemplo) | Duração sugerida | Observação |
+| Plano | Duração | Observação |
 |---|---|---|
+| **Trial** | **7 dias** | **Uma vez por CPF** (login SIGAA); ver `SCOPE.md` §2.1 |
 | **Semestre** | ~6 meses | Alinhado ao calendário acadêmico |
 | **Ano** | 12 meses | Desconto vs. 2 semestres (TBD) |
-| **Trial** | 7–14 dias | Opcional; decidir se haverá |
 
-Períodos e nomes finais serão definidos antes da implementação.
-
-### 3.2 Fluxo de cadastro + pagamento
+### 3.2 Fluxo de cadastro + trial + pagamento
 
 ```
 1. Usuário acessa site → "Criar conta"
-2. Preenche: nome, e-mail, senha do app (≠ senha SIGAA)
-3. Escolhe plano (semestre / ano)
-4. Sistema gera cobrança PIX (QR Code + copia-e-cola)
-5. Usuário paga no app do banco
-6. Gateway confirma pagamento (webhook)
-7. Conta muda para status "ativa" → libera login e sync SIGAA
-8. Redireciona para onboarding (vincular credenciais SIGAA)
+2. Preenche: e-mail + telefone + CPF + senha SIGAA + curso (Eng. Comp. / Mecatrônica / Moda)
+3. Sistema valida CPF, curso e se o CPF já consumiu trial
+4. Se CPF elegível → trial 7 dias (`trial_active`); conta já vinculada ao `curso_id` / PPC
+5. Login posterior: **somente CPF + senha SIGAA** (e-mail/telefone não autenticam)
+6. Após trial ou CPF já usou trial → PIX → `active`
+7. Sync valida senha no SIGAA; mapa/integralização usam PPC do curso escolhido
 ```
 
 **Estados da conta:**
 
 | Status | Acesso ao app | Sync SIGAA |
 |---|---|---|
-| `pending_payment` | Bloqueado (só tela de pagamento) | ❌ |
+| `trial_active` | Liberado (até fim dos 7 dias) | ✅ |
+| `trial_expired` | Bloqueado → pagar | ❌ |
+| `pending_payment` | Bloqueado (aguardando PIX) | ❌ |
 | `active` | Liberado | ✅ |
-| `expired` | Bloqueado (renovar assinatura) | ❌ |
+| `expired` | Bloqueado (renovar) | ❌ |
 | `cancelled` | Bloqueado | ❌ |
+
+**Anti-abuso trial:** tabela/registro **`trial_por_cpf`** (ou equivalente): CPF → `trial_started_at` / `trial_used_at`. Mesmo CPF com e-mail diferente **não** ganha segundo trial.
 
 ### 3.3 Renovação
 
@@ -126,28 +127,42 @@ Critérios para escolha (fase de implementação):
 
 ---
 
-## 4. Autenticação (duas camadas)
+## 4. Autenticação (conta única: CPF + senha SIGAA)
 
-### 4.1 Conta do app (Supabase Auth)
+### 4.1 Conta do produto
 
-- Identidade do **produto** (quem paga e acessa o planner).
-- JWT gerenciado pelo Supabase.
-- Recuperação de senha via e-mail.
+| Aspecto | Regra |
+|---|---|
+| **Login** | **CPF + senha SIGAA** — e-mail e telefone **não** autenticam |
+| **E-mail** | Cadastro obrigatório; contato + notificações (§4.4) |
+| **Telefone** | Cadastro obrigatório; contato (suporte / canais futuros) |
+| **Curso** | Cadastro obrigatório: Eng. Computação, Mecatrônica ou Moda → `curso_id` + PPC |
+| **Senha do app** | **Não existe** separada — mesma senha do SIGAA |
+| **Validação de senha** | **SIGAA** no sync (Playwright) |
+| **Validação no app** | CPF + gate trial/assinatura + `curso_id` válido |
+| **Armazenamento** | CPF, e-mail, telefone, `curso_id`, senha SIGAA **cifrada** |
+| **Identidade Auth** | **CPF** como identificador principal (não e-mail) — ver B44 |
 
-### 4.2 Credenciais SIGAA (sync acadêmico)
+Recuperação de acesso: por **e-mail** ou **telefone** cadastrados (não usa e-mail como login).
 
-- Login/senha do **portal institucional** — separados da conta do app.
-- Armazenadas **cifradas** (AES-256 ou Supabase Vault / coluna cifrada).
-- Usadas **somente** pelo worker Playwright no servidor.
-- Opção "lembrar credenciais" = salvar cifradas no perfil do usuário.
-- **Nunca** logar senha SIGAA em texto claro.
+### 4.2 Credenciais SIGAA (sync)
 
-### 4.3 Fluxo pós-ativação
+- CPF + senha gravados no cadastro (senha sempre cifrada).
+- Worker Playwright usa credenciais cifradas; **nunca** log em texto claro.
+- Opção “lembrar senha” no device = perfil no servidor, não plaintext no browser.
 
-1. Login no app (Supabase Auth).
-2. Se assinatura `active` e SIGAA não vinculado → tela de vincular SIGAA.
-3. Primeiro sync dispara job assíncrono.
+### 4.3 Fluxo pós-login
+
+1. Login (CPF + senha) + middleware verifica `trial_active` ou `active`.
+2. Se bloqueado → tela PIX / renovação.
+3. Sync dispara job assíncrono; **SIGAA** confirma ou rejeita senha.
 4. Dashboard carrega dados do Postgres.
+
+### 4.4 Notificações por e-mail
+
+- Envio condicionado ao toggle em **Configurações** (avatar → menu) — `SCOPE.md` §2.5.
+- Eventos mínimos v1: nova/atualizada tarefa relevante; nota de prova lançada.
+- Implementação de fila/e-mail = tasks (Bloco 6b/7); regra de negócio aqui no escopo.
 
 ---
 
@@ -161,10 +176,10 @@ Critérios para escolha (fase de implementação):
 
 ### 5.2 Dados de referência (PPC)
 
-- Disciplinas e requisitos do PPC = tabelas **globais** (read-only para todos).
-- Seed inicial e **único curso até o mobile:** **Eng. Computação** Divinópolis (indexado).
-- **Expansão multi-PPC** (Eng. Mecatrônica, Design de Moda): **somente após** Bloco 8 (mobile) com Eng. Computação 100% funcional — ver `SCOPE.md` §6.2.
-- Metas de integralização por categoria de CH variam por PPC/curso.
+- Disciplinas e requisitos por **`curso_id`** = tabelas **globais** (read-only).
+- Seed v1: **Eng. Computação** Divinópolis (indexado).
+- **Mecatrônica** e **Moda:** indexação Bloco 9; cadastro já grava `curso_id` desde o Bloco 6b.
+- Metas de integralização por categoria variam por PPC/curso.
 
 ### 5.3 PDFs — nuvem pessoal do aluno (não Supabase Storage)
 
@@ -308,15 +323,19 @@ Durante beta/testes com URL pública:
 
 - [ ] Preços dos planos (semestre / ano)
 - [ ] Gateway PIX definitivo
-- [ ] Haverá trial gratuito?
 - [ ] Domínio e hosting web (Vercel?)
 - [ ] Onde hospedar worker Playwright
 - [ ] Mobile: Supabase client direto vs. API Next.js
-- [ ] Método de auth app: e-mail/senha vs. magic link vs. OAuth Google
+- [ ] Provedor de e-mail transacional (Resend, SES, etc.)
 - [ ] **Provedor de nuvem v1 para PDFs:** Google Drive vs. Dropbox vs. OneDrive (ou todos)
 
 ### Decisões fechadas
 
+- [x] **Trial gratuito: 7 dias, uma vez por CPF** (login SIGAA)
+- [x] **Login só com CPF + senha SIGAA** (e-mail/telefone não autenticam)
+- [x] **Cadastro: e-mail + telefone + CPF + senha SIGAA + curso (Comp/Meca/Moda)**
+- [x] **Validação de senha delegada ao SIGAA** (sync Playwright)
+- [x] **Notificações por e-mail** com opt-out em Configurações (avatar)
 - [x] **PDFs não vão para Supabase Storage** — nuvem pessoal do aluno (`CEFET Academic Planner/{semestre}/{matéria}/`)
 - [x] **Sync SIGAA (Bloco 2) antes do Supabase (Bloco 6)** — validar com semestre ativo
 
