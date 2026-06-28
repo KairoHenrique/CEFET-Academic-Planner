@@ -14,8 +14,9 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
 
 **Legenda:**
 - `[ ]` — Não iniciada
-- `[/]` — Em progresso
-- `[x]` — Concluída
+- `[/]` — Em andamento (marcar **antes** de codar)
+- `[%]` — Commit local feito; **sem push** (aguardando revisão ou push)
+- `[x]` — Finalizada (push feito ou aprovada 100%)
 
 ---
 
@@ -159,7 +160,7 @@ Estratégia: **fatias verticais** — backend primeiro, depois frontend.
 > Siga a **[Ordem oficial](#ordem-oficial-de-execução-v2)** (#0→#10).  
 > **Regra:** dentro de cada fatia → **`BACK` (B) primeiro**, depois **`FRONT` (F)**. Detalhes nas [tabelas por bloco](#detalhe-dos-blocos).
 
-Legenda: `[x]` concluída · `[ ]` pendente · `·` = task extra na mesma fatia
+Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento · `[ ]` pendente · `·` = task extra
 
 ---
 
@@ -179,9 +180,8 @@ Legenda: `[x]` concluída · `[ ]` pendente · `·` = task extra na mesma fatia
 - [x] **FRONT:** F6 → F7 → F8 · F6b · F8b · F8c · F8d · F8e · F8f
 
 #### Etapa 3B — Calendário
-- [x] **BACK:**  B13 → B14 → B15
-- [x] **FRONT:** F9
-- [x] **FRONT:** F10
+- [%] **BACK:**  B13 · B14 · B15
+- [%] **FRONT:** F9 · F10
 
 #### Etapa 3C — Integralização
 - [ ] **BACK:**  B16 → B17
@@ -378,7 +378,7 @@ Legenda: `[x]` concluída · `[ ]` pendente · `·` = task extra na mesma fatia
 
 #### Etapa 3 — Demais telas (back → front)
 
-> **3B Calendário:** ✅ concluído (B13–F10) · próximo: **B16** (integralização)
+> **3B Calendário:** entregue `[%]` (B13–F10 commitados localmente; push pendente) · próximo: **B16** (integralização)
 
 ##### 3A — Disciplinas
 
@@ -408,11 +408,11 @@ Legenda: `[x]` concluída · `[ ]` pendente · `·` = task extra na mesma fatia
 
 | # | Tipo | Task | Resumo | Status |
 |---|------|------|--------|--------|
-| B13 | Back | `GET /api/calendar` | Tarefas, provas e datas do semestre | [x] |
-| B14 | Back | `POST /api/calendar/events` | Inserir evento manual | [x] |
-| B15 | Back | `PATCH .../events/[id]` | Editar ou marcar concluído | [x] |
-| F9 | Front | `useCalendarEvents` | Hook que alimenta o calendário | [x] |
-| F10 | Front | Views do calendário | `CalendarioView`, datas acadêmicas, form | [x] |
+| B13 | Back | `GET /api/calendar` | Tarefas, provas e datas do semestre | [%] |
+| B14 | Back | `POST /api/calendar/events` | Inserir evento manual | [%] |
+| B15 | Back | `PATCH .../events/[id]` | Editar ou marcar concluído | [%] |
+| F9 | Front | `useCalendarEvents` | Hook que alimenta o calendário | [%] |
+| F10 | Front | Views do calendário | `CalendarioView`, datas acadêmicas, form | [%] |
 
 ##### 3C — Integralização
 
@@ -905,9 +905,10 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 5. **URLs do SIGAA mudam de sessão para sessão.** Sempre navegue pelo menu, não por URLs hardcoded.
 6. **O design deve ser PREMIUM.** Cores do Cruzeiro (Azul #0060B1 + Dourado #D4A843), glassmorphism, micro-animações. Nada genérico.
 7. **Atualize o `docs/TASKS.md` sempre que trabalhar em uma task:**
-   - Ao **iniciar**: marque como `[/]` — Em progresso (ou adicione a task se não existir).
-   - Ao **concluir**: marque como `[x]` — Concluída.
-   - Faça **commit** ao finalizar (push não é obrigatório).
+   - Ao **iniciar**: marque como `[/]` — em andamento.
+   - Após **commit local**: marque como `[%]` — feito, sem push.
+   - Após **push ou aprovação 100%**: marque como `[x]` — finalizada.
+   - Faça **commit** ao concluir cada task (push só quando o usuário pedir).
 8. **Código frontend** está em `app/src/` (não na raiz `src/`). Mock data em `app/src/config/mock/`.
 9. **Ordem de execução:** seguir [Ordem oficial v2](#ordem-oficial-de-execução-v2) e [Checklist mestre](#checklist-mestre-ordem-de-execução) — **não** a numeração antiga 1→2→3→4. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy com URL pública; Supabase free; RLS **só na 6c** (antes do PIX).
