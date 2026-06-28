@@ -12,6 +12,13 @@ import type {
 } from "@/lib/types/disciplinas-api";
 import type { AcademicTask } from "@/lib/types/task";
 import type { SyncRequest, SyncSuccessResponse } from "@/lib/types/sync";
+import type { CalendarEvent } from "@/lib/types/calendar";
+import type {
+  CalendarResponse,
+  CreateCalendarEventBody,
+  PatchCalendarEventBody,
+  PatchCalendarEventResponse,
+} from "@/lib/types/calendar-api";
 
 export type ClientErrorCode =
   | "VALIDATION_ERROR"
@@ -172,6 +179,32 @@ export async function createDisciplinaTarefa(
     `/api/disciplinas/${encodeURIComponent(code)}/tarefas`,
     {
       method: "POST",
+      body: JSON.stringify(body),
+    }
+  );
+}
+
+export async function getCalendar(): Promise<CalendarResponse> {
+  return requestJson<CalendarResponse>("/api/calendar");
+}
+
+export async function createCalendarEvent(
+  body: CreateCalendarEventBody
+): Promise<CalendarEvent> {
+  return requestJson<CalendarEvent>("/api/calendar/events", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function patchCalendarEvent(
+  id: string,
+  body: PatchCalendarEventBody
+): Promise<PatchCalendarEventResponse> {
+  return requestJson<PatchCalendarEventResponse>(
+    `/api/calendar/events/${encodeURIComponent(id)}`,
+    {
+      method: "PATCH",
       body: JSON.stringify(body),
     }
   );

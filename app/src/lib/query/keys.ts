@@ -7,4 +7,5 @@ export const queryKeys = {
     [...queryKeys.all, "disciplinas", { q: q ?? "", filter: filter ?? "todas" }] as const,
   disciplina: (code: string) =>
     [...queryKeys.all, "disciplina", code] as const,
+  calendar: () => [...queryKeys.all, "calendar"] as const,
 };
