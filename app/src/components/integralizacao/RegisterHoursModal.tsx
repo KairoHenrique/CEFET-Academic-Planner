@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { Input } from "@/components/ui/Input";
+import { PlannerSelect } from "@/components/ui/PlannerSelect";
 import { CH_TYPES } from "@/lib/integralizacao/ch-catalog";
 import type { ChType } from "@/lib/integralizacao/ch-catalog";
 import type { PostIntegralizacaoBody } from "@/lib/types/integralizacao-api";
@@ -24,6 +25,11 @@ export function RegisterHoursModal({
   const [tipoCh, setTipoCh] = useState<ChType>("Complementar");
   const [horasValue, setHorasValue] = useState("");
   const [error, setError] = useState<string | null>(null);
+
+  const categoryOptions = useMemo(
+    () => CH_TYPES.map((type) => ({ value: type, label: type })),
+    []
+  );
 
   useEffect(() => {
     if (open) {
@@ -58,26 +64,20 @@ export function RegisterHoursModal({
   return (
     <Modal open={open} onClose={onClose} title="Cadastrar horas">
       <form className="modal-form-stack" onSubmit={(event) => void handleSubmit(event)}>
-        <label className="form-field" htmlFor="register-hours-category">
-          <span className="form-label">Categoria</span>
-          <select
+        <div className="form-field">
+          <PlannerSelect
             id="register-hours-category"
-            className="form-input form-select"
+            label="Categoria"
             value={tipoCh}
-            disabled={isSaving}
-            onChange={(event) => setTipoCh(event.target.value as ChType)}
-          >
-            {CH_TYPES.map((type) => (
-              <option key={type} value={type}>
-                {type}
-              </option>
-            ))}
-          </select>
+            options={categoryOptions}
+            fullWidth
+            onChange={setTipoCh}
+          />
           <span className="form-hint">
             Use Complementar para certificados, workshops ou disciplinas de outro
             curso reconhecidas.
           </span>
-        </label>
+        </div>
 
         <Input
           label="Horas"
