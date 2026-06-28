@@ -9,6 +9,7 @@ import { BrandLogo } from "@/components/ui/BrandLogo";
 import { Icon } from "@/components/ui/Icon";
 import { SyncButton } from "@/components/ui/SyncButton";
 import { LogoutButton } from "@/components/auth/LogoutButton";
+import { ProfileMenu } from "@/components/profile/ProfileMenu";
 
 export function Navbar() {
   const pathname = usePathname();
@@ -55,9 +56,7 @@ export function Navbar() {
 
             <SyncButton />
 
-            <div className="navbar-avatar" title="Minha Conta" role="img" aria-label="Perfil">
-              KH
-            </div>
+            <ProfileMenu />
 
             <LogoutButton />
           </div>
