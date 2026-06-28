@@ -73,7 +73,7 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
 
 ### 1.4 API e Integração UI ↔ SQLite
 
-> **Progresso:** Etapas 1–2 ✅ · Etapa 3A ✅ (+ extensões F8g–F8i, B12d) · Etapa 3B ✅ · **3C em andamento** (B16–B17 backend ✅ local · **próximo: F11 → F11b**).
+> **Progresso:** Etapas 1–2 ✅ · 3A ✅ · 3B ✅ · **3C Integralização ✅** (F11–F11b [%] local) · **próximo: 3D Mapa** (B18 → F12).
 
 Roadmap detalhado: ver **[Ordem oficial](#ordem-oficial-de-execução-v2)** e **[Checklist mestre](#checklist-mestre-ordem-de-execução)**.
 
@@ -167,7 +167,7 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 
 ---
 
-### #1 — Bloco 1 · API + UI ↔ SQLite `🟡 43/49`
+### #1 — Bloco 1 · API + UI ↔ SQLite `🟡 45/49`
 
 > Fatias verticais: **back → front** por etapa.
 
@@ -186,9 +186,9 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 - [x] **BACK:**  B13 · B14 · B15 · B15b
 - [x] **FRONT:** F9 · F10 · F10b
 
-#### Etapa 3C — Integralização
+#### Etapa 3C — Integralização ✅
 - [x] **BACK:**  B16 → B17
-- [ ] **FRONT:** F11 · F11b
+- [x] **FRONT:** F11 · F11b
 
 #### Etapa 3D — Mapa do curso
 - [ ] **BACK:**  B18
@@ -330,7 +330,7 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 | Exec. # | Bloco | Status | Progresso |
 |---------|-------|--------|-----------|
 | #0 | 0 — Planejamento | ✅ | Concluído |
-| **#1** | **1 — SQLite (3C–3E)** | 🟡 **Atual** | 43 / 49 |
+| **#1** | **1 — SQLite (3C–3E)** | 🟡 **Atual** | 45 / 49 |
 | #2–3 | 6 — Cloud Supabase | ⬜ | 0 / 14 |
 | #4–5 | 2 — Scraper SIGAA | ⬜ | 0 / 14 |
 | #7 | 7 — Assinatura PIX | ⬜ | 0 / 12 |
@@ -397,7 +397,7 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 
 #### Etapa 3 — Demais telas (back → front)
 
-> **3B Calendário:** ✅ (push `93dd108`) · **3C:** B16–B17 [%] · **próximo:** F11 → F11b
+> **3C Integralização:** ✅ (B16–B17 + F11–F11b [%] local) · **próximo:** 3D (B18 → F12)
 
 ##### 3A — Disciplinas
 
@@ -447,8 +447,8 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 |---|------|------|--------|--------|
 | B16 | Back | `GET /api/integralizacao` | Totais por tipo de CH (conforme PPC do curso) | [%] |
 | B17 | Back | `POST /api/integralizacao` | Registrar horas complementares manuais | [%] |
-| F11 | Front | Painéis integralização | Donut + tabela via API (hoje mock) | [ ] |
-| F11b | Front | Glossário de CH | Bloco “Entenda suas horas” + tooltips (obrigatória, optativa/eletiva, complementar, extensão, flexibilizada) | [ ] |
+| F11 | Front | Painéis integralização | Donut + tabela via API + cadastro de horas | [%] |
+| F11b | Front | Glossário de CH | Bloco “Entenda suas horas” + tooltips (obrigatória, optativa/eletiva, complementar, extensão, flexibilizada) | [%] |
 
 ##### 3D — Mapa do curso
 
@@ -732,7 +732,7 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 
 ## Fase 3: Interface do Usuário — Telas Principais
 
-> **Resumo:** Shell visual de login, dashboard, calendário, mapa, integralização e simulador. Integração SQLite: dashboard ✅ · disciplinas ✅ · calendário ✅ · integralização/mapa/grade semanal ainda mock ou parcial (F11, F12, F13).
+> **Resumo:** Shell visual de login, dashboard, calendário, mapa, integralização e simulador. Integração SQLite: dashboard ✅ · disciplinas ✅ · calendário ✅ · integralização ✅ · mapa/grade semanal ainda mock ou parcial (F12, F13).
 
 ### 3.1 Tela de Login
 - [x] Input de usuário e senha do SIGAA
@@ -746,7 +746,7 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 ### 3.2 Dashboard Central
 - [x] Header com saudação, nome do aluno e semestre atual — **via API** (`useDashboard`, TanStack Query)
 - [/] Card de RG com indicador visual (cor baseada na faixa) — RG numérico em `StatsRow`; **faixa de cores pendente**
-- [x] Barra de integralização com breakdown por tipo de CH — **via API** (página `/integralizacao` ainda mock → F11)
+- [x] Barra de integralização com breakdown por tipo de CH — **via API** + tooltips por categoria (F11b)
 - [/] Lista "Próximas Entregas" (5 próximas tarefas/avaliações) — filtros via API (incl. Concluídas) + regra 3 dias após prazo; **limite de 5 pendente**
 - [x] Modal com detalhes da tarefa ao clicar (descrição, entregáveis, link à disciplina)
 - [x] Grid de cards de disciplinas (nota, faltas, próxima atividade por matéria) — **via API**
@@ -776,7 +776,7 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 - [x] Template `/calendario` — calendário mensal, eventos e datas acadêmicas **via API** (F9–F10); grade semanal ainda mock (F13)
 - [x] Template `/disciplinas` — listagem e detalhe **via API** (F6–F8); simulação de notas permanece local
 - [x] Template `/mapa` (grade curricular por período com status)
-- [/] Template `/integralizacao` — UI donut + barras douradas; **dados ainda mock** (F11)
+- [x] Template `/integralizacao` — donut + barras + tabela **via API**; modal cadastrar horas; glossário (F11 · F11b)
 - [x] Template `/simulador` (montar grade / matrícula)
 - [x] Página `not-found` customizada
 - [x] Layout compartilhado (`PageHeader`, `PageGrid`) e mock data em `config/mock/`
@@ -888,7 +888,7 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 - [x] Donut "Total Integralizado" + cards alinhados em altura (`IntegrationDonutChart`)
 - [x] Barras de progresso douradas unificadas no app
 - [x] Documentar glossário de tipos de CH no `SCOPE.md` §6.4 (implementação → **F11b**)
-- [ ] Glossário **“Entenda suas horas”** na UI (obrigatória, eletiva, complementar, extensão, flexibilizada) → **F11b**
+- [x] Glossário **“Entenda suas horas”** na UI (obrigatória, eletiva, complementar, extensão, flexibilizada) — F11b
 - [ ] Alerta quando estiver perto de concluir uma categoria
 
 ### 5.5 Calendário Acadêmico
@@ -948,5 +948,5 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 8. **Próximo passo do roadmap:** indique **somente após push** (tasks em `[x]`). Com commits locais `[%]` pendentes, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v2](#ordem-oficial-de-execução-v2) e [Checklist mestre](#checklist-mestre-ordem-de-execução) — **não** a numeração antiga 1→2→3→4. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy com URL pública; Supabase free; RLS **só na 6c** (antes do PIX).
-11. **Próximo passo:** **F11 → F11b** (UI integralização via API). Backend B16–B17 [%] local. **Mecatrônica e Moda:** bloqueadas até **#11**, após **#8 mobile**.
+11. **Próximo passo:** **B18 → F12** (mapa do curso). Commits locais `[%]`: B16–B17, F11–F11b. **Mecatrônica e Moda:** bloqueadas até **#11**, após **#8 mobile**.
 12. **Código frontend** está em `app/src/` (não na raiz `src/`). Mock data em `app/src/config/mock/`.
