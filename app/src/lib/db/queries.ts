@@ -680,6 +680,81 @@ export function insertEventoCalendario(
   return Number(result.lastInsertRowid);
 }
 
+export function getTarefaCalendarById(id: number): TarefaCalendarRow | undefined {
+  return db
+    .prepare(
+      `
+    SELECT t.*, d.nome AS disciplina_nome, s.cor AS cor
+    FROM tarefas t
+    JOIN disciplinas d ON t.disciplina_id = d.codigo
+    LEFT JOIN semestre_atual s ON s.disciplina_id = t.disciplina_id
+    WHERE t.id = ?
+  `
+    )
+    .get(id) as TarefaCalendarRow | undefined;
+}
+
+export function updateEventoCalendarioFields(
+  id: number,
+  fields: Partial<
+    Pick<
+      EventoCalendarioRow,
+      | "titulo"
+      | "descricao"
+      | "data"
+      | "tipo"
+      | "disciplina_id"
+      | "cor"
+      | "concluida"
+    >
+  >
+): number {
+  const sets: string[] = [];
+  const params: Array<string | number | null> = [];
+
+  if (fields.titulo !== undefined) {
+    sets.push("titulo = ?");
+    params.push(fields.titulo);
+  }
+  if (fields.descricao !== undefined) {
+    sets.push("descricao = ?");
+    params.push(fields.descricao);
+  }
+  if (fields.data !== undefined) {
+    sets.push("data = ?");
+    params.push(fields.data);
+  }
+  if (fields.tipo !== undefined) {
+    sets.push("tipo = ?");
+    params.push(fields.tipo);
+  }
+  if (fields.disciplina_id !== undefined) {
+    sets.push("disciplina_id = ?");
+    params.push(fields.disciplina_id);
+  }
+  if (fields.cor !== undefined) {
+    sets.push("cor = ?");
+    params.push(fields.cor);
+  }
+  if (fields.concluida !== undefined) {
+    sets.push("concluida = ?");
+    params.push(fields.concluida);
+  }
+
+  if (sets.length === 0) return 0;
+
+  params.push(id);
+  return db
+    .prepare(`UPDATE eventos_calendario SET ${sets.join(", ")} WHERE id = ?`)
+    .run(...params).changes;
+}
+
+export function deleteEventoCalendario(id: number): number {
+  return db
+    .prepare("DELETE FROM eventos_calendario WHERE id = ? AND manual = 1")
+    .run(id).changes;
+}
+
 // --- CONFIGURAÇÕES ---
 export function getConfig(chave: string): string | null {
   const result = db
