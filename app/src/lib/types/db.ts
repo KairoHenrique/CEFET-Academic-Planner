@@ -110,3 +110,21 @@ export interface CalendarioAcademicoRow {
   data_fim: string | null;
   semestre: string | null;
 }
+
+export interface EventoCalendarioRow {
+  id: number;
+  titulo: string;
+  descricao: string | null;
+  data: string;
+  tipo: "aula" | "tarefa" | "prova" | "evento";
+  disciplina_id: string | null;
+  cor: string | null;
+  concluida: number;
+  manual: number;
+  disciplina_nome?: string | null;
+}
+
+export interface TarefaCalendarRow extends TarefaRow {
+  disciplina_nome: string;
+  cor: string | null;
+}

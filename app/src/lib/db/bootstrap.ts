@@ -143,6 +143,19 @@ export function initDB(): void {
       semestre TEXT
     );
 
+    CREATE TABLE IF NOT EXISTS eventos_calendario (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      titulo TEXT NOT NULL,
+      descricao TEXT,
+      data TEXT NOT NULL,
+      tipo TEXT NOT NULL CHECK( tipo IN ('aula', 'tarefa', 'prova', 'evento') ),
+      disciplina_id TEXT,
+      cor TEXT,
+      concluida INTEGER DEFAULT 0,
+      manual INTEGER DEFAULT 1,
+      FOREIGN KEY (disciplina_id) REFERENCES disciplinas(codigo)
+    );
+
     CREATE TABLE IF NOT EXISTS configuracoes (
       chave TEXT PRIMARY KEY,
       valor TEXT NOT NULL

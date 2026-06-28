@@ -3,6 +3,7 @@ import type {
   AlunoRow,
   CalendarioAcademicoRow,
   DisciplinaRow,
+  EventoCalendarioRow,
   FaltaRow,
   GrupoMembroRow,
   HistoricoRow,
@@ -11,6 +12,7 @@ import type {
   RequisitoRow,
   SemestreAtualRow,
   SemestreAtualWithDisciplina,
+  TarefaCalendarRow,
   TarefaRow,
 } from "@/lib/types/db";
 
@@ -598,6 +600,35 @@ export function saveCalendarioEvent(
 
 export function clearCalendarioAcademico(): void {
   db.prepare("DELETE FROM calendario_academico").run();
+}
+
+// --- CALENDÁRIO (leitura) ---
+export function getTarefasForCalendar(): TarefaCalendarRow[] {
+  return db
+    .prepare(
+      `
+    SELECT t.*, d.nome AS disciplina_nome, s.cor AS cor
+    FROM tarefas t
+    JOIN disciplinas d ON t.disciplina_id = d.codigo
+    LEFT JOIN semestre_atual s ON s.disciplina_id = t.disciplina_id
+    WHERE COALESCE(t.data_fim, t.data_inicio) IS NOT NULL
+    ORDER BY COALESCE(t.data_fim, t.data_inicio), t.id
+  `
+    )
+    .all() as TarefaCalendarRow[];
+}
+
+export function getEventosCalendario(): EventoCalendarioRow[] {
+  return db
+    .prepare(
+      `
+    SELECT e.*, d.nome AS disciplina_nome
+    FROM eventos_calendario e
+    LEFT JOIN disciplinas d ON e.disciplina_id = d.codigo
+    ORDER BY e.data, e.id
+  `
+    )
+    .all() as EventoCalendarioRow[];
 }
 
 // --- CONFIGURAÇÕES ---
