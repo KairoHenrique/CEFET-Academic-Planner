@@ -7,6 +7,7 @@ import {
 } from "@/lib/calendar/event-types";
 import type { ScheduleSlotData } from "@/config/mock/schedule";
 import type { AcademicTask } from "@/config/mock/tasks";
+import { disciplinaDetailPath } from "@/lib/disciplinas/disciplina-path";
 import { Icon } from "./Icon";
 
 interface EventDetailContentProps {
@@ -38,7 +39,7 @@ export function EventDetailContent({ event, onClose, onToggleDone }: EventDetail
     <div className="detail-actions">
       {event.subjectCode && (
         <Link
-          href={`/disciplinas/${event.subjectCode}`}
+          href={disciplinaDetailPath(event.subjectCode)}
           className="btn-gold"
           onClick={onClose}
         >
@@ -111,7 +112,7 @@ export function ScheduleDetailContent({
       <div className="detail-actions">
         {slot.code !== "EXTRA" && (
           <Link
-            href={`/disciplinas/${slot.code}`}
+            href={disciplinaDetailPath(slot.code)}
             className="btn-gold"
             onClick={onClose}
           >
@@ -198,7 +199,7 @@ export function TaskDetailContent({
 
       <div className="detail-actions">
         <Link
-          href={`/disciplinas/${task.subjectCode}`}
+          href={disciplinaDetailPath(task.subjectCode)}
           className="btn-gold"
           onClick={onClose}
         >

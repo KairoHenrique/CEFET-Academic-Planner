@@ -15,6 +15,7 @@ import { useSubjectPriorities } from "@/hooks/useStoredPriorities";
 import { sortSubjectsByPriority } from "@/lib/priority/sort";
 import { computeAbsenceRisk } from "@/lib/disciplinas/absence-risk";
 
+import { disciplinaDetailPath } from "@/lib/disciplinas/disciplina-path";
 import { DISCIPLINA_FILTER_LABELS } from "@/lib/disciplinas/list-filters";
 
 export function SubjectList() {
@@ -32,7 +33,7 @@ export function SubjectList() {
   }, [items, getPriority, map]);
 
   const openSubject = (code: string) => {
-    router.push(`/disciplinas/${code}`);
+    router.push(disciplinaDetailPath(code));
   };
 
   return (

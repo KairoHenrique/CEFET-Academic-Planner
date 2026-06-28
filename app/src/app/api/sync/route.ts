@@ -6,7 +6,8 @@ import { recordSyncCompletedAt } from "@/lib/sync/sync-preferences";
 import { ApiError } from "@/lib/api/errors";
 
 export const runtime = "nodejs";
-export const maxDuration = 60;
+/** Turma virtual live leva ~2 min (4 disciplinas × 4 subpáginas). */
+export const maxDuration = 300;
 
 export const POST = withDb(async (request) => {
   try {
