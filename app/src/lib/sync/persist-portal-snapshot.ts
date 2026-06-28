@@ -3,7 +3,11 @@ import {
   SUBJECT_DISPLAY_GRADE_MAX,
   SUBJECT_DISPLAY_PASSING_GRADE,
 } from "@/lib/disciplinas/grade-display";
-import { resolveDisciplinaCodigoByNome } from "@/lib/scraper/portal-discente/resolve-disciplina-codigo";
+import {
+  normalizeDisciplinaNome,
+  resolveDisciplinaCodigoByNome,
+  resolveDisciplinaCodigoFromSemestre,
+} from "@/lib/scraper/portal-discente/resolve-disciplina-codigo";
 import {
   clearPortalSyncedData,
   pruneSyncedSemestreAtual,
@@ -15,6 +19,21 @@ import {
 } from "@/lib/db/queries";
 import { seedPpcIfEmpty } from "@/lib/db/seed-ppc";
 import type { PortalDiscenteSnapshot } from "@/lib/scraper/types/portal-discente";
+
+function buildSemestreCodigoByNome(
+  snapshot: PortalDiscenteSnapshot
+): Map<string, string> {
+  const map = new Map<string, string>();
+
+  for (const disciplina of snapshot.semestreAtual) {
+    const codigo = resolveDisciplinaCodigoByNome(
+      disciplina.codigo || disciplina.nome
+    );
+    map.set(normalizeDisciplinaNome(disciplina.nome), codigo);
+  }
+
+  return map;
+}
 
 export function persistPortalSnapshot(snapshot: PortalDiscenteSnapshot): void {
   seedPpcIfEmpty();
@@ -40,11 +59,14 @@ export function persistPortalSnapshot(snapshot: PortalDiscenteSnapshot): void {
     });
   }
 
-  const activeDisciplinaIds: string[] = [];
+  const activeDisciplinaIds = new Set<string>();
+  const semestreByNome = buildSemestreCodigoByNome(snapshot);
 
   for (const disciplina of snapshot.semestreAtual) {
-    const codigo = resolveDisciplinaCodigoByNome(disciplina.codigo || disciplina.nome);
-    activeDisciplinaIds.push(codigo);
+    const codigo = resolveDisciplinaCodigoByNome(
+      disciplina.codigo || disciplina.nome
+    );
+    activeDisciplinaIds.add(codigo);
 
     saveDisciplina({
       codigo,
@@ -72,10 +94,16 @@ export function persistPortalSnapshot(snapshot: PortalDiscenteSnapshot): void {
     });
   }
 
-  pruneSyncedSemestreAtual(activeDisciplinaIds);
+  pruneSyncedSemestreAtual(Array.from(activeDisciplinaIds));
 
   for (const atividade of snapshot.atividades) {
-    const disciplinaId = resolveDisciplinaCodigoByNome(atividade.disciplinaCodigo);
+    const disciplinaId = resolveDisciplinaCodigoFromSemestre(
+      atividade.disciplinaCodigo,
+      semestreByNome,
+      activeDisciplinaIds
+    );
+    if (!disciplinaId) continue;
+
     upsertSyncedTarefa({
       disciplina_id: disciplinaId,
       titulo: atividade.titulo,

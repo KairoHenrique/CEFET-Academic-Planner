@@ -1,6 +1,6 @@
 import { getDisciplinas } from "@/lib/db/queries";
 
-function normalizeNome(value: string): string {
+export function normalizeDisciplinaNome(value: string): string {
   return value
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -17,19 +17,37 @@ export function resolveDisciplinaCodigoByNome(nomeOuCodigo: string): string {
     return trimmed.toUpperCase();
   }
 
-  const target = normalizeNome(trimmed);
+  const target = normalizeDisciplinaNome(trimmed);
   const disciplinas = getDisciplinas();
 
   const exact = disciplinas.find(
-    (disciplina) => normalizeNome(disciplina.nome) === target
+    (disciplina) => normalizeDisciplinaNome(disciplina.nome) === target
   );
   if (exact) return exact.codigo;
 
   const contains = disciplinas.find((disciplina) => {
-    const candidate = normalizeNome(disciplina.nome);
+    const candidate = normalizeDisciplinaNome(disciplina.nome);
     return candidate.includes(target) || target.includes(candidate);
   });
   if (contains) return contains.codigo;
 
   return trimmed.slice(0, 24).replace(/\s+/g, "-").toUpperCase();
+}
+
+export function resolveDisciplinaCodigoFromSemestre(
+  ref: string,
+  semestreByNome: ReadonlyMap<string, string>,
+  activeIds: ReadonlySet<string>
+): string | null {
+  const target = normalizeDisciplinaNome(ref);
+  const direct = semestreByNome.get(target);
+  if (direct && activeIds.has(direct)) return direct;
+
+  for (const [nome, codigo] of semestreByNome) {
+    if (!activeIds.has(codigo)) continue;
+    if (nome.includes(target) || target.includes(nome)) return codigo;
+  }
+
+  const fallback = resolveDisciplinaCodigoByNome(ref);
+  return activeIds.has(fallback) ? fallback : null;
 }
