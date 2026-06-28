@@ -27,6 +27,17 @@ export const CH_TYPES: readonly ChType[] = ENG_COMPUTACAO_CH_CATALOG.map(
   (entry) => entry.tipoCh
 );
 
+/** Categorias que aceitam lançamento manual pelo aluno (ACC, extensão, etc.). */
+export const MANUAL_CH_TYPES: readonly ChType[] = [
+  "Complementar",
+  "Extensão",
+  "Flexibilizada",
+] as const;
+
+export function isManualChType(value: ChType): boolean {
+  return MANUAL_CH_TYPES.includes(value);
+}
+
 export function isChType(value: string): value is ChType {
   return CH_TYPES.includes(value as ChType);
 }

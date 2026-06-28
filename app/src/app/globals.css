@@ -2096,6 +2096,65 @@ a:hover {
 }
 
 /* ---- Schedule Table ---- */
+.schedule-preview-state,
+.schedule-panel-state {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+}
+
+.schedule-preview-message {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.schedule-preview-action {
+  align-self: flex-start;
+}
+
+.schedule-preview-state-error .schedule-preview-message {
+  color: var(--danger-300, #f47067);
+}
+
+.schedule-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 760px;
+}
+
+.schedule-skeleton-head,
+.schedule-skeleton-row {
+  display: grid;
+  grid-template-columns: 72px repeat(7, minmax(84px, 1fr));
+  gap: var(--space-1);
+}
+
+.schedule-skeleton-compact .schedule-skeleton-head,
+.schedule-skeleton-compact .schedule-skeleton-row {
+  grid-template-columns: 32px repeat(5, minmax(64px, 1fr));
+}
+
+.schedule-skeleton-corner {
+  height: 28px;
+}
+
+.schedule-skeleton-time {
+  height: 28px;
+}
+
+.schedule-skeleton-day {
+  height: 56px;
+}
+
+.schedule-skeleton-cell {
+  height: 56px;
+  border-radius: var(--radius-md);
+}
+
 .schedule-wrapper {
   overflow-x: auto;
 }
@@ -3965,35 +4024,6 @@ a:hover {
   }
 }
 
-.course-map-electives {
-  margin-top: var(--space-6);
-  padding-top: var(--space-5);
-  border-top: 1px solid var(--border-default);
-}
-
-.course-map-electives-title {
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--gold-300);
-  margin-bottom: var(--space-3);
-  padding-bottom: var(--space-2);
-  border-bottom: 1px solid var(--border-default);
-}
-
-.course-map-electives-list {
-  list-style: none;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
-  gap: var(--space-2);
-}
-
-.course-map-electives-list > li {
-  display: flex;
-  min-width: 0;
-}
-
 .course-period-column {
   min-width: 0;
   display: flex;
@@ -4087,6 +4117,13 @@ a:hover {
   font-size: 0.6875rem;
   color: var(--text-tertiary);
   margin-top: 2px;
+}
+
+.course-node-lock-hint {
+  font-size: 0.625rem;
+  line-height: 1.35;
+  color: var(--gold-300);
+  margin-top: var(--space-1);
 }
 
 /* ---- Simulator ---- */

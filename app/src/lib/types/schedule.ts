@@ -28,6 +28,8 @@ export interface ScheduleSlotData {
   color: string;
   professor?: string;
   ch?: number;
+  /** Nome completo ou personalizado (tooltip / modal). */
+  displayName?: string;
 }
 
 export type ScheduleSlot = ScheduleSlotData | null;

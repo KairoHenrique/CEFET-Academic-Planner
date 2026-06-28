@@ -16,6 +16,7 @@ import {
   upsertSyncedTarefa,
 } from "./queries";
 import { seedPpcIfEmpty } from "./seed-ppc";
+import { DEMO_SIGAA_CODIGO_HORARIO } from "@/lib/schedule/demo-sigaa-codigos";
 
 const SEMESTRE_ATUAL = "2026.1";
 
@@ -74,7 +75,7 @@ export function seedDemoStudentData(): void {
     upsertSyncedSemestreAtual({
       disciplina_id: subject.code,
       local: subject.room,
-      codigo_horario: null,
+      codigo_horario: DEMO_SIGAA_CODIGO_HORARIO[subject.code] ?? null,
       horario_traduzido: subject.schedule ?? null,
       cor: subject.color,
       apelido: null,

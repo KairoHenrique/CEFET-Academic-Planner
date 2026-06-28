@@ -1,7 +1,5 @@
 import { useMemo } from "react";
-import { CourseMapElectivesStrip } from "@/components/mapa/CourseMapElectivesStrip";
 import { CourseMapPeriodColumn } from "@/components/mapa/CourseMapPeriodColumn";
-import { isElectivePeriod } from "@/components/mapa/format-period-label";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import type {
   CourseMapPeriod,
@@ -23,19 +21,16 @@ interface CourseMapGridProps {
   statusLabels: Record<CourseMapStatus, string>;
 }
 
-function splitPeriods(periods: CourseMapPeriod[]) {
+function buildRegularPeriodMap(periods: CourseMapPeriod[]) {
   const regularByNumber = new Map<number, CourseMapPeriod>();
-  const electiveSubjects: CourseMapPeriod["subjects"] = [];
 
   for (const period of periods) {
-    if (isElectivePeriod(period.period)) {
-      electiveSubjects.push(...period.subjects);
-      continue;
+    if (period.period >= 1) {
+      regularByNumber.set(period.period, period);
     }
-    regularByNumber.set(period.period, period);
   }
 
-  return { regularByNumber, electiveSubjects };
+  return regularByNumber;
 }
 
 function emptyPeriod(period: number): CourseMapPeriod {
@@ -70,8 +65,8 @@ function CourseMapPeriodRow({
 
 export function CourseMapGrid({ periods, statusLabels }: CourseMapGridProps) {
   const statusOrder = Object.keys(statusLabels) as CourseMapStatus[];
-  const { regularByNumber, electiveSubjects } = useMemo(
-    () => splitPeriods(periods),
+  const regularByNumber = useMemo(
+    () => buildRegularPeriodMap(periods),
     [periods]
   );
 
@@ -108,13 +103,9 @@ export function CourseMapGrid({ periods, statusLabels }: CourseMapGridProps) {
         />
       </div>
 
-      <CourseMapElectivesStrip
-        subjects={electiveSubjects}
-        statusLabels={statusLabels}
-      />
-
       <p className="panel-footer-note">
-        Grafo interativo com pré-requisitos será implementado na Fase 5.
+        Optativas/eletivas não aparecem aqui — acompanhe em Integralização e no
+        histórico SIGAA. Grafo interativo com pré-requisitos: Fase 5.
       </p>
     </div>
   );

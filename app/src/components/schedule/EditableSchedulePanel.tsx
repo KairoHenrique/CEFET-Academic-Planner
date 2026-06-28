@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { WeeklyScheduleTable } from "@/components/schedule/WeeklyScheduleTable";
+import { ScheduleTableSkeleton } from "@/components/schedule/ScheduleTableSkeleton";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Modal } from "@/components/ui/Modal";
 import { Input } from "@/components/ui/Input";
@@ -25,8 +27,6 @@ export function EditableSchedulePanel() {
   const [room, setRoom] = useState("");
   const [extraType, setExtraType] = useState<ExtraSlotType>("estudo");
 
-  if (!schedule.hydrated) return null;
-
   const handleSaveExtra = () => {
     if (!pendingSlot || !title.trim()) return;
     schedule.addExtra(pendingSlot.dayIdx, pendingSlot.slotIdx, {
@@ -40,6 +40,52 @@ export function EditableSchedulePanel() {
     setTitle("");
     setRoom("");
   };
+
+  if (schedule.loading) {
+    return (
+      <>
+        <div className="schedule-editor-bar">
+          <SectionHeader title="Grade Semanal" icon="calendar" />
+        </div>
+        <ScheduleTableSkeleton />
+      </>
+    );
+  }
+
+  if (schedule.needsSync) {
+    return (
+      <section className="schedule-panel-state card" aria-live="polite">
+        <SectionHeader title="Grade Semanal" icon="calendar" />
+        <p className="schedule-preview-message">
+          Sincronize com o SIGAA para montar a grade com seus horários oficiais.
+        </p>
+        <Link href="/login" className="btn-gold schedule-preview-action">
+          Ir para login
+        </Link>
+      </section>
+    );
+  }
+
+  if (schedule.error) {
+    return (
+      <section
+        className="schedule-panel-state card schedule-preview-state-error"
+        role="alert"
+      >
+        <SectionHeader title="Grade Semanal" icon="calendar" />
+        <p className="schedule-preview-message">{schedule.error}</p>
+        <button
+          type="button"
+          className="btn-gold schedule-preview-action"
+          onClick={() => void schedule.refetch()}
+        >
+          Tentar novamente
+        </button>
+      </section>
+    );
+  }
+
+  if (!schedule.hydrated) return null;
 
   return (
     <>
@@ -113,7 +159,11 @@ export function EditableSchedulePanel() {
               <button type="button" className="btn-gold" onClick={handleSaveExtra}>
                 Adicionar
               </button>
-              <button type="button" className="btn-outline" onClick={() => setPendingSlot(null)}>
+              <button
+                type="button"
+                className="btn-outline"
+                onClick={() => setPendingSlot(null)}
+              >
                 Cancelar
               </button>
             </div>

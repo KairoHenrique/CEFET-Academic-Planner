@@ -1,6 +1,6 @@
 import { validationError } from "@/lib/api/errors";
 import { buildIntegralizacao } from "@/lib/integralizacao/build-integralizacao";
-import { getChCatalog, isChType } from "@/lib/integralizacao/ch-catalog";
+import { getChCatalog, isChType, isManualChType } from "@/lib/integralizacao/ch-catalog";
 import { insertManualIntegralizacaoHoras } from "@/lib/db/queries";
 import type {
   IntegralizacaoResponse,
@@ -35,6 +35,12 @@ export function registerManualIntegralizacaoHours(
 
   assertCategoryAllowsManual(body.tipoCh);
   assertValidManualHours(body.horas);
+
+  if (!isManualChType(body.tipoCh)) {
+    throw validationError(
+      "Horas manuais só podem ser lançadas em Complementar, Extensão ou Flexibilizada."
+    );
+  }
 
   insertManualIntegralizacaoHoras(body.tipoCh, body.horas);
 

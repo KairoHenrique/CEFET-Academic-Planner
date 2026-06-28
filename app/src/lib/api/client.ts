@@ -26,6 +26,7 @@ import type {
   PostIntegralizacaoBody,
 } from "@/lib/types/integralizacao-api";
 import type { MapaResponse } from "@/lib/types/mapa-api";
+import type { ScheduleApiResponse } from "@/lib/types/schedule-api";
 
 export type ClientErrorCode =
   | "VALIDATION_ERROR"
@@ -245,6 +246,10 @@ export async function postIntegralizacaoHours(
 
 export async function getMapa(): Promise<MapaResponse> {
   return requestJson<MapaResponse>("/api/mapa");
+}
+
+export async function getSchedule(): Promise<ScheduleApiResponse> {
+  return requestJson<ScheduleApiResponse>("/api/schedule");
 }
 
 export const SYNC_COMPLETE_EVENT = "planner:sync-complete";

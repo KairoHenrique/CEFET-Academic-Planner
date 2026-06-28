@@ -1,9 +1,11 @@
 import type { ChCatalogEntry } from "@/lib/integralizacao/ch-catalog";
+import { resolveCategoryDoneHours } from "@/lib/integralizacao/resolve-category-done";
 import type { IntegralizacaoRow } from "@/lib/types/db";
 import type {
   IntegralizacaoCategoryDetail,
   IntegralizacaoManualEntry,
 } from "@/lib/types/integralizacao-api";
+import type { ChType } from "@/lib/integralizacao/ch-catalog";
 
 function groupRowsByTipo(
   rows: IntegralizacaoRow[]
@@ -39,14 +41,19 @@ function mapManualEntries(typeRows: IntegralizacaoRow[]): IntegralizacaoManualEn
 
 export function aggregateIntegralizacaoCategories(
   rows: IntegralizacaoRow[],
-  catalog: readonly ChCatalogEntry[]
+  catalog: readonly ChCatalogEntry[],
+  computedByType: Partial<Record<ChType, number>> = {}
 ): IntegralizacaoCategoryDetail[] {
   const grouped = groupRowsByTipo(rows);
 
   return catalog.map((entry) => {
     const typeRows = grouped.get(entry.tipoCh) ?? [];
     const total = resolveTotalRequired(typeRows, entry.totalRequired);
-    const done = typeRows.reduce((sum, row) => sum + (row.concluido ?? 0), 0);
+    const done = resolveCategoryDoneHours(
+      entry.tipoCh,
+      typeRows,
+      computedByType[entry.tipoCh] ?? 0
+    );
     const pending = Math.max(0, total - done);
 
     return {

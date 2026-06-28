@@ -8,6 +8,17 @@ function nodeIcon(status: CourseMapStatus): "lock" | "unlock" | "check" {
   return "check";
 }
 
+function lockHint(node: CourseMapNode): string | null {
+  if (node.status !== "locked") return null;
+  if (node.blockedBy === "ch" && node.chRemaining != null && node.chRemaining > 0) {
+    return `PFC/estágio: faltam ~${Math.ceil(node.chRemaining)}h obrigatórias`;
+  }
+  if (node.blockedBy === "prereq") {
+    return "Pré-requisitos pendentes";
+  }
+  return null;
+}
+
 interface CourseMapNodeCardProps {
   node: CourseMapNode;
   statusLabel: string;
@@ -17,6 +28,8 @@ export function CourseMapNodeCard({
   node,
   statusLabel,
 }: CourseMapNodeCardProps) {
+  const hint = lockHint(node);
+
   const content = (
     <>
       <Icon name={nodeIcon(node.status)} size={14} aria-hidden />
@@ -26,6 +39,7 @@ export function CourseMapNodeCard({
         {node.status !== "locked" && (
           <p className="course-node-ch">{node.ch}h</p>
         )}
+        {hint && <p className="course-node-lock-hint">{hint}</p>}
       </div>
     </>
   );

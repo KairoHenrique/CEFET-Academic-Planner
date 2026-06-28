@@ -3,11 +3,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   cloneSchedule,
-  weeklySchedule,
+  createEmptySchedule,
   type ScheduleSlotData,
 } from "@/config/mock/schedule";
-import { useDisciplinas } from "@/hooks/useDisciplinas";
-import type { SubjectListItem } from "@/lib/types/disciplinas-api";
+import { useSchedule } from "@/hooks/useSchedule";
 
 const STORAGE_KEY = "schedule-extras";
 
@@ -31,50 +30,30 @@ function slotKey(dayIdx: number, slotIdx: number) {
   return `${dayIdx}-${slotIdx}`;
 }
 
-function applySubjectOverlay(
-  grid: ReturnType<typeof cloneSchedule>,
-  subjectByCode: Record<string, SubjectListItem>
-) {
-  grid.forEach((row) => {
-    row.forEach((slot, slotIdx) => {
-      if (!slot?.code) return;
-      const subject = subjectByCode[slot.code];
-      if (!subject) return;
-      row[slotIdx] = {
-        ...slot,
-        color: subject.color,
-        name: subject.shortLabel,
-      };
-    });
-  });
-}
-
 export function useScheduleExtras() {
-  const { items: subjects } = useDisciplinas();
+  const scheduleQuery = useSchedule();
   const [extras, setExtras] = useState<Record<string, ExtraScheduleSlot>>({});
-  const [hydrated, setHydrated] = useState(false);
-
-  const subjectByCode = useMemo(
-    () => Object.fromEntries(subjects.map((subject) => [subject.code, subject])),
-    [subjects]
-  );
+  const [extrasHydrated, setExtrasHydrated] = useState(false);
 
   useEffect(() => {
     setExtras(loadExtras());
-    setHydrated(true);
+    setExtrasHydrated(true);
   }, []);
 
   const mergedSchedule = useMemo(() => {
-    const base = cloneSchedule(weeklySchedule);
-    applySubjectOverlay(base, subjectByCode);
+    const base = scheduleQuery.data
+      ? cloneSchedule(scheduleQuery.data.grid)
+      : createEmptySchedule();
+
     Object.entries(extras).forEach(([key, slot]) => {
       const [dayIdx, slotIdx] = key.split("-").map(Number);
       if (!base[dayIdx]?.[slotIdx]) {
         base[dayIdx][slotIdx] = { ...slot, code: "EXTRA" };
       }
     });
+
     return base;
-  }, [extras, subjectByCode]);
+  }, [scheduleQuery.data, extras]);
 
   const addExtra = useCallback(
     (dayIdx: number, slotIdx: number, slot: ExtraScheduleSlot) => {
@@ -103,8 +82,14 @@ export function useScheduleExtras() {
     [extras]
   );
 
+  const hydrated = extrasHydrated && !scheduleQuery.loading;
+
   return {
     hydrated,
+    loading: scheduleQuery.loading || !extrasHydrated,
+    error: scheduleQuery.error,
+    needsSync: scheduleQuery.needsSync,
+    refetch: scheduleQuery.refetch,
     mergedSchedule,
     addExtra,
     removeExtra,
