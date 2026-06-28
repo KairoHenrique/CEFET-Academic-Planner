@@ -54,7 +54,7 @@ Como nem todo professor usa o SIGAA corretamente, o aluno pode cadastrar e edita
   | 120h | 30 | 15 |
 
 - **Tarefas Individuais e em Grupo:** Sincronizadas do SIGAA com opção de baixar arquivos de instrução.
-- **Download Automático de PDFs:** Toggle por matéria; materiais vão para o Supabase Storage.
+- **Download Automático de PDFs:** Toggle por matéria; materiais vão para a **nuvem pessoal** do aluno (`CEFET Academic Planner/{semestre}/{matéria}/`), não para o Supabase.
 - **Grupos de Estudo:** Visualização dos membros do grupo cadastrado pelo professor.
 
 ### 🗺️ Mapa Mental do Curso (Motor do PPC)
@@ -95,7 +95,7 @@ Como nem todo professor usa o SIGAA corretamente, o aluno pode cadastrar e edita
                              │ HTTPS / JWT
                              ▼
 ┌─────────────────────────────────────────────────────────────┐
-│  Supabase — Auth · PostgreSQL (RLS) · Storage (PDFs)        │
+│  Supabase — Auth · PostgreSQL (RLS) · (PDFs na nuvem do aluno) │
 └────────────────────────────┬────────────────────────────────┘
                              │
                              ▼

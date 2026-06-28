@@ -1,4 +1,6 @@
 import db from "./index";
+import { countDisciplinas } from "./queries";
+import { syncPpcEmentasToDb } from "./seed-ppc";
 
 type TableInfoRow = { name: string };
 
@@ -207,13 +209,19 @@ export function initDB(): void {
 }
 
 let bootstrapped = false;
+let ppcEmentasSynced = false;
 
 export function ensureDbReady(): void {
   if (bootstrapped) return;
   initDB();
+  if (!ppcEmentasSynced && countDisciplinas() > 0) {
+    syncPpcEmentasToDb();
+    ppcEmentasSynced = true;
+  }
   bootstrapped = true;
 }
 
 export function resetDbBootstrapForTests(): void {
   bootstrapped = false;
+  ppcEmentasSynced = false;
 }

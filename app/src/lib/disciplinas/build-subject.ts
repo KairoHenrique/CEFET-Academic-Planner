@@ -16,6 +16,7 @@ import { mapNotasToEvaluations } from "./mappers";
 import { computeGrade } from "./grade";
 import { computeGradeRisk } from "./grade-risk";
 import { resolveSubjectDisplayName, resolveSubjectShortLabel } from "./subject-display-name";
+import { resolvePpcEmenta } from "./resolve-ppc-ementa";
 
 function buildGradeRisk(
   semestre: SemestreAtualWithDisciplina,
@@ -94,9 +95,14 @@ export function buildSubjectFromSemestre(
     professor: semestre.professor ?? undefined,
     schedule: semestre.horario_traduzido ?? undefined,
     ch: semestre.carga_horaria ?? disciplina?.carga_horaria ?? undefined,
-    ementa:
-      disciplina?.ementa ??
-      "Disciplina do curso de Engenharia da Computação. Conteúdo programático conforme PPC vigente do CEFET-MG.",
+    ementa: disciplina
+      ? resolvePpcEmenta(
+          disciplina.codigo,
+          disciplina.nome,
+          disciplina.carga_horaria ?? semestre.carga_horaria ?? 0,
+          disciplina.periodo ?? 0
+        )
+      : "Disciplina do curso de Engenharia da Computação. Conteúdo programático conforme PPC vigente do CEFET-MG.",
     downloadedFiles: semestre.arquivos_baixados ?? 0,
     pdfAutoDownload: semestre.pdf_auto_download === 1,
   };

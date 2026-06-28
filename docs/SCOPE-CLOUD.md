@@ -28,7 +28,7 @@ SaaS para alunos do CEFET-MG: app web hospedado, dados no **Supabase** (Postgres
 ┌─────────────────────────────────────────────────────────────────┐
 │                    Supabase (plano Free)                         │
 │  ┌─────────────┐  ┌──────────────┐  ┌─────────────────────────┐ │
-│  │ Auth        │  │ PostgreSQL   │  │ Storage (PDFs, exports) │ │
+│  │ Auth        │  │ PostgreSQL   │  │ (sem PDFs — nuvem pessoal)│ │
 │  │ (conta app) │  │ (multi-tenant│  │                         │ │
 │  └─────────────┘  │  RLS por user)│  └─────────────────────────┘ │
 │                   └──────────────┘                                 │
@@ -166,10 +166,28 @@ Critérios para escolha (fase de implementação):
 - **Expansão multi-PPC** (Eng. Mecatrônica, Design de Moda): **somente após** Bloco 8 (mobile) com Eng. Computação 100% funcional — ver `SCOPE.md` §6.2.
 - Metas de integralização por categoria de CH variam por PPC/curso.
 
-### 5.3 Storage (Supabase Storage)
+### 5.3 PDFs — nuvem pessoal do aluno (não Supabase Storage)
 
-- PDFs baixados do SIGAA → bucket por usuário (`user_id/...`).
-- Política: usuário só acessa seu bucket/prefixo.
+> **Decisão fechada:** não usamos Supabase Storage para materiais do SIGAA.
+
+| Aspecto | Regra |
+|---|---|
+| **Onde ficam os PDFs** | Conta de nuvem **do aluno** (Google Drive, Dropbox, OneDrive) |
+| **Autenticação** | OAuth por provedor; refresh tokens **cifrados** no Postgres/SQLite |
+| **Pasta raiz** | `CEFET Academic Planner/` (nome do app) |
+| **Organização** | `{semestre}/{disciplina}/*.pdf` |
+| **Quem faz upload** | Worker/scraper após download do SIGAA (**B29**) |
+| **Servidor do app** | Só buffer temporário durante upload; **não** persiste PDFs |
+| **LGPD** | Arquivos na conta do titular; permissão mínima na pasta do app |
+
+Fluxo:
+
+```
+1. Aluno conecta nuvem (F35 / B57)
+2. Sync baixa lista de materiais no SIGAA (B28)
+3. Para cada matéria com toggle ativo, upload em CEFET Academic Planner/{semestre}/{matéria}/
+4. UI mostra contagem + link para abrir na nuvem
+```
 
 ---
 
@@ -209,7 +227,7 @@ Critérios para escolha (fase de implementação):
 | Inclui | Não inclui (v1) |
 |---|---|
 | Login conta app + checagem assinatura | Sync SIGAA no device |
-| Dashboard, disciplinas, calendário | Download automático de PDFs |
+| Dashboard, disciplinas, calendário | Download automático de PDFs na nuvem pessoal |
 | Leitura/edição de notas e tarefas manuais | Simulador de matrícula completo |
 | Expo Go para dev | Publicação App Store / Play Store |
 
@@ -258,17 +276,17 @@ Critérios para escolha (fase de implementação):
 
 ---
 
-## 10. Fases de implementação (ordem oficial)
+## 10. Fases de implementação (ordem oficial v3)
 
-> Detalhamento completo em `docs/TASKS.md` — [Ordem oficial v2](./TASKS.md#ordem-oficial-de-execução-v2).
+> Detalhamento completo em `docs/TASKS.md` — [Ordem oficial v3](./TASKS.md#ordem-oficial-de-execução-v3).
 
 | # | Fase | Bloco | Entrega |
 |---|------|-------|---------|
-| 1 | A | **1** (3B→3E) | Terminar telas no SQLite local |
-| 2 | B | **6a** | Supabase + deploy **global** (testes, RLS flexível) |
-| 3 | B | **6b** | Auth app + credenciais SIGAA cifradas |
-| 4 | C | **2a** | Scraper dev (validar Playwright) |
-| 5 | C | **2b** | Worker servidor + fila sync |
+| 1 | A | **1** (3D→3E) | Terminar telas no SQLite local |
+| 2 | B | **2a** | Scraper dev + OAuth nuvem + PDFs (**sync real — prioridade semestre**) |
+| 3 | B | **2b** | Worker servidor + fila sync |
+| 4 | C | **6a** | Supabase + deploy **global** (testes, RLS flexível) — **após sync validado** |
+| 5 | C | **6b** | Auth app + credenciais SIGAA cifradas |
 | 6 | C | **6c** | RLS multi-tenant (**antes do PIX**) |
 | 7 | D | **7** | Assinatura PIX |
 | 8 | E | **8** | Mobile Expo Go |
@@ -279,9 +297,9 @@ Critérios para escolha (fase de implementação):
 
 Durante beta/testes com URL pública:
 
-- Um projeto Supabase free; seed-demo ou dados de demonstração compartilhados.
+- Um projeto Supabase free; dados migrados do SQLite ou seed pós-scraper.
 - **RLS desligado ou permissivo** — aceitável para beta fechado.
-- Sync SIGAA pode permanecer mock até o Bloco **2a** estar pronto.
+- Sync SIGAA já validado no **Bloco 2a** (local) antes de subir cloud.
 - **6c (RLS) é obrigatório** antes do Bloco **7** (PIX) e divulgação ampla.
 
 ---
@@ -295,6 +313,12 @@ Durante beta/testes com URL pública:
 - [ ] Onde hospedar worker Playwright
 - [ ] Mobile: Supabase client direto vs. API Next.js
 - [ ] Método de auth app: e-mail/senha vs. magic link vs. OAuth Google
+- [ ] **Provedor de nuvem v1 para PDFs:** Google Drive vs. Dropbox vs. OneDrive (ou todos)
+
+### Decisões fechadas
+
+- [x] **PDFs não vão para Supabase Storage** — nuvem pessoal do aluno (`CEFET Academic Planner/{semestre}/{matéria}/`)
+- [x] **Sync SIGAA (Bloco 2) antes do Supabase (Bloco 6)** — validar com semestre ativo
 
 ---
 
