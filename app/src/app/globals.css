@@ -506,6 +506,20 @@ a:hover {
   accent-color: var(--jersey-royal);
 }
 
+.profile-menu-sync-badge {
+  display: inline-block;
+  margin: 0 0 8px;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--gold-300);
+  background: rgba(212, 168, 67, 0.12);
+  border: 1px solid var(--border-gold);
+}
+
 .profile-menu-hint {
   margin: 8px 0 0;
   font-size: 0.72rem;

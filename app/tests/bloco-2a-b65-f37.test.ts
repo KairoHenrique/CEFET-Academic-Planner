@@ -1,5 +1,5 @@
 /**
- * B65 — rate limit e prefs de sync automático.
+ * B65 — rate limit e sync automático da plataforma.
  */
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -36,23 +36,21 @@ describe("B65 — sync rate limit", () => {
     });
   });
 
-  test("salva prefs de sync automático", async () => {
+  test("intervalo automático é fixo da plataforma", async () => {
     const prefs = await import("../src/lib/sync/sync-preferences");
 
-    prefs.saveSyncPreferences({ autoEnabled: true, intervalMinutes: 60 });
-    const loaded = prefs.getSyncPreferences();
-
-    assert.equal(loaded.autoEnabled, true);
-    assert.equal(loaded.intervalMinutes, 60);
+    assert.equal(prefs.getSyncAutoIntervalMinutes(), prefs.SYNC_AUTO_INTERVAL_MINUTES);
+    assert.equal(prefs.SYNC_AUTO_INTERVAL_MINUTES, 30);
   });
 });
 
 describe("F37 — buildPerfil", () => {
-  test("retorna perfil nulo sem aluno sincronizado", async () => {
+  test("sync automático sempre ativo no perfil", async () => {
     const { buildPerfil } = await import("../src/lib/perfil/build-perfil");
     const response = buildPerfil();
 
     assert.equal(response.profile, null);
-    assert.ok(response.sync.intervalOptions.length >= 4);
+    assert.equal(response.sync.automatic, true);
+    assert.equal(response.sync.intervalMinutes, 30);
   });
 });

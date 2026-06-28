@@ -2,14 +2,10 @@ import { getAluno } from "@/lib/db/queries";
 import { buildInitials } from "@/lib/perfil/build-initials";
 import type { PerfilResponse } from "@/lib/types/perfil-api";
 import { getSyncRateLimitStatus } from "@/lib/sync/sync-rate-limit";
-import {
-  SYNC_AUTO_INTERVAL_OPTIONS,
-  getSyncPreferences,
-} from "@/lib/sync/sync-preferences";
+import { getSyncAutoIntervalMinutes } from "@/lib/sync/sync-preferences";
 
 export function buildPerfil(): PerfilResponse {
   const aluno = getAluno();
-  const prefs = getSyncPreferences();
   const rateLimit = getSyncRateLimitStatus();
 
   return {
@@ -25,13 +21,12 @@ export function buildPerfil(): PerfilResponse {
         }
       : null,
     sync: {
-      autoEnabled: prefs.autoEnabled,
-      intervalMinutes: prefs.intervalMinutes,
+      automatic: true,
+      intervalMinutes: getSyncAutoIntervalMinutes(),
       minIntervalMinutes: rateLimit.minIntervalMinutes,
       lastSyncAt: rateLimit.lastSyncAt,
       nextAllowedAt: rateLimit.nextAllowedAt,
       remainingSeconds: rateLimit.remainingSeconds,
-      intervalOptions: SYNC_AUTO_INTERVAL_OPTIONS,
     },
   };
 }
