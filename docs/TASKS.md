@@ -85,7 +85,7 @@ Roadmap detalhado: ver **[Ordem oficial](#ordem-oficial-de-execução-v2)** e **
 > **Modo testes global:** URL pública + Supabase free; **RLS/multi-tenant só na fase 6c**, antes do PIX.
 
 ```
-FASE A   Bloco 1 (3B→3E)     SQLite local — calendário, integralização, mapa, grade
+FASE A   Bloco 1 (3C→3E)     SQLite local — integralização, mapa, grade (calendário ✅)
     ↓
 FASE B   Bloco 6a            Supabase + deploy global (seed compartilhado, sem RLS rígido)
          Bloco 6b            Auth app + credenciais SIGAA cifradas
@@ -105,7 +105,7 @@ FASE F   Bloco 3             Inteligência acadêmica
 | # | Fase | Bloco | O que fazer | Por quê nesta ordem |
 |---|------|-------|-------------|---------------------|
 | **0** | — | **0** | Planejamento | ✅ Concluído |
-| **1** | A | **1** (3B→3E) | Calendário, integralização, mapa, grade | UI completa; iteração rápida sem infra |
+| **1** | A | **1** (3C→3E) | Integralização, mapa, grade semanal (calendário ✅) | UI completa; iteração rápida sem infra |
 | **2** | B | **6a** | Supabase + PG + deploy URL pública | Testes globais; fim do localhost-only |
 | **3** | B | **6b** | Auth + onboarding SIGAA | Contas do app; beta fechado |
 | **4** | C | **2a** | Scraper B24–B31 (dev) | Validar antes do worker |
@@ -145,6 +145,7 @@ Estratégia: **fatias verticais** — backend primeiro, depois frontend.
 | **8** | #8 | Mobile Expo Go |
 | **3** | #9 | Inteligência acadêmica |
 | **4** | #10 | Polimento UX |
+| **—** | #11 | Multi-PPC (Mecatrônica, Moda) 🔒 pós-mobile |
 
 **O que permanece no client (localStorage) durante o Bloco 1:**
 - Layout modular de módulos (`useModuleLayout`)
@@ -390,13 +391,13 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 | F5d | Front | Sync cruzado tarefas | `invalidate-task-sync.ts` — dashboard, disciplina, calendário | [x] |
 
 > **F5 — escopo parcial:** `WeeklySchedulePreview` no dashboard ainda usa mock/localStorage (conclusão em **F13**).  
-> **Data fetching:** dashboard usa hooks nativos (`useDashboard`); **TanStack Query** desde **F6** (disciplinas + mutations de notas/tarefas).
+> **Data fetching:** TanStack Query no dashboard (**F8i**), disciplinas, calendário e mutations de notas/tarefas.
 
-**Ordem:** `B6 → B7 → B8` → depois `F1 → F2 → F3 → F4 → F5`
+**Ordem:** `B6 → B7 → B7b → B8` → depois `F1 → F2 → F3 → F4 → F5` · `F5b` · `F5c` · `F5d`
 
 #### Etapa 3 — Demais telas (back → front)
 
-> **3B Calendário:** ✅ push `93dd108` · **próximo:** 3C (B16 → F11 → F11b)
+> **3B Calendário:** ✅ (push `93dd108`) · **próximo:** 3C (B16 → F11 → F11b)
 
 ##### 3A — Disciplinas
 
@@ -426,7 +427,7 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 
 ##### 3B — Calendário
 
-> **Resumo:** Agenda mensal e datas acadêmicas deixam o mock: eventos, provas e tarefas vêm do banco; criar/editar eventos manuais.
+> **Resumo:** Agenda mensal e datas acadêmicas **via API**; eventos, provas e tarefas do banco; criar/editar eventos manuais.
 
 | # | Tipo | Task | Resumo | Status |
 |---|------|------|--------|--------|
@@ -731,7 +732,7 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 
 ## Fase 3: Interface do Usuário — Telas Principais
 
-> **Resumo:** Shell visual de login, dashboard, calendário, mapa, integralização e simulador. Integração SQLite segue o [Bloco 1](#bloco-1--api--ui--sqlite) (dashboard ✅, disciplinas ✅; demais rotas ainda mock).
+> **Resumo:** Shell visual de login, dashboard, calendário, mapa, integralização e simulador. Integração SQLite: dashboard ✅ · disciplinas ✅ · calendário ✅ · integralização/mapa/grade semanal ainda mock ou parcial (F11, F12, F13).
 
 ### 3.1 Tela de Login
 - [x] Input de usuário e senha do SIGAA
@@ -743,7 +744,7 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 - [x] UI do login (card CEFET-MG, piping dourado, rodapé "Criar conta" → SIGAA, `LoginCard`, `PasswordInput`)
 
 ### 3.2 Dashboard Central
-- [x] Header com saudação, nome do aluno e semestre atual — **via API** (`useDashboard`)
+- [x] Header com saudação, nome do aluno e semestre atual — **via API** (`useDashboard`, TanStack Query)
 - [/] Card de RG com indicador visual (cor baseada na faixa) — RG numérico em `StatsRow`; **faixa de cores pendente**
 - [x] Barra de integralização com breakdown por tipo de CH — **via API** (página `/integralizacao` ainda mock → F11)
 - [/] Lista "Próximas Entregas" (5 próximas tarefas/avaliações) — filtros via API (incl. Concluídas) + regra 3 dias após prazo; **limite de 5 pendente**
@@ -799,7 +800,7 @@ Legenda: `[x]` finalizada · `[%]` commit local (sem push) · `[/]` andamento ·
 > **Resumo:** Página da matéria: notas (inline/extra), faltas, tarefas CRUD, simulador local de aprovação. Backend no **Bloco 1, Etapa 3A** ✅.
 
 ### 4.1 Página Individual da Disciplina
-- [x] Header com nome completo, código, professor, CH, sala, horário traduzido — **via API** (F7)
+- [x] Header com nome, apelido (`shortLabel`), professor, CH, sala, horário — **via API** (F7 + F8g aparência)
 - [x] Seção de Ementa (texto do PPC) — **via API**
 - [x] Card de Nota Atual (tabela de avaliações, pontos faltando) — **via API**; add manual via F8
 - [x] Card de Faltas (barra de progresso até o limite, cores por zona de risco) — **via API**
@@ -947,5 +948,5 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 8. **Próximo passo do roadmap:** indique **somente após push** (tasks em `[x]`). Com commits locais `[%]` pendentes, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v2](#ordem-oficial-de-execução-v2) e [Checklist mestre](#checklist-mestre-ordem-de-execução) — **não** a numeração antiga 1→2→3→4. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy com URL pública; Supabase free; RLS **só na 6c** (antes do PIX).
-11. **Próximo passo (push `93dd108` feito):** **B16 → F11 → F11b** (integralização Eng. Computação). **Mecatrônica e Moda:** bloqueadas até **#11**, após **#8 mobile**.
+11. **Próximo passo:** **B16 → F11 → F11b** (integralização Eng. Computação). **Mecatrônica e Moda:** bloqueadas até **#11**, após **#8 mobile**.
 12. **Código frontend** está em `app/src/` (não na raiz `src/`). Mock data em `app/src/config/mock/`.
