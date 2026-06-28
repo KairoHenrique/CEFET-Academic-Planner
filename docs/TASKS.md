@@ -163,7 +163,7 @@ Legenda: `[x]` concluída · `[ ]` pendente · `·` = task extra na mesma fatia
 
 ---
 
-### #1 — Bloco 1 · API + UI ↔ SQLite `🟡 27/34`
+### #1 — Bloco 1 · API + UI ↔ SQLite `🟡 28/34`
 
 > Fatias verticais: **back → front** por etapa.
 
@@ -181,7 +181,7 @@ Legenda: `[x]` concluída · `[ ]` pendente · `·` = task extra na mesma fatia
 #### Etapa 3B — Calendário
 - [x] **BACK:**  B13 → B14 → B15
 - [x] **FRONT:** F9
-- [ ] **FRONT:** F10
+- [x] **FRONT:** F10
 
 #### Etapa 3C — Integralização
 - [ ] **BACK:**  B16 → B17
@@ -314,7 +314,7 @@ Legenda: `[x]` concluída · `[ ]` pendente · `·` = task extra na mesma fatia
 | Exec. # | Bloco | Status | Progresso |
 |---------|-------|--------|-----------|
 | #0 | 0 — Planejamento | ✅ | Concluído |
-| **#1** | **1 — SQLite (3B–3E)** | 🟡 **Atual** | 27 / 34 |
+| **#1** | **1 — SQLite (3B–3E)** | 🟡 **Atual** | 28 / 34 |
 | #2–3 | 6 — Cloud Supabase | ⬜ | 0 / 14 |
 | #4–5 | 2 — Scraper SIGAA | ⬜ | 0 / 14 |
 | #7 | 7 — Assinatura PIX | ⬜ | 0 / 12 |
@@ -378,7 +378,7 @@ Legenda: `[x]` concluída · `[ ]` pendente · `·` = task extra na mesma fatia
 
 #### Etapa 3 — Demais telas (back → front)
 
-> **3B Calendário:** backend ✅ (B13–B15) · F9 ✅ · front pendente (F10) · próximo: **F10**
+> **3B Calendário:** ✅ concluído (B13–F10) · próximo: **B16** (integralização)
 
 ##### 3A — Disciplinas
 
@@ -412,7 +412,7 @@ Legenda: `[x]` concluída · `[ ]` pendente · `·` = task extra na mesma fatia
 | B14 | Back | `POST /api/calendar/events` | Inserir evento manual | [x] |
 | B15 | Back | `PATCH .../events/[id]` | Editar ou marcar concluído | [x] |
 | F9 | Front | `useCalendarEvents` | Hook que alimenta o calendário | [x] |
-| F10 | Front | Views do calendário | `CalendarioView`, datas acadêmicas, form | [ ] |
+| F10 | Front | Views do calendário | `CalendarioView`, datas acadêmicas, form | [x] |
 
 ##### 3C — Integralização
 
@@ -747,7 +747,7 @@ Legenda: `[x]` concluída · `[ ]` pendente · `·` = task extra na mesma fatia
 - [x] Indicadores visuais de densidade em dias com muitas atividades
 
 ### 3.5 Templates de Páginas (UI)
-- [x] Template `/calendario` (calendário mensal, eventos, datas acadêmicas, grade semanal)
+- [x] Template `/calendario` — calendário mensal, eventos e datas acadêmicas **via API** (F9–F10); grade semanal ainda mock (F13)
 - [x] Template `/disciplinas` — listagem e detalhe **via API** (F6–F8); simulação de notas permanece local
 - [x] Template `/mapa` (grade curricular por período com status)
 - [/] Template `/integralizacao` — UI donut + barras douradas; **dados ainda mock** (F11)
@@ -911,4 +911,4 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 8. **Código frontend** está em `app/src/` (não na raiz `src/`). Mock data em `app/src/config/mock/`.
 9. **Ordem de execução:** seguir [Ordem oficial v2](#ordem-oficial-de-execução-v2) e [Checklist mestre](#checklist-mestre-ordem-de-execução) — **não** a numeração antiga 1→2→3→4. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy com URL pública; Supabase free; RLS **só na 6c** (antes do PIX).
-11. **Próximo passo imediato:** **F10** (views do calendário via API). Auditoria: 28/jun/2026.
+11. **Próximo passo imediato:** **B16 → F11** (integralização via API).

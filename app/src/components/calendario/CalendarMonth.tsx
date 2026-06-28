@@ -10,7 +10,7 @@ import {
   parseLocalDate,
   type CalendarEvent,
   type EventTypeFilter,
-} from "@/config/mock/calendar";
+} from "@/lib/types/calendar";
 import { FilterBar } from "@/components/ui/FilterBar";
 import { DayEventsContent, EventDetailContent } from "@/components/ui/ActivityDetail";
 
@@ -36,6 +36,7 @@ function densityClass(count: number): string {
 interface CalendarMonthProps {
   filter: EventTypeFilter;
   events: CalendarEvent[];
+  isAdding?: boolean;
   onEventSelect: (event: CalendarEvent) => void;
   onToggleDone: (id: string) => void;
   onAddManualEvent: (event: Omit<CalendarEvent, "id" | "manual">) => void;
@@ -44,11 +45,15 @@ interface CalendarMonthProps {
 export function CalendarMonth({
   filter,
   events,
+  isAdding = false,
   onEventSelect,
   onToggleDone,
   onAddManualEvent,
 }: CalendarMonthProps) {
-  const [month, setMonth] = useState(() => new Date(2026, 5, 1));
+  const [month, setMonth] = useState(() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), 1);
+  });
   const [dayModal, setDayModal] = useState<{ day: number; events: CalendarEvent[] } | null>(null);
   const [addModal, setAddModal] = useState<string | null>(null);
 
@@ -77,6 +82,12 @@ export function CalendarMonth({
   const dayIso = (day: number) =>
     `${year}-${String(monthIndex + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 
+  const today = new Date();
+  const isToday = (day: number) =>
+    day === today.getDate() &&
+    monthIndex === today.getMonth() &&
+    year === today.getFullYear();
+
   return (
     <>
       <div className="calendar-month">
@@ -98,7 +109,7 @@ export function CalendarMonth({
                 key={idx}
                 type="button"
                 disabled={!day}
-                className={`calendar-day calendar-day-btn ${day ? "" : "empty"} ${day === 25 && monthIndex === 5 ? "today" : ""} ${dayEvents.length ? "has-events" : ""} ${densityClass(dayEvents.length)}`}
+                className={`calendar-day calendar-day-btn ${day ? "" : "empty"} ${day && isToday(day) ? "today" : ""} ${dayEvents.length ? "has-events" : ""} ${densityClass(dayEvents.length)}`}
                 onClick={() => day && setDayModal({ day, events: dayEvents })}
               >
                 {day && (
@@ -150,6 +161,7 @@ export function CalendarMonth({
         {addModal && (
           <AddEventForm
             defaultDate={addModal}
+            isSubmitting={isAdding}
             onSubmit={(event) => { onAddManualEvent(event); setAddModal(null); }}
             onCancel={() => setAddModal(null)}
           />
@@ -186,18 +198,22 @@ export function CalendarEventsList({
         )}
       </div>
       <ul className="event-list">
-        {filteredEvents.map((event) => (
-          <li key={event.id}>
-            <button type="button" className="event-list-item event-list-btn" onClick={() => onEventSelect(event)}>
-              <span className="event-dot" style={{ background: event.color }} />
-              <div>
-                <p className={`event-title ${event.done ? "completed" : ""}`}>{event.title}</p>
-                <p className="event-meta">{formatEventDate(event.date)}{event.subject && ` · ${event.subject}`}</p>
-              </div>
-              <span className="badge info">{eventTypeLabels[event.type]}</span>
-            </button>
-          </li>
-        ))}
+        {filteredEvents.length === 0 ? (
+          <li className="calendar-empty-state">Nenhum evento neste filtro.</li>
+        ) : (
+          filteredEvents.map((event) => (
+            <li key={event.id}>
+              <button type="button" className="event-list-item event-list-btn" onClick={() => onEventSelect(event)}>
+                <span className="event-dot" style={{ background: event.color }} />
+                <div>
+                  <p className={`event-title ${event.done ? "completed" : ""}`}>{event.title}</p>
+                  <p className="event-meta">{formatEventDate(event.date)}{event.subject && ` · ${event.subject}`}</p>
+                </div>
+                <span className="badge info">{eventTypeLabels[event.type]}</span>
+              </button>
+            </li>
+          ))
+        )}
       </ul>
     </div>
   );
