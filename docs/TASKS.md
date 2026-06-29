@@ -260,7 +260,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 ---
 
-### #2 — Bloco 2a · Scraper SIGAA — dev `⬜ 3/8`
+### #2 — Bloco 2a · Scraper SIGAA — dev `⬜ 4/8`
 
 > **⚠️ Prioridade pós-Bloco 1:** validar Playwright com **semestre ativo** antes do Supabase. Dev local + SQLite.
 
