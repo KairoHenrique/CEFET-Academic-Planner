@@ -27,6 +27,7 @@ function runMigrations(): void {
   addColumnIfMissing("semestre_atual", "horario_exibicao", "TEXT");
   addColumnIfMissing("semestre_atual", "professor_exibicao", "TEXT");
   addColumnIfMissing("semestre_atual", "horas_semanais_exibicao", "INTEGER");
+  addColumnIfMissing("semestre_atual", "grupo_nome", "TEXT");
   addColumnIfMissing("semestre_atual", "professor", "TEXT");
   addColumnIfMissing("semestre_atual", "max_faltas", "INTEGER DEFAULT 15");
   addColumnIfMissing("semestre_atual", "nota_maxima", "REAL DEFAULT 100");

@@ -35,7 +35,9 @@ export function parseTurmaDisciplinaPages(
   const maxFaltasFromFreq = parseMaxFaltasFromFrequenciaHtml(raw.frequenciaHtml);
   const maxFaltas = maxFaltasFromFreq ?? notasResult.maxFaltas;
 
-  const grupo = raw.grupoHtml ? parseGrupoPageHtml(raw.grupoHtml) : [];
+  const grupoParsed = raw.grupoHtml
+    ? parseGrupoPageHtml(raw.grupoHtml)
+    : { nomeGrupo: null, membros: [] };
   if (!raw.grupoHtml) warnings.push("grupo indisponível");
 
   const tarefas = raw.tarefasHtml
@@ -54,7 +56,8 @@ export function parseTurmaDisciplinaPages(
     maxFaltas,
     notas: notasResult.notas,
     faltas,
-    grupo,
+    grupoNome: grupoParsed.nomeGrupo,
+    grupo: grupoParsed.membros,
     tarefas,
     scrapeWarnings: warnings,
   };

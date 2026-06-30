@@ -79,6 +79,7 @@ export function seedDemoStudentData(): void {
       horario_exibicao: null,
       professor_exibicao: null,
       horas_semanais_exibicao: null,
+      grupo_nome: null,
       codigo_horario: DEMO_SIGAA_CODIGO_HORARIO[subject.code] ?? null,
       horario_traduzido: subject.schedule ?? null,
       cor: subject.color,

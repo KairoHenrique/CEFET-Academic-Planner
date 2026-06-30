@@ -49,11 +49,24 @@ const FREQUENCIA_FIXTURE = `
 `;
 
 const GRUPO_FIXTURE = `
+<p><b>Nome do Grupo:</b> Grupo 6</p>
+<p><b>Número de Participantes:</b> 2</p>
 <table>
   <tr><th>Nome</th><th>Matrícula</th><th>E-mail</th><th>Curso</th></tr>
   <tr><td>Kairo Henrique</td><td>2024001234</td><td>kairo@aluno.cefetmg.br</td><td>Eng. Computação</td></tr>
   <tr><td>Maria Silva</td><td>2024005678</td><td>maria@aluno.cefetmg.br</td><td>Eng. Computação</td></tr>
 </table>
+`;
+
+const GRUPO_AIRBNB_FIXTURE = `
+<p><b>Nome do Grupo:</b> Grupo 2 - Airbnb (Brian Chesky e Joe Gebbia)</p>
+<p><b>Número de Participantes:</b> 4</p>
+<strong>LUCAS LIMA DE OLIVEIRA</strong> Curso: <em>ENGENHARIA DE COMPUTAÇÃO</em> Matrícula: <em>20243003554</em> E-mail: <em>lucas@aluno.cefetmg.br</em>
+`;
+
+const GRUPO_LIVE_ONE_LINE_FIXTURE = `
+Nome do Grupo: Grupo 6 Número de Participantes: 6 GABRIEL VITOR SILVA Curso: ENGENHARIA DE COMPUTAÇÃO Matrícula: 20193015935 SIGAA Diretoria de Tecnologia
+<strong>GABRIEL VITOR SILVA</strong> Curso: <em>ENGENHARIA DE COMPUTAÇÃO</em> Matrícula: <em>20193015935</em> E-mail: <em>gabriel@aluno.cefetmg.br</em>
 `;
 
 const TAREFAS_FIXTURE = `
@@ -331,9 +344,37 @@ describe("B28 — parse turma virtual", () => {
     );
     const grupo = parseGrupoPageHtml(GRUPO_FIXTURE);
 
-    assert.equal(grupo.length, 2);
-    assert.equal(grupo[0]?.matricula, "2024001234");
-    assert.equal(grupo[1]?.email, "maria@aluno.cefetmg.br");
+    assert.equal(grupo.nomeGrupo, "Grupo 6");
+    assert.equal(grupo.membros.length, 2);
+    assert.equal(grupo.membros[0]?.matricula, "2024001234");
+    assert.equal(grupo.membros[1]?.email, "maria@aluno.cefetmg.br");
+  });
+
+  test("extrai nome do grupo com subtítulo (Airbnb) sem lixo do portal", async () => {
+    const { parseGrupoPageHtml } = await import(
+      "../src/lib/scraper/turma-virtual/parse-grupo-page"
+    );
+    const grupo = parseGrupoPageHtml(GRUPO_AIRBNB_FIXTURE);
+
+    assert.equal(
+      grupo.nomeGrupo,
+      "Grupo 2 - Airbnb (Brian Chesky e Joe Gebbia)"
+    );
+  });
+
+  test("ignora rodapé SIGAA ao extrair nome do grupo em HTML de uma linha", async () => {
+    const { parseGrupoPageHtml, sanitizeGrupoNome } = await import(
+      "../src/lib/scraper/turma-virtual/parse-grupo-page"
+    );
+    const grupo = parseGrupoPageHtml(GRUPO_LIVE_ONE_LINE_FIXTURE);
+
+    assert.equal(grupo.nomeGrupo, "Grupo 6");
+    assert.equal(
+      sanitizeGrupoNome(
+        "Grupo 6 Número de Participantes: 6 GABRIEL VITOR SILVA Curso: ENGENHARIA"
+      ),
+      "Grupo 6"
+    );
   });
 
   test("extrai tarefas com detalhe, instruções e entregáveis", async () => {
@@ -453,6 +494,7 @@ describe("B28 — parse turma virtual", () => {
 
     assert.equal(disciplina.notas.length, 3);
     assert.equal(disciplina.faltas.length, 3);
+    assert.equal(disciplina.grupoNome, "Grupo 6");
     assert.equal(disciplina.grupo.length, 2);
     assert.equal(disciplina.tarefas.length, 1);
     assert.equal(disciplina.scrapeWarnings.length, 0);
@@ -522,6 +564,7 @@ describe("B28 — persistTurmaVirtualSnapshot", () => {
     const semestre = getSemestreAtualByCodigo("ENG-SOFT");
     assert.ok(semestre?.professor);
     assert.equal(semestre?.max_faltas, 15);
+    assert.equal(semestre?.grupo_nome, "Grupo 1");
   });
 
   test("não sobrescreve nota manual do usuário", async () => {

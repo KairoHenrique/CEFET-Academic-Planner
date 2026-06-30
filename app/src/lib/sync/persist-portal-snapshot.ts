@@ -87,6 +87,7 @@ export function persistPortalSnapshot(snapshot: PortalDiscenteSnapshot): void {
       horario_exibicao: null,
       professor_exibicao: null,
       horas_semanais_exibicao: null,
+      grupo_nome: null,
       codigo_horario: disciplina.codigoHorario,
       horario_traduzido: disciplina.horarioTraduzido,
       cor: pickStablePaletteColor(codigo),

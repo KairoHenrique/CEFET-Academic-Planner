@@ -2,8 +2,31 @@ import {
   extractTableRowsFromHtml,
   findTableByHeader,
   normalizeHeader,
+  stripHtmlTags,
 } from "@/lib/scraper/turma-virtual/html-utils";
-import type { TurmaVirtualGrupoMembro } from "@/lib/scraper/types/turma-virtual";
+import type {
+  TurmaVirtualGrupoMembro,
+  TurmaVirtualGrupoParseResult,
+} from "@/lib/scraper/types/turma-virtual";
+
+const GRUPO_NOME_STOP = /\s+N[uú]mero\s+de\s+Participantes\s*:/i;
+const GRUPO_NOME_MAX_LENGTH = 120;
+
+/** Corta lixo do SIGAA (participantes, membros, rodapé) colado no nome do grupo. */
+export function sanitizeGrupoNome(raw: string | null | undefined): string | null {
+  if (!raw?.trim()) return null;
+
+  let nome = raw.replace(/\s+/g, " ").trim();
+  const stopAt = nome.search(GRUPO_NOME_STOP);
+  if (stopAt > 0) {
+    nome = nome.slice(0, stopAt).trim();
+  }
+
+  if (!nome || nome.length > GRUPO_NOME_MAX_LENGTH) return null;
+  if (/matr[ií]cula|sigaa|curso\s*:/i.test(nome)) return null;
+
+  return nome;
+}
 
 function parseSigaaGrupoCards(html: string): TurmaVirtualGrupoMembro[] {
   const membros: TurmaVirtualGrupoMembro[] = [];
@@ -24,10 +47,28 @@ function parseSigaaGrupoCards(html: string): TurmaVirtualGrupoMembro[] {
   return membros;
 }
 
-export function parseGrupoPageHtml(html: string): TurmaVirtualGrupoMembro[] {
-  const cards = parseSigaaGrupoCards(html);
-  if (cards.length > 0) return cards;
+export function parseGrupoNomeFromHtml(html: string): string | null {
+  const labeledHtml = html.match(
+    /(?:<b>|<strong>)\s*Nome\s+do\s+Grupo\s*:?\s*(?:<\/b>|<\/strong>)\s*([^<]+)/i
+  );
+  if (labeledHtml?.[1]) {
+    const nome = sanitizeGrupoNome(stripHtmlTags(labeledHtml[1]));
+    if (nome) return nome;
+  }
 
+  const plain = stripHtmlTags(html).replace(/\s+/g, " ");
+  const inline = plain.match(
+    /Nome\s+do\s+Grupo\s*:\s*(.+?)(?=\s+N[uú]mero\s+de\s+Participantes\s*:|$)/i
+  );
+  if (inline?.[1]) {
+    const nome = sanitizeGrupoNome(inline[1]);
+    if (nome) return nome;
+  }
+
+  return null;
+}
+
+function parseSigaaGrupoTable(html: string): TurmaVirtualGrupoMembro[] {
   const rows = extractTableRowsFromHtml(html);
   const table = findTableByHeader(rows, [/nome/i, /matric/i]);
   if (!table) return [];
@@ -57,4 +98,12 @@ export function parseGrupoPageHtml(html: string): TurmaVirtualGrupoMembro[] {
   }
 
   return membros;
+}
+
+export function parseGrupoPageHtml(html: string): TurmaVirtualGrupoParseResult {
+  const nomeGrupo = parseGrupoNomeFromHtml(html);
+  const cards = parseSigaaGrupoCards(html);
+  const membros = cards.length > 0 ? cards : parseSigaaGrupoTable(html);
+
+  return { nomeGrupo, membros };
 }

@@ -158,6 +158,7 @@ function buildEmptyDisciplina(
     notas: [],
     faltas: [],
     grupo: [],
+    grupoNome: null,
     tarefas: [],
     scrapeWarnings: [warning],
   };

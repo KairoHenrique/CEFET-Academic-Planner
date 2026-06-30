@@ -9,6 +9,7 @@ import { buildDisciplinaPpcProfile } from "./build-disciplina-ppc-profile";
 import { buildAttendanceSummary } from "./attendance";
 import { buildSubjectFromSemestre } from "./build-subject";
 import { mapGrupoMembros, mapTarefaToAcademicTask } from "./mappers";
+import { sanitizeGrupoNome } from "@/lib/scraper/turma-virtual/parse-grupo-page";
 
 export function buildDisciplinaDetail(code: string): SubjectDetailResponse {
   const semestre = getSemestreAtualByCodigo(code);
@@ -19,7 +20,7 @@ export function buildDisciplinaDetail(code: string): SubjectDetailResponse {
   const subject = buildSubjectFromSemestre(semestre);
   const faltas = getFaltasByDisciplina(semestre.disciplina_id);
   const attendance = buildAttendanceSummary(faltas, subject.maxAbsences);
-  const grupo = mapGrupoMembros(
+  const membros = mapGrupoMembros(
     getGrupoByDisciplina(semestre.disciplina_id)
   );
 
@@ -30,5 +31,13 @@ export function buildDisciplinaDetail(code: string): SubjectDetailResponse {
     )
   );
 
-  return { subject, tasks, attendance, grupo };
+  return {
+    subject,
+    tasks,
+    attendance,
+    grupo: {
+      nome: sanitizeGrupoNome(semestre.grupo_nome),
+      membros,
+    },
+  };
 }

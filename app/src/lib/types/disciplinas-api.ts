@@ -42,11 +42,16 @@ export interface GrupoMembroDto {
   curso: string | null;
 }
 
+export interface DisciplinaGrupoDto {
+  nome: string | null;
+  membros: GrupoMembroDto[];
+}
+
 export interface SubjectDetailResponse {
   subject: Subject;
   tasks: AcademicTask[];
   attendance: AttendanceSummary;
-  grupo: GrupoMembroDto[];
+  grupo: DisciplinaGrupoDto;
   /** Disciplina do PPC sem matrícula no semestre atual (só ementa/perfil estático). */
   catalogOnly?: boolean;
 }

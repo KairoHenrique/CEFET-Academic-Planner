@@ -781,6 +781,7 @@ export function saveGrupoMembro(membro: Omit<GrupoMembroRow, "id">): void {
 
 export function clearGrupoSynced(): void {
   db.prepare("DELETE FROM grupo_membros").run();
+  db.prepare("UPDATE semestre_atual SET grupo_nome = NULL").run();
 }
 
 export function replaceSyncedGrupoForDisciplina(
@@ -799,7 +800,11 @@ export function replaceSyncedGrupoForDisciplina(
 
 export function patchSyncedSemestreTurmaMetadata(
   disciplinaId: string,
-  fields: { professor?: string | null; max_faltas?: number | null }
+  fields: {
+    professor?: string | null;
+    max_faltas?: number | null;
+    grupo_nome?: string | null;
+  }
 ): void {
   const sets: string[] = [];
   const params: Array<string | number | null> = [];
@@ -812,6 +817,11 @@ export function patchSyncedSemestreTurmaMetadata(
   if (fields.max_faltas !== undefined) {
     sets.push("max_faltas = ?");
     params.push(fields.max_faltas);
+  }
+
+  if (fields.grupo_nome !== undefined) {
+    sets.push("grupo_nome = ?");
+    params.push(fields.grupo_nome);
   }
 
   if (sets.length === 0) return;
@@ -1037,8 +1047,8 @@ export function getTarefaCalendarById(id: number): TarefaCalendarRow | undefined
     .prepare(
       `
     SELECT t.*, d.nome AS disciplina_nome, s.apelido AS disciplina_apelido, s.cor AS cor
-    FROM tarefas t
-    JOIN disciplinas d ON t.disciplina_id = d.codigo
+    FROM tarefas t 
+    JOIN disciplinas d ON t.disciplina_id = d.codigo 
     LEFT JOIN semestre_atual s ON s.disciplina_id = t.disciplina_id
     WHERE t.id = ?
   `

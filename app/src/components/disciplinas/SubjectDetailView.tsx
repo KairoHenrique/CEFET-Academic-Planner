@@ -71,7 +71,7 @@ export function SubjectDetailView({ code }: SubjectDetailViewProps) {
     );
   }
 
-  const { subject, tasks, attendance, catalogOnly } = data;
+  const { subject, tasks, attendance, grupo, catalogOnly } = data;
 
   const renderModule = (id: string) => {
     switch (id) {
@@ -109,7 +109,7 @@ export function SubjectDetailView({ code }: SubjectDetailViewProps) {
         </Link>
       </div>
       <div className="col-12">
-        <SubjectDetailHeader subject={subject} />
+        <SubjectDetailHeader subject={subject} grupo={grupo} />
       </div>
       {catalogOnly && (
         <div className="col-12">

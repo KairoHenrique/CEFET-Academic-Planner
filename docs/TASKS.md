@@ -34,7 +34,9 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 **Regra:** o stakeholder **avisa explicitamente** quando a entrega **não** está 100% aprovada. Após push com ressalvas → **`[@]`**, nunca `[x]`.
 
-**Tasks em `[@]` agora (jun/2026):** **B27**, **B28**, **B65**, **F37** — portal + turma virtual (bugfix CEFET: nav JSF, rotas PPC, sync ~2 min); validação live B28 ainda pendente.
+**Tasks em `[@]` agora (jun/2026):** **B65**, **F37** — sync automático e menu perfil (push sem aprovação final do stakeholder).
+
+**Aprovadas `[x]` (jun/2026):** **B27** (portal) · **B28** (turma virtual + UI grupo + arredondamento nota final).
 
 ### Decisão — Integralização via histórico (jun/2026)
 
@@ -73,7 +75,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 ### 1.1 Inicialização do Projeto
 - [x] Criar projeto Next.js com TypeScript (`npx create-next-app`)
 - [x] Configurar estrutura de pastas (`src/app`, `src/components`, `src/lib/db`, `src/lib/engine`)
-- [x] Pasta `src/lib/scraper` — B24–B26 ✅; B27 `[@]` portal; B28 `[@]` turma virtual (`lib/scraper/turma-virtual/`)
+- [x] Pasta `src/lib/scraper` — B24–B26 ✅; B27 ✅ portal; B28 ✅ turma virtual (`lib/scraper/turma-virtual/`)
 - [x] Instalar dependências: `better-sqlite3`, `playwright`, `crypto` (para criptografia de senha)
 
 ### 1.2 Design System (CSS)
@@ -104,9 +106,9 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ### 1.4 API e Integração UI ↔ SQLite
 
-> **Progresso:** Bloco 1 ✅ · **Bloco 2a:** B27·B65·F37 `[@]` · integralização **via histórico** (decisão jun/2026 — scraper **B30**) · **3F** fora do Bloco 1.
+> **Progresso:** Bloco 1 ✅ · **Bloco 2a:** B27·B28 ✅ · B65·F37 `[@]` · integralização **via histórico** (decisão jun/2026 — scraper **B30**) · **3F** fora do Bloco 1.
 
-Roadmap detalhado: ver **[Ordem oficial v3](#ordem-oficial-de-execução-v3)** e **[Checklist mestre](#checklist-mestre-ordem-de-execução)**. **Bloco 2a** — B28 `[@]` (turma virtual, validação live pendente); próximo **B30 → B31**.
+Roadmap detalhado: ver **[Ordem oficial v3](#ordem-oficial-de-execução-v3)** e **[Checklist mestre](#checklist-mestre-ordem-de-execução)**. **Bloco 2a** — próximo **B30 → B31** (histórico + calendário + `runSync`).
 
 ---
 
@@ -209,7 +211,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 |-------|-------|------|----------------------|--------|
 | **#0** | 0 | Planejamento | — | ✅ |
 | **#1** | 1 | SQLite local (API + UI) | ✅ **Concluído** | 49/49 |
-| **#2** | 2a | Scraper dev (Playwright local) | **⬜ Em andamento** | 4/8 |
+| **#2** | 2a | Scraper dev (Playwright local) | **⬜ Em andamento** | 6/8 |
 | **#3** | 2b | Worker sync (servidor) | Depois de #2a (B31 ok) | 0/4 |
 | **#4** | 6a | Supabase + deploy global | Depois de #3 | 0/8 |
 | **#5** | 6b | Auth: CPF login, cadastro completo | Depois de #4 | 0/9 |
@@ -259,14 +261,14 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 ---
 
-### #2 — Bloco 2a · Scraper SIGAA — dev `⬜ 4/8`
+### #2 — Bloco 2a · Scraper SIGAA — dev `⬜ 6/8`
 
 > **⚠️ Prioridade pós-Bloco 1:** validar Playwright com **semestre ativo** antes do Supabase. Dev local + SQLite.
 
 - [x] **BACK:**  B24 → B25 → B26
-- [@] **BACK:**  B27 *(portal: semestre, RG, tarefas; CH portal auxiliar; apelidos auto)*
-- [@] **BACK:**  B65 *(sync automático 30 min; rate limit manual removido)*
-- [@] **BACK:**  B28 *(turma virtual: notas, faltas, grupo, tarefas — bugfix nav CEFET; validação live pendente)*
+- [x] **BACK:**  B27 *(portal: semestre, RG, tarefas; CH portal auxiliar; apelidos auto)*
+- [@] **BACK:**  B65 *(sync automático 30 min; manual sem rate limit — dev)*
+- [x] **BACK:**  B28 *(turma virtual: notas, faltas, grupo, tarefas; UI Ver grupo; nome do grupo; arredondamento nota final)*
 - [ ] **BACK:**  B30 → B31
 - [ ] **FRONT:** F18
 - [@] **FRONT:** F37 *(menu perfil: matrícula + badge sync automático)*
@@ -389,7 +391,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 |---------|-------|--------|-----------|
 | #0 | 0 — Planejamento | ✅ | Concluído |
 | **#1** | **1 — SQLite** | ✅ **Concluído** | 49 / 49 |
-| **#2** | **2a — Scraper dev** | ⬜ **Em andamento** | 4 / 8 |
+| **#2** | **2a — Scraper dev** | ⬜ **Em andamento** | 6 / 8 |
 | **#3** | **2b — Worker sync** | ⬜ | 0 / 4 |
 | #4 | 6a — Cloud deploy | ⬜ *(após #3)* | 0 / 8 |
 | #5 | 6b — Cloud auth | ⬜ | 0 / 9 |
@@ -579,9 +581,9 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | B24 | Back | `lib/scraper/auth.ts` | Login Playwright + cookies de sessão | 2.1 | [x] |
 | B25 | Back | Criptografia AES-256 | Senha salva cifrada (opcional) | 2.1 | [x] |
 | B26 | Back | Erros de auth | Credencial inválida, timeout, SIGAA offline | 2.1 | [x] |
-| B27 | Back | Scraper portal discente | RG, semestre, atividades; CH portal auxiliar (% / total) | 2.2 | [@] |
+| B27 | Back | Scraper portal discente | RG, semestre, atividades; CH portal auxiliar (% / total) | 2.2 | [x] |
 | B65 | Back | Sync automático + last_run | Auto a cada 30 min; manual sem rate limit (dev) | 2.2 | [@] |
-| B28 | Back | Scraper turma virtual | Notas, faltas, tarefas e grupo por matéria | 2.3 | [@] |
+| B28 | Back | Scraper turma virtual | Notas, faltas, tarefas, grupo e nome do grupo por matéria | 2.3 | [x] |
 | B30 | Back | Turmas + calendário + histórico | Ofertas próximo sem + datas oficiais + **histórico escolar → `historico`** | 2.4 | [/] |
 | B31 | Back | Integrar no `runSync` | Troca seed-demo por pipeline real | 2.x | [ ] |
 | F18 | Front | Erros reais no login | Remove simulação mock de falhas | 2.1 | [ ] |
@@ -780,7 +782,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
       ↓
 #1  Bloco 1   SQLite local (3E)               ✅
       ↓
-#2  Bloco 2a  Scraper dev + sync REAL          ⬜ 4/8 [@] — B28 turma virtual (live pendente); próximo B30
+#2  Bloco 2a  Scraper dev + sync REAL          ⬜ 6/8 — B27·B28 ✅; próximo B30 → B31
 #3  Bloco 2b  Worker servidor
       ↓
 #4  Bloco 6a  Supabase + deploy global       (após sync validado)
@@ -834,7 +836,9 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Extrair frequência (Alunos → Frequência): lista de datas com status
 - [x] Extrair notas (Alunos → Ver Notas): PRO1, SEM, PRO2, Nota, Resultado, Faltas, Sit
 - [x] Extrair tooltip de cada nota (title → "Avaliação: X | Nota Máxima: Y")
-- [x] Extrair grupo (Alunos → Ver Grupo): membros, matrícula, email
+- [x] Extrair grupo (Alunos → Ver Grupo): membros, matrícula, email, curso + **nome do grupo** (`grupo_nome`)
+- [x] UI **Ver grupo** na disciplina (`SubjectGroupModal`) — só quando há integrantes
+- [x] Arredondamento da **nota final** (decimal ≥ 0,5 → inteiro; &lt; 0,5 mantém casa decimal)
 - [x] Extrair tarefas (Atividades → Tarefas): individuais e em grupo, descrição, instruções, entregáveis
 - [ ] ~~Download de materiais/PDFs~~ — fora do Bloco 2; ver [Apêndice](#apêndice--escopo-futuro-fora-da-ordem-011)
 
@@ -1101,7 +1105,7 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 8. **Próximo passo do roadmap:** informe **depois do push** (tasks em `[@]` ou `[x]`). Com commits locais só `[%]`, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v3](#ordem-oficial-de-execução-v3) — **Bloco 2 (sync) antes do Bloco 6 (Supabase)**. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy **após** sync validado; RLS **só na 6c** (antes do PIX).
-11. **Próximo passo:** validar **B28** live (sync ~2 min, notas/faltas). Depois **B30 → B31**. B27·B28·B65·F37 em `[@]`. **Integralização fiel:** `historico` na **B30**. PDFs/nuvem = [Apêndice](#apêndice--escopo-futuro-fora-da-ordem-011) — **não** na ordem 2a.
+11. **Próximo passo:** **B30 → B31** (histórico escolar, calendário, integrar `runSync`). B65·F37 em `[@]`. **Integralização fiel:** `historico` na **B30**. PDFs/nuvem = [Apêndice](#apêndice--escopo-futuro-fora-da-ordem-011).
 12. **Integralização:** CH concluída = `historico` + PPC (`computeChDoneFromDisciplinas`); portal SIGAA só % / total currículo; matérias já passadas = **B30**.
 13. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial.
 14. **Código frontend** está em `app/src/` (não na raiz `src/`). Mock data em `app/src/config/mock/`.

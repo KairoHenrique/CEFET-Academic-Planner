@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Subject, SubjectEvaluation } from "@/lib/types/subject";
 import type { PatchNotasResponse, SubjectDetailResponse } from "@/lib/types/disciplinas-api";
 import { patchDisciplinaNotas } from "@/lib/api/client";
+import { roundFinalGradeTotal } from "@/lib/disciplinas/grade-rounding";
 import {
   SUBJECT_DISPLAY_GRADE_MAX,
   SUBJECT_DISPLAY_PASSING_GRADE,
@@ -149,7 +150,8 @@ export function useSubjectGrades(
     (acc, ev, index) => acc + (simulation.resolvedScores[index] ?? 0),
     0
   );
-  const currentTotal = subject.grade ?? distributed;
+  const currentTotal =
+    subject.grade ?? roundFinalGradeTotal(distributed);
 
   return {
     evaluations,
