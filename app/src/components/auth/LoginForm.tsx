@@ -25,6 +25,7 @@ export function LoginForm() {
   const [savePassword, setSavePassword] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [entering, setEntering] = useState(false);
+  const [isFirstLoginSync, setIsFirstLoginSync] = useState(false);
 
   useEffect(() => {
     if (searchParams.get("error") === "credentials") {
@@ -36,6 +37,7 @@ export function LoginForm() {
     e.preventDefault();
     setFormError(null);
     sync.resetError();
+    setIsFirstLoginSync(false);
 
     const trimmedUsername = username.trim();
 
@@ -73,11 +75,14 @@ export function LoginForm() {
         setFormError(error.message);
         return;
       }
-      // Sem dados locais — segue sync completo bloqueante.
     }
 
+    setIsFirstLoginSync(true);
     const ok = await sync.startSync(credentials, { mode: "full" });
-    if (!ok) return;
+    if (!ok) {
+      setIsFirstLoginSync(false);
+      return;
+    }
 
     saveSyncCredentials(credentials, savePassword);
     setSession({
@@ -169,6 +174,13 @@ export function LoginForm() {
                 ? "Entrando…"
                 : "Entrar"}
           </button>
+
+          {sync.syncing && isFirstLoginSync && (
+            <p className="login-first-sync-hint" role="status">
+              É seu primeiro acesso — estamos baixando todo o seu histórico do
+              SIGAA. Isso pode levar alguns minutos; não feche esta página.
+            </p>
+          )}
         </div>
       </form>
     </LoginCard>

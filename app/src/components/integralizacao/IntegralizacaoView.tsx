@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { PageGrid } from "@/components/layout/PageGrid";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { ModuleGrid } from "@/components/layout/ModuleGrid";
 import { DashboardStateCard } from "@/components/dashboard/DashboardStateCard";
 import { IntegrationDetailTable } from "@/components/integralizacao/IntegrationDetailTable";
 import { IntegrationSummaryCard } from "@/components/integralizacao/IntegrationSummaryCard";
@@ -11,53 +10,11 @@ import { IntegrationTotalCard } from "@/components/integralizacao/IntegrationTot
 import { IntegralizacaoSkeleton } from "@/components/integralizacao/IntegralizacaoSkeleton";
 import { RegisterHoursModal } from "@/components/integralizacao/RegisterHoursModal";
 import { useIntegralizacao } from "@/hooks/useIntegralizacao";
-import {
-  useModuleLayout,
-  type ModuleDefinition,
-} from "@/hooks/useModuleLayout";
-import type { IntegralizacaoResponse } from "@/lib/types/integralizacao-api";
-
-const MODULES: ModuleDefinition[] = [
-  { id: "total", label: "Total integralizado", colClass: "col-4" },
-  { id: "summary", label: "Resumo por categoria", colClass: "col-8" },
-  { id: "table", label: "Detalhamento de horas", colClass: "col-12" },
-];
-
-function renderIntegralizacaoModule(
-  id: string,
-  data: IntegralizacaoResponse,
-  onRegisterClick: () => void
-) {
-  switch (id) {
-    case "total":
-      return (
-        <IntegrationTotalCard
-          totalDone={data.totalDone}
-          totalHours={data.totalHours}
-          percent={data.percent}
-        />
-      );
-    case "summary":
-      return <IntegrationSummaryCard categories={data.categories} />;
-    case "table":
-      return (
-        <IntegrationDetailTable
-          categories={data.categories}
-          onRegisterClick={onRegisterClick}
-        />
-      );
-    default:
-      return null;
-  }
-}
 
 export function IntegralizacaoView() {
-  const layout = useModuleLayout("integralizacao", MODULES);
   const { data, loading, error, needsSync, refetch, registerHours, isRegistering } =
     useIntegralizacao();
   const [registerOpen, setRegisterOpen] = useState(false);
-
-  if (!layout.hydrated) return null;
 
   if (loading) {
     return (
@@ -107,13 +64,22 @@ export function IntegralizacaoView() {
         subtitle="Acompanhe horas por categoria e cadastre atividades complementares"
       />
 
-      <ModuleGrid
-        layout={layout}
-        modules={MODULES}
-        renderModule={(id) =>
-          renderIntegralizacaoModule(id, data, () => setRegisterOpen(true))
-        }
-      />
+      <div className="col-4">
+        <IntegrationTotalCard
+          totalDone={data.totalDone}
+          totalHours={data.totalHours}
+          percent={data.percent}
+        />
+      </div>
+      <div className="col-8">
+        <IntegrationSummaryCard categories={data.categories} />
+      </div>
+      <div className="col-12">
+        <IntegrationDetailTable
+          categories={data.categories}
+          onRegisterClick={() => setRegisterOpen(true)}
+        />
+      </div>
 
       <RegisterHoursModal
         open={registerOpen}

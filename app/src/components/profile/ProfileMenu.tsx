@@ -104,7 +104,7 @@ export function ProfileMenu() {
           </section>
 
           <p className="profile-menu-footer">
-            Notificações por e-mail — em breve (F36)
+            Toque no sino para ver tarefas e notas novas após cada sync.
           </p>
         </div>
       )}
