@@ -1,230 +1,303 @@
 import type {
   HistoricoDisciplinaEntry,
   HistoricoChResumo,
+  HistoricoChTotais,
   HistoricoSnapshot,
 } from "@/lib/scraper/types/historico";
+import { extractHistoricoPdfText } from "@/lib/scraper/historico/extract-historico-pdf-text";
 
-/**
- * Situações válidas do histórico SIGAA CEFET.
- * Se encontrar uma situação desconhecida, inclui como-está.
- */
-const SITUACOES_VALIDAS = new Set([
-  "APR", "APRN", "REP", "REPF", "REPMF", "REPN", "REPNF",
-  "TRANC", "MATR", "DISP", "CANC", "CUMP", "TRANS", "INCORP", "REC",
-]);
+const SITUACAO_RE =
+  /APR|APRN|REP|REPF|REPMF|REPN|REPNF|TRANC|MATR|DISP|CANC|CUMP|TRANS|INCORP|REC/;
 
-/**
- * Regex para extrair linhas de componentes curriculares do texto do PDF.
- * 
- * Layout do PDF do SIGAA CEFET:
- * ```
- * 2024.1  G05CFVR1.01  CÁLCULO COM FUNÇÕES DE UMA VARIÁVEL REAL  90  75  01  100,0  21.0  F  REP
- * 2024.2  *  G05IINT1.01  INGLÊS INSTRUMENTAL I  30  25  01  93,0  86.0  B  APR
- * ```
- * 
- * O texto extraído pelo pdf-parse fica tudo junto, com quebras de linha irregulares.
- * Usamos uma abordagem por seções: encontrar cada "bloco" de disciplina.
- */
+const PROFESSOR_LINE =
+  /(?:Dr\.|Dra\.|MSc\.|Me\.|Prof\.|MICHEL|Profª)/i;
 
-const SEMESTRE_PATTERN = /\b(2\d{3}\.\d)\b/;
-const CODIGO_PATTERN = /\b(G\d{2}[A-Z0-9.]+\d)\b/;
-const SITUACAO_PATTERN = /\b(APR|APRN|REP|REPF|REPMF|REPN|REPNF|TRANC|MATR|DISP|CANC|CUMP|TRANS|INCORP|REC)\b/;
-const NUMERO_PATTERN = /\b(\d+[,.]?\d*)\b/;
+const SEMESTRE_RE = /^(\d{4}\.\d)(?:\s+(.*))?$/;
 
-/**
- * Parseia o texto extraído do PDF do histórico escolar.
- * O pdf-parse retorna todo o texto do PDF como uma string.
- */
+const METADATA_LINE =
+  /^(Curso:|Ano\s*\/|Forma de|Status:|Prazo|Reconhecimento|Processo|Entrada:|Matr[ií]cula|Página|--|\d+\s+de\s*$|-$|^\d{4}\.\d\s*\/)/i;
+
+export async function parseHistoricoPdfBuffer(
+  buffer: Buffer
+): Promise<HistoricoSnapshot> {
+  const text = await extractHistoricoPdfText(buffer);
+  return parseHistoricoPdfText(text);
+}
+
 export function parseHistoricoPdfText(text: string): HistoricoSnapshot {
-  const disciplinas = parseDisciplinas(text);
-  const chResumo = parseChResumo(text);
-
+  const { chResumo, chTotais } = parseChResumo(text);
   return {
     scrapedAt: new Date().toISOString(),
-    disciplinas,
+    disciplinas: parseDisciplinas(text),
     chResumo,
+    chTotais,
   };
 }
 
-/**
- * Extrai disciplinas da seção "Componentes Curriculares Cursados/Cursando".
- * 
- * O texto do PDF tem linhas como:
- * ```
- * 2024.2  G05IINT1.01  INGLÊS INSTRUMENTAL I  30  25  01  93,0  86.0  B  APR
- * ```
- * 
- * Mas o pdf-parse pode quebrar linhas de formas imprevisíveis.
- * Estratégia: encontrar cada semestre + código + situação e pegar tudo entre eles.
- */
 function parseDisciplinas(text: string): HistoricoDisciplinaEntry[] {
+  const section = extractCursadosSection(text) ?? text;
+  const lines = section
+    .split(/\r?\n/)
+    .map((line) => line.replace(/\t/g, " ").trimEnd())
+    .filter((line) => line.trim().length > 0);
+
   const disciplinas: HistoricoDisciplinaEntry[] = [];
+  let index = 0;
 
-  // Extrair a seção de componentes cursados
-  const cursadosSection = extractCursadosSection(text);
-  if (!cursadosSection) return disciplinas;
-
-  // Tokenizar: encontrar cada bloco semestre..situação
-  const blocks = splitIntoDisciplinaBlocks(cursadosSection);
-
-  for (const block of blocks) {
-    const parsed = parseDisciplinaBlock(block);
-    if (parsed) {
-      disciplinas.push(parsed);
+  while (index < lines.length) {
+    const start = findDisciplinaStart(lines, index);
+    if (!start) {
+      index += 1;
+      continue;
     }
+
+    const end = findDisciplinaEnd(lines, start.blockStart + 1);
+    const blockLines = lines.slice(start.blockStart, end);
+    const parsed = parseDisciplinaBlock(blockLines, start.semestre, start.nomeSeed);
+    if (parsed) disciplinas.push(parsed);
+
+    index = end;
   }
 
-  return disciplinas;
+  return dedupeDisciplinas(disciplinas);
 }
 
-function extractCursadosSection(text: string): string | null {
-  // A seção começa com "Componentes Curriculares Cursados/Cursando"
-  // e termina com "Legenda" ou "Carga Horária Integralizada"
-  const startMatch = text.match(/Componentes\s+Curriculares\s+Cursados/i);
-  if (!startMatch) return null;
+function findDisciplinaStart(
+  lines: string[],
+  fromIndex: number
+): { blockStart: number; semestre: string; nomeSeed: string } | null {
+  for (let index = fromIndex; index < lines.length; index += 1) {
+    const line = lines[index].trim();
+    const semestreMatch = line.match(SEMESTRE_RE);
+    if (!semestreMatch) continue;
 
-  const startIdx = startMatch.index! + startMatch[0].length;
-  const endMatch = text.slice(startIdx).match(/(?:Legenda|Carga\s+Hor[aá]ria\s+Integralizada|Componentes\s+Curriculares\s+Obrigat[oó]rios\s+Pendentes)/i);
-  const endIdx = endMatch ? startIdx + endMatch.index! : text.length;
+    const semestre = semestreMatch[1];
+    const inlineNome = semestreMatch[2]?.trim() ?? "";
 
-  return text.slice(startIdx, endIdx);
+    if (METADATA_LINE.test(inlineNome) || METADATA_LINE.test(line)) continue;
+    if (/^PARTICIPAÇÕES NO ENADE/i.test(inlineNome)) continue;
+    if (!inlineNome && !looksLikeDisciplinaAhead(lines, index)) continue;
+
+    return {
+      blockStart: index,
+      semestre,
+      nomeSeed: inlineNome,
+    };
+  }
+
+  return null;
 }
 
-/**
- * Divide a seção de cursados em blocos, um por disciplina.
- * Cada bloco começa com um semestre (2024.1) e termina com uma situação (APR/REP/etc).
- */
-function splitIntoDisciplinaBlocks(section: string): string[] {
-  const blocks: string[] = [];
-
-  // Regex global para encontrar cada ocorrência de situação
-  const situacaoGlobal = new RegExp(
-    `\\b(${Array.from(SITUACOES_VALIDAS).join("|")})\\b`,
-    "g"
+function looksLikeDisciplinaAhead(lines: string[], index: number): boolean {
+  const window = lines.slice(index + 1, index + 6);
+  return window.some(
+    (line) =>
+      PROFESSOR_LINE.test(line) ||
+      /^G[T]?05/i.test(line.trim()) ||
+      (/^[A-ZÁÉÍÓÚÂÊÔÃÕÇ]/.test(line) && !METADATA_LINE.test(line))
   );
-
-  let lastEnd = 0;
-  let match: RegExpExecArray | null;
-
-  while ((match = situacaoGlobal.exec(section)) !== null) {
-    const situacaoEnd = match.index + match[0].length;
-    const candidate = section.slice(lastEnd, situacaoEnd).trim();
-
-    // Verificar se contém semestre + código (é uma disciplina válida)
-    if (SEMESTRE_PATTERN.test(candidate) && CODIGO_PATTERN.test(candidate)) {
-      blocks.push(candidate);
-      lastEnd = situacaoEnd;
-    }
-  }
-
-  return blocks;
 }
 
-function parseDisciplinaBlock(block: string): HistoricoDisciplinaEntry | null {
-  const semestreMatch = block.match(SEMESTRE_PATTERN);
-  const codigoMatch = block.match(CODIGO_PATTERN);
-  const situacaoMatch = block.match(SITUACAO_PATTERN);
+function findDisciplinaEnd(lines: string[], fromIndex: number): number {
+  for (let index = fromIndex; index < lines.length; index += 1) {
+    const line = lines[index].trim();
 
-  if (!semestreMatch || !codigoMatch || !situacaoMatch) return null;
+    if (/^PARTICIPAÇÕES NO ENADE/i.test(line)) return index;
+    if (/^Componentes\s+Curriculares/i.test(line)) return index;
+    if (/^Página\s+\d+/i.test(line)) return index;
 
-  const semestre = semestreMatch[1];
-  const codigo = codigoMatch[1];
-  const situacao = situacaoMatch[1];
-  const optativo = /\*/.test(block.slice(0, codigoMatch.index!));
+    const semestreMatch = line.match(SEMESTRE_RE);
+    if (!semestreMatch) continue;
+    if (METADATA_LINE.test(line)) continue;
 
-  // Extrair nome: tudo entre o código e os números finais
-  const afterCodigo = block.slice(codigoMatch.index! + codigoMatch[0].length);
-  const nome = extractNome(afterCodigo, situacao);
+    const inlineNome = semestreMatch[2]?.trim() ?? "";
+    if (inlineNome && !METADATA_LINE.test(inlineNome)) return index;
+    if (!inlineNome && looksLikeDisciplinaAhead(lines, index)) return index;
+  }
 
-  // Extrair números no final do bloco (hora_aula, ch, turma, freq, média, conceito)
-  const numbers = extractTrailingNumbers(afterCodigo, situacao);
+  return lines.length;
+}
+
+function parseDisciplinaBlock(
+  blockLines: string[],
+  semestre: string,
+  nomeSeed: string
+): HistoricoDisciplinaEntry | null {
+  const block = blockLines.join("\n");
+  const situacao = extractSituacaoFromBlock(block);
+  if (!situacao) return null;
+
+  const codigo = mergeCodigoFromBlock(block);
+  const nome = extractNomeFromBlock(blockLines, semestre, nomeSeed);
+  const stats = extractStatsFromBlock(block);
+
+  if (!nome || nome.length < 3) return null;
 
   return {
-    codigo,
+    codigo: codigo ?? "",
     nome,
     semestre,
-    horaAula: numbers.horaAula,
-    ch: numbers.ch,
-    frequencia: numbers.frequencia,
-    media: numbers.media,
-    conceito: numbers.conceito,
+    horaAula: stats.horaAula,
+    ch: stats.ch,
+    frequencia: stats.frequencia,
+    media: stats.media,
+    conceito: stats.conceito,
     situacao,
-    optativo,
+    optativo: stats.optativo,
   };
 }
 
-function extractNome(afterCodigo: string, situacao: string): string {
-  // O nome está entre o código e a sequência de números
-  // Encontrar onde começam os números consistentes (hora_aula ch turma freq media conceito situacao)
-  const numbersPattern = /\d+\s+\d+\s+\d+\s+[\d,.-]+\s+[\d,.-]+\s+[A-F-]+\s+/i;
-  const numbersMatch = afterCodigo.match(numbersPattern);
+/**
+ * Situação pode estar na mesma linha do professor ou em linha separada (layout variável).
+ */
+function extractSituacaoFromBlock(block: string): string | null {
+  const patterns = [
+    new RegExp(`\\(\\d+h\\)[^\\n]*?\\s\\d{2}\\s+(${SITUACAO_RE.source})\\b`, "i"),
+    new RegExp(`(?:^|\\n)\\s*\\d{2}\\s+(${SITUACAO_RE.source})\\s*(?:\\n|$)`, "im"),
+    new RegExp(`\\b(${SITUACAO_RE.source})\\b(?:\\s*\\n\\s*G[T]?05)`, "i"),
+  ];
 
-  let nome: string;
-  if (numbersMatch) {
-    nome = afterCodigo.slice(0, numbersMatch.index!);
-  } else {
-    // Fallback: pegar até a situação
-    const sitIdx = afterCodigo.lastIndexOf(situacao);
-    // Pegar texto antes dos números finais
-    const beforeSit = afterCodigo.slice(0, sitIdx);
-    // Remover números e conceitos do final
-    nome = beforeSit.replace(/[\d,.\s]+[A-F-]*\s*$/i, "");
+  for (const pattern of patterns) {
+    const match = block.match(pattern);
+    if (match?.[1]) return match[1].toUpperCase();
   }
 
-  return nome
+  return null;
+}
+
+function extractNomeFromBlock(
+  blockLines: string[],
+  semestre: string,
+  nomeSeed: string
+): string {
+  const nomeLines: string[] = nomeSeed ? [nomeSeed] : [];
+  let passedSemestre = !nomeSeed;
+
+  for (const rawLine of blockLines) {
+    const line = rawLine.trim();
+    if (!line) continue;
+
+    if (line.startsWith(semestre)) {
+      const rest = line.slice(semestre.length).trim();
+      if (rest && !nomeSeed) nomeLines.push(rest);
+      passedSemestre = true;
+      continue;
+    }
+
+    if (!passedSemestre) continue;
+    if (PROFESSOR_LINE.test(line)) break;
+    if (/\(\d+h\)/i.test(line)) break;
+    if (/^G[T]?05/i.test(line)) break;
+    if (/^\d{2}\s+(?:APR|REP|MATR|TRANC|DISP)/i.test(line)) break;
+    if (/^\d+\s+[\d,.]+/.test(line)) break;
+    if (METADATA_LINE.test(line)) break;
+    if (/^PARTICIPAÇÕES NO ENADE/i.test(line)) break;
+
+    nomeLines.push(line);
+  }
+
+  return nomeLines
+    .join(" ")
     .replace(/\s+/g, " ")
-    .replace(/^[^A-ZÀ-Ú]+/i, "")
     .trim();
 }
 
-function extractTrailingNumbers(
-  afterCodigo: string,
-  situacao: string
-): {
-  horaAula: number;
+function mergeCodigoFromBlock(block: string): string | null {
+  const compact = block.replace(/\r?\n/g, " ").replace(/\s+/g, " ");
+  const inline = compact.match(/(G[T]?05[A-Z0-9]+(?:\.\d+)?)/i);
+  if (inline) return inline[1].toUpperCase();
+
+  const lines = block.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const codeMatch = lines[index].match(/^(G[T]?05[A-Z0-9.]+)/i);
+    if (!codeMatch) continue;
+
+    let codigo = codeMatch[1].replace(/\s/g, "");
+    const nextLine = lines[index + 1]?.trim() ?? "";
+    const fragmentMatch = nextLine.match(/^([\d.]+)\s/);
+
+    if (fragmentMatch) {
+      const fragment = fragmentMatch[1];
+      if (codigo.endsWith(".")) {
+        codigo += fragment.replace(/^\./, "");
+      } else if (/^\d+\.\d+$/.test(fragment)) {
+        codigo = codigo.replace(/0+$/, "") + fragment.replace(".", "");
+      } else {
+        codigo += codigo.includes(".") ? fragment : `.${fragment}`;
+      }
+    }
+
+    return codigo.toUpperCase();
+  }
+
+  return null;
+}
+
+function extractStatsFromBlock(block: string): {
   ch: number;
+  horaAula: number;
   frequencia: number | null;
   media: number | null;
   conceito: string | null;
+  optativo: boolean;
 } {
-  // Encontrar a situação e pegar os números antes dela
-  const sitIdx = afterCodigo.lastIndexOf(situacao);
-  if (sitIdx < 0) {
-    return { horaAula: 0, ch: 0, frequencia: null, media: null, conceito: null };
+  const statsMatch = block.match(
+    /G[T]?05[A-Z0-9.]+\s+(\d{2,})\s+([\d,.]+|--)\s+([\d,.-]+|--)(?:\s+(\*))?(?:\s+(\d+))?(?:\s+([A-F]|--))?/i
+  );
+
+  if (!statsMatch) {
+    const fallback = block.match(
+      /(?:^|\n)\s*(?:[\d.]+\s+)?(\d{2,})\s+([\d,.]+|--)\s+([\d,.-]+|--)(?:\s+(\*))?(?:\s+(\d+))?(?:\s+([A-F]|--))?/m
+    );
+    if (!fallback) {
+      return {
+        ch: 0,
+        horaAula: 0,
+        frequencia: null,
+        media: null,
+        conceito: null,
+        optativo: false,
+      };
+    }
+    return mapStatsMatch(fallback);
   }
 
-  const beforeSit = afterCodigo.slice(0, sitIdx).trim();
+  return mapStatsMatch(statsMatch);
+}
 
-  // Os números finais são: horaAula CH turma freq% media conceito
-  // Ex: "30 25 01 93,0 86.0 B" ou "30 25 01 -- -- --"
-  const tokens = beforeSit.split(/\s+/).filter(Boolean);
-
-  // Pegar os últimos 6 tokens (conceito, media, freq, turma, ch, horaAula)
-  const tail = tokens.slice(-6);
-
-  const conceito = isConceito(tail[tail.length - 1]) ? tail[tail.length - 1] : null;
-  const conceitoOffset = conceito ? 1 : 0;
-  const tailNums = tail.slice(0, tail.length - conceitoOffset);
-
-  // Agora temos [... horaAula, ch, turma, freq, media]
-  const mediaRaw = tailNums[tailNums.length - 1];
-  const freqRaw = tailNums[tailNums.length - 2];
-  // turma = tailNums[tailNums.length - 3]
-  const chRaw = tailNums[tailNums.length - 4];
-  const horaAulaRaw = tailNums[tailNums.length - 5];
-
+function mapStatsMatch(match: RegExpMatchArray): {
+  ch: number;
+  horaAula: number;
+  frequencia: number | null;
+  media: number | null;
+  conceito: string | null;
+  optativo: boolean;
+} {
   return {
-    horaAula: parseNum(horaAulaRaw) ?? 0,
-    ch: parseNum(chRaw) ?? 0,
-    frequencia: parseNum(freqRaw),
-    media: parseNum(mediaRaw),
-    conceito: conceito === "--" ? null : conceito,
+    ch: parseNum(match[1]) ?? 0,
+    frequencia: parseNum(match[2]),
+    media: parseNum(match[3]),
+    optativo: match[4] === "*",
+    horaAula: parseNum(match[5]) ?? 0,
+    conceito: match[6] && match[6] !== "--" ? match[6] : null,
   };
 }
 
-function isConceito(value: string | undefined): boolean {
-  if (!value) return false;
-  return /^[A-F]$/.test(value) || value === "--";
+function dedupeDisciplinas(
+  entries: HistoricoDisciplinaEntry[]
+): HistoricoDisciplinaEntry[] {
+  const byKey = new Map<string, HistoricoDisciplinaEntry>();
+
+  for (const entry of entries) {
+    const key = `${entry.semestre}|${entry.codigo || entry.nome}|${entry.situacao}`;
+    const existing = byKey.get(key);
+    if (!existing || entry.ch > existing.ch) {
+      byKey.set(key, entry);
+    }
+  }
+
+  return Array.from(byKey.values());
 }
 
 function parseNum(value: string | undefined): number | null {
@@ -234,55 +307,65 @@ function parseNum(value: string | undefined): number | null {
   return Number.isFinite(num) ? num : null;
 }
 
-/**
- * Parseia a tabela "Carga Horária Integralizada/Pendente".
- * 
- * Layout:
- * ```
- * Exigido    3105 h  360 h  375 h  450 h  30 h  4320 h
- * Integralizado 570 h 120 h  0 h    0 h   0 h   690 h
- * Pendente   2535 h  240 h  375 h  450 h  30 h  3630 h
- * ```
- */
-function parseChResumo(text: string): HistoricoChResumo[] {
-  const resumo: HistoricoChResumo[] = [];
+function extractCursadosSection(text: string): string | null {
+  const start = text.search(/Componentes\s+Curriculares\s+Cursados/i);
+  if (start < 0) return null;
 
-  const startMatch = text.match(/Carga\s+Hor[aá]ria\s+Integralizada\s*\/\s*Pendente/i);
-  if (!startMatch) return resumo;
+  const endMarkers = [
+    text.search(/Componentes\s+Curriculares\s+Obrigat[oó]rios\s+Pendentes/i),
+    text.search(/Componentes\s+Curriculares\s+Pendentes/i),
+  ].filter((index) => index > start);
 
-  const section = text.slice(startMatch.index! + startMatch[0].length, startMatch.index! + startMatch[0].length + 600);
+  const end = endMarkers.length > 0 ? Math.min(...endMarkers) : text.length;
+  let section = text.slice(start, end);
 
-  // Tipos de CH na ordem do PDF do CEFET
-  const tipos = ["Obrigatória", "Optativa", "Complementar", "Extensão", "Flexibilizada"];
+  section = section
+    .replace(/Componentes\s+Curriculares\s+Cursados\/Cursando/gi, "")
+    .replace(
+      /Ano\/Período[\s\S]*?Hora\s*\n\s*Aula\s+Conceito/gi,
+      ""
+    )
+    .replace(/MINISTÉRIO DA EDUCAÇÃO[\s\S]*?SECRETARIA[^\n]*\n/gi, "")
+    .replace(/Página\s+\d+\s+de[\s\S]*?código de verificação:[^\n]+\n?/gi, "")
+    .replace(/PARTICIPAÇÕES NO ENADE[\s\S]*?(?=\n\d{4}\.\d|\n*$)/gi, "");
 
-  // Extrair linha Exigido
-  const exigidoMatch = section.match(/Exigido\s+([\d\s,h.]+)/i);
-  const integralizadoMatch = section.match(/Integralizado\s+([\d\s,h.]+)/i);
-  const pendenteMatch = section.match(/Pendente\s+([\d\s,h.]+)/i);
-
-  if (!exigidoMatch || !integralizadoMatch || !pendenteMatch) return resumo;
-
-  const exigidoNums = extractHourValues(exigidoMatch[1]);
-  const integralizadoNums = extractHourValues(integralizadoMatch[1]);
-  const pendenteNums = extractHourValues(pendenteMatch[1]);
-
-  for (let i = 0; i < tipos.length && i < exigidoNums.length; i++) {
-    resumo.push({
-      tipo: tipos[i],
-      exigido: exigidoNums[i],
-      integralizado: integralizadoNums[i] ?? 0,
-      pendente: pendenteNums[i] ?? 0,
-    });
-  }
-
-  return resumo;
+  return section.trim() || null;
 }
 
-function extractHourValues(line: string): number[] {
-  const matches = line.match(/(\d+)\s*h/g);
-  if (!matches) return [];
-  return matches.map((m) => {
-    const num = m.replace(/[^0-9]/g, "");
-    return Number.parseInt(num, 10);
-  });
+function parseChResumo(text: string): {
+  chResumo: HistoricoChResumo[];
+  chTotais?: HistoricoChTotais;
+} {
+  const anchor = text.search(/\bExigido\b[\s\S]{0,40}\bIntegralizado\b/);
+  if (anchor < 0) return { chResumo: [] };
+
+  const section = text.slice(anchor, anchor + 500);
+  const hourValues = [...section.matchAll(/(\d+)\s*h/gi)].map((match) =>
+    Number.parseInt(match[1], 10)
+  );
+
+  if (hourValues.length < 18) return { chResumo: [] };
+
+  const specs = [
+    { tipo: "Optativa", exigido: 0, integralizado: 1, pendente: 2 },
+    { tipo: "Obrigatória", exigido: 8, integralizado: 7, pendente: 6 },
+    { tipo: "Complementar", exigido: 11, integralizado: 10, pendente: 9 },
+    { tipo: "Flexibilizada", exigido: 14, integralizado: 13, pendente: 12 },
+    { tipo: "Extensão", exigido: 17, integralizado: 16, pendente: 15 },
+  ];
+
+  const chResumo = specs.map(({ tipo, exigido, integralizado, pendente }) => ({
+    tipo,
+    exigido: hourValues[exigido] ?? 0,
+    integralizado: hourValues[integralizado] ?? 0,
+    pendente: hourValues[pendente] ?? 0,
+  }));
+
+  const chTotais: HistoricoChTotais = {
+    exigido: hourValues[3] ?? 0,
+    integralizado: hourValues[4] ?? 0,
+    pendente: hourValues[5] ?? 0,
+  };
+
+  return { chResumo, chTotais };
 }

@@ -9,9 +9,11 @@ import {
 } from "@/lib/db/queries";
 import {
   buildCompletedDisciplinaSet,
+  buildCursandoDisciplinaSet,
   buildCurrentDisciplinaSet,
   buildPreRequisitoMap,
   countStatusTotals,
+  mergeDisciplinaSets,
   resolveCourseMapStatusResult,
 } from "@/lib/mapa/course-status";
 import { getObrigatoriaTotalFromCatalog } from "@/lib/mapa/period-ch-gates";
@@ -112,8 +114,9 @@ export function buildMapa(): MapaResponse {
   const historico = getHistorico();
   const requisitos = getRequisitos();
 
-  const current = buildCurrentDisciplinaSet(
-    semestreAtual.map((row) => row.disciplina_id)
+  const current = mergeDisciplinaSets(
+    buildCurrentDisciplinaSet(semestreAtual.map((row) => row.disciplina_id)),
+    buildCursandoDisciplinaSet(historico)
   );
   const completed = buildCompletedDisciplinaSet(historico);
   const preRequisitos = buildPreRequisitoMap(requisitos);

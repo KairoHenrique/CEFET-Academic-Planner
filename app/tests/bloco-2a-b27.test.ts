@@ -260,8 +260,8 @@ describe("B27 — parse portal discente", () => {
     assert.equal(snapshot.semestreAtual.length, 2);
     assert.equal(snapshot.integralizacao.length, 2);
     assert.equal(snapshot.integralizacao[0]?.pendente, 2535);
-    assert.equal(snapshot.integralizacao[0]?.concluido, 545);
-    assert.equal(snapshot.integralizacao[0]?.totalNecessario, 3080);
+    assert.equal(snapshot.integralizacao[0]?.concluido, 570);
+    assert.equal(snapshot.integralizacao[0]?.totalNecessario, 3105);
     assert.equal(snapshot.atividades.length, 1);
     assert.match(snapshot.atividades[0]?.titulo ?? "", /MIC1/i);
   });
@@ -296,8 +296,8 @@ describe("B27 — parse portal discente", () => {
     const obrigatoria = snapshot.integralizacao.find((item) => item.tipoCh === "Obrigatória");
     assert.ok(obrigatoria);
     assert.equal(obrigatoria?.pendente, 2535);
-    assert.equal(obrigatoria?.concluido, 545);
-    assert.equal(obrigatoria?.totalNecessario, 3080);
+    assert.equal(obrigatoria?.concluido, 570);
+    assert.equal(obrigatoria?.totalNecessario, 3105);
     assert.equal(snapshot.integralizacao.length, 5);
   });
 

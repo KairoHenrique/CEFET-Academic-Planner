@@ -1,4 +1,4 @@
-import { isHistoricoApproved } from "@/lib/mapa/course-status";
+import { isHistoricoApproved, isHistoricoCursando } from "@/lib/mapa/course-status";
 import type { ChType } from "@/lib/integralizacao/ch-catalog";
 import { CH_TYPES } from "@/lib/integralizacao/ch-catalog";
 import { mapDisciplineTipoToChType } from "@/lib/integralizacao/map-discipline-tipo-to-ch";
@@ -43,7 +43,7 @@ export function computeChDoneFromDisciplinas(
   };
 
   for (const row of historico) {
-    if (isHistoricoApproved(row)) {
+    if (isHistoricoApproved(row) || isHistoricoCursando(row)) {
       addDisciplina(row.disciplina_id);
     }
   }

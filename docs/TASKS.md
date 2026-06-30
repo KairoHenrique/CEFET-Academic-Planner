@@ -108,7 +108,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 > **Progresso:** Bloco 1 ✅ · **Bloco 2a:** B27·B28 ✅ · B65·F37 `[@]` · integralização **via histórico** (decisão jun/2026 — scraper **B30**) · **3F** fora do Bloco 1.
 
-Roadmap detalhado: ver **[Ordem oficial v3](#ordem-oficial-de-execução-v3)** e **[Checklist mestre](#checklist-mestre-ordem-de-execução)**. **Bloco 2a** — próximo **B30 → B31** (histórico + calendário + `runSync`).
+Roadmap detalhado: ver **[Ordem oficial v3](#ordem-oficial-de-execução-v3)** e **[Checklist mestre](#checklist-mestre-ordem-de-execução)**. **Bloco 2a** — próximo **B30 → B31** (histórico escolar + `runSync`). **B66** (calendário) e **B67** (turmas ofertadas) = **2.4 extra**, separados, após B31.
 
 ---
 
@@ -269,11 +269,15 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] **BACK:**  B27 *(portal: semestre, RG, tarefas; CH portal auxiliar; apelidos auto)*
 - [@] **BACK:**  B65 *(sync automático 30 min; manual sem rate limit — dev)*
 - [x] **BACK:**  B28 *(turma virtual: notas, faltas, grupo, tarefas; UI Ver grupo; nome do grupo; arredondamento nota final)*
-- [ ] **BACK:**  B30 → B31
+- [ ] **BACK:**  B30 *(histórico escolar — última etapa do robô no sync)*
+- [ ] **BACK:**  B31
 - [ ] **FRONT:** F18
 - [@] **FRONT:** F37 *(menu perfil: matrícula + badge sync automático)*
+- [ ] **BACK:**  B66 · B67 *(calendário acadêmico + turmas ofertadas — **separados**, pós-B31)*
 
 **Ordem 2a (8 itens):** `B24–B26` → `B27` · `B65` → `B28` → `B30` → `B31` → `F18` · `F37` `[@]`
+
+**Ordem 2.4 extra (pós-B31):** `B66` → `B67` → `F19`
 
 ---
 
@@ -574,7 +578,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | **2.1 Auth** | Login Playwright, sessão, senha AES opcional, erros |
 | **2.2 Portal** | RG, semestre, tarefas; CH portal (% / total) **auxiliar** |
 | **2.3 Turma** | Notas, faltas, grupo, tarefas |
-| **2.4 Extra** | Turmas ofertadas, calendário, **histórico escolar → integralização** |
+| **2.4 Extra** | **B30** histórico → integralização · **B66** calendário · **B67** turmas ofertadas |
 
 | # | Tipo | Task | Resumo | Fase | Status |
 |---|------|------|--------|------|--------|
@@ -584,13 +588,17 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | B27 | Back | Scraper portal discente | RG, semestre, atividades; CH portal auxiliar (% / total) | 2.2 | [x] |
 | B65 | Back | Sync automático + last_run | Auto a cada 30 min; manual sem rate limit (dev) | 2.2 | [@] |
 | B28 | Back | Scraper turma virtual | Notas, faltas, tarefas, grupo e nome do grupo por matéria | 2.3 | [x] |
-| B30 | Back | Turmas + calendário + histórico | Ofertas próximo sem + datas oficiais + **histórico escolar → `historico`** | 2.4 | [/] |
-| B31 | Back | Integrar no `runSync` | Troca seed-demo por pipeline real | 2.x | [ ] |
+| B30 | Back | Histórico escolar | Ensino → Emitir Histórico (PDF) → `historico` + CH resumo | 2.4 | [/] |
+| B31 | Back | Integrar no `runSync` | Pipeline real estável; etapas isoladas (falha parcial não apaga sync) | 2.x | [ ] |
+| B66 | Back | Calendário acadêmico | Ensino → Calendário Acadêmico → `calendario_academico` | 2.4 | [ ] |
+| B67 | Back | Turmas ofertadas | Ensino → Consultar Turmas (próximo semestre) | 2.4 | [ ] |
 | F18 | Front | Erros reais no login | Remove simulação mock de falhas | 2.1 | [ ] |
 | F37 | Front | Menu perfil (avatar) | Matrícula, dados SIGAA; sync automático informativo | 2.2 | [@] |
-| F19 | Front | `/simulador` via API | Montar grade com turmas ofertadas reais | 2.4 | [ ] |
+| F19 | Front | `/simulador` via API | Montar grade com turmas ofertadas reais (**depende B67**) | 2.4 | [ ] |
 
 **Ordem 2a (#2):** `B24 → B25 → B26` → `B27` · `B65` → `B28` → `B30` → `B31` → `F18` · `F37` `[@]`
+
+**Ordem 2.4 extra:** `B66` → `B67` → `F19` *(fora do caminho crítico B30→B31)*
 
 > **Nota:** **B29** (PDFs) saiu da ordem 2a — estava entre B28 e B30; ver [Apêndice](#apêndice--escopo-futuro-fora-da-ordem-011).
 
@@ -843,10 +851,24 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [ ] ~~Download de materiais/PDFs~~ — fora do Bloco 2; ver [Apêndice](#apêndice--escopo-futuro-fora-da-ordem-011)
 
 ### 2.4 Scraper: Funcionalidades Adicionais
-- [ ] Consultar turmas ofertadas para o próximo semestre (Ensino → Consultar Turmas)
-- [ ] Extrair calendário acadêmico (Ensino → Calendário Acadêmico)
-- [ ] Scraper histórico escolar → popular tabela `historico` (disciplina, semestre, status, nota) — **base da integralização**
-- [ ] Emitir/baixar histórico escolar (PDF ou HTML SIGAA)
+
+> **B30** = caminho crítico do sync (última etapa do robô). **B66** e **B67** = etapas separadas, **não** entram no `runSync` até pós-B31.
+
+#### B30 — Histórico escolar `[/]`
+- [x] Parser PDF → `HistoricoSnapshot` JSON (`pdf-parse` v2 / `PDFParse`)
+- [x] Falha no histórico **não** apaga portal/turma; não persistir snapshot vazio
+- [x] Mapeamento `disciplina_id` via nome → código PPC
+- [ ] Emitir/baixar histórico escolar live (Ensino → Emitir Histórico → PDF)
+- [ ] Validar sync real end-to-end com SIGAA
+
+#### B66 — Calendário acadêmico `[ ]`
+- [ ] Scraper Ensino → Calendário Acadêmico
+- [ ] Popular `calendario_academico` (evento, data_inicio, data_fim, semestre)
+- [ ] Alimentar painel “Calendário Acadêmico” em `/calendario` (via `GET /api/calendar`)
+
+#### B67 — Turmas ofertadas `[ ]`
+- [ ] Scraper Ensino → Consultar Turmas (próximo semestre)
+- [ ] Persistir ofertas para o simulador (**F19**)
 
 ---
 
@@ -1105,7 +1127,7 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 8. **Próximo passo do roadmap:** informe **depois do push** (tasks em `[@]` ou `[x]`). Com commits locais só `[%]`, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v3](#ordem-oficial-de-execução-v3) — **Bloco 2 (sync) antes do Bloco 6 (Supabase)**. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy **após** sync validado; RLS **só na 6c** (antes do PIX).
-11. **Próximo passo:** **B30 → B31** (histórico escolar, calendário, integrar `runSync`). B65·F37 em `[@]`. **Integralização fiel:** `historico` na **B30**. PDFs/nuvem = [Apêndice](#apêndice--escopo-futuro-fora-da-ordem-011).
+11. **Próximo passo:** **B30 → B31** (histórico escolar PDF → `historico`; sync resiliente). **B66** calendário e **B67** turmas = separados, pós-B31. B65·F37 em `[@]`. **Integralização fiel:** `historico` na **B30**. PDFs/nuvem = [Apêndice](#apêndice--escopo-futuro-fora-da-ordem-011).
 12. **Integralização:** CH concluída = `historico` + PPC (`computeChDoneFromDisciplinas`); portal SIGAA só % / total currículo; matérias já passadas = **B30**.
 13. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial.
 14. **Código frontend** está em `app/src/` (não na raiz `src/`). Mock data em `app/src/config/mock/`.

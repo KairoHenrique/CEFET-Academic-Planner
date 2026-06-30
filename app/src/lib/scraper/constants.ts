@@ -57,8 +57,28 @@ export const SIGAA_SCRAPER_MOCK = resolveBooleanEnv("SIGAA_SCRAPER_MOCK");
 
 export const SIGAA_SCRAPER_DEBUG = resolveBooleanEnv("SIGAA_SCRAPER_DEBUG");
 
+function readStringFromEnvLocal(key: string): string | null {
+  try {
+    const envPath = path.join(process.cwd(), ".env.local");
+    if (!fs.existsSync(envPath)) return null;
+
+    const line = fs
+      .readFileSync(envPath, "utf8")
+      .split(/\r?\n/)
+      .find((entry) => new RegExp(`^\\s*${key}\\s*=`).test(entry));
+    if (!line) return null;
+
+    const raw = line.split("=")[1]?.split("#")[0]?.trim() ?? "";
+    return raw || null;
+  } catch {
+    return null;
+  }
+}
+
 /** Caminho local para PDF de histórico (dev/diagnóstico). */
-export const SIGAA_HISTORICO_PDF_PATH = process.env.SIGAA_HISTORICO_PDF_PATH?.trim() || null;
+export const SIGAA_HISTORICO_PDF_PATH =
+  readStringFromEnvLocal("SIGAA_HISTORICO_PDF_PATH") ??
+  (process.env.SIGAA_HISTORICO_PDF_PATH?.trim() || null);
 
 export const SIGAA_HEADLESS =
   process.env.SIGAA_HEADLESS !== "false" &&

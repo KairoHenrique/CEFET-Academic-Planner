@@ -23,7 +23,7 @@ export function parseTurmaDisciplinaPages(
 ): TurmaVirtualDisciplinaSnapshot {
   const warnings: string[] = [];
   const notasResult = raw.notasHtml
-    ? parseNotasPageHtml(raw.notasHtml)
+    ? parseNotasPageHtml(raw.notasHtml, { matricula: raw.matricula })
     : { notas: [], maxFaltas: null };
   if (!raw.notasHtml) warnings.push("notas indisponíveis");
 

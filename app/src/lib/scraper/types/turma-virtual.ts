@@ -64,6 +64,7 @@ export interface TurmaVirtualIndexEntry {
 export interface TurmaVirtualDisciplinaRawPages {
   sigaaNome: string;
   sigaaUrl: string | null;
+  matricula?: string | null;
   notasHtml: string | null;
   frequenciaHtml: string | null;
   grupoHtml: string | null;

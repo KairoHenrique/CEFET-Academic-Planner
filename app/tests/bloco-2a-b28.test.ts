@@ -286,6 +286,28 @@ describe("B28 — parse turma virtual", () => {
     assert.equal(result.notas[1]?.notaMaxima, 10);
   });
 
+  test("lista de alunos matriculados filtra notas pela matrícula do logado", async () => {
+    const { readFileSync, existsSync } = await import("node:fs");
+    const { parseNotasPageHtml } = await import(
+      "../src/lib/scraper/turma-virtual/parse-notas-page"
+    );
+
+    const fixturePath =
+      ".data/scrape-debug/1782834838405-arquitetura-e-organizacao-de-computadores-i-notas.html";
+    if (!existsSync(fixturePath)) {
+      console.warn("Fixture AOC ausente — pulando teste de matrícula.");
+      return;
+    }
+
+    const html = readFileSync(fixturePath, "utf8");
+    const firstStudent = parseNotasPageHtml(html);
+    const ownGrades = parseNotasPageHtml(html, { matricula: "00000000000" });
+
+    assert.equal(firstStudent.notas[0]?.notaObtida, 15);
+    assert.equal(ownGrades.notas[0]?.notaObtida, 12);
+    assert.equal(ownGrades.maxFaltas, 6);
+  });
+
   test("extrai frequência por data", async () => {
     const { parseFrequenciaPageHtml } = await import(
       "../src/lib/scraper/turma-virtual/parse-frequencia-page"
