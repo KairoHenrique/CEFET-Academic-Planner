@@ -83,7 +83,7 @@ async function runLiveSync(credentials: ResolvedSyncCredentials): Promise<SyncRe
       };
 
       // 2. Portal
-      steps.push({ label: "Carregando portal do discente…", progress: 35 });
+      steps.push({ label: "Carregando portal do discente…", progress: 30 });
       const portalSnapshot = await scrapePortalDiscente(page);
       try {
         persistPortalSnapshot(portalSnapshot);
@@ -91,11 +91,39 @@ async function runLiveSync(credentials: ResolvedSyncCredentials): Promise<SyncRe
         throw internalError("Falha ao salvar dados do portal.");
       }
 
-      // 3. Turma Virtual
-      steps.push({ label: "Sincronizando turma virtual…", progress: 60 });
+      // 3. Histórico — logo após portal (PDF baixa no clique do menu; antes da turma virtual)
+      steps.push({ label: "Baixando histórico escolar…", progress: 50 });
+      try {
+        const historicoSnapshot = await scrapeHistorico(page, {
+          skipPortalGoto: true,
+        });
+        const historicoResult = persistHistoricoSnapshot(historicoSnapshot);
+        if (!historicoResult.persisted) {
+          console.warn(
+            `[sync] Histórico não persistido: ${historicoResult.reason ?? "sem dados"}`
+          );
+          steps.push({
+            label: "Histórico escolar indisponível (portal/turma preservados)",
+            progress: 55,
+          });
+        } else {
+          console.info(
+            `[sync] Histórico persistido: ${historicoResult.rowsWritten} disciplina(s).`
+          );
+        }
+      } catch (error) {
+        console.warn(
+          "[sync] Falha na etapa de histórico escolar; dados anteriores preservados.",
+          error instanceof Error ? error.message : error
+        );
+      }
+
+      // 4. Turma Virtual
+      steps.push({ label: "Sincronizando turma virtual…", progress: 70 });
       const turmaSnapshot = await scrapeTurmaVirtual(page, {
         semestreDisciplinas: portalSnapshot.semestreAtual,
         semestreLetivo: portalSnapshot.semestreLetivo,
+        matricula: portalSnapshot.aluno.matricula,
       });
       try {
         persistTurmaVirtualSnapshot(turmaSnapshot);
@@ -103,15 +131,6 @@ async function runLiveSync(credentials: ResolvedSyncCredentials): Promise<SyncRe
         pruneOrphanSyncedTarefas();
       } catch (e) {
         throw internalError("Falha ao salvar dados da turma virtual.");
-      }
-
-      // 4. Histórico
-      steps.push({ label: "Baixando histórico escolar…", progress: 90 });
-      const historicoSnapshot = await scrapeHistorico(page);
-      try {
-        persistHistoricoSnapshot(historicoSnapshot);
-      } catch (e) {
-        throw internalError("Falha ao salvar dados do histórico escolar.");
       }
 
       steps.push({ label: "Concluído", progress: 100 });

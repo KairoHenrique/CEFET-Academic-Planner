@@ -1,5 +1,9 @@
 import type { ChCatalogEntry } from "@/lib/integralizacao/ch-catalog";
 import { resolveCategoryDoneHours } from "@/lib/integralizacao/resolve-category-done";
+import {
+  resolveEffectiveTotalRequired,
+  resolveSyncedPendenteHours,
+} from "@/lib/integralizacao/resolve-synced-ch";
 import type { IntegralizacaoRow } from "@/lib/types/db";
 import type {
   IntegralizacaoCategoryDetail,
@@ -21,12 +25,27 @@ function groupRowsByTipo(
   return grouped;
 }
 
+function resolveSyncedRow(
+  typeRows: IntegralizacaoRow[]
+): IntegralizacaoRow | undefined {
+  return typeRows.find((row) => row.manual === 0);
+}
+
 function resolveTotalRequired(
   typeRows: IntegralizacaoRow[],
   catalogTotal: number
 ): number {
-  const syncedRow = typeRows.find((row) => row.manual === 0);
-  return syncedRow?.total_necessario ?? catalogTotal;
+  const syncedRow = resolveSyncedRow(typeRows);
+  return resolveEffectiveTotalRequired(syncedRow, catalogTotal);
+}
+
+function resolvePendingHours(
+  typeRows: IntegralizacaoRow[],
+  catalogTotal: number,
+  done: number
+): number {
+  const syncedRow = resolveSyncedRow(typeRows);
+  return resolveSyncedPendenteHours(syncedRow, catalogTotal, done) ?? Math.max(0, catalogTotal - done);
 }
 
 function mapManualEntries(typeRows: IntegralizacaoRow[]): IntegralizacaoManualEntry[] {
@@ -52,9 +71,10 @@ export function aggregateIntegralizacaoCategories(
     const done = resolveCategoryDoneHours(
       entry.tipoCh,
       typeRows,
-      computedByType[entry.tipoCh] ?? 0
+      computedByType[entry.tipoCh] ?? 0,
+      entry.totalRequired
     );
-    const pending = Math.max(0, total - done);
+    const pending = resolvePendingHours(typeRows, total, done);
 
     return {
       label: entry.tipoCh,

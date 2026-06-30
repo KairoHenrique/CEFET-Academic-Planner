@@ -6,7 +6,7 @@ import {
 } from "@/lib/disciplinas/grade-display";
 import {
   normalizeDisciplinaNome,
-  resolveDisciplinaCodigoByNome,
+  resolveDisciplinaCodigoForPortal,
   resolveDisciplinaCodigoFromSemestre,
 } from "@/lib/scraper/portal-discente/resolve-disciplina-codigo";
 import {
@@ -30,8 +30,9 @@ function buildSemestreCodigoByNome(
   const map = new Map<string, string>();
 
   for (const disciplina of snapshot.semestreAtual) {
-    const codigo = resolveDisciplinaCodigoByNome(
-      disciplina.codigo || disciplina.nome
+    const codigo = resolveDisciplinaCodigoForPortal(
+      disciplina.codigo,
+      disciplina.nome
     );
     map.set(normalizeDisciplinaNome(disciplina.nome), codigo);
   }
@@ -64,14 +65,18 @@ export function persistPortalSnapshot(snapshot: PortalDiscenteSnapshot): void {
     });
   }
 
-  persistSigaaIntegralizacaoResumo(snapshot.integralizacaoResumo);
+  persistSigaaIntegralizacaoResumo({
+    ...snapshot.integralizacaoResumo,
+    fromHistoricoPdf: false,
+  });
 
   const activeDisciplinaIds = new Set<string>();
   const semestreByNome = buildSemestreCodigoByNome(snapshot);
 
   for (const disciplina of snapshot.semestreAtual) {
-    const codigo = resolveDisciplinaCodigoByNome(
-      disciplina.codigo || disciplina.nome
+    const codigo = resolveDisciplinaCodigoForPortal(
+      disciplina.codigo,
+      disciplina.nome
     );
     activeDisciplinaIds.add(codigo);
 

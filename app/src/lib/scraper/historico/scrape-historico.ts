@@ -1,24 +1,46 @@
 import fs from "node:fs";
+import path from "node:path";
 import type { Page } from "playwright";
 import {
   SIGAA_HISTORICO_PDF_PATH,
-  SIGAA_NAVIGATION_TIMEOUT_MS,
   SIGAA_PORTAL_DISCENTE_URL,
+  SIGAA_SCRAPER_DEBUG,
 } from "@/lib/scraper/constants";
 import { ScraperError, mapUnknownScraperError } from "@/lib/scraper/errors";
-import { parseHistoricoPdfText } from "@/lib/scraper/historico/parse-historico-pdf";
+import { captureHistoricoPdfFromMenu } from "@/lib/scraper/historico/capture-historico-pdf";
+import {
+  isHistoricoEmitPage,
+  navigateToEmitirHistorico,
+} from "@/lib/scraper/historico/navigate-to-historico";
+import { parseHistoricoPdfBuffer } from "@/lib/scraper/historico/parse-historico-pdf";
+import { buildMockHistoricoSnapshot } from "@/lib/scraper/historico/mock-historico-snapshot";
+import { dumpScrapeHtml } from "@/lib/scraper/scrape-debug";
 import { sleep } from "@/lib/scraper/turma-virtual/html-utils";
+import {
+  dismissSigaaBlockingOverlays,
+  dismissSigaaCookieBanner,
+} from "@/lib/scraper/turma-virtual/portal-turma-navigation";
+import { countPersistableHistoricoDisciplinas } from "@/lib/sync/historico-snapshot-policy";
 import type { HistoricoSnapshot } from "@/lib/scraper/types/historico";
 
+const HISTORICO_PDF_DOWNLOAD_TIMEOUT_MS = 30_000;
+
 /**
- * Navega até "Ensino → Emitir Histórico" no SIGAA, baixa o PDF gerado,
- * e extrai os dados do histórico escolar.
+ * Navega até Ensino → Emitir Histórico no portal, baixa o PDF e extrai os dados.
+ * O PDF do SIGAA costuma baixar direto no clique do menu (sem tela intermediária).
  */
-export async function scrapeHistorico(page: Page): Promise<HistoricoSnapshot> {
+export async function scrapeHistorico(
+  page: Page,
+  options?: { skipPortalGoto?: boolean }
+): Promise<HistoricoSnapshot> {
   if (SIGAA_HISTORICO_PDF_PATH) {
     try {
       const buffer = fs.readFileSync(SIGAA_HISTORICO_PDF_PATH);
-      return await parseHistoricoPdfBuffer(buffer);
+      const snapshot = await parseHistoricoPdfBuffer(buffer);
+      console.info(
+        `[scraper:historico] PDF local: ${snapshot.disciplinas.length} disciplina(s) parseada(s).`
+      );
+      return snapshot;
     } catch (error) {
       console.warn(
         `[scraper:historico] Falha ao ler PDF local (${SIGAA_HISTORICO_PDF_PATH}):`,
@@ -28,126 +50,146 @@ export async function scrapeHistorico(page: Page): Promise<HistoricoSnapshot> {
   }
 
   try {
-    // 1. Ir para o portal (ponto de partida para navegar ao menu Ensino)
-    if (!page.url().includes("sigaa")) {
+    if (!options?.skipPortalGoto && !page.url().includes("discente")) {
       await page.goto(SIGAA_PORTAL_DISCENTE_URL, {
         waitUntil: "domcontentloaded",
-        timeout: SIGAA_NAVIGATION_TIMEOUT_MS,
+        timeout: 30_000,
       });
     }
 
-    // 2. Navegar para Ensino → Emitir Histórico
-    // No SIGAA, o menu Ensino fica no topo. Tentar clicar.
-    const ensinoClicked = await page.evaluate(() => {
-      const clickElement = (pattern: RegExp) => {
-        const elements = Array.from(document.querySelectorAll("a, td, span, div, li"));
-        const target = elements.find((el) =>
-          pattern.test(el.textContent?.trim() ?? "") &&
-          (el as HTMLElement).click !== undefined
-        ) as HTMLElement | undefined;
-        if (target) {
-          target.click();
-          return true;
-        }
-        return false;
-      };
+    await dismissSigaaCookieBanner(page);
+    await dismissSigaaBlockingOverlays(page);
 
-      if (clickElement(/emitir\s*hist[oó]rico/i)) return true;
-      if (clickElement(/^ensino$/i)) return false;
+    let pdfBuffer = await captureHistoricoPdfFromMenu(page);
 
-      return false;
-    });
-
-    if (!ensinoClicked) {
-      await sleep(1500);
-
-      const historicoClicked = await page.evaluate(() => {
-        const clickElement = (pattern: RegExp) => {
-          const elements = Array.from(document.querySelectorAll("a, td, span, div, li"));
-          const target = elements.find((el) =>
-            pattern.test(el.textContent?.trim() ?? "") &&
-            !/turma|virtual|portal/i.test(el.textContent?.trim() ?? "") &&
-            (el as HTMLElement).click !== undefined
-          ) as HTMLElement | undefined;
-          if (target) {
-            target.click();
-            return true;
-          }
-          return false;
-        };
-
-        if (clickElement(/emitir\s*hist[oó]rico/i)) return true;
-        if (clickElement(/hist[oó]rico/i)) return true;
-
-
-        return false;
+    if (!pdfBuffer) {
+      console.info(
+        "[scraper:historico] PDF direto do menu falhou — tentando tela de emissão."
+      );
+      const navigated = await navigateToEmitirHistorico(page, {
+        skipReturnToPortal: options?.skipPortalGoto,
       });
 
-      if (!historicoClicked) {
-        console.warn("[scraper:historico] Não encontrou link 'Emitir Histórico' no menu.");
-        return buildEmptySnapshot();
+      if (!navigated) {
+        if (SIGAA_SCRAPER_DEBUG) {
+          dumpScrapeHtml("historico", "falha-navegacao", await page.content());
+        }
+        return buildEmptySnapshot("navegação");
+      }
+
+      if (await isHistoricoEmitPage(page)) {
+        if (SIGAA_SCRAPER_DEBUG) {
+          dumpScrapeHtml("historico", "tela-emissao", await page.content());
+        }
+        pdfBuffer = await downloadHistoricoPdfFromEmitPage(page);
       }
     }
 
-    await sleep(2000);
-    await page.waitForLoadState("domcontentloaded").catch(() => undefined);
-
-    // 3. A página pode ter um botão "Emitir" ou já gerar o PDF
-    // Interceptar o download do PDF
-    const pdfBuffer = await downloadHistoricoPdf(page);
     if (!pdfBuffer) {
       console.warn("[scraper:historico] Não foi possível baixar o PDF do histórico.");
-      return buildEmptySnapshot();
+      if (SIGAA_SCRAPER_DEBUG) {
+        dumpScrapeHtml("historico", "falha-download", await page.content());
+      }
+      return buildEmptySnapshot("download");
     }
 
-    return await parseHistoricoPdfBuffer(pdfBuffer);
+    saveHistoricoPdfDebug(pdfBuffer);
+
+    const snapshot = await parseHistoricoPdfBuffer(pdfBuffer);
+    const persistable = countPersistableHistoricoDisciplinas(snapshot);
+    console.info(
+      `[scraper:historico] PDF SIGAA: ${snapshot.disciplinas.length} parseada(s), ${persistable} com situação final.`
+    );
+
+    if (persistable === 0) {
+      console.warn("[scraper:historico] Parser retornou 0 disciplinas persistíveis.");
+    }
+
+    return snapshot;
   } catch (error) {
     if (error instanceof ScraperError) throw error;
     const message = error instanceof Error ? error.message : "Falha ao raspar histórico.";
     console.warn(`[scraper:historico] ${message}`);
-    return buildEmptySnapshot();
+    return buildEmptySnapshot("erro");
   }
 }
 
-async function parseHistoricoPdfBuffer(buffer: Buffer): Promise<HistoricoSnapshot> {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const pdfParse = require("pdf-parse");
-  const pdfData = await pdfParse(buffer);
-  return parseHistoricoPdfText(pdfData.text);
-}
+async function downloadHistoricoPdfFromEmitPage(page: Page): Promise<Buffer | null> {
+  const popupPromise = page
+    .context()
+    .waitForEvent("page", { timeout: HISTORICO_PDF_DOWNLOAD_TIMEOUT_MS })
+    .catch(() => null);
 
-/**
- * O SIGAA gera o PDF inline ou como download.
- */
-async function downloadHistoricoPdf(page: Page): Promise<Buffer | null> {
-  // Verificar se a página atual já é o PDF ou tem link para ele
-  const currentUrl = page.url();
+  const downloadPromise = page
+    .waitForEvent("download", { timeout: HISTORICO_PDF_DOWNLOAD_TIMEOUT_MS })
+    .catch(() => null);
 
-  // Caso 1: A URL atual já é um PDF
-  if (currentUrl.endsWith(".pdf") || currentUrl.includes("documento")) {
-    try {
-      const response = await page.goto(currentUrl, {
-        waitUntil: "load",
-        timeout: SIGAA_NAVIGATION_TIMEOUT_MS,
-      });
-      if (response) {
-        return Buffer.from(await response.body());
-      }
-    } catch {
-      // Continuar para outros métodos
+  const responsePromise = page
+    .waitForResponse(
+      (resp) =>
+        resp.headers()["content-type"]?.includes("pdf") === true ||
+        /historico|documento|relatorio/i.test(resp.url()),
+      { timeout: HISTORICO_PDF_DOWNLOAD_TIMEOUT_MS }
+    )
+    .catch(() => null);
+
+  await clickEmitirOnHistoricoPage(page);
+
+  const download = await downloadPromise;
+  if (download) {
+    const downloadPath = await download.path();
+    if (downloadPath) return fs.readFileSync(downloadPath);
+  }
+
+  const response = await responsePromise;
+  if (response) {
+    const contentType = response.headers()["content-type"] ?? "";
+    if (contentType.includes("pdf") || response.url().includes("documento")) {
+      return Buffer.from(await response.body());
     }
   }
 
-  // Caso 2: Há um botão/link "Emitir" ou "Gerar" na página
-  const downloadPromise = page.waitForEvent("download", { timeout: 15_000 }).catch(() => null);
+  const popup = await popupPromise;
+  if (popup) {
+    await popup.waitForLoadState("domcontentloaded").catch(() => undefined);
+    await sleep(2000);
+    const popupPdf = await extractPdfBufferFromPage(popup);
+    if (popupPdf) {
+      await popup.close().catch(() => undefined);
+      return popupPdf;
+    }
+    await popup.close().catch(() => undefined);
+  }
 
-  const emitirClicked = await page.evaluate(() => {
-    const buttons = Array.from(document.querySelectorAll("a, button, input[type='submit'], input[type='button']"));
-    const emitir = buttons.find((btn) =>
-      /emitir|gerar|baixar|download|imprimir/i.test(
-        (btn.textContent ?? (btn as HTMLInputElement).value ?? "").trim()
+  return await extractPdfBufferFromPage(page);
+}
+
+async function clickEmitirOnHistoricoPage(page: Page): Promise<void> {
+  const clicked = await page.evaluate(() => {
+    const isEmitControl = (element: Element): boolean => {
+      const label = (
+        (element as HTMLInputElement).value ??
+        element.textContent ??
+        ""
       )
-    ) as HTMLElement | undefined;
+        .replace(/\s+/g, " ")
+        .trim();
+      return (
+        /^emitir$/i.test(label) ||
+        /emitir\s*(hist[oó]rico|relat[oó]rio)/i.test(label)
+      );
+    };
+
+    const buttons = Array.from(
+      document.querySelectorAll("a, button, input[type='submit'], input[type='button']")
+    ).filter(
+      (btn) =>
+        isEmitControl(btn) &&
+        !btn.closest(".ThemeOfficeMenu") &&
+        !btn.closest("#menu_form_menu_discente_discente_menu")
+    );
+
+    const emitir = buttons[0] as HTMLElement | undefined;
     if (emitir) {
       emitir.click();
       return true;
@@ -155,66 +197,45 @@ async function downloadHistoricoPdf(page: Page): Promise<Buffer | null> {
     return false;
   });
 
-  if (emitirClicked) {
-    const download = await downloadPromise;
-    if (download) {
-      const path = await download.path();
-      if (path) {
-        const fs = await import("fs");
-        return fs.readFileSync(path);
-      }
-    }
+  if (clicked) await sleep(3000);
+}
 
-    // Pode ter aberto em nova aba ou carregado inline
-    await sleep(3000);
-  }
-
-  // Caso 3: Tentar capturar resposta PDF via interceptação de requests
+async function extractPdfBufferFromPage(page: Page): Promise<Buffer | null> {
   try {
-    const response = await page.waitForResponse(
-      (resp) =>
-        resp.url().includes("historico") ||
-        resp.url().includes("documento") ||
-        resp.headers()["content-type"]?.includes("pdf") === true,
-      { timeout: 10_000 }
-    );
-    return Buffer.from(await response.body());
-  } catch {
-    // Nenhum PDF encontrado
-  }
+    const response = await page.goto(page.url(), {
+      waitUntil: "load",
+      timeout: 30_000,
+    });
+    if (!response) return null;
 
-  // Caso 4: Verificar se há um iframe/embed com PDF
-  const pdfUrl = await page.evaluate(() => {
-    const embed = document.querySelector("embed[type='application/pdf']") as HTMLEmbedElement | null;
-    if (embed?.src) return embed.src;
-
-    const iframe = document.querySelector("iframe") as HTMLIFrameElement | null;
-    if (iframe?.src?.includes("pdf")) return iframe.src;
-
-    // Verificar links diretos para PDF
-    const links = Array.from(document.querySelectorAll("a"));
-    const pdfLink = links.find((link) => link.href?.includes(".pdf") || link.href?.includes("documento"));
-    return pdfLink?.href ?? null;
-  });
-
-  if (pdfUrl) {
-    try {
-      const response = await page.goto(pdfUrl, {
-        waitUntil: "load",
-        timeout: SIGAA_NAVIGATION_TIMEOUT_MS,
-      });
-      if (response) {
-        return Buffer.from(await response.body());
-      }
-    } catch {
-      // Falhou
+    const contentType = response.headers()["content-type"] ?? "";
+    if (contentType.includes("pdf")) {
+      return Buffer.from(await response.body());
     }
+
+    const body = await response.body();
+    if (body.length > 4 && body.subarray(0, 4).toString() === "%PDF") {
+      return Buffer.from(body);
+    }
+  } catch {
+    return null;
   }
 
   return null;
 }
 
-function buildEmptySnapshot(): HistoricoSnapshot {
+function saveHistoricoPdfDebug(buffer: Buffer): void {
+  if (!SIGAA_SCRAPER_DEBUG) return;
+
+  const debugDir = path.join(process.cwd(), ".data", "scrape-debug");
+  fs.mkdirSync(debugDir, { recursive: true });
+  const filename = `${Date.now()}-historico-escolar.pdf`;
+  fs.writeFileSync(path.join(debugDir, filename), buffer);
+  console.info(`[scraper:debug] PDF salvo: .data/scrape-debug/${filename}`);
+}
+
+function buildEmptySnapshot(reason: string): HistoricoSnapshot {
+  console.warn(`[scraper:historico] Snapshot vazio (${reason}).`);
   return {
     scrapedAt: new Date().toISOString(),
     disciplinas: [],
@@ -222,9 +243,6 @@ function buildEmptySnapshot(): HistoricoSnapshot {
   };
 }
 
-/**
- * Mock do histórico — para testes sem SIGAA.
- */
 export function scrapeHistoricoMock(): HistoricoSnapshot {
-  return buildEmptySnapshot();
+  return buildMockHistoricoSnapshot();
 }

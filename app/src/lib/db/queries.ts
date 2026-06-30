@@ -1,4 +1,5 @@
 import db from "./index";
+import { isPpcCanonicalCodigo } from "@/lib/scraper/portal-discente/resolve-disciplina-codigo";
 import type {
   AlunoRow,
   CalendarioAcademicoRow,
@@ -87,6 +88,9 @@ export function upsertPortalDisciplina(params: {
   nome: string;
 }): void {
   const existing = getDisciplinaByCodigo(params.codigo);
+  if (existing && isPpcCanonicalCodigo(existing.codigo)) {
+    return;
+  }
   saveDisciplina({
     codigo: params.codigo,
     nome: params.nome,
@@ -858,16 +862,18 @@ export function saveIntegralizacao(progresso: Omit<IntegralizacaoRow, "id">): vo
   ).run(progresso);
 }
 
-export function getIntegralizacaoByTipo(tipoCh: string): IntegralizacaoRow | undefined {
+export function getIntegralizacaoSyncedByTipo(
+  tipoCh: string
+): IntegralizacaoRow | undefined {
   return db
-    .prepare("SELECT * FROM integralizacao WHERE tipo_ch = ? LIMIT 1")
+    .prepare("SELECT * FROM integralizacao WHERE tipo_ch = ? AND manual = 0 LIMIT 1")
     .get(tipoCh) as IntegralizacaoRow | undefined;
 }
 
 export function upsertSyncedIntegralizacao(
   progresso: Omit<IntegralizacaoRow, "id">
 ): void {
-  const existing = getIntegralizacaoByTipo(progresso.tipo_ch);
+  const existing = getIntegralizacaoSyncedByTipo(progresso.tipo_ch);
 
   if (existing) {
     if (isIntegralizacaoProtectedByUser(existing)) return;

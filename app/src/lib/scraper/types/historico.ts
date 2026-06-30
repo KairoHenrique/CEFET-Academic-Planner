@@ -30,9 +30,17 @@ export interface HistoricoChResumo {
   pendente: number;
 }
 
+/** Totais da coluna "Total" na tabela Carga Horária Integralizada/Pendente. */
+export interface HistoricoChTotais {
+  exigido: number;
+  integralizado: number;
+  pendente: number;
+}
+
 /** Snapshot completo do histórico escolar extraído do PDF do SIGAA. */
 export interface HistoricoSnapshot {
   scrapedAt: string;
   disciplinas: HistoricoDisciplinaEntry[];
   chResumo: HistoricoChResumo[];
+  chTotais?: HistoricoChTotais;
 }

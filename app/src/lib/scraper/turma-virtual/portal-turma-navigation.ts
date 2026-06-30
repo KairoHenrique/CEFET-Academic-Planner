@@ -79,6 +79,41 @@ export async function dismissSigaaCookieBanner(page: Page): Promise<void> {
   }
 }
 
+/** Fecha modais "Aguarde..." e máscaras que bloqueiam o menu JSF. */
+export async function dismissSigaaBlockingOverlays(page: Page): Promise<void> {
+  const closeSelectors = [
+    "#painel-mensagem-envio .close",
+    "#painel-mensagem-envio_c .close",
+    "button:has-text('Cancelar')",
+  ];
+
+  for (const selector of closeSelectors) {
+    const locator = page.locator(selector).first();
+    if ((await locator.count()) > 0) {
+      await locator.click({ timeout: 1500 }).catch(() => undefined);
+      await sleep(200);
+    }
+  }
+
+  await page
+    .waitForSelector("#painel-mensagem-envio_mask", {
+      state: "hidden",
+      timeout: 5000,
+    })
+    .catch(() => undefined);
+
+  await page.evaluate(() => {
+    for (const mask of document.querySelectorAll(".mask, .underlay")) {
+      (mask as HTMLElement).style.display = "none";
+    }
+    for (const panel of document.querySelectorAll(
+      "#painel-mensagem-envio_c, #painel-mensagem-envio"
+    )) {
+      panel.remove();
+    }
+  });
+}
+
 function htmlMatchesAny(html: string, patterns: RegExp[]): boolean {
   return patterns.some((pattern) => pattern.test(html));
 }

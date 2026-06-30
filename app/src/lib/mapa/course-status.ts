@@ -28,6 +28,15 @@ export function isHistoricoApproved(row: HistoricoRow): boolean {
   return DONE_STATUS_KEYWORDS.some((keyword) => status.includes(keyword));
 }
 
+export function isHistoricoCursando(row: HistoricoRow): boolean {
+  const status = row.status?.trim().toLowerCase() ?? "";
+  return (
+    status.includes("cursando") ||
+    status.includes("matriculado") ||
+    status === "matr"
+  );
+}
+
 export function buildCompletedDisciplinaSet(
   historico: HistoricoRow[]
 ): Set<string> {
@@ -42,8 +51,32 @@ export function buildCompletedDisciplinaSet(
   return completed;
 }
 
+export function buildCursandoDisciplinaSet(
+  historico: HistoricoRow[]
+): Set<string> {
+  const cursando = new Set<string>();
+
+  for (const row of historico) {
+    if (isHistoricoCursando(row)) {
+      cursando.add(normalizeCode(row.disciplina_id));
+    }
+  }
+
+  return cursando;
+}
+
 export function buildCurrentDisciplinaSet(codes: string[]): Set<string> {
   return new Set(codes.map(normalizeCode));
+}
+
+export function mergeDisciplinaSets(...sets: Set<string>[]): Set<string> {
+  const merged = new Set<string>();
+  for (const set of sets) {
+    for (const code of set) {
+      merged.add(code);
+    }
+  }
+  return merged;
 }
 
 export function buildPreRequisitoMap(

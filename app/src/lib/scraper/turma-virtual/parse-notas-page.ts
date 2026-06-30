@@ -101,6 +101,42 @@ function isScoreHeader(
   return SCORE_HEADER_PATTERN.test(normalized);
 }
 
+export interface ParseNotasPageOptions {
+  /** Matrícula do aluno logado — necessária quando a página lista todos os alunos (ex.: AOC). */
+  matricula?: string | null;
+}
+
+function normalizeMatricula(value: string): string {
+  return value.replace(/\D/g, "");
+}
+
+function rowMatchesMatricula(row: string[], matricula: string): boolean {
+  const normalized = normalizeMatricula(matricula);
+  if (!normalized || normalized.length < 8) return false;
+
+  for (const cell of row) {
+    const trimmed = cell.trim();
+    if (!trimmed) continue;
+
+    const cellDigits = normalizeMatricula(trimmed);
+    if (cellDigits.length >= 8) {
+      if (cellDigits === normalized) return true;
+      if (cellDigits.startsWith(normalized)) return true;
+    }
+
+    if (trimmed.startsWith(normalized)) return true;
+    if (new RegExp(`\\b${normalized}\\b`).test(trimmed)) return true;
+  }
+
+  return false;
+}
+
+function isStudentDataRow(row: string[]): boolean {
+  return row.some(
+    (cell) => /^\d{8,}/.test(cell.trim()) || isIdentityCell(cell.trim())
+  );
+}
+
 function looksLikeTableHeaderRow(row: string[]): boolean {
   return row.some((cell) =>
     /^(matr[ií]cula|nome|unid\.?\s*\d*|faltas|situa[cç][aã]o)$/i.test(
@@ -230,14 +266,33 @@ function rowHasScoreHeaders(
   );
 }
 
-function findStudentDataRow(rows: string[][], startIndex: number): string[] | null {
-  for (const row of rows.slice(startIndex + 1, startIndex + 5)) {
-    if (looksLikeTableHeaderRow(row)) break;
+function listStudentDataRows(rows: string[][], startIndex: number): string[][] {
+  const dataRows: string[][] = [];
 
-    if (row.some((cell) => /^\d{8,}/.test(cell.trim()))) {
-      return row;
+  for (const row of rows.slice(startIndex + 1)) {
+    if (looksLikeTableHeaderRow(row)) break;
+    if (isStudentDataRow(row)) {
+      dataRows.push(row);
     }
   }
+
+  return dataRows;
+}
+
+function findStudentDataRow(
+  rows: string[][],
+  startIndex: number,
+  matricula?: string | null
+): string[] | null {
+  const dataRows = listStudentDataRows(rows, startIndex);
+
+  if (matricula?.trim()) {
+    const matched = dataRows.find((row) => rowMatchesMatricula(row, matricula));
+    if (matched) return matched;
+    return null;
+  }
+
+  if (dataRows.length > 0) return dataRows[0];
 
   for (const row of rows.slice(startIndex + 1, startIndex + 5)) {
     if (looksLikeTableHeaderRow(row)) break;
@@ -248,6 +303,45 @@ function findStudentDataRow(rows: string[][], startIndex: number): string[] | nu
   }
 
   return null;
+}
+
+function parseFaltasFromStudentRow(
+  rows: string[][],
+  subHeaderIndex: number,
+  dataRow: string[]
+): number | null {
+  const situacaoIndex = dataRow.findIndex((cell) => /^--$/i.test(cell.trim()));
+  if (situacaoIndex > 0) {
+    for (let index = situacaoIndex - 1; index >= 0; index -= 1) {
+      const value = dataRow[index]?.trim() ?? "";
+      if (/^\d+$/.test(value)) {
+        return parseBrDecimal(value);
+      }
+    }
+  }
+
+  const integerCells = dataRow
+    .map((cell) => cell.trim())
+    .filter((value) => /^\d+$/.test(value));
+  if (integerCells.length > 0) {
+    return parseBrDecimal(integerCells[integerCells.length - 1] ?? null);
+  }
+
+  for (let index = subHeaderIndex; index >= 0; index -= 1) {
+    const headerRow = rows[index];
+    const faltasIndex = headerRow.findIndex((cell) =>
+      /^faltas$/i.test(normalizeHeader(cell))
+    );
+    if (faltasIndex >= 0) {
+      const fromHeader = parseBrDecimal(dataRow[faltasIndex] ?? null);
+      if (fromHeader !== null) return fromHeader;
+    }
+  }
+
+  const trailingInteger = [...dataRow]
+    .reverse()
+    .find((cell) => /^\d+$/.test(cell.trim()));
+  return trailingInteger ? parseBrDecimal(trailingInteger) : null;
 }
 
 function parseMaxFaltasFromRows(rows: string[][]): number | null {
@@ -273,7 +367,8 @@ function parseMaxFaltasFromRows(rows: string[][]): number | null {
 function parseSigaaAlunosMatriculados(
   rows: string[][],
   titles: Record<string, string>,
-  hidden: Map<string, SigaaAvalMeta>
+  hidden: Map<string, SigaaAvalMeta>,
+  matricula?: string | null
 ): {
   notas: TurmaVirtualNota[];
   maxFaltas: number | null;
@@ -285,7 +380,7 @@ function parseSigaaAlunosMatriculados(
 
   for (const subHeaderIndex of subHeaderIndices) {
     const subHeaders = rows[subHeaderIndex];
-    const dataRow = findStudentDataRow(rows, subHeaderIndex);
+    const dataRow = findStudentDataRow(rows, subHeaderIndex, matricula);
     if (!dataRow) continue;
 
     const notas = extractNotasFromHeaderRow(subHeaders, dataRow, titles, hidden);
@@ -293,14 +388,17 @@ function parseSigaaAlunosMatriculados(
 
     return {
       notas,
-      maxFaltas: parseMaxFaltasFromRows(rows.slice(subHeaderIndex)),
+      maxFaltas: parseFaltasFromStudentRow(rows, subHeaderIndex, dataRow),
     };
   }
 
   return { notas: [], maxFaltas: null };
 }
 
-export function parseNotasPageHtml(html: string): {
+export function parseNotasPageHtml(
+  html: string,
+  options: ParseNotasPageOptions = {}
+): {
   notas: TurmaVirtualNota[];
   maxFaltas: number | null;
 } {
@@ -308,8 +406,9 @@ export function parseNotasPageHtml(html: string): {
   const hidden = hiddenMetaByAbrev(hiddenList);
   const rows = extractTableRowsFromHtml(html);
   const titles = extractTitleAttributes(html);
+  const matricula = options.matricula ?? null;
 
-  const sigaa = parseSigaaAlunosMatriculados(rows, titles, hidden);
+  const sigaa = parseSigaaAlunosMatriculados(rows, titles, hidden, matricula);
   if (sigaa.notas.length > 0) {
     return sigaa;
   }
@@ -317,7 +416,11 @@ export function parseNotasPageHtml(html: string): {
   const table = findTableByHeader(rows, [/pro\d|p\d|nota|resultado|sem|av\d|at\d/i]);
   if (table && table.length >= 2) {
     const headers = table[0];
-    const values = table[1];
+    const studentRows = table.slice(1).filter((row) => isStudentDataRow(row));
+    const values =
+      (matricula
+        ? studentRows.find((row) => rowMatchesMatricula(row, matricula))
+        : studentRows[0]) ?? table[1];
     const notas = extractNotasFromHeaderRow(headers, values, titles, hidden);
 
     const faltasIndex = headers.findIndex((header) =>

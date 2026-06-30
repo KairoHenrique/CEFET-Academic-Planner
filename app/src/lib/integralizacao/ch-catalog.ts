@@ -14,10 +14,10 @@ export interface ChCatalogEntry {
   color: IntegrationCategory["color"];
 }
 
-/** Metas de CH do PPC — Engenharia de Computação (fase 1). */
+/** Metas de CH do PPC — Engenharia de Computação (alinhado ao histórico SIGAA). */
 export const ENG_COMPUTACAO_CH_CATALOG: readonly ChCatalogEntry[] = [
-  { tipoCh: "Obrigatória", totalRequired: 3080, color: "blue" },
-  { tipoCh: "Optativa", totalRequired: 240, color: "gold" },
+  { tipoCh: "Obrigatória", totalRequired: 3105, color: "blue" },
+  { tipoCh: "Optativa", totalRequired: 360, color: "gold" },
   { tipoCh: "Complementar", totalRequired: 375, color: "success" },
   { tipoCh: "Extensão", totalRequired: 450, color: "warning" },
   { tipoCh: "Flexibilizada", totalRequired: 30, color: "blue" },

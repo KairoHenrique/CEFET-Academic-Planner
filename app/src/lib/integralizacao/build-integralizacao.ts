@@ -48,14 +48,18 @@ export function buildIntegralizacao(): IntegralizacaoResponse {
     (sum, category) => sum + category.done,
     0
   );
-  const totalDoneFromSigaa =
+  const totalDoneFromPercent =
     sigaaResumo.percentIntegralizado !== null
       ? Math.round((totalHours * sigaaResumo.percentIntegralizado) / 100)
       : null;
-  const totalDone = totalDoneFromSigaa ?? totalDoneFromCategories;
+  const hasSyncedIntegralizacao = rows.some((row) => row.manual === 0);
+  const totalDone = hasSyncedIntegralizacao
+    ? totalDoneFromCategories
+    : sigaaResumo.totalIntegralizado ?? totalDoneFromPercent ?? totalDoneFromCategories;
   const percent =
-    sigaaResumo.percentIntegralizado ??
-    Math.round((totalDone / totalHours) * 100);
+    totalHours > 0
+      ? Math.round((totalDone / totalHours) * 100)
+      : sigaaResumo.percentIntegralizado ?? 0;
 
   return {
     totalHours,

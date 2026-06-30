@@ -31,6 +31,7 @@ import type {
 export interface ScrapeTurmaVirtualOptions {
   semestreDisciplinas?: PortalDisciplinaSemestre[];
   semestreLetivo?: string | null;
+  matricula?: string | null;
 }
 
 export async function scrapeTurmaVirtual(
@@ -90,6 +91,7 @@ export async function scrapeTurmaVirtual(
       const raw: TurmaVirtualDisciplinaRawPages = {
         sigaaNome: entry.sigaaNome,
         sigaaUrl: entry.sigaaUrl || null,
+        matricula: options.matricula ?? null,
         notasHtml: pagesHtml.notasHtml,
         frequenciaHtml: pagesHtml.frequenciaHtml,
         grupoHtml: pagesHtml.grupoHtml,
