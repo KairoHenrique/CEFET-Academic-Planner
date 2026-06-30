@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { PageGrid } from "@/components/layout/PageGrid";
-import { ModuleGrid } from "@/components/layout/ModuleGrid";
 import { DashboardStateCard } from "@/components/dashboard/DashboardStateCard";
 import { SubjectDetailHeader } from "@/components/disciplinas/SubjectDetailHeader";
 import { SubjectGradesPanel } from "@/components/disciplinas/SubjectGradesPanel";
@@ -12,33 +11,23 @@ import { SubjectSyllabusPanel } from "@/components/disciplinas/SubjectSyllabusPa
 import { SubjectDownloadsPanel } from "@/components/disciplinas/SubjectDownloadsPanel";
 import { Icon } from "@/components/ui/Icon";
 import { useDisciplina } from "@/hooks/useDisciplina";
-import {
-  useModuleLayout,
-  type ModuleDefinition,
-} from "@/hooks/useModuleLayout";
-
-const MODULES: ModuleDefinition[] = [
-  { id: "syllabus", label: "Ementa", colClass: "col-12" },
-  { id: "grades", label: "Notas", colClass: "col-6" },
-  { id: "attendance", label: "Frequência", colClass: "col-6" },
-  { id: "tasks", label: "Tarefas", colClass: "col-8" },
-  { id: "downloads", label: "Materiais", colClass: "col-4" },
-];
 
 interface SubjectDetailViewProps {
   code: string;
 }
 
 export function SubjectDetailView({ code }: SubjectDetailViewProps) {
-  const layout = useModuleLayout(`subject-${code}`, MODULES);
   const { data, isLoading, error, notFound, refetch } = useDisciplina(code);
-  if (!layout.hydrated) return null;
 
   if (isLoading) {
     return (
       <PageGrid>
         <div className="col-12">
-          <div className="skeleton subject-detail-skeleton" aria-busy="true" aria-label="Carregando disciplina" />
+          <div
+            className="skeleton subject-detail-skeleton"
+            aria-busy="true"
+            aria-label="Carregando disciplina"
+          />
         </div>
       </PageGrid>
     );
@@ -73,33 +62,6 @@ export function SubjectDetailView({ code }: SubjectDetailViewProps) {
 
   const { subject, tasks, attendance, grupo, catalogOnly } = data;
 
-  const renderModule = (id: string) => {
-    switch (id) {
-      case "syllabus":
-        return <SubjectSyllabusPanel ementa={subject.ementa} />;
-      case "grades":
-        return <SubjectGradesPanel subject={subject} />;
-      case "attendance":
-        return (
-          <SubjectAbsencePanel
-            subjectCode={subject.code}
-            absences={subject.absences}
-            maxAbsences={subject.maxAbsences}
-            daysRemaining={attendance.daysRemaining}
-            records={attendance.records}
-          />
-        );
-      case "tasks":
-        return <SubjectTasksPanel subjectCode={subject.code} tasks={tasks} />;
-      case "downloads":
-        return (
-          <SubjectDownloadsPanel subjectName={subject.name} />
-        );
-      default:
-        return null;
-    }
-  };
-
   return (
     <PageGrid>
       <div className="col-12">
@@ -119,7 +81,27 @@ export function SubjectDetailView({ code }: SubjectDetailViewProps) {
           </p>
         </div>
       )}
-      <ModuleGrid layout={layout} modules={MODULES} renderModule={renderModule} />
+      <div className="col-12">
+        <SubjectSyllabusPanel ementa={subject.ementa} />
+      </div>
+      <div className="col-6">
+        <SubjectGradesPanel subject={subject} />
+      </div>
+      <div className="col-6">
+        <SubjectAbsencePanel
+          subjectCode={subject.code}
+          absences={subject.absences}
+          maxAbsences={subject.maxAbsences}
+          daysRemaining={attendance.daysRemaining}
+          records={attendance.records}
+        />
+      </div>
+      <div className="col-8">
+        <SubjectTasksPanel subjectCode={subject.code} tasks={tasks} />
+      </div>
+      <div className="col-4">
+        <SubjectDownloadsPanel subjectName={subject.name} />
+      </div>
     </PageGrid>
   );
 }

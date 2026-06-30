@@ -1,0 +1,10 @@
+export const dynamic = "force-dynamic";
+
+import { apiSuccess } from "@/lib/api/response";
+import { withDb } from "@/lib/api/with-db";
+import { buildNotificationSnapshot } from "@/lib/notifications/build-notification-snapshot";
+
+export const GET = withDb(async () => {
+  const snapshot = buildNotificationSnapshot();
+  return apiSuccess(snapshot);
+});

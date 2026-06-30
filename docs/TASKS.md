@@ -36,7 +36,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 **Tasks em `[@]` agora (jun/2026):** **F37** — menu perfil (push sem aprovação final do stakeholder).
 
-**Aprovadas `[x]` (jun/2026):** **B27** (portal) · **B28** (turma virtual + UI grupo + arredondamento nota final) · **B65** (sync automático + `last_run` dev) · **B30** (histórico escolar PDF → `historico` + integralização).
+**Aprovadas `[x]` (jun/2026):** **B27** (portal) · **B28** (turma virtual + UI grupo + arredondamento nota final) · **B65** (sync automático + `last_run` dev) · **B30** (histórico escolar PDF → `historico` + integralização) · **F38** (sino in-app: tarefas/notas novas + lembretes 24h/1h).
 
 ### Decisão — Integralização via histórico (jun/2026)
 
@@ -106,9 +106,9 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ### 1.4 API e Integração UI ↔ SQLite
 
-> **Progresso:** Bloco 1 ✅ · **Bloco 2a:** B27·B28·B65·B30 ✅ · F37 `[@]` · próximo **B31** · **3F** fora do Bloco 1.
+> **Progresso:** Bloco 1 ✅ · **Bloco 2a:** B27·B28·B65·B30·**B31·F18·F38** ✅ · F37 `[@]` · **3F** fora do Bloco 1.
 
-Roadmap detalhado: ver **[Ordem oficial v3](#ordem-oficial-de-execução-v3)** e **[Checklist mestre](#checklist-mestre-ordem-de-execução)**. **Bloco 2a** — próximo **B31** (`runSync` resiliente). **B66** (calendário) e **B67** (turmas ofertadas) = **2.4 extra**, separados, após B31.
+Roadmap detalhado: ver **[Ordem oficial v3](#ordem-oficial-de-execução-v3)** e **[Checklist mestre](#checklist-mestre-ordem-de-execução)**. **Bloco 2a** — **7/8** (falta aprovação **F37**). **Bloco 2b** — fila worker documentada em `SCOPE-CLOUD.md` §6.3. **B66** / **B67** = **2.4 extra**, pós-2a.
 
 ---
 
@@ -156,7 +156,7 @@ FASE G   Bloco 9             Multi-PPC (Mecatrônica, Moda) 🔒 só após mobil
 
 - Bloco **2a** roda em **dev local + SQLite** — não precisa Supabase para testar login SIGAA, portal e turmas.
 - Objetivo: substituir `seed-demo` por pipeline Playwright **ainda com semestre ativo**.
-- Supabase (**6a**) só depois que B31 (integração no `runSync`) estiver validado.
+- Supabase (**6a**) só depois que **B31** validado ✅ e **2b** fila desenhada.
 
 ### Modo global de testes (6a)
 
@@ -212,7 +212,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | **#0** | 0 | Planejamento | — | ✅ |
 | **#1** | 1 | SQLite local (API + UI) | ✅ **Concluído** | 49/49 |
 | **#2** | 2a | Scraper dev (Playwright local) | **⬜ Em andamento** | 8/8 |
-| **#3** | 2b | Worker sync (servidor) | Depois de #2a (B31 ok) | 0/4 |
+| **#3** | 2b | Worker sync (servidor) | Depois de #2a · fila §6.3 `SCOPE-CLOUD` | 0/5 |
 | **#4** | 6a | Supabase + deploy global | Depois de #3 | 0/8 |
 | **#5** | 6b | Auth: CPF login, cadastro completo | Depois de #4 | 0/9 |
 | **#6** | 6c | RLS multi-tenant | **Obrigatório antes do PIX** | 0/2 |
@@ -261,7 +261,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 ---
 
-### #2 — Bloco 2a · Scraper SIGAA — dev `⬜ 8/8`
+### #2 — Bloco 2a · Scraper SIGAA — dev `⬜ 7/8`
 
 > **⚠️ Prioridade pós-Bloco 1:** validar Playwright com **semestre ativo** antes do Supabase. Dev local + SQLite.
 
@@ -270,24 +270,31 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] **BACK:**  B65 *(sync automático 30 min + `sync.last_at`; manual sem rate limit — **dev**, ver [Apêndice B65](#apêndice--b65-sync-automático-dev-remover-antes-de-produção))*
 - [x] **BACK:**  B28 *(turma virtual: notas, faltas, grupo, tarefas; UI Ver grupo; nome do grupo; arredondamento nota final)*
 - [x] **BACK:**  B30 *(histórico escolar PDF — captura no menu, parser, `historico` + CH na integralização)*
-- [ ] **BACK:**  B31
-- [ ] **FRONT:** F18
+- [x] **BACK:**  B31 *(pipeline full/incremental, policies por etapa, login rápido, DB por CPF — commit `a7a02ac`, testes `bloco-2a-b31`)*
+- [x] **FRONT:** F18 *(erros reais no login; mock de falhas removido; hint 1º sync)*
 - [@] **FRONT:** F37 *(menu perfil: matrícula + badge sync automático)*
-- [ ] **BACK:**  B66 · B67 *(calendário acadêmico + turmas ofertadas — **separados**, pós-B31)*
+- [x] **FRONT:** F38 *(sino in-app: tarefas/notas novas + lembretes 24h/1h)*
+- [ ] **BACK:**  B66 · B67 *(calendário acadêmico + turmas ofertadas — **separados**, pós-2a)*
 
-**Ordem 2a (8 itens):** `B24–B26` → `B27` · `B65` → `B28` → `B30` → `B31` → `F18` · `F37` `[@]`
+**Ordem 2a (8 itens oficiais):** `B24–B26` → `B27` · `B65` → `B28` → `B30` → `B31` → `F18` · `F37` `[@]`
+
+**Extras 2a (não contam no 8/8):** `F38` `[x]` · modulação só no dashboard
 
 **Ordem 2.4 extra (pós-B31):** `B66` → `B67` → `F19`
 
 ---
 
-### #3 — Bloco 2b · Scraper SIGAA — worker `⬜ 0/4`
+### #3 — Bloco 2b · Scraper SIGAA — worker `⬜ 0/5`
 
-- [ ] **BACK:**  B54 → B55 → B56
-- [ ] **OPS:**   O3
-- [ ] **FRONT:** F19
+> **Escopo fila:** [`SCOPE-CLOUD.md` §6.3](./SCOPE-CLOUD.md#63-fila-de-sync--decisão-fechada-mvp-worker) — 1 job global, auto **3h/usuário**, manual **fim da fila** + cooldown **5 min**, **prioridade** no 1º login.
 
-**Ordem 2b:** `B54 → B55 → B56` → `O3` → `F19`
+- [ ] **BACK:**  B54 — worker Playwright (1 browser por vez; container/VPS free tier)
+- [ ] **BACK:**  B55 — API fila sync (prioritária + normal; posição/ETA; polling ou Realtime)
+- [ ] **BACK:**  B56 — pipeline B24–B31 no worker (credenciais cifradas)
+- [ ] **OPS:**   O3 — cooldowns produção (auto 3h · manual 5 min · reinicia timer pós-sync)
+- [ ] **FRONT:** F19 — status fila na UI (substituir `useAutoSync` client; alinhar **F37**)
+
+**Ordem 2b:** `B54 → B55 → B56` → `O3` → `F19` *(UI fila antes ou junto de F37 produção)*
 
 ---
 
@@ -396,7 +403,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | #0 | 0 — Planejamento | ✅ | Concluído |
 | **#1** | **1 — SQLite** | ✅ **Concluído** | 49 / 49 |
 | **#2** | **2a — Scraper dev** | ⬜ **Em andamento** | 6 / 8 |
-| **#3** | **2b — Worker sync** | ⬜ | 0 / 4 |
+| **#3** | **2b — Worker sync** | ⬜ | 0 / 5 |
 | #4 | 6a — Cloud deploy | ⬜ *(após #3)* | 0 / 8 |
 | #5 | 6b — Cloud auth | ⬜ | 0 / 9 |
 | #6 | 6c — RLS | ⬜ *(antes PIX)* | 0 / 2 |
@@ -589,11 +596,12 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | B65 | Back | Sync automático + last_run | Auto a cada 30 min; manual sem rate limit (dev) | 2.2 | [x] |
 | B28 | Back | Scraper turma virtual | Notas, faltas, tarefas, grupo e nome do grupo por matéria | 2.3 | [x] |
 | B30 | Back | Histórico escolar | Ensino → Emitir Histórico (PDF) → `historico` + CH resumo | 2.4 | [x] |
-| B31 | Back | Integrar no `runSync` | Pipeline real estável; etapas isoladas (falha parcial não apaga sync) | 2.x | [ ] |
+| B31 | Back | Integrar no `runSync` | Pipeline full/incremental; policies; login rápido; DB/CPF | 2.x | [x] |
 | B66 | Back | Calendário acadêmico | Ensino → Calendário Acadêmico → `calendario_academico` | 2.4 | [ ] |
 | B67 | Back | Turmas ofertadas | Ensino → Consultar Turmas (próximo semestre) | 2.4 | [ ] |
-| F18 | Front | Erros reais no login | Remove simulação mock de falhas | 2.1 | [ ] |
+| F18 | Front | Erros reais no login | Erros API/SIGAA; hint 1º sync bloqueante | 2.1 | [x] |
 | F37 | Front | Menu perfil (avatar) | Matrícula, dados SIGAA; sync automático informativo | 2.2 | [@] |
+| F38 | Front | Sino notificações in-app | Tarefas/notas novas pós-sync; lembretes 24h/1h | 2.x | [x] |
 | F19 | Front | `/simulador` via API | Montar grade com turmas ofertadas reais (**depende B67**) | 2.4 | [ ] |
 
 **Ordem 2a (#2):** `B24 → B25 → B26` → `B27` · `B65` → `B28` → `B30` → `B31` → `F18` · `F37` `[@]`
@@ -606,14 +614,15 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 | # | Tipo | Task | Resumo | Status |
 |---|------|------|--------|--------|
-| B54 | Back | Worker Playwright | Container/VPS + fila de jobs | [ ] |
-| B55 | Back | API fila sync | Enfileira + status polling/Realtime | [ ] |
-| B56 | Back | Pipeline no worker | B24–B31 executam no servidor | [ ] |
-| O3 | Ops | Rate limit | Sync por usuário (ex.: 1/5min) | [ ] |
+| B54 | Back | Worker Playwright | 1 job ativo; container/VPS; abre/fecha browser por sync | [ ] |
+| B55 | Back | API fila sync | Filas prioritária + normal; enqueue; status/posição | [ ] |
+| B56 | Back | Pipeline no worker | B24–B31 no servidor; credenciais cifradas | [ ] |
+| O3 | Ops | Cooldowns sync | Auto ≥3h/usuário; manual 5 min; manual → fim da fila | [ ] |
+| F19 | Front | UI fila + simulador | Status sync/fila (**F37**); `/simulador` real (**B67**) | [ ] |
 
-**Ordem 2b (#3):** `B54 → B55 → B56` → `O3` → `F19` *(F19 na tabela 2a)*
+**Ordem 2b (#3):** `B54 → B55 → B56` → `O3` → `F19`
 
-> Checklist: **[#2](#2--bloco-2a--scraper-sigaa--dev-08)** e **[#3](#3--bloco-2b--scraper-sigaa--worker-04)** no [Checklist mestre](#checklist-mestre-ordem-de-execução).
+> Checklist: **[#2](#2--bloco-2a--scraper-sigaa--dev-78)** e **[#3](#3--bloco-2b--scraper-sigaa--worker-05)** no [Checklist mestre](#checklist-mestre-ordem-de-execução).
 
 ---
 
@@ -790,8 +799,8 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
       ↓
 #1  Bloco 1   SQLite local (3E)               ✅
       ↓
-#2  Bloco 2a  Scraper dev + sync REAL          ⬜ 8/8 — B27·B28·B65·B30 ✅; próximo B31
-#3  Bloco 2b  Worker servidor
+#2  Bloco 2a  Scraper dev + sync REAL          ⬜ 7/8 — B31·F18·F38 ✅; F37 [@]
+#3  Bloco 2b  Worker + fila (§6.3 SCOPE-CLOUD)
       ↓
 #4  Bloco 6a  Supabase + deploy global       (após sync validado)
 #5  Bloco 6b  Auth: cadastro + login CPF (0/9)
@@ -844,7 +853,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] `GET /api/perfil` expõe `lastSyncAt` + `intervalMinutes` (30 min fixo)
 - [x] `useAutoSync` no client — dispara sync se credenciais salvas e intervalo decorrido
 - [x] Sync manual (navbar/login) **sem** rate limit nesta fase dev
-- [ ] **Produção:** rate limit + worker (**O3** / **B55**) — ver [Apêndice B65](#apêndice--b65-sync-automático-dev-remover-antes-de-produção)
+- [ ] **Produção:** fila worker + cooldowns (**B54–B56**, **O3**) — ver [Apêndice B65](#apêndice--b65-sync-automático-dev-remover-antes-de-produção) e `SCOPE-CLOUD.md` §6.3
 
 ### 2.3 Scraper: Turma Virtual (por disciplina)
 - [x] Navegar para cada disciplina da turma virtual (`scrape-turma-virtual.ts` + delay entre disciplinas)
@@ -867,6 +876,14 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Mapeamento `disciplina_id` via nome → código PPC
 - [x] Emitir/baixar histórico escolar live (Ensino → Emitir Histórico → PDF; captura direta no menu)
 - [x] Validar sync real end-to-end com SIGAA (múltiplas contas, jun/2026)
+
+#### B31 — Pipeline `runSync` resiliente `[x]`
+- [x] Modos `full` / `incremental` + `sync-stage-plan`
+- [x] Policies portal / turma / histórico (falha parcial não apaga snapshot)
+- [x] Login rápido (`sync-readiness`) + verify SIGAA + sync background
+- [x] 1º login → sync full bloqueante; PPC sempre no mapa (`seedPpcIfEmpty`)
+- [x] SQLite isolado por CPF (`.data/users/{cpf}/`)
+- [x] Testes `bloco-2a-b31.test.ts` · commit `a7a02ac`
 
 #### B66 — Calendário acadêmico `[ ]`
 - [ ] Scraper Ensino → Calendário Acadêmico
@@ -893,9 +910,12 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Toggle "Lembrar senha neste computador" — persiste usuário no client; senha cifrada no SQLite (B25 ✅)
 - [x] Botão "Entrar e Sincronizar"
 - [x] Loading state com progresso da sincronização
-- [/] Tratamento de erro visual (credenciais inválidas, SIGAA offline) — mock removido no back; **F18** pendente
-- [x] UI do login dev (card CEFET-MG, `LoginCard`, `PasswordInput`, rodapé "Criar conta")
+- [x] Tratamento de erro visual (credenciais inválidas, SIGAA offline) — **F18** ✅
+- [x] Login rápido + sync full bloqueante no 1º acesso (**B31**)
+- [x] Hint “primeiro acesso demora” abaixo do botão sincronizando (**F18**)
+- [x] Modulação de layout **somente no dashboard** (demais telas layout fixo)
 - [x] Menu perfil no avatar — matrícula; sync automático da plataforma (**F37** `[@]` · back **B65** `[x]`)
+- [x] Sino de notificações in-app — tarefas/notas novas + lembretes 24h/1h (**F38**)
 - [ ] Cadastro produção: e-mail, telefone, CPF, **curso (Comp/Meca/Moda)**, senha (F29 · B44 · B58 · B63)
 - [ ] Login produção: **apenas CPF + senha** (sem e-mail no login)
 - [ ] Menu Config no avatar + toggle e-mail (**F36** · **B61** — produção; perfil dev = **F37**)
@@ -1050,7 +1070,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 ### 5.5 Calendário Acadêmico
 - [x] Tela com as datas oficiais do semestre (matrícula, trancamento, aulas, recessos)
-- [ ] Alertas/notificações para datas próximas
+- [/] Alertas/notificações para datas próximas — lembretes de **tarefa** 24h/1h via sino (**F38** ✅); datas acadêmicas **B66** pendente
 - [ ] Verificação periódica de novas datas publicadas
 
 ---
@@ -1117,7 +1137,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 ## Apêndice — B65 sync automático dev (remover antes de produção)
 
 > **Status da task:** **B65** está **`[x]` aprovada** para dev local (SQLite + Playwright no browser do aluno).  
-> **Não levar este desenho para produção/cloud** sem refatorar — a lista abaixo é o checklist de limpeza quando entrar **Bloco 2b** (**B55**) + **O3** (rate limit).
+> **Não levar este desenho para produção/cloud** sem refatorar — substituir por fila worker (**B54–B56**) + cooldowns (**O3**) conforme `SCOPE-CLOUD.md` §6.3.
 
 ### O que existe hoje (dev)
 
@@ -1132,16 +1152,17 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 ### O que remover ou substituir antes de produção
 
-1. **`useAutoSync` no browser** — sync pesado (Playwright) não deve rodar no client em produção; mover para **worker** (**B54–B56**).
-2. **Intervalo fixo hardcoded** — política de fila no servidor (ex.: 1 sync / 5 min por usuário, **O3**).
+1. **`useAutoSync` no browser** — mover sync para fila worker (**B54–B56**); client só enfileira/polling.
+2. **Intervalo fixo 30 min** — substituir por **auto-sync ≥3h/usuário** na fila (**O3** / **B55**).
 3. **`sync.last_at` só local** — persistir `last_sync_at` por usuário no Postgres (Supabase) após **B39+**.
-4. **Sync manual sem limite** — aplicar rate limit na API (**O3**) e mensagem amigável na UI.
-5. **Texto “dev” no menu perfil** — alinhar copy de **F37** ao status real (último sync, fila, erro) quando **B55** existir.
+4. **Sync manual sem limite** — manual → **fim da fila** + cooldown **5 min** (**O3** / **B55**).
+5. **Texto “dev” no menu perfil** — alinhar **F37** ao status real (último sync, **posição na fila**, erro) quando **B55** existir.
+6. **Playwright no device** — pipeline só no worker; mobile nunca roda scraper local.
 
 ### Ordem sugerida de migração
 
 ```
-B31 (sync estável) → B54–B56 (worker) → O3 (rate limit) → remover useAutoSync client → F37 polish produção
+B31 ✅ → B54–B56 (worker 1× + fila) → O3 (3h auto / 5 min manual) → remover useAutoSync client → F37 polish produção
 ```
 
 ### Arquivos tocados na entrega B65
@@ -1174,7 +1195,7 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 8. **Próximo passo do roadmap:** informe **depois do push** (tasks em `[@]` ou `[x]`). Com commits locais só `[%]`, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v3](#ordem-oficial-de-execução-v3) — **Bloco 2 (sync) antes do Bloco 6 (Supabase)**. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy **após** sync validado; RLS **só na 6c** (antes do PIX).
-11. **Próximo passo:** **B31** (`runSync` resiliente). **B66** calendário e **B67** turmas = separados, pós-B31. **F37** em `[@]`. **B65** dev aprovada — limpeza produção no [Apêndice B65](#apêndice--b65-sync-automático-dev-remover-antes-de-produção). **B30** ✅ histórico → `historico` + integralização. PDFs/nuvem = [Apêndice escopo futuro](#apêndice--escopo-futuro-fora-da-ordem-011).
+11. **Próximo passo:** **Bloco 2b** (worker + fila §6.3). Aprovar **F37**. **B66** calendário e **B67** turmas = separados. **B65** dev — migração no [Apêndice B65](#apêndice--b65-sync-automático-dev-remover-antes-de-produção). PDFs/nuvem = [Apêndice escopo futuro](#apêndice--escopo-futuro-fora-da-ordem-011).
 12. **Integralização:** CH concluída = `historico` + PPC (`computeChDoneFromDisciplinas`); portal SIGAA só % / total currículo; matérias já passadas = **B30** ✅.
 13. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial.
 14. **Código frontend** está em `app/src/` (não na raiz `src/`). Mock data em `app/src/config/mock/`.

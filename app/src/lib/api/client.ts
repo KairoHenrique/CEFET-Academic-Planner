@@ -35,6 +35,7 @@ import type {
   PostIntegralizacaoBody,
 } from "@/lib/types/integralizacao-api";
 import type { MapaResponse } from "@/lib/types/mapa-api";
+import type { NotificationsSnapshotResponse } from "@/lib/types/notifications-api";
 import type { PerfilResponse } from "@/lib/types/perfil-api";
 import type { ScheduleApiResponse } from "@/lib/types/schedule-api";
 
@@ -302,6 +303,10 @@ export async function getMapa(): Promise<MapaResponse> {
 
 export async function getSchedule(): Promise<ScheduleApiResponse> {
   return requestJson<ScheduleApiResponse>("/api/schedule");
+}
+
+export async function getNotifications(): Promise<NotificationsSnapshotResponse> {
+  return requestJson<NotificationsSnapshotResponse>("/api/notifications");
 }
 
 export const SYNC_COMPLETE_EVENT = "planner:sync-complete";

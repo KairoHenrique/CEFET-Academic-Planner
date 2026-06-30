@@ -23,4 +23,5 @@ export function invalidateTaskSyncQueries(
   }
 
   void queryClient.invalidateQueries({ queryKey: [...queryKeys.all, "disciplinas"] });
+  void queryClient.invalidateQueries({ queryKey: queryKeys.notifications() });
 }

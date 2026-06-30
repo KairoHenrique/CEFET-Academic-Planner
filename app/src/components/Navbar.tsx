@@ -8,6 +8,7 @@ import { navLinks } from "@/config/navigation";
 import { BrandLogo } from "@/components/ui/BrandLogo";
 import { Icon } from "@/components/ui/Icon";
 import { SyncButton } from "@/components/ui/SyncButton";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { LogoutButton } from "@/components/auth/LogoutButton";
 import { ProfileMenu } from "@/components/profile/ProfileMenu";
 
@@ -53,6 +54,8 @@ export function Navbar() {
             >
               <Icon name={mobileOpen ? "close" : "menu"} size={18} />
             </button>
+
+            <NotificationBell />
 
             <SyncButton />
 

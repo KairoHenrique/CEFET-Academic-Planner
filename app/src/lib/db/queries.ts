@@ -328,6 +328,16 @@ export function getNotasByDisciplina(disciplinaId: string): NotaRow[] {
     .all(disciplinaId) as NotaRow[];
 }
 
+export function getNotasForSemestreAtual(): NotaRow[] {
+  return db
+    .prepare(
+      `SELECT n.* FROM notas n
+       INNER JOIN semestre_atual s ON s.disciplina_id = n.disciplina_id
+       ORDER BY n.disciplina_id, n.id`
+    )
+    .all() as NotaRow[];
+}
+
 export function getNotaByDisciplinaAndNome(
   disciplinaId: string,
   avaliacaoNome: string

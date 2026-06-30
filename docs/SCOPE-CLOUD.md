@@ -216,13 +216,50 @@ Fluxo:
 ### 6.2 Fluxo
 
 1. Usuário clica "Sincronizar" (ou sync automático pós-login).
-2. API enfileira job `{ user_id, encrypted_sigaa_credentials }`.
-3. Worker executa Playwright, grava no Postgres.
-4. Front recebe status via polling ou Realtime.
+2. API enfileira job `{ user_id, encrypted_sigaa_credentials, mode, priority }`.
+3. Worker executa **um** Playwright por vez, grava no Postgres.
+4. Front recebe status via polling ou Realtime (posição na fila, ETA opcional).
 
-### 6.3 Limites e segurança
+### 6.3 Fila de sync — decisão fechada (MVP worker)
 
-- Rate limit por usuário (ex.: 1 sync / 5 min).
+> **Objetivo:** caber em **worker free/barato**, não sobrecarregar o SIGAA, fila justa entre alunos.
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  Worker: 1 browser Playwright por vez (1 job ativo)     │
+└───────────────────────────▲─────────────────────────────┘
+                            │
+         ┌──────────────────┴──────────────────┐
+         │  Fila PRIORITÁRIA                    │
+         │  · 1º login / conta sem snapshot     │
+         └──────────────────┬──────────────────┘
+                            │  (FIFO dentro de cada fila)
+         ┌──────────────────┴──────────────────┐
+         │  Fila NORMAL                         │
+         │  · sync automático (background)      │
+         │  · sync manual (botão / login rápido)│
+         └─────────────────────────────────────┘
+```
+
+| Regra | Comportamento |
+|--------|----------------|
+| **Concorrência global** | **1 sync por vez** no worker (1 IP, 1 sessão browser) |
+| **Auto-sync** | Elegível só se `last_sync_at + 3h ≤ now` **por usuário** |
+| **Sync manual** | Entra no **fim** da fila normal; cooldown **5 min** entre pedidos manuais (anti-spam) |
+| **Após sync OK** | Próximo **auto-sync** só após **+3h** (timer reinicia) |
+| **1º login / sem dados** | Fila **prioritária** (não vai pro fim); sync **full bloqueante** na UX (B31) |
+| **Login rápido** | Entrada imediata no app; job **incremental** enfileirado na fila normal |
+| **Job Playwright** | Abre browser → login SIGAA → pipeline B24–B31 → fecha (sem pool permanente por CPF) |
+| **Timeout** | Por job (ex.: 8 min); falha parcial não apaga snapshot anterior |
+
+**Não é DDoS:** tráfego serializado + limites por usuário ≈ poucos alunos acessando o portal; risco residual = ToS/bloqueio por IP do SIGAA (mitigar com fila lenta e incremental).
+
+**Escala futura (pago):** subir para 2–5 slots paralelos no **mesmo** desenho de fila — só aumenta `max_concurrent`, sem mudar regras de cooldown.
+
+### 6.4 Limites e segurança
+
+- **Auto-sync:** mínimo **3h** entre syncs concluídos por usuário (substitui intervalo fixo de 30 min do dev local — ver Apêndice B65 em `TASKS.md`).
+- **Manual:** cooldown **5 min** entre pedidos; cada pedido vai ao **fim** da fila normal.
 - Timeout por job.
 - Logs **sem PII** (sem senha, sem matrícula em texto claro nos logs).
 - Credenciais SIGAA nunca retornam ao client.
@@ -324,7 +361,8 @@ Durante beta/testes com URL pública:
 - [ ] Preços dos planos (semestre / ano)
 - [ ] Gateway PIX definitivo
 
-- [ ] Onde hospedar worker Playwright
+- [ ] Onde hospedar worker Playwright (Railway / Fly.io / VPS — ver §6.3 fila 1×)
+- [x] Política de fila: 1 job global, auto 3h/usuário, manual fim da fila + cooldown 5 min, prioridade 1º login (§6.3)
 - [ ] Mobile: Supabase client direto vs. API Next.js
 - [ ] Provedor de e-mail transacional (Resend, SES, etc.)
 - [ ] **Provedor de nuvem v1 para PDFs:** Google Drive vs. Dropbox vs. OneDrive (ou todos)
