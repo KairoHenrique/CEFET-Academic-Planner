@@ -13,7 +13,7 @@ import {
   clearPortalSyncedData,
   pruneSyncedSemestreAtual,
   saveAluno,
-  saveDisciplina,
+  upsertPortalDisciplina,
   upsertSyncedIntegralizacao,
   upsertSyncedSemestreAtual,
   upsertSyncedTarefa,
@@ -21,6 +21,7 @@ import {
 import { persistSigaaIntegralizacaoResumo } from "@/lib/integralizacao/sigaa-ch-config";
 import { seedPpcIfEmpty } from "@/lib/db/seed-ppc";
 import { isAtividadePrazoVencido } from "@/lib/tasks/dates";
+import { ensureStudentSyncIsolation } from "@/lib/sync/student-isolation";
 import type { PortalDiscenteSnapshot } from "@/lib/scraper/types/portal-discente";
 
 function buildSemestreCodigoByNome(
@@ -39,6 +40,7 @@ function buildSemestreCodigoByNome(
 }
 
 export function persistPortalSnapshot(snapshot: PortalDiscenteSnapshot): void {
+  ensureStudentSyncIsolation(snapshot.aluno.matricula);
   seedPpcIfEmpty();
   clearPortalSyncedData();
 
@@ -73,18 +75,18 @@ export function persistPortalSnapshot(snapshot: PortalDiscenteSnapshot): void {
     );
     activeDisciplinaIds.add(codigo);
 
-    saveDisciplina({
+    upsertPortalDisciplina({
       codigo,
       nome: disciplina.nome,
-      tipo: "Obrigatória",
-      carga_horaria: null,
-      periodo: null,
-      ementa: null,
     });
 
     upsertSyncedSemestreAtual({
       disciplina_id: codigo,
       local: disciplina.local,
+      local_exibicao: null,
+      horario_exibicao: null,
+      professor_exibicao: null,
+      horas_semanais_exibicao: null,
       codigo_horario: disciplina.codigoHorario,
       horario_traduzido: disciplina.horarioTraduzido,
       cor: pickStablePaletteColor(codigo),
@@ -122,8 +124,14 @@ export function persistPortalSnapshot(snapshot: PortalDiscenteSnapshot): void {
       possui_nota: 0,
       concluida: 0,
       manual: 0,
-      instrucoes: null,
-      entregaveis: null,
+      instrucoes:
+        atividade.instrucoes && atividade.instrucoes.length > 0
+          ? JSON.stringify(atividade.instrucoes)
+          : null,
+      entregaveis:
+        atividade.entregaveis && atividade.entregaveis.length > 0
+          ? JSON.stringify(atividade.entregaveis)
+          : null,
       pontuacao_maxima: null,
     });
   }

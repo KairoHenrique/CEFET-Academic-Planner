@@ -26,7 +26,7 @@ const labEvaluations = (
 
 type SubjectSeed = Omit<
   Subject,
-  "ementa" | "downloadedFiles" | "pdfAutoDownload" | "gradeRisk" | "nickname" | "displayName" | "shortLabel" | "officialName"
+  "ementa" | "downloadedFiles" | "pdfAutoDownload" | "gradeRisk" | "nickname" | "displayName" | "shortLabel" | "officialName" | "syncedRoom"
 >;
 
 const semesterSubjectsSeed: SubjectSeed[] = [
@@ -205,6 +205,10 @@ const subjectMeta: Record<
 
 export const semesterSubjects: Subject[] = semesterSubjectsSeed.map((subject) => ({
   ...subject,
+  syncedRoom: subject.room,
+  syncedSchedule: subject.schedule ?? null,
+  syncedProfessor: subject.professor ?? null,
+  syncedWeeklyHours: subject.ch ?? null,
   officialName: subject.name,
   nickname: null,
   displayName: subject.name,

@@ -18,6 +18,13 @@ export interface Subject {
   shortLabel: string;
   code: string;
   room: string;
+  syncedRoom: string | null;
+  schedule?: string;
+  syncedSchedule: string | null;
+  professor?: string;
+  syncedProfessor: string | null;
+  ch?: number;
+  syncedWeeklyHours: number | null;
   grade: number | null;
   gradeMax: number;
   passingGrade: number;
@@ -27,9 +34,6 @@ export interface Subject {
   maxAbsences: number;
   tasks: number;
   color: string;
-  professor?: string;
-  schedule?: string;
-  ch?: number;
   ementa: string;
   downloadedFiles: number;
   pdfAutoDownload: boolean;

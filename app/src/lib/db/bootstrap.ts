@@ -23,6 +23,10 @@ function runMigrations(): void {
   addColumnIfMissing("semestre_atual", "cor", "TEXT");
   addColumnIfMissing("semestre_atual", "apelido", "TEXT");
   addColumnIfMissing("semestre_atual", "nome_exibicao", "TEXT");
+  addColumnIfMissing("semestre_atual", "local_exibicao", "TEXT");
+  addColumnIfMissing("semestre_atual", "horario_exibicao", "TEXT");
+  addColumnIfMissing("semestre_atual", "professor_exibicao", "TEXT");
+  addColumnIfMissing("semestre_atual", "horas_semanais_exibicao", "INTEGER");
   addColumnIfMissing("semestre_atual", "professor", "TEXT");
   addColumnIfMissing("semestre_atual", "max_faltas", "INTEGER DEFAULT 15");
   addColumnIfMissing("semestre_atual", "nota_maxima", "REAL DEFAULT 100");
@@ -41,6 +45,7 @@ function runMigrations(): void {
   addColumnIfMissing("notas", "nota_extra", "INTEGER DEFAULT 0");
   addColumnIfMissing("faltas", "manual", "INTEGER DEFAULT 0");
   addColumnIfMissing("faltas", "status_override", "INTEGER DEFAULT 0");
+  addColumnIfMissing("faltas", "quantidade", "INTEGER DEFAULT 0");
   addColumnIfMissing("tarefas", "concluida_override", "INTEGER DEFAULT 0");
   migrateEventosCalendarioTypes();
 }

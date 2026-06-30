@@ -9,9 +9,18 @@ interface ModalProps {
   title: string;
   children: React.ReactNode;
   headerAside?: React.ReactNode;
+  /** Desativa blur do backdrop — scroll fluido em conteúdo longo. */
+  scrollOptimized?: boolean;
 }
 
-export function Modal({ open, onClose, title, children, headerAside }: ModalProps) {
+export function Modal({
+  open,
+  onClose,
+  title,
+  children,
+  headerAside,
+  scrollOptimized = false,
+}: ModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
@@ -28,7 +37,7 @@ export function Modal({ open, onClose, title, children, headerAside }: ModalProp
   return (
     <dialog
       ref={dialogRef}
-      className="modal"
+      className={`modal${scrollOptimized ? " modal--scroll-optimized" : ""}`}
       onClose={onClose}
       onClick={(e) => {
         if (e.target === dialogRef.current) onClose();

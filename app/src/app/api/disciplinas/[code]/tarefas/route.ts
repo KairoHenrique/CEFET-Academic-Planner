@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { apiSuccess } from "@/lib/api/response";
 import { parseCreateTarefaBody } from "@/lib/api/validate";
 import { withDb } from "@/lib/api/with-db";

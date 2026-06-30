@@ -133,18 +133,17 @@ export const EMENTAS_BY_CODIGO: Record<string, string> = {
 export function resolvePpcEmenta(
   codigo: string,
   nome: string,
-  cargaHoraria: number,
-  periodo: number
+  cargaHoraria: number
 ): string {
+  const chLabel = cargaHoraria > 0 ? `${cargaHoraria}h` : "conforme PPC";
   const direct = EMENTAS_BY_CODIGO[codigo];
   if (direct) {
-    return `${direct}\n\n(Carga horária: ${cargaHoraria}h · ${periodo}º período · PPC Eng. Computação CEFET-MG)`;
+    return `${direct}\n\n(Carga horária: ${chLabel} · PPC Eng. Computação CEFET-MG)`;
   }
 
-  const periodLabel = periodo > 0 ? `${periodo}º período` : "Optativas/Eletivas";
   return (
     `${nome}. Componente curricular do PPC de Engenharia da Computação (CEFET-MG — Divinópolis). ` +
     `Conteúdo programático conforme ementário oficial da instituição.\n\n` +
-    `(Carga horária: ${cargaHoraria}h · ${periodLabel})`
+    `(Carga horária: ${chLabel})`
   );
 }

@@ -17,9 +17,8 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "CEFET Academic Planner",
-  description:
-    "Planejador acadêmico inteligente para alunos do CEFET-MG. Sincronize dados do SIGAA automaticamente.",
+  title: "Acme Hub",
+  description: "Planejador Acadêmico com sincronização ao SIGAA do CEFET-MG",
 };
 
 export default function RootLayout({

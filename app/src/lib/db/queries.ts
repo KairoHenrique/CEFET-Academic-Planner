@@ -81,6 +81,22 @@ export function saveDisciplina(disciplina: Omit<DisciplinaRow, never>): void {
   ).run(disciplina);
 }
 
+/** Atualiza disciplina do portal sem apagar metadados do PPC (CH, período, ementa). */
+export function upsertPortalDisciplina(params: {
+  codigo: string;
+  nome: string;
+}): void {
+  const existing = getDisciplinaByCodigo(params.codigo);
+  saveDisciplina({
+    codigo: params.codigo,
+    nome: params.nome,
+    tipo: existing?.tipo ?? "Obrigatória",
+    carga_horaria: existing?.carga_horaria ?? null,
+    periodo: existing?.periodo ?? null,
+    ementa: existing?.ementa ?? null,
+  });
+}
+
 // --- REQUISITOS ---
 export function getRequisitos(): RequisitoRow[] {
   return db.prepare("SELECT * FROM requisitos").all() as RequisitoRow[];
@@ -169,23 +185,29 @@ export function saveSemestreAtual(entry: SemestreAtualRow): void {
   db.prepare(
     `
     INSERT INTO semestre_atual (
-      disciplina_id, local, codigo_horario, horario_traduzido,
-      cor, apelido, nome_exibicao, professor, max_faltas, nota_maxima, nota_aprovacao,
+      disciplina_id, local, local_exibicao, codigo_horario, horario_traduzido,
+      horario_exibicao, professor, professor_exibicao, horas_semanais_exibicao,
+      cor, apelido, nome_exibicao, max_faltas, nota_maxima, nota_aprovacao,
       arquivos_baixados, pdf_auto_download
     )
     VALUES (
-      @disciplina_id, @local, @codigo_horario, @horario_traduzido,
-      @cor, @apelido, @nome_exibicao, @professor, @max_faltas, @nota_maxima, @nota_aprovacao,
+      @disciplina_id, @local, @local_exibicao, @codigo_horario, @horario_traduzido,
+      @horario_exibicao, @professor, @professor_exibicao, @horas_semanais_exibicao,
+      @cor, @apelido, @nome_exibicao, @max_faltas, @nota_maxima, @nota_aprovacao,
       @arquivos_baixados, @pdf_auto_download
     )
     ON CONFLICT(disciplina_id) DO UPDATE SET
       local = excluded.local,
+      local_exibicao = excluded.local_exibicao,
       codigo_horario = excluded.codigo_horario,
       horario_traduzido = excluded.horario_traduzido,
+      horario_exibicao = excluded.horario_exibicao,
+      professor = excluded.professor,
+      professor_exibicao = excluded.professor_exibicao,
+      horas_semanais_exibicao = excluded.horas_semanais_exibicao,
       cor = excluded.cor,
       apelido = excluded.apelido,
       nome_exibicao = excluded.nome_exibicao,
-      professor = excluded.professor,
       max_faltas = excluded.max_faltas,
       nota_maxima = excluded.nota_maxima,
       nota_aprovacao = excluded.nota_aprovacao,
@@ -196,6 +218,10 @@ export function saveSemestreAtual(entry: SemestreAtualRow): void {
     ...entry,
     apelido: entry.apelido ?? null,
     nome_exibicao: entry.nome_exibicao ?? null,
+    local_exibicao: entry.local_exibicao ?? null,
+    horario_exibicao: entry.horario_exibicao ?? null,
+    professor_exibicao: entry.professor_exibicao ?? null,
+    horas_semanais_exibicao: entry.horas_semanais_exibicao ?? null,
   });
 }
 
@@ -227,7 +253,15 @@ export function updateSemestreAtualColor(
 
 export function updateSemestreAtualAppearance(
   disciplinaId: string,
-  fields: { cor?: string; apelido?: string | null; nome_exibicao?: string | null }
+  fields: {
+    cor?: string;
+    apelido?: string | null;
+    nome_exibicao?: string | null;
+    local_exibicao?: string | null;
+    horario_exibicao?: string | null;
+    professor_exibicao?: string | null;
+    horas_semanais_exibicao?: number | null;
+  }
 ): number {
   const sets: string[] = [];
   const params: unknown[] = [];
@@ -245,6 +279,26 @@ export function updateSemestreAtualAppearance(
   if (fields.nome_exibicao !== undefined) {
     sets.push("nome_exibicao = ?");
     params.push(fields.nome_exibicao);
+  }
+
+  if (fields.local_exibicao !== undefined) {
+    sets.push("local_exibicao = ?");
+    params.push(fields.local_exibicao);
+  }
+
+  if (fields.horario_exibicao !== undefined) {
+    sets.push("horario_exibicao = ?");
+    params.push(fields.horario_exibicao);
+  }
+
+  if (fields.professor_exibicao !== undefined) {
+    sets.push("professor_exibicao = ?");
+    params.push(fields.professor_exibicao);
+  }
+
+  if (fields.horas_semanais_exibicao !== undefined) {
+    sets.push("horas_semanais_exibicao = ?");
+    params.push(fields.horas_semanais_exibicao);
   }
 
   if (sets.length === 0) return 0;
@@ -439,8 +493,14 @@ export function getFaltasByDisciplina(disciplinaId: string): FaltaRow[] {
 export function countFaltasByDisciplina(disciplinaId: string): number {
   const row = db
     .prepare(
-      `SELECT COUNT(*) as total FROM faltas
-       WHERE disciplina_id = ? AND status = 'falta'`
+      `SELECT COALESCE(SUM(
+         CASE
+           WHEN status = 'falta' AND COALESCE(quantidade, 0) > 0 THEN quantidade
+           WHEN status = 'falta' THEN 1
+           ELSE 0
+         END
+       ), 0) as total FROM faltas
+       WHERE disciplina_id = ?`
     )
     .get(disciplinaId) as { total: number };
   return row.total;
@@ -449,11 +509,12 @@ export function countFaltasByDisciplina(disciplinaId: string): number {
 export function saveFalta(falta: Omit<FaltaRow, "id">): void {
   db.prepare(
     `
-    INSERT INTO faltas (disciplina_id, data, status, manual, status_override)
-    VALUES (@disciplina_id, @data, @status, @manual, @status_override)
+    INSERT INTO faltas (disciplina_id, data, status, quantidade, manual, status_override)
+    VALUES (@disciplina_id, @data, @status, @quantidade, @manual, @status_override)
   `
   ).run({
     ...falta,
+    quantidade: falta.quantidade ?? 0,
     manual: falta.manual ?? 0,
     status_override: falta.status_override ?? 0,
   });
@@ -475,8 +536,9 @@ export function upsertSyncedFalta(falta: Omit<FaltaRow, "id">): void {
   const existing = getFaltaByDisciplinaAndData(falta.disciplina_id, falta.data);
   if (existing) {
     if (isFaltaProtectedByUser(existing)) return;
-    db.prepare("UPDATE faltas SET status = ? WHERE id = ?").run(
+    db.prepare("UPDATE faltas SET status = ?, quantidade = ? WHERE id = ?").run(
       falta.status,
+      falta.quantidade ?? 0,
       existing.id
     );
     return;
@@ -1068,6 +1130,7 @@ export function clearSyncedStudentData(): void {
   const reset = db.transaction(() => {
     clearAluno();
     clearHistorico();
+    clearSemestreAtual();
     clearNotasSynced();
     clearFaltasSynced();
     clearTarefasSynced();
@@ -1076,4 +1139,34 @@ export function clearSyncedStudentData(): void {
     clearCalendarioAcademico();
   });
   reset();
+}
+
+/** Remove tarefas sync inválidas (menu JSF, sem prazo, título lixo). */
+export function pruneInvalidSyncedTarefas(): void {
+  db.prepare(
+    `DELETE FROM tarefas
+     WHERE manual = 0
+       AND COALESCE(concluida_override, 0) = 0
+       AND (
+         data_fim IS NULL
+         OR TRIM(data_fim) = ''
+         OR LENGTH(TRIM(titulo)) < 4
+         OR titulo LIKE '%Turma Virtual%'
+         OR titulo LIKE '%Ver Notas%'
+         OR titulo LIKE '%Ver Grupo%'
+         OR titulo LIKE '%Frequência%'
+         OR titulo LIKE '%Tarefas Individuais%'
+         OR titulo LIKE '%Tarefas Em Grupo%'
+       )`
+  ).run();
+}
+
+/** Remove tarefas sincronizadas órfãs (disciplina fora do semestre atual). */
+export function pruneOrphanSyncedTarefas(): void {
+  db.prepare(
+    `DELETE FROM tarefas
+     WHERE manual = 0
+       AND COALESCE(concluida_override, 0) = 0
+       AND disciplina_id NOT IN (SELECT disciplina_id FROM semestre_atual)`
+  ).run();
 }

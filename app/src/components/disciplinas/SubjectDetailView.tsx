@@ -93,12 +93,7 @@ export function SubjectDetailView({ code }: SubjectDetailViewProps) {
         return <SubjectTasksPanel subjectCode={subject.code} tasks={tasks} />;
       case "downloads":
         return (
-          <SubjectDownloadsPanel
-            subjectCode={subject.code}
-            subjectName={subject.name}
-            downloadedFiles={subject.downloadedFiles}
-            initialAutoDownload={subject.pdfAutoDownload}
-          />
+          <SubjectDownloadsPanel subjectName={subject.name} />
         );
       default:
         return null;

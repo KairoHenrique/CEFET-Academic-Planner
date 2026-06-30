@@ -145,6 +145,10 @@ export interface PatchDisciplinaAppearanceBody {
   color?: string;
   apelido?: string | null;
   nome?: string | null;
+  sala?: string | null;
+  horario?: string | null;
+  professor?: string | null;
+  horasSemanais?: number | null;
 }
 
 export interface PatchDisciplinaAppearanceResponse {
@@ -152,4 +156,8 @@ export interface PatchDisciplinaAppearanceResponse {
   color?: string;
   apelido?: string | null;
   nome?: string | null;
+  sala?: string | null;
+  horario?: string | null;
+  professor?: string | null;
+  horasSemanais?: number | null;
 }

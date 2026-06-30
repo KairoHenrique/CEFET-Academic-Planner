@@ -13,6 +13,38 @@ export function stripHtmlTags(value: string): string {
     .trim();
 }
 
+export function decodeHtmlEntities(value: string): string {
+  return value
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&nbsp;/gi, " ");
+}
+
+/** Converte fragmento HTML em texto legível preservando quebras de linha e listas. */
+export function htmlFragmentToPlainText(html: string): string {
+  const decoded = decodeHtmlEntities(html)
+    .replace(/<script[\s\S]*?<\/script>/gi, "")
+    .replace(/<style[\s\S]*?<\/style>/gi, "");
+
+  const withBreaks = decoded
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>/gi, "\n")
+    .replace(/<\/div>/gi, "\n")
+    .replace(/<\/li>/gi, "\n")
+    .replace(/<li[^>]*>/gi, "\n- ")
+    .replace(/<[^>]+>/g, "");
+
+  return withBreaks
+    .split("\n")
+    .map((line) => line.replace(/[ \t]+/g, " ").trimEnd())
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 export function extractTableRowsFromHtml(html: string): string[][] {
   const rows: string[][] = [];
   const rowPattern = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
@@ -40,14 +72,20 @@ export function extractTableRowsFromHtml(html: string): string[][] {
 
 export function extractTitleAttributes(html: string): Record<string, string> {
   const titles: Record<string, string> = {};
-  const cellPattern =
-    /<t[dh][^>]*title="([^"]*)"[^>]*>([\s\S]*?)<\/t[dh]>/gi;
+  const cellPattern = /<t[dh]\b([^>]*)>([\s\S]*?)<\/t[dh]>/gi;
   let match = cellPattern.exec(html);
 
   while (match) {
-    const label = stripHtmlTags(match[2]);
+    const attrs = match[1] ?? "";
+    const titleMatch = attrs.match(/\btitle=["']([^"']*)["']/i);
+    if (!titleMatch) {
+      match = cellPattern.exec(html);
+      continue;
+    }
+
+    const label = stripHtmlTags(match[2] ?? "");
     if (label) {
-      titles[label] = match[1].replace(/&quot;/g, '"').trim();
+      titles[label] = titleMatch[1].replace(/&quot;/g, '"').trim();
     }
     match = cellPattern.exec(html);
   }

@@ -35,6 +35,10 @@ export interface PortalAtividadePendente {
   horaFim: string | null;
   tipo: "individual" | "grupo" | null;
   descricao: string | null;
+  linkId?: string | null;
+  tipoLabel?: string | null;
+  instrucoes?: string[];
+  entregaveis?: string[];
 }
 
 export interface PortalDiscenteSnapshot {
@@ -43,6 +47,8 @@ export interface PortalDiscenteSnapshot {
   integralizacao: PortalIntegralizacaoItem[];
   integralizacaoResumo: PortalIntegralizacaoResumo;
   semestreAtual: PortalDisciplinaSemestre[];
+  /** Semestre letivo inferido do portal (ex.: 2026.1). */
+  semestreLetivo: string | null;
   atividades: PortalAtividadePendente[];
 }
 
@@ -51,4 +57,5 @@ export interface PortalPageRawData {
   labelPairs: Record<string, string>;
   tableRows: string[][];
   plainText: string;
+  html?: string;
 }

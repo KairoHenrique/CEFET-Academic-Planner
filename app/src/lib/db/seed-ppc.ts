@@ -40,14 +40,21 @@ function withResolvedEmenta(item: PpcSeedItem): PpcSeedItem["disciplina"] {
     tipo,
     carga_horaria,
     periodo,
-    ementa: resolvePpcEmenta(codigo, nome, carga_horaria, periodo),
+    ementa: resolvePpcEmenta(codigo, nome, carga_horaria),
   };
 }
 
 export function syncPpcEmentasToDb(): void {
   const data = loadPpcSeedData();
   const update = db.prepare(
-    "UPDATE disciplinas SET ementa = @ementa WHERE codigo = @codigo"
+    `
+    UPDATE disciplinas
+    SET
+      ementa = @ementa,
+      carga_horaria = COALESCE(NULLIF(carga_horaria, 0), @carga_horaria),
+      periodo = COALESCE(periodo, @periodo)
+    WHERE codigo = @codigo
+  `
   );
 
   const syncAll = db.transaction(() => {

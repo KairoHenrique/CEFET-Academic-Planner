@@ -2,114 +2,140 @@ import {
   clearSigaaCredentials,
   persistSigaaCredentials,
 } from "@/lib/crypto/sigaa-credential-store";
-import { loginSigaa } from "@/lib/scraper/auth";
-import { ScraperError, mapUnknownScraperError } from "@/lib/scraper/errors";
-import { scrapePortalDiscente } from "@/lib/scraper/portal-discente/scrape-portal-discente";
-import type { SigaaSession } from "@/lib/scraper/types";
 import { internalError } from "@/lib/api/errors";
+import { ScraperError, mapUnknownScraperError } from "@/lib/scraper/errors";
+import { SIGAA_SCRAPER_MOCK } from "@/lib/scraper/constants";
+import { createMockSession, loginSigaaOnPage } from "@/lib/scraper/auth";
+import { withSyncBrowser } from "@/lib/scraper/session-context";
+import { scrapePortalDiscente, scrapePortalDiscenteMock } from "@/lib/scraper/portal-discente/scrape-portal-discente";
+import { scrapeTurmaVirtual, scrapeTurmaVirtualMock } from "@/lib/scraper/turma-virtual/scrape-turma-virtual";
+import { scrapeHistorico, scrapeHistoricoMock } from "@/lib/scraper/historico/scrape-historico";
 import { persistPortalSnapshot } from "@/lib/sync/persist-portal-snapshot";
 import { persistTurmaVirtualSnapshot } from "@/lib/sync/persist-turma-virtual-snapshot";
-import { resolveSyncCredentials } from "@/lib/sync/resolve-credentials";
-import { scrapeTurmaVirtual } from "@/lib/scraper/turma-virtual/scrape-turma-virtual";
+import { persistHistoricoSnapshot } from "@/lib/sync/persist-historico-snapshot";
+import { pruneInvalidSyncedTarefas, pruneOrphanSyncedTarefas } from "@/lib/db/queries";
+import { resolveSyncCredentials, type ResolvedSyncCredentials } from "@/lib/sync/resolve-credentials";
+import type { SigaaSession } from "@/lib/scraper/types";
 import type { SyncRequest, SyncStep } from "@/lib/types/sync";
-
-/**
- * Sync pipeline: dados do SIGAA entram via upsert e nunca sobrescrevem
- * registros protegidos pelo usuário — ver lib/sync/user-data-priority.ts.
- */
 
 export interface SyncResult {
   steps: SyncStep[];
   session: SigaaSession;
 }
 
-async function authenticateSigaa(
-  credentials: ReturnType<typeof resolveSyncCredentials>
-): Promise<SigaaSession> {
-  try {
-    return await loginSigaa({
-      username: credentials.username,
-      password: credentials.password,
-    });
-  } catch (error) {
-    if (error instanceof ScraperError) {
-      throw error.toApiError();
-    }
-    throw mapUnknownScraperError(error).toApiError();
-  }
-}
-
-async function syncPortalDiscente(session: SigaaSession): Promise<void> {
-  let snapshot;
-
-  try {
-    snapshot = await scrapePortalDiscente(session);
-  } catch (error) {
-    if (error instanceof ScraperError) {
-      throw error.toApiError();
-    }
-    throw mapUnknownScraperError(error).toApiError();
-  }
-
-  try {
-    persistPortalSnapshot(snapshot);
-  } catch {
-    throw internalError(
-      "Login no SIGAA ok, mas falhou ao salvar os dados localmente."
-    );
-  }
-}
-
-async function syncTurmaVirtual(session: SigaaSession): Promise<void> {
-  let snapshot;
-
-  try {
-    snapshot = await scrapeTurmaVirtual(session);
-  } catch (error) {
-    if (error instanceof ScraperError) {
-      throw error.toApiError();
-    }
-    throw mapUnknownScraperError(error).toApiError();
-  }
-
-  try {
-    persistTurmaVirtualSnapshot(snapshot);
-  } catch {
-    throw internalError(
-      "Portal sincronizado, mas falhou ao salvar notas e faltas da turma virtual."
-    );
-  }
-}
-
 function persistCredentialsPreference(
-  credentials: ReturnType<typeof resolveSyncCredentials>
+  credentials: ResolvedSyncCredentials
 ): void {
   if (credentials.savePassword) {
     persistSigaaCredentials(credentials.username, credentials.password);
     return;
   }
-
   clearSigaaCredentials();
+}
+
+/**
+ * Executa o sync usando mock data (útil para desenvolvimento de UI offline).
+ */
+async function runMockSync(credentials: ResolvedSyncCredentials): Promise<SyncResult> {
+  const steps: SyncStep[] = [
+    { label: "Autenticando no SIGAA (Mock)…", progress: 15 },
+  ];
+  
+  const session = createMockSession(credentials);
+  persistCredentialsPreference(credentials);
+
+  steps.push({ label: "Carregando portal do discente…", progress: 35 });
+  const portalSnapshot = scrapePortalDiscenteMock(credentials.username);
+  persistPortalSnapshot(portalSnapshot);
+
+  steps.push({ label: "Sincronizando turma virtual…", progress: 60 });
+  const turmaSnapshot = scrapeTurmaVirtualMock();
+  persistTurmaVirtualSnapshot(turmaSnapshot);
+  pruneInvalidSyncedTarefas();
+  pruneOrphanSyncedTarefas();
+
+  steps.push({ label: "Baixando histórico escolar…", progress: 90 });
+  const historicoSnapshot = scrapeHistoricoMock();
+  persistHistoricoSnapshot(historicoSnapshot);
+
+  steps.push({ label: "Concluído", progress: 100 });
+
+  return { steps, session };
+}
+
+/**
+ * Executa o sync real, usando um ÚNICO browser e mantendo a sessão JSF.
+ */
+async function runLiveSync(credentials: ResolvedSyncCredentials): Promise<SyncResult> {
+  return withSyncBrowser(async (page) => {
+    const steps: SyncStep[] = [
+      { label: "Autenticando no SIGAA…", progress: 15 },
+    ];
+
+    try {
+      // 1. Login
+      await loginSigaaOnPage(page, credentials);
+      persistCredentialsPreference(credentials);
+      const session: SigaaSession = {
+        username: credentials.username,
+        cookies: await page.context().cookies(),
+        loggedInAt: new Date().toISOString(),
+      };
+
+      // 2. Portal
+      steps.push({ label: "Carregando portal do discente…", progress: 35 });
+      const portalSnapshot = await scrapePortalDiscente(page);
+      try {
+        persistPortalSnapshot(portalSnapshot);
+      } catch (e) {
+        throw internalError("Falha ao salvar dados do portal.");
+      }
+
+      // 3. Turma Virtual
+      steps.push({ label: "Sincronizando turma virtual…", progress: 60 });
+      const turmaSnapshot = await scrapeTurmaVirtual(page, {
+        semestreDisciplinas: portalSnapshot.semestreAtual,
+        semestreLetivo: portalSnapshot.semestreLetivo,
+      });
+      try {
+        persistTurmaVirtualSnapshot(turmaSnapshot);
+        pruneInvalidSyncedTarefas();
+        pruneOrphanSyncedTarefas();
+      } catch (e) {
+        throw internalError("Falha ao salvar dados da turma virtual.");
+      }
+
+      // 4. Histórico
+      steps.push({ label: "Baixando histórico escolar…", progress: 90 });
+      const historicoSnapshot = await scrapeHistorico(page);
+      try {
+        persistHistoricoSnapshot(historicoSnapshot);
+      } catch (e) {
+        throw internalError("Falha ao salvar dados do histórico escolar.");
+      }
+
+      steps.push({ label: "Concluído", progress: 100 });
+      return { steps, session };
+
+    } catch (error) {
+      if (error instanceof ScraperError) {
+        throw error.toApiError();
+      }
+      throw mapUnknownScraperError(error).toApiError();
+    }
+  });
 }
 
 export async function runSync(input: SyncRequest): Promise<SyncResult> {
   const credentials = resolveSyncCredentials(input);
-  const session = await authenticateSigaa(credentials);
-  persistCredentialsPreference(credentials);
 
-  const steps: SyncStep[] = [
-    { label: "Autenticando no SIGAA…", progress: 15 },
-  ];
+  console.info(
+    `[sync] modo=${SIGAA_SCRAPER_MOCK ? "MOCK (dados fake)" : "LIVE (Playwright/SIGAA)"} user=${credentials.username}`
+  );
 
-  steps.push({ label: "Carregando portal do discente…", progress: 35 });
-  await syncPortalDiscente(session);
+  if (SIGAA_SCRAPER_MOCK) {
+    return runMockSync(credentials);
+  }
 
-  steps.push({ label: "Sincronizando turma virtual…", progress: 55 });
-  await syncTurmaVirtual(session);
-
-  steps.push({ label: "Baixando notas e faltas…", progress: 75 });
-  steps.push({ label: "Atualizando calendário…", progress: 90 });
-  steps.push({ label: "Concluído", progress: 100 });
-
-  return { steps, session };
+  return runLiveSync(credentials);
 }

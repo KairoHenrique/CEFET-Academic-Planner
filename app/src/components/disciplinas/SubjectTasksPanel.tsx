@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Icon } from "@/components/ui/Icon";
@@ -174,6 +174,18 @@ export function SubjectTasksPanel({
 
   const selectedFromState =
     selectedTask && tasks.find((task) => task.id === selectedTask.id);
+
+  const closeDetailModal = useCallback(() => setSelectedTask(null), []);
+
+  const handleDetailToggle = useCallback(() => {
+    if (!selectedFromState) return;
+    toggleTask(selectedFromState.id);
+  }, [selectedFromState]);
+
+  const handleDetailEdit = useCallback(() => {
+    if (!selectedFromState) return;
+    openEditForm(selectedFromState);
+  }, [selectedFromState]);
 
   const isSaving =
     toggleMutation.isPending ||
@@ -350,15 +362,16 @@ export function SubjectTasksPanel({
 
       <Modal
         open={Boolean(selectedFromState)}
-        onClose={() => setSelectedTask(null)}
+        onClose={closeDetailModal}
         title={selectedFromState?.title ?? "Tarefa"}
+        scrollOptimized
       >
         {selectedFromState && (
           <TaskDetailContent
             task={selectedFromState}
-            onClose={() => setSelectedTask(null)}
-            onToggleDone={() => toggleTask(selectedFromState.id)}
-            onEdit={() => openEditForm(selectedFromState)}
+            onClose={closeDetailModal}
+            onToggleDone={handleDetailToggle}
+            onEdit={handleDetailEdit}
           />
         )}
       </Modal>

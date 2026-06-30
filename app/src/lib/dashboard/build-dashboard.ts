@@ -30,7 +30,13 @@ export function buildDashboard(): DashboardResponse {
   const { totalHours, totalDone, percent: integralizacaoPercent } =
     integralizacaoPayload;
 
-  const tarefasDb = getTarefas();
+  const activeDisciplinaIds = new Set(
+    semestreRows.map((row) => row.disciplina_id.toLowerCase())
+  );
+
+  const tarefasDb = getTarefas().filter((row) =>
+    activeDisciplinaIds.has(row.disciplina_id.toLowerCase())
+  );
   const colorByCode = new Map(
     semestreRows.map((row) => [row.disciplina_id, row.cor ?? "#3AA0E8"])
   );

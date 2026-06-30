@@ -1,4 +1,4 @@
-import type { Page } from "playwright";
+import type { Page, Frame } from "playwright";
 import type { PortalPageRawData } from "@/lib/scraper/types/portal-discente";
 
 function stripHtmlTags(value: string): string {
@@ -61,8 +61,34 @@ export function extractPortalRawFromHtml(html: string): PortalPageRawData {
   };
 }
 
+/**
+ * Extrai dados raw da página. Se a página principal não contiver muitas linhas
+ * (ex: portal usando iframes JSF), procura em todos os frames da página.
+ */
 export async function extractPortalRawFromPage(page: Page): Promise<PortalPageRawData> {
-  return page.evaluate(() => {
+  const combinedData: PortalPageRawData = {
+    labelPairs: {},
+    tableRows: [],
+    plainText: "",
+  };
+
+  const frames = page.frames();
+  for (const frame of frames) {
+    try {
+      const frameData = await evaluateFrame(frame);
+      Object.assign(combinedData.labelPairs, frameData.labelPairs);
+      combinedData.tableRows.push(...frameData.tableRows);
+      combinedData.plainText += "\n" + frameData.plainText;
+    } catch {
+      // Ignorar erros de cross-origin ou inacessíveis
+    }
+  }
+
+  return combinedData;
+}
+
+async function evaluateFrame(frame: Frame | Page): Promise<PortalPageRawData> {
+  return frame.evaluate(() => {
     const tableRows = Array.from(document.querySelectorAll("tr"))
       .map((row) =>
         Array.from(row.querySelectorAll("td, th"))

@@ -27,6 +27,7 @@ import type {
 } from "@/lib/types/integralizacao-api";
 import type { MapaResponse } from "@/lib/types/mapa-api";
 import type { PerfilResponse } from "@/lib/types/perfil-api";
+import type { ScheduleApiResponse } from "@/lib/types/schedule-api";
 
 export type ClientErrorCode =
   | "VALIDATION_ERROR"

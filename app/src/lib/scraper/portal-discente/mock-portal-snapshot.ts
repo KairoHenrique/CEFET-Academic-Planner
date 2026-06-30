@@ -38,6 +38,7 @@ export function buildMockPortalSnapshot(username: string): PortalDiscenteSnapsho
       codigoHorario: DEMO_SIGAA_CODIGO_HORARIO[subject.code] ?? null,
       horarioTraduzido: subject.schedule ?? null,
     })),
+    semestreLetivo: "2026.1",
     atividades: academicTasks
       .filter((task) => !task.done)
       .map((task) => ({

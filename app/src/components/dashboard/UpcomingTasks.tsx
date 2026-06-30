@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { FilterBar } from "@/components/ui/FilterBar";
@@ -95,6 +95,13 @@ export function UpcomingTasks({ tasks: initialTasks }: UpcomingTasksProps) {
   const selectedFromState =
     selectedTask && tasks.find((task) => task.id === selectedTask.id);
 
+  const closeDetailModal = useCallback(() => setSelectedTask(null), []);
+
+  const handleDetailToggle = useCallback(() => {
+    if (!selectedFromState) return;
+    toggleTask(selectedFromState.id);
+  }, [selectedFromState]);
+
   return (
     <>
       <div className="card card-full-height">
@@ -179,14 +186,15 @@ export function UpcomingTasks({ tasks: initialTasks }: UpcomingTasksProps) {
 
       <Modal
         open={Boolean(selectedFromState)}
-        onClose={() => setSelectedTask(null)}
+        onClose={closeDetailModal}
         title={selectedFromState?.title ?? "Tarefa"}
+        scrollOptimized
       >
         {selectedFromState && (
           <TaskDetailContent
             task={selectedFromState}
-            onClose={() => setSelectedTask(null)}
-            onToggleDone={() => toggleTask(selectedFromState.id)}
+            onClose={closeDetailModal}
+            onToggleDone={handleDetailToggle}
           />
         )}
       </Modal>

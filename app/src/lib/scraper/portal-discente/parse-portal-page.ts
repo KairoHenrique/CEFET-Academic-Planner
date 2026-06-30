@@ -7,6 +7,11 @@ import type {
   PortalIntegralizacaoResumo,
   PortalPageRawData,
 } from "@/lib/scraper/types/portal-discente";
+import { parsePortalAtividadesFromHtml } from "@/lib/scraper/portal-discente/parse-portal-atividades";
+import {
+  inferSemestreAtualFromHtml,
+  parseDisciplinasHorarioFromHtml,
+} from "@/lib/scraper/portal-discente/parse-portal-horario";
 import { ENG_COMPUTACAO_CH_CATALOG } from "@/lib/integralizacao/ch-catalog";
 
 const CH_TYPES = [
@@ -18,25 +23,25 @@ const CH_TYPES = [
 ] as const;
 
 const CH_PENDENTE_LABEL: Record<(typeof CH_TYPES)[number], RegExp> = {
-  Obrigatória: /ch\.?\s*obrigatoria\s*pendente/,
-  Optativa: /ch\.?\s*optativa\s*pendente/,
-  Complementar: /ch\.?\s*complementar\s*pendente/,
-  Extensão: /ch\.?\s*extensao\s*pendente/,
-  Flexibilizada: /ch\.?\s*flexibilizada\s*pendente/,
+  Obrigatória: /c\.?h\.?\s*obrigatoria\s*pendente/,
+  Optativa: /c\.?h\.?\s*optativa\s*pendente/,
+  Complementar: /c\.?h\.?\s*complementar\s*pendente/,
+  Extensão: /c\.?h\.?\s*extensao\s*pendente/,
+  Flexibilizada: /c\.?h\.?\s*flexibilizada\s*pendente/,
 };
 
 /** Label de uma única categoria (evita linha agregada "Integralizações: CH. … CH. …"). */
 const CH_PENDENTE_EXACT_LABEL: Record<(typeof CH_TYPES)[number], RegExp> = {
-  Obrigatória: /^ch\.?\s*obrigatoria\s*pendente$/,
-  Optativa: /^ch\.?\s*optativa\s*pendente$/,
-  Complementar: /^ch\.?\s*complementar\s*pendente$/,
-  Extensão: /^ch\.?\s*extensao\s*pendente$/,
-  Flexibilizada: /^ch\.?\s*flexibilizada\s*pendente$/,
+  Obrigatória: /^c\.?h\.?\s*obrigatoria\s*pendente$/,
+  Optativa: /^c\.?h\.?\s*optativa\s*pendente$/,
+  Complementar: /^c\.?h\.?\s*complementar\s*pendente$/,
+  Extensão: /^c\.?h\.?\s*extensao\s*pendente$/,
+  Flexibilizada: /^c\.?h\.?\s*flexibilizada\s*pendente$/,
 };
 
-const CH_TOTAL_CURRICULO_LABEL = /^ch\.?\s*total\s*curriculo$/;
+const CH_TOTAL_CURRICULO_LABEL = /^c\.?h\.?\s*total\s*curriculo$/;
 
-const DISCIPLINA_CODE_PATTERN = /^[A-Z][A-Z0-9-]{2,}$/;
+const DISCIPLINA_CODE_PATTERN = /^[A-Z][A-Z0-9.-]{2,}$/;
 const BLOCKED_DISCIPLINA_CODES = new Set([
   "OBRIGATÓRIA",
   "OBRIGATORIA",
@@ -298,24 +303,45 @@ function extractHorarioCodigo(text: string): string | null {
 }
 
 function parseDisciplinaRow(row: string[]): PortalDisciplinaSemestre | null {
-  if (row.length < 3) return null;
+  if (row.length < 2) return null;
 
-  const codigo = row[0]?.trim().toUpperCase();
-  if (!codigo || !DISCIPLINA_CODE_PATTERN.test(codigo)) return null;
-  if (BLOCKED_DISCIPLINA_CODES.has(codigo)) return null;
-  if (BR_DATE_PATTERN.test(row.join(" "))) return null;
-
-  const nome = row[1]?.trim() || codigo;
   const joined = row.join(" ");
   const codigoHorario = extractHorarioCodigo(joined);
+  if (!codigoHorario) return null;
+  if (BR_DATE_PATTERN.test(joined) && !DISCIPLINA_CODE_PATTERN.test(row[0]?.trim() ?? "")) {
+    return null;
+  }
+
+  const codigo = row[0]?.trim().toUpperCase();
+  if (codigo && DISCIPLINA_CODE_PATTERN.test(codigo) && !BLOCKED_DISCIPLINA_CODES.has(codigo)) {
+    const nome = row[1]?.trim() || codigo;
+    const local =
+      row.find((cell, index) => index > 1 && /\d{2,3}\/\d{2,3}/.test(cell)) ??
+      row.find((cell, index) => index > 1 && /sala|lab/i.test(cell)) ??
+      null;
+
+    return {
+      codigo,
+      nome,
+      local,
+      codigoHorario,
+      horarioTraduzido: null,
+    };
+  }
+
+  const nomeLongo = row[0]?.trim();
+  if (!nomeLongo || nomeLongo.length < 4 || DISCIPLINA_PAIR_SKIP.test(normalizeLabel(nomeLongo))) {
+    return null;
+  }
+
   const local =
-    row.find((cell, index) => index > 1 && /\d{2,3}\/\d{2,3}/.test(cell)) ??
-    row.find((cell, index) => index > 1 && /sala|lab/i.test(cell)) ??
+    row.find((cell, index) => index > 0 && /\d{2,3}\/\d{2,3}/.test(cell)) ??
+    row.find((cell, index) => index > 0 && /sala|lab/i.test(cell)) ??
     null;
 
   return {
-    codigo,
-    nome,
+    codigo: nomeLongo,
+    nome: nomeLongo,
     local,
     codigoHorario,
     horarioTraduzido: null,
@@ -334,7 +360,7 @@ function parseDisciplinasFromPairs(
 
   for (const [nome, value] of Object.entries(pairs)) {
     const trimmedNome = nome.trim();
-    if (trimmedNome.length < 12) continue;
+    if (trimmedNome.length < 4) continue;
     if (DISCIPLINA_PAIR_SKIP.test(normalizeLabel(trimmedNome))) continue;
     if (!SIGAA_HORARIO_PATTERN.test(value)) continue;
 
@@ -354,6 +380,12 @@ function parseDisciplinasFromPairs(
 function parseDisciplinasSemestre(raw: PortalPageRawData): PortalDisciplinaSemestre[] {
   const disciplinas = new Map<string, PortalDisciplinaSemestre>();
 
+  if (raw.html) {
+    for (const disciplina of parseDisciplinasHorarioFromHtml(raw.html)) {
+      disciplinas.set(normalizeNome(disciplina.nome), disciplina);
+    }
+  }
+
   for (const disciplina of parseDisciplinasFromPairs(raw.labelPairs)) {
     disciplinas.set(normalizeNome(disciplina.nome), disciplina);
   }
@@ -370,6 +402,7 @@ function parseDisciplinasSemestre(raw: PortalPageRawData): PortalDisciplinaSemes
 
 function inferTipoAtividade(text: string): "individual" | "grupo" | null {
   const normalized = text.toLowerCase();
+  if (/em\s+dupla|em\s+grupo|tarefas?\s+em\s+grupo/.test(normalized)) return "grupo";
   if (normalized.includes("grupo")) return "grupo";
   if (normalized.includes("individual")) return "individual";
   return null;
@@ -407,6 +440,11 @@ function parseAtividadeFromPair(key: string, value: string): PortalAtividadePend
 }
 
 function parseAtividades(raw: PortalPageRawData): PortalAtividadePendente[] {
+  if (raw.html) {
+    const fromForm = parsePortalAtividadesFromHtml(raw.html);
+    if (fromForm.length > 0) return fromForm;
+  }
+
   const atividades: PortalAtividadePendente[] = [];
   const seen = new Set<string>();
 
@@ -436,12 +474,17 @@ function parseAtividades(raw: PortalPageRawData): PortalAtividadePendente[] {
 }
 
 export function parsePortalPageData(raw: PortalPageRawData): PortalDiscenteSnapshot {
+  const semestreAtual = parseDisciplinasSemestre(raw);
+  const semestreLetivo =
+    (raw.html ? inferSemestreAtualFromHtml(raw.html) : null) ?? null;
+
   return {
     scrapedAt: new Date().toISOString(),
     aluno: parseAluno(raw),
     integralizacao: parseIntegralizacao(raw),
     integralizacaoResumo: parseIntegralizacaoResumo(raw),
-    semestreAtual: parseDisciplinasSemestre(raw),
+    semestreAtual,
+    semestreLetivo,
     atividades: parseAtividades(raw),
   };
 }
@@ -452,6 +495,6 @@ export function assertPortalSnapshot(snapshot: PortalDiscenteSnapshot): void {
   }
 
   if (snapshot.semestreAtual.length === 0) {
-    throw new Error("Nenhuma disciplina do semestre encontrada no portal.");
+    console.warn("[scraper:portal] Nenhuma disciplina do semestre encontrada no portal.");
   }
 }

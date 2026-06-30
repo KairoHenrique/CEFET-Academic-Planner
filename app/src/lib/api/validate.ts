@@ -424,14 +424,56 @@ export function parsePatchDisciplinaAppearanceBody(
     nome = record.nome;
   }
 
-  if (color === undefined && apelido === undefined && nome === undefined) {
-    throw validationError("Informe cor, apelido ou nome para atualizar.");
+  let sala: string | null | undefined;
+  if (record.sala === null || record.sala === "") {
+    sala = null;
+  } else if (typeof record.sala === "string") {
+    sala = record.sala;
+  }
+
+  let horario: string | null | undefined;
+  if (record.horario === null || record.horario === "") {
+    horario = null;
+  } else if (typeof record.horario === "string") {
+    horario = record.horario;
+  }
+
+  let professor: string | null | undefined;
+  if (record.professor === null || record.professor === "") {
+    professor = null;
+  } else if (typeof record.professor === "string") {
+    professor = record.professor;
+  }
+
+  let horasSemanais: number | null | undefined;
+  if (record.horasSemanais === null) {
+    horasSemanais = null;
+  } else if (typeof record.horasSemanais === "number") {
+    horasSemanais = record.horasSemanais;
+  }
+
+  if (
+    color === undefined &&
+    apelido === undefined &&
+    nome === undefined &&
+    sala === undefined &&
+    horario === undefined &&
+    professor === undefined &&
+    horasSemanais === undefined
+  ) {
+    throw validationError(
+      "Informe cor, apelido, nome, sala, horário, professor ou horas semanais."
+    );
   }
 
   return {
     ...(color !== undefined ? { color } : {}),
     ...(apelido !== undefined ? { apelido } : {}),
     ...(nome !== undefined ? { nome } : {}),
+    ...(sala !== undefined ? { sala } : {}),
+    ...(horario !== undefined ? { horario } : {}),
+    ...(professor !== undefined ? { professor } : {}),
+    ...(horasSemanais !== undefined ? { horasSemanais } : {}),
   };
 }
 

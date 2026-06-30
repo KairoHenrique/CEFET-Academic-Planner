@@ -1,57 +1,35 @@
 "use client";
 
-import { useState } from "react";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Icon } from "@/components/ui/Icon";
 
 interface SubjectDownloadsPanelProps {
-  subjectCode: string;
   subjectName: string;
-  downloadedFiles: number;
-  initialAutoDownload: boolean;
 }
 
-export function SubjectDownloadsPanel({
-  subjectCode,
-  subjectName,
-  downloadedFiles,
-  initialAutoDownload,
-}: SubjectDownloadsPanelProps) {
-  const [autoDownload, setAutoDownload] = useState(initialAutoDownload);
-  const folderPath = `docs-downloads/${subjectCode}`;
-
+export function SubjectDownloadsPanel({ subjectName }: SubjectDownloadsPanelProps) {
   return (
-    <div className="card">
+    <div className="card subject-downloads-card">
       <SectionHeader
         title="Materiais e PDFs"
         icon="clipboard"
-        badge={<span className="badge info">{downloadedFiles} arquivos</span>}
+        badge={<span className="badge warning">Em breve</span>}
       />
 
-      <label className="form-checkbox downloads-toggle">
-        <input
-          type="checkbox"
-          checked={autoDownload}
-          onChange={(e) => setAutoDownload(e.target.checked)}
-        />
-        <span>Download automático de PDFs desta disciplina</span>
-      </label>
-
-      <p className="panel-footer-note">
-        Materiais salvos em <code className="path-code">{folderPath}</code>
+      <p className="subject-downloads-future" role="status">
+        Download automático de materiais do SIGAA para nuvem pessoal (Google Drive,
+        Dropbox, OneDrive) está no escopo futuro — tasks <strong>B57</strong> e{" "}
+        <strong>B29</strong>.
       </p>
 
-      <button
-        type="button"
-        className="btn-outline"
-        onClick={() => {
-          alert(
-            `Em produção, abriria a pasta local:\n${folderPath}\n\n(${subjectName})`
-          );
-        }}
-      >
+      <p className="panel-footer-note">
+        Quando disponível, os arquivos de <strong>{subjectName}</strong> irão para{" "}
+        <code className="path-code">CEFET Academic Planner/{"{semestre}"}/{"{matéria}"}/</code>
+      </p>
+
+      <button type="button" className="btn-outline" disabled aria-disabled="true">
         <Icon name="books" size={14} />
-        Abrir pasta de downloads
+        Conectar nuvem (futuro)
       </button>
     </div>
   );

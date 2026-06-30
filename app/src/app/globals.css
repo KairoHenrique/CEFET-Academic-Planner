@@ -118,6 +118,11 @@
   --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
 
+  /* Tabelas nos painéis Notas / Frequência (altura visível alinhada) */
+  --subject-panel-table-rows: 4;
+  --subject-panel-table-head: calc(var(--space-3) * 2 + 0.75rem + 1px);
+  --subject-panel-table-row: calc(var(--space-3) * 2 + 1.125rem + 1px);
+
   /* Layout */
   --nav-height: 60px;
   --max-width: 1280px;
@@ -825,7 +830,9 @@ a:hover {
 .grades-panel-header,
 .absence-panel > .section-header,
 .absence-panel > .absence-summary,
-.absence-panel > .progress-bar,
+.absence-panel > .progress-bar {
+  flex-shrink: 0;
+}
 .grades-panel > .grade-risk-panel,
 .grades-panel > .panel-footer-note,
 .grades-panel > .grades-clear-sim,
@@ -833,11 +840,24 @@ a:hover {
   flex-shrink: 0;
 }
 
-.grades-panel .grades-table-wrap,
-.absence-panel .attendance-table-wrap {
+.grades-panel .grades-table-wrap {
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
+}
+
+.absence-panel .attendance-table-wrap {
+  flex: 0 0 auto;
+  margin-top: var(--space-4);
+  max-height: calc(
+    var(--subject-panel-table-head) +
+      var(--subject-panel-table-row) * var(--subject-panel-table-rows)
+  );
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  -webkit-overflow-scrolling: touch;
 }
 
 .module-slot:has(.grades-panel) {
@@ -2104,6 +2124,22 @@ a:hover {
 
 .subject-meta-item.tasks-warning {
   color: var(--warning);
+}
+
+.subject-meta-item--portal {
+  color: var(--text-tertiary);
+  font-size: 0.8125rem;
+}
+
+.subject-downloads-future {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-bottom: var(--space-4);
+}
+
+.subject-edit-actions {
+  flex-wrap: wrap;
 }
 
 /* ---- Task List ---- */
@@ -4628,6 +4664,22 @@ a:hover {
   backdrop-filter: blur(4px);
 }
 
+/* Blur no backdrop repinta a cada frame do scroll — desativado em modais longos. */
+.modal--scroll-optimized::backdrop {
+  backdrop-filter: none;
+  background: rgba(0, 8, 20, 0.84);
+}
+
+.modal--scroll-optimized .modal-panel {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+}
+
+.modal--scroll-optimized .modal-body {
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  contain: layout style paint;
+}
+
 .modal-panel {
   width: min(520px, calc(100vw - 32px));
   max-height: calc(100vh - 48px);
@@ -4844,8 +4896,70 @@ a:hover {
 .detail-description {
   font-size: 0.875rem;
   color: var(--text-secondary);
-  line-height: 1.5;
+  line-height: 1.6;
   margin-bottom: var(--space-5);
+}
+
+.rich-description {
+  contain: content;
+}
+
+.rich-description > * + * {
+  margin-top: var(--space-3);
+}
+
+.rich-description p {
+  margin: 0;
+}
+
+.rich-description .desc-heading {
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 0.9375rem;
+  margin-top: var(--space-1);
+}
+
+.rich-description .desc-heading:first-child {
+  margin-top: 0;
+}
+
+.rich-description .desc-list {
+  margin: 0;
+  padding-left: 1.35rem;
+  list-style: disc;
+}
+
+.rich-description .desc-list li + li {
+  margin-top: var(--space-2);
+}
+
+.rich-description .desc-list li {
+  padding-left: 0.15rem;
+}
+
+.rich-description .desc-list li::marker {
+  color: var(--gold-500, #c9a227);
+}
+
+.rich-description .desc-link {
+  margin: var(--space-1) 0;
+}
+
+.rich-description a {
+  color: var(--gold-500, #c9a227);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  word-break: break-word;
+}
+
+.rich-description a:hover {
+  filter: brightness(1.1);
+}
+
+.rich-description b,
+.rich-description strong {
+  color: var(--text-primary);
+  font-weight: 600;
 }
 
 .detail-facts {
@@ -5713,11 +5827,6 @@ a:hover {
 .grade-manual-badge {
   margin-left: var(--space-2);
   font-size: 0.5625rem;
-}
-
-.attendance-table-wrap {
-  margin-top: var(--space-4);
-  max-height: none;
 }
 
 .absence-panel .attendance-table thead th {

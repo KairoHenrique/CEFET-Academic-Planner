@@ -75,6 +75,10 @@ export function seedDemoStudentData(): void {
     upsertSyncedSemestreAtual({
       disciplina_id: subject.code,
       local: subject.room,
+      local_exibicao: null,
+      horario_exibicao: null,
+      professor_exibicao: null,
+      horas_semanais_exibicao: null,
       codigo_horario: DEMO_SIGAA_CODIGO_HORARIO[subject.code] ?? null,
       horario_traduzido: subject.schedule ?? null,
       cor: subject.color,

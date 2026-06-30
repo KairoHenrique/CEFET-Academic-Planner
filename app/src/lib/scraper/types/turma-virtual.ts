@@ -7,6 +7,8 @@ export interface TurmaVirtualNota {
 export interface TurmaVirtualFalta {
   data: string;
   status: "presente" | "falta" | "nao_registrada";
+  /** Número de faltas na aula (ex.: "2 Falta(s)" → 2). */
+  quantidade?: number;
 }
 
 export interface TurmaVirtualGrupoMembro {

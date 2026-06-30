@@ -4,6 +4,7 @@ export interface AttendanceRecord {
   id: number;
   date: string;
   status: AttendanceStatus;
+  quantidade?: number;
 }
 
 export interface AttendanceSummary {

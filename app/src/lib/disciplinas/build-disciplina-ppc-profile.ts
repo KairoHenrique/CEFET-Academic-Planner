@@ -19,8 +19,7 @@ export function buildDisciplinaPpcProfile(code: string): SubjectDetailResponse {
   const ementa = resolvePpcEmenta(
     disciplina.codigo,
     disciplina.nome,
-    disciplina.carga_horaria ?? 0,
-    disciplina.periodo ?? 0
+    disciplina.carga_horaria ?? 0
   );
 
   const evaluations: never[] = [];
@@ -35,6 +34,10 @@ export function buildDisciplinaPpcProfile(code: string): SubjectDetailResponse {
       displayName: disciplina.nome,
       shortLabel: resolveSubjectShortLabel(disciplina.codigo, null),
       room: "—",
+      syncedRoom: null,
+      syncedSchedule: null,
+      syncedProfessor: null,
+      syncedWeeklyHours: null,
       grade: null,
       gradeMax: SUBJECT_DISPLAY_GRADE_MAX,
       passingGrade: SUBJECT_DISPLAY_PASSING_GRADE,

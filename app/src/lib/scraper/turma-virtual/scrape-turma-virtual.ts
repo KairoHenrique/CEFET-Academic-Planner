@@ -1,5 +1,5 @@
+import type { Page } from "playwright";
 import {
-  SIGAA_NAVIGATION_TIMEOUT_MS,
   SIGAA_SCRAPER_MOCK,
   SIGAA_TURMA_SCRAPE_DELAY_MS,
 } from "@/lib/scraper/constants";
@@ -9,137 +9,163 @@ import {
   assertTurmaVirtualSnapshot,
   parseTurmaDisciplinaPages,
 } from "@/lib/scraper/turma-virtual/parse-turma-disciplina";
+import type { PortalDisciplinaSemestre } from "@/lib/scraper/types/portal-discente";
 import {
-  capturePortalTurmaSubpageHtml,
   extractPortalDisciplinaLinks,
+  inferSemestreAtualFromEntries,
+  mergeTurmaVirtualEntries,
+  returnToPortal,
+  scrapeDisciplinaPages,
 } from "@/lib/scraper/turma-virtual/portal-turma-navigation";
 import { sleep } from "@/lib/scraper/turma-virtual/html-utils";
-import { withAuthenticatedPage } from "@/lib/scraper/session-context";
-import type { SigaaSession } from "@/lib/scraper/types";
 import type {
   TurmaVirtualDisciplinaRawPages,
   TurmaVirtualDisciplinaSnapshot,
   TurmaVirtualSnapshot,
 } from "@/lib/scraper/types/turma-virtual";
 
-async function scrapeDisciplinaFromPortal(
-  page: import("playwright").Page,
-  disciplinaLabel: string
-): Promise<TurmaVirtualDisciplinaSnapshot> {
-  const notasHtml = await capturePortalTurmaSubpageHtml(
-    page,
-    disciplinaLabel,
-    /^ver\s*notas$/i,
-    { expectedUrlPattern: /\/ava\/index\.jsf/i }
-  );
-
-  const frequenciaHtml = await capturePortalTurmaSubpageHtml(
-    page,
-    disciplinaLabel,
-    /^frequência$/i,
-    { expectedUrlPattern: /\/ava\/FrequenciaAluno\//i }
-  );
-
-  const grupoHtml = await capturePortalTurmaSubpageHtml(
-    page,
-    disciplinaLabel,
-    /^ver\s*grupo$/i,
-    { expectedUrlPattern: /\/ava\/GrupoDiscentes\//i }
-  );
-
-  const tarefasHtml = await capturePortalTurmaSubpageHtml(
-    page,
-    disciplinaLabel,
-    /^tarefas$/i,
-    { expectedUrlPattern: /\/ava\/TarefaTurma\//i }
-  );
-
-  const raw: TurmaVirtualDisciplinaRawPages = {
-    sigaaNome: disciplinaLabel,
-    sigaaUrl: null,
-    notasHtml,
-    frequenciaHtml,
-    grupoHtml,
-    tarefasHtml,
-    tarefaDetalhesHtml: {},
-  };
-
-  return parseTurmaDisciplinaPages(raw);
-}
-
-async function scrapeLiveTurmaVirtual(
-  session: SigaaSession
-): Promise<TurmaVirtualSnapshot> {
-  return withAuthenticatedPage(session, async (page) => {
-    let entries;
-
-    try {
-      entries = await extractPortalDisciplinaLinks(page);
-    } catch (error) {
-      throw mapUnknownScraperError(error);
-    }
-
-    if (page.url().includes("verTelaLogin")) {
-      throw ScraperError.authFailed("Sessão expirada ao acessar o portal do discente.");
-    }
-
-    const disciplinas: TurmaVirtualDisciplinaSnapshot[] = [];
-
-    for (const entry of entries) {
-      try {
-        disciplinas.push(await scrapeDisciplinaFromPortal(page, entry.sigaaNome));
-      } catch (error) {
-        const message =
-          error instanceof Error ? error.message : "Falha ao raspar disciplina.";
-        disciplinas.push({
-          sigaaNome: entry.sigaaNome,
-          sigaaUrl: entry.sigaaUrl,
-          professor: null,
-          maxFaltas: null,
-          notas: [],
-          faltas: [],
-          grupo: [],
-          tarefas: [],
-          scrapeWarnings: [message],
-        });
-      }
-
-      await sleep(SIGAA_TURMA_SCRAPE_DELAY_MS);
-    }
-
-    const snapshot: TurmaVirtualSnapshot = {
-      scrapedAt: new Date().toISOString(),
-      disciplinas,
-    };
-
-    try {
-      assertTurmaVirtualSnapshot(snapshot);
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Turma virtual vazia.";
-      throw ScraperError.scrapeFailed(message);
-    }
-
-    return snapshot;
-  });
+/**
+ * Raspa a turma virtual de todas as disciplinas do semestre.
+ * Recebe uma page já logada no SIGAA (mesma sessão do portal).
+ */
+export interface ScrapeTurmaVirtualOptions {
+  semestreDisciplinas?: PortalDisciplinaSemestre[];
+  semestreLetivo?: string | null;
 }
 
 export async function scrapeTurmaVirtual(
-  session: SigaaSession
+  page: Page,
+  options: ScrapeTurmaVirtualOptions = {}
 ): Promise<TurmaVirtualSnapshot> {
-  if (SIGAA_SCRAPER_MOCK) {
-    if (session.username.toLowerCase() === "offline") {
-      throw ScraperError.offline();
-    }
-    return buildMockTurmaVirtualSnapshot();
-  }
+  let linkEntries: Awaited<ReturnType<typeof extractPortalDisciplinaLinks>>;
 
   try {
-    return await scrapeLiveTurmaVirtual(session);
+    linkEntries = await extractPortalDisciplinaLinks(page);
   } catch (error) {
-    if (error instanceof ScraperError) {
-      throw error;
-    }
     throw mapUnknownScraperError(error);
   }
+
+  if (page.url().includes("verTelaLogin")) {
+    throw ScraperError.authFailed("Sessão expirada ao acessar o portal do discente.");
+  }
+
+  const semestreAtual = inferSemestreAtualFromEntries(
+    linkEntries,
+    options.semestreLetivo
+  );
+  const entries = mergeTurmaVirtualEntries(
+    linkEntries,
+    options.semestreDisciplinas ?? [],
+    semestreAtual
+  );
+
+  if (linkEntries.length > 0 || (options.semestreDisciplinas?.length ?? 0) > 0) {
+    const fromSemestre = entries.length - linkEntries.length;
+    console.info(
+      `[scraper:turma] Fila: ${entries.length} disciplina(s) (${linkEntries.length} link(s) no portal` +
+        (fromSemestre > 0 ? ` + ${fromSemestre} do quadro de horários` : "") +
+        ")"
+    );
+  }
+
+  if (entries.length === 0) {
+    console.warn("[scraper:turma] Nenhuma disciplina encontrada no portal.");
+    return {
+      scrapedAt: new Date().toISOString(),
+      disciplinas: [],
+    };
+  }
+
+  const disciplinas: TurmaVirtualDisciplinaSnapshot[] = [];
+
+  for (const entry of entries) {
+    try {
+      const pagesHtml = await scrapeDisciplinaPages(page, entry.sigaaNome);
+
+      if (!pagesHtml) {
+        disciplinas.push(buildEmptyDisciplina(entry, "Não foi possível entrar na disciplina."));
+        continue;
+      }
+
+      const raw: TurmaVirtualDisciplinaRawPages = {
+        sigaaNome: entry.sigaaNome,
+        sigaaUrl: entry.sigaaUrl || null,
+        notasHtml: pagesHtml.notasHtml,
+        frequenciaHtml: pagesHtml.frequenciaHtml,
+        grupoHtml: pagesHtml.grupoHtml,
+        tarefasHtml: pagesHtml.tarefasHtml,
+        tarefaDetalhesHtml: pagesHtml.tarefaDetalhesHtml,
+      };
+
+      disciplinas.push(parseTurmaDisciplinaPages(raw));
+
+      const last = disciplinas[disciplinas.length - 1];
+      if (last) {
+        if (last.notas.length > 0) {
+          const launched = last.notas.filter((n) => n.notaObtida !== null).length;
+          console.info(
+            `[scraper:turma] "${entry.sigaaNome}" — ${launched}/${last.notas.length} notas lançadas`
+          );
+        }
+        const empty =
+          last.notas.length === 0 &&
+          last.faltas.length === 0 &&
+          last.tarefas.length === 0;
+        if (empty) {
+          console.warn(
+            `[scraper:turma] "${entry.sigaaNome}" — parsers retornaram vazio (HTML pode estar incorreto)`
+          );
+        }
+      }
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Falha ao raspar disciplina.";
+      console.warn(`[scraper:turma] Erro em "${entry.sigaaNome}": ${message}`);
+      disciplinas.push(buildEmptyDisciplina(entry, message));
+    }
+
+    // Voltar ao portal para a próxima disciplina
+    await returnToPortal(page);
+    await sleep(SIGAA_TURMA_SCRAPE_DELAY_MS);
+  }
+
+  const snapshot: TurmaVirtualSnapshot = {
+    scrapedAt: new Date().toISOString(),
+    disciplinas,
+  };
+
+  try {
+    assertTurmaVirtualSnapshot(snapshot);
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Turma virtual vazia.";
+    console.warn(`[scraper:turma] ${message}`);
+    // Não throw — retorna snapshot parcial
+  }
+
+  return snapshot;
+}
+
+function buildEmptyDisciplina(
+  entry: { sigaaNome: string; sigaaUrl?: string },
+  warning: string
+): TurmaVirtualDisciplinaSnapshot {
+  return {
+    sigaaNome: entry.sigaaNome,
+    sigaaUrl: entry.sigaaUrl || null,
+    professor: null,
+    maxFaltas: null,
+    notas: [],
+    faltas: [],
+    grupo: [],
+    tarefas: [],
+    scrapeWarnings: [warning],
+  };
+}
+
+/**
+ * Wrapper mock — chamado pelo runSync quando SIGAA_SCRAPER_MOCK=true.
+ */
+export function scrapeTurmaVirtualMock(): TurmaVirtualSnapshot {
+  return buildMockTurmaVirtualSnapshot();
 }

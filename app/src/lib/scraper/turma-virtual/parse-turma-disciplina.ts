@@ -1,4 +1,7 @@
-import { parseFrequenciaPageHtml } from "@/lib/scraper/turma-virtual/parse-frequencia-page";
+import {
+  parseFrequenciaPageHtml,
+  parseMaxFaltasFromFrequenciaHtml,
+} from "@/lib/scraper/turma-virtual/parse-frequencia-page";
 import { parseGrupoPageHtml } from "@/lib/scraper/turma-virtual/parse-grupo-page";
 import { parseNotasPageHtml } from "@/lib/scraper/turma-virtual/parse-notas-page";
 import { parseTarefasListPageHtml } from "@/lib/scraper/turma-virtual/parse-tarefas-page";
@@ -29,6 +32,9 @@ export function parseTurmaDisciplinaPages(
     : [];
   if (!raw.frequenciaHtml) warnings.push("frequência indisponível");
 
+  const maxFaltasFromFreq = parseMaxFaltasFromFrequenciaHtml(raw.frequenciaHtml);
+  const maxFaltas = maxFaltasFromFreq ?? notasResult.maxFaltas;
+
   const grupo = raw.grupoHtml ? parseGrupoPageHtml(raw.grupoHtml) : [];
   if (!raw.grupoHtml) warnings.push("grupo indisponível");
 
@@ -45,7 +51,7 @@ export function parseTurmaDisciplinaPages(
     sigaaNome: raw.sigaaNome,
     sigaaUrl: raw.sigaaUrl,
     professor,
-    maxFaltas: notasResult.maxFaltas,
+    maxFaltas,
     notas: notasResult.notas,
     faltas,
     grupo,

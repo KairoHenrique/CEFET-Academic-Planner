@@ -29,9 +29,10 @@ export function isIntegralizacaoProtectedByUser(row: IntegralizacaoRow): boolean
 }
 
 export function hasUserSemestrePreferences(
-  row: Pick<SemestreAtualRow, "apelido" | "nome_exibicao">
+  row: Pick<SemestreAtualRow, "nome_exibicao">
 ): boolean {
-  return Boolean(row.apelido?.trim() || row.nome_exibicao?.trim());
+  // Apelido/cor são definidos pelo sync — só nome_exibicao é edição explícita do usuário.
+  return Boolean(row.nome_exibicao?.trim());
 }
 
 /** Campos do semestre que o usuário personaliza e o SIGAA não deve sobrescrever. */
@@ -48,6 +49,19 @@ export function mergeSemestreUserPreferences(
       ? existing.nome_exibicao
       : incoming.nome_exibicao,
     cor: existing.cor ?? incoming.cor,
+    local_exibicao: existing.local_exibicao?.trim()
+      ? existing.local_exibicao
+      : incoming.local_exibicao,
+    horario_exibicao: existing.horario_exibicao?.trim()
+      ? existing.horario_exibicao
+      : incoming.horario_exibicao,
+    professor_exibicao: existing.professor_exibicao?.trim()
+      ? existing.professor_exibicao
+      : incoming.professor_exibicao,
+    horas_semanais_exibicao:
+      existing.horas_semanais_exibicao != null && existing.horas_semanais_exibicao > 0
+        ? existing.horas_semanais_exibicao
+        : incoming.horas_semanais_exibicao,
     pdf_auto_download: existing.pdf_auto_download ?? incoming.pdf_auto_download,
   };
 }
