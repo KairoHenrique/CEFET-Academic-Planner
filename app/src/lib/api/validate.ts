@@ -48,6 +48,7 @@ export function parseSyncRequest(body: unknown): SyncRequest {
     username: username.trim(),
     password: typeof password === "string" ? password : "",
     savePassword,
+    mode: record.mode === "incremental" ? "incremental" : "full",
   };
 }
 

@@ -1,22 +1,11 @@
-import {
-  clearSyncedStudentData,
-  getAluno,
-} from "@/lib/db/queries";
-
 /**
- * Troca de conta SIGAA no mesmo SQLite local: apaga dados do aluno anterior
- * antes de persistir o novo snapshot (evita LAOC/disciplinas fantasmas).
+ * Cada login SIGAA (CPF) usa um SQLite em `.data/users/{cpf}/`.
+ * Não apagamos dados de outra conta ao sincronizar.
  */
-export function ensureStudentSyncIsolation(incomingMatricula: string): void {
-  const next = incomingMatricula.trim();
-  if (!next) return;
-
-  const previous = getAluno()?.matricula?.trim();
-  if (!previous || previous === next) return;
-
-  resetLocalDatabaseForAccountSwitch();
+export function ensureStudentSyncIsolation(_incomingMatricula: string): void {
+  // Isolamento por arquivo — ver connection-manager / runWithUserDb.
 }
 
 export function resetLocalDatabaseForAccountSwitch(): void {
-  clearSyncedStudentData();
+  // Mantido para compatibilidade; troca de conta = outro planner.db.
 }

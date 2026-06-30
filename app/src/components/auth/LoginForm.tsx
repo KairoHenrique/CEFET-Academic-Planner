@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/Input";
 import { PasswordInput } from "@/components/ui/PasswordInput";
@@ -8,18 +9,28 @@ import { SyncProgress } from "@/components/ui/SyncProgress";
 import { ToggleOption } from "@/components/ui/ToggleOption";
 import { Icon } from "@/components/ui/Icon";
 import { useSync } from "@/hooks/useSync";
+import { ApiClientError, getSyncReadiness, postSigaaVerify } from "@/lib/api/client";
 import { saveSyncCredentials } from "@/lib/auth/credentials";
+import { markBackgroundSyncPending } from "@/lib/auth/background-sync";
 import { setSession } from "@/lib/auth/session";
 import { brand } from "@/config/brand";
 import { LoginCard } from "@/components/auth/LoginCard";
 
 export function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const sync = useSync();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [savePassword, setSavePassword] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [entering, setEntering] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get("error") === "credentials") {
+      setFormError("Senha incorreta. Os dados em cache foram preservados — tente novamente.");
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,7 +50,33 @@ export function LoginForm() {
       savePassword,
     };
 
-    const ok = await sync.startSync(credentials);
+    try {
+      const readiness = await getSyncReadiness(trimmedUsername);
+
+      if (readiness.canFastLogin) {
+        await postSigaaVerify(credentials);
+
+        setEntering(true);
+        saveSyncCredentials(credentials, savePassword);
+        setSession({
+          username: trimmedUsername,
+          savePassword,
+          loggedAt: new Date().toISOString(),
+        });
+        markBackgroundSyncPending();
+        router.push("/");
+        router.refresh();
+        return;
+      }
+    } catch (error) {
+      if (error instanceof ApiClientError) {
+        setFormError(error.message);
+        return;
+      }
+      // Sem dados locais — segue sync completo bloqueante.
+    }
+
+    const ok = await sync.startSync(credentials, { mode: "full" });
     if (!ok) return;
 
     saveSyncCredentials(credentials, savePassword);
@@ -53,6 +90,7 @@ export function LoginForm() {
   };
 
   const displayError = formError ?? sync.error;
+  const busy = sync.syncing || entering;
 
   return (
     <LoginCard
@@ -68,7 +106,7 @@ export function LoginForm() {
       }
     >
       <form
-        className={`login-form ${sync.syncing ? "login-form--syncing" : ""}`}
+        className={`login-form ${busy ? "login-form--syncing" : ""}`}
         onSubmit={handleSubmit}
       >
         <div className="login-fields">
@@ -80,7 +118,7 @@ export function LoginForm() {
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             placeholder="Login do SIGAA"
-            disabled={sync.syncing}
+            disabled={busy}
           />
           <PasswordInput
             label="Senha"
@@ -88,7 +126,7 @@ export function LoginForm() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Senha do portal"
-            disabled={sync.syncing}
+            disabled={busy}
           />
         </div>
 
@@ -97,7 +135,7 @@ export function LoginForm() {
             label="Lembrar senha neste computador"
             checked={savePassword}
             onChange={setSavePassword}
-            disabled={sync.syncing}
+            disabled={busy}
           />
         </div>
 
@@ -117,15 +155,19 @@ export function LoginForm() {
           <button
             type="submit"
             className="btn-gold login-submit"
-            disabled={sync.syncing}
+            disabled={busy}
           >
             <Icon
               name="sync"
               size={16}
-              className={sync.syncing ? "sync-icon-spinning" : undefined}
+              className={busy ? "sync-icon-spinning" : undefined}
               aria-hidden
             />
-            {sync.syncing ? "Sincronizando…" : "Entrar e sincronizar"}
+            {sync.syncing
+              ? "Sincronizando…"
+              : entering
+                ? "Entrando…"
+                : "Entrar"}
           </button>
         </div>
       </form>

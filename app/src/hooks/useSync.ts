@@ -7,7 +7,8 @@ import {
   postSync,
 } from "@/lib/api/client";
 import { getSyncCredentials } from "@/lib/auth/credentials";
-import type { SyncRequest, SyncStep } from "@/lib/types/sync";
+import { clearSession } from "@/lib/auth/session";
+import type { SyncMode, SyncRequest, SyncStep } from "@/lib/types/sync";
 
 const STEP_DELAY_MS = 280;
 
@@ -15,6 +16,12 @@ const STEP_DELAY_MS = 280;
 const PENDING_TARGET_PROGRESS = 92;
 const PENDING_ESTIMATED_MS = 4 * 60 * 1000;
 const PENDING_TICK_MS = 900;
+
+export interface StartSyncOptions {
+  mode?: SyncMode;
+  /** Não bloqueia a UI com painel de progresso (sync em background). */
+  background?: boolean;
+}
 
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -56,6 +63,21 @@ function mapSyncError(error: unknown): string {
   return "Falha na sincronização. Tente novamente.";
 }
 
+function handleBackgroundAuthFailure(error: unknown): void {
+  if (!(error instanceof ApiClientError)) return;
+
+  if (
+    error.code !== "INVALID_CREDENTIALS" &&
+    error.code !== "SIGAA_AUTH_FAILED"
+  ) {
+    return;
+  }
+
+  clearSession();
+  const params = new URLSearchParams({ error: "credentials" });
+  window.location.assign(`/login?${params.toString()}`);
+}
+
 async function playSyncSteps(steps: SyncStep[], onStep: (step: SyncStep) => void) {
   for (const step of steps) {
     onStep(step);
@@ -71,50 +93,69 @@ export function useSync() {
   const [stepLabel, setStepLabel] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  const startSync = useCallback(async (credentials?: SyncRequest) => {
-    if (syncing) {
-      return false;
-    }
-
-    setSyncing(true);
-    setError(null);
-    setProgress(0);
-    setStepLabel("Iniciando sincronização…");
-
-    const creds = credentials ?? getSyncCredentials();
-    if (!creds) {
-      setError("Credenciais não encontradas. Faça login novamente.");
-      setSyncing(false);
-      return false;
-    }
-
-    try {
-      const stopPending = startPendingSyncProgress((step) => {
-        setStepLabel(step.label);
-        setProgress(step.progress);
-      });
-
-      let result: Awaited<ReturnType<typeof postSync>>;
-      try {
-        result = await postSync(creds);
-      } finally {
-        stopPending();
+  const startSync = useCallback(
+    async (credentials?: SyncRequest, options: StartSyncOptions = {}) => {
+      if (syncing) {
+        return false;
       }
 
-      await playSyncSteps(result.steps, (step) => {
-        setStepLabel(step.label);
-        setProgress(step.progress);
-      });
+      const creds = credentials ?? getSyncCredentials();
+      if (!creds) {
+        setError("Credenciais não encontradas. Faça login novamente.");
+        return false;
+      }
 
-      notifySyncComplete();
-      setSyncing(false);
-      return true;
-    } catch (err) {
-      setError(mapSyncError(err));
-      setSyncing(false);
-      return false;
-    }
-  }, [syncing]);
+      const mode = options.mode ?? creds.mode ?? "full";
+      const background = options.background === true;
+
+      if (!background) {
+        setSyncing(true);
+        setError(null);
+        setProgress(0);
+        setStepLabel("Iniciando sincronização…");
+      } else {
+        setSyncing(true);
+        setError(null);
+      }
+
+      try {
+        let result: Awaited<ReturnType<typeof postSync>>;
+        let stopPending: (() => void) | undefined;
+
+        if (!background) {
+          stopPending = startPendingSyncProgress((step) => {
+            setStepLabel(step.label);
+            setProgress(step.progress);
+          });
+        }
+
+        try {
+          result = await postSync({ ...creds, mode }, mode);
+        } finally {
+          stopPending?.();
+        }
+
+        if (!background) {
+          await playSyncSteps(result.steps, (step) => {
+            setStepLabel(step.label);
+            setProgress(step.progress);
+          });
+        }
+
+        notifySyncComplete();
+        setSyncing(false);
+        return true;
+      } catch (err) {
+        if (background) {
+          handleBackgroundAuthFailure(err);
+        }
+        setError(mapSyncError(err));
+        setSyncing(false);
+        return false;
+      }
+    },
+    [syncing]
+  );
 
   const resetError = useCallback(() => setError(null), []);
 

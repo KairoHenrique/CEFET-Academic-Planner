@@ -1,65 +1,74 @@
-import db from "./index";
+import {
+  getActiveDatabase,
+  getActiveSigaaUsername,
+  isDatabaseBootstrapped,
+  markDatabaseBootstrapped,
+  resetConnectionsForTests,
+  resolveDbPathForUser,
+} from "./connection-manager";
 import { countDisciplinas } from "./queries";
-import { syncPpcEmentasToDb } from "./seed-ppc";
+import { seedPpcIfEmpty, syncPpcEmentasToDb } from "./seed-ppc";
 
 type TableInfoRow = { name: string };
 
-function columnExists(table: string, column: string): boolean {
-  const info = db.pragma(`table_info(${table})`) as TableInfoRow[];
+function columnExists(database: ReturnType<typeof getActiveDatabase>, table: string, column: string): boolean {
+  const info = database.pragma(`table_info(${table})`) as TableInfoRow[];
   return info.some((row) => row.name === column);
 }
 
 function addColumnIfMissing(
+  database: ReturnType<typeof getActiveDatabase>,
   table: string,
   column: string,
   definition: string
 ): void {
-  if (!columnExists(table, column)) {
-    db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
+  if (!columnExists(database, table, column)) {
+    database.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
   }
 }
 
-function runMigrations(): void {
-  addColumnIfMissing("semestre_atual", "cor", "TEXT");
-  addColumnIfMissing("semestre_atual", "apelido", "TEXT");
-  addColumnIfMissing("semestre_atual", "nome_exibicao", "TEXT");
-  addColumnIfMissing("semestre_atual", "local_exibicao", "TEXT");
-  addColumnIfMissing("semestre_atual", "horario_exibicao", "TEXT");
-  addColumnIfMissing("semestre_atual", "professor_exibicao", "TEXT");
-  addColumnIfMissing("semestre_atual", "horas_semanais_exibicao", "INTEGER");
-  addColumnIfMissing("semestre_atual", "grupo_nome", "TEXT");
-  addColumnIfMissing("semestre_atual", "professor", "TEXT");
-  addColumnIfMissing("semestre_atual", "max_faltas", "INTEGER DEFAULT 15");
-  addColumnIfMissing("semestre_atual", "nota_maxima", "REAL DEFAULT 100");
-  addColumnIfMissing("semestre_atual", "nota_aprovacao", "REAL DEFAULT 60");
-  addColumnIfMissing("semestre_atual", "arquivos_baixados", "INTEGER DEFAULT 0");
+function runMigrations(database: ReturnType<typeof getActiveDatabase>): void {
+  addColumnIfMissing(database, "semestre_atual", "cor", "TEXT");
+  addColumnIfMissing(database, "semestre_atual", "apelido", "TEXT");
+  addColumnIfMissing(database, "semestre_atual", "nome_exibicao", "TEXT");
+  addColumnIfMissing(database, "semestre_atual", "local_exibicao", "TEXT");
+  addColumnIfMissing(database, "semestre_atual", "horario_exibicao", "TEXT");
+  addColumnIfMissing(database, "semestre_atual", "professor_exibicao", "TEXT");
+  addColumnIfMissing(database, "semestre_atual", "horas_semanais_exibicao", "INTEGER");
+  addColumnIfMissing(database, "semestre_atual", "grupo_nome", "TEXT");
+  addColumnIfMissing(database, "semestre_atual", "professor", "TEXT");
+  addColumnIfMissing(database, "semestre_atual", "max_faltas", "INTEGER DEFAULT 15");
+  addColumnIfMissing(database, "semestre_atual", "nota_maxima", "REAL DEFAULT 100");
+  addColumnIfMissing(database, "semestre_atual", "nota_aprovacao", "REAL DEFAULT 60");
+  addColumnIfMissing(database, "semestre_atual", "arquivos_baixados", "INTEGER DEFAULT 0");
   addColumnIfMissing(
+    database,
     "semestre_atual",
     "pdf_auto_download",
     "INTEGER DEFAULT 0"
   );
-  addColumnIfMissing("tarefas", "instrucoes", "TEXT");
-  addColumnIfMissing("tarefas", "entregaveis", "TEXT");
-  addColumnIfMissing("tarefas", "pontuacao_maxima", "REAL");
-  addColumnIfMissing("tarefas", "hora_fim", "TEXT DEFAULT '23:59'");
-  addColumnIfMissing("notas", "nota_override", "INTEGER DEFAULT 0");
-  addColumnIfMissing("notas", "nota_extra", "INTEGER DEFAULT 0");
-  addColumnIfMissing("faltas", "manual", "INTEGER DEFAULT 0");
-  addColumnIfMissing("faltas", "status_override", "INTEGER DEFAULT 0");
-  addColumnIfMissing("faltas", "quantidade", "INTEGER DEFAULT 0");
-  addColumnIfMissing("tarefas", "concluida_override", "INTEGER DEFAULT 0");
-  migrateEventosCalendarioTypes();
+  addColumnIfMissing(database, "tarefas", "instrucoes", "TEXT");
+  addColumnIfMissing(database, "tarefas", "entregaveis", "TEXT");
+  addColumnIfMissing(database, "tarefas", "pontuacao_maxima", "REAL");
+  addColumnIfMissing(database, "tarefas", "hora_fim", "TEXT DEFAULT '23:59'");
+  addColumnIfMissing(database, "notas", "nota_override", "INTEGER DEFAULT 0");
+  addColumnIfMissing(database, "notas", "nota_extra", "INTEGER DEFAULT 0");
+  addColumnIfMissing(database, "faltas", "manual", "INTEGER DEFAULT 0");
+  addColumnIfMissing(database, "faltas", "status_override", "INTEGER DEFAULT 0");
+  addColumnIfMissing(database, "faltas", "quantidade", "INTEGER DEFAULT 0");
+  addColumnIfMissing(database, "tarefas", "concluida_override", "INTEGER DEFAULT 0");
+  migrateEventosCalendarioTypes(database);
 }
 
-function migrateEventosCalendarioTypes(): void {
-  const table = db
+function migrateEventosCalendarioTypes(database: ReturnType<typeof getActiveDatabase>): void {
+  const table = database
     .prepare(
       "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'eventos_calendario'"
     )
     .get() as { sql: string } | undefined;
 
   if (!table?.sql.includes("'monitoria'")) {
-    db.exec(`
+    database.exec(`
       CREATE TABLE IF NOT EXISTS eventos_calendario_new (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         titulo TEXT NOT NULL,
@@ -84,7 +93,9 @@ function migrateEventosCalendarioTypes(): void {
 }
 
 export function initDB(): void {
-  db.exec(`
+  const database = getActiveDatabase();
+
+  database.exec(`
     CREATE TABLE IF NOT EXISTS aluno (
       matricula TEXT PRIMARY KEY,
       nome TEXT NOT NULL,
@@ -211,23 +222,25 @@ export function initDB(): void {
     );
   `);
 
-  runMigrations();
+  runMigrations(database);
 }
 
-let bootstrapped = false;
-let ppcEmentasSynced = false;
-
 export function ensureDbReady(): void {
-  if (bootstrapped) return;
-  initDB();
-  if (!ppcEmentasSynced && countDisciplinas() > 0) {
-    syncPpcEmentasToDb();
-    ppcEmentasSynced = true;
+  const dbPath = resolveDbPathForUser(getActiveSigaaUsername());
+
+  if (isDatabaseBootstrapped(dbPath)) {
+    seedPpcIfEmpty();
+    return;
   }
-  bootstrapped = true;
+
+  initDB();
+  seedPpcIfEmpty();
+  if (countDisciplinas() > 0) {
+    syncPpcEmentasToDb();
+  }
+  markDatabaseBootstrapped(dbPath);
 }
 
 export function resetDbBootstrapForTests(): void {
-  bootstrapped = false;
-  ppcEmentasSynced = false;
+  resetConnectionsForTests();
 }

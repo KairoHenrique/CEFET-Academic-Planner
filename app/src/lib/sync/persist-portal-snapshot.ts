@@ -23,6 +23,12 @@ import { seedPpcIfEmpty } from "@/lib/db/seed-ppc";
 import { isAtividadePrazoVencido } from "@/lib/tasks/dates";
 import { ensureStudentSyncIsolation } from "@/lib/sync/student-isolation";
 import type { PortalDiscenteSnapshot } from "@/lib/scraper/types/portal-discente";
+import { isPortalSnapshotPersistable } from "@/lib/sync/portal-snapshot-policy";
+
+export interface PersistPortalResult {
+  persisted: boolean;
+  reason?: string;
+}
 
 function buildSemestreCodigoByNome(
   snapshot: PortalDiscenteSnapshot
@@ -40,7 +46,16 @@ function buildSemestreCodigoByNome(
   return map;
 }
 
-export function persistPortalSnapshot(snapshot: PortalDiscenteSnapshot): void {
+export function persistPortalSnapshot(
+  snapshot: PortalDiscenteSnapshot
+): PersistPortalResult {
+  if (!isPortalSnapshotPersistable(snapshot)) {
+    return {
+      persisted: false,
+      reason: "Snapshot do portal vazio ou sem matrícula.",
+    };
+  }
+
   ensureStudentSyncIsolation(snapshot.aluno.matricula);
   seedPpcIfEmpty();
   clearPortalSyncedData();
@@ -141,4 +156,6 @@ export function persistPortalSnapshot(snapshot: PortalDiscenteSnapshot): void {
       pontuacao_maxima: null,
     });
   }
+
+  return { persisted: true };
 }

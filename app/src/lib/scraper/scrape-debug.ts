@@ -1,9 +1,10 @@
 import fs from "node:fs";
 import path from "node:path";
+import { resolveUserDataDir } from "@/lib/db/connection-manager";
 import { SIGAA_SCRAPER_DEBUG } from "@/lib/scraper/constants";
 
 function debugDir(): string {
-  const dir = path.join(process.cwd(), ".data", "scrape-debug");
+  const dir = path.join(resolveUserDataDir(), "scrape-debug");
   fs.mkdirSync(dir, { recursive: true });
   return dir;
 }

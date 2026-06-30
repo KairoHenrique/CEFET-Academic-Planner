@@ -1,6 +1,4 @@
-import fs from "node:fs";
-import path from "node:path";
-import type { Page } from "playwright";
+import { resolveUserDataDir } from "@/lib/db/connection-manager";
 import {
   SIGAA_HISTORICO_PDF_PATH,
   SIGAA_PORTAL_DISCENTE_URL,
@@ -227,7 +225,7 @@ async function extractPdfBufferFromPage(page: Page): Promise<Buffer | null> {
 function saveHistoricoPdfDebug(buffer: Buffer): void {
   if (!SIGAA_SCRAPER_DEBUG) return;
 
-  const debugDir = path.join(process.cwd(), ".data", "scrape-debug");
+  const debugDir = path.join(resolveUserDataDir(), "scrape-debug");
   fs.mkdirSync(debugDir, { recursive: true });
   const filename = `${Date.now()}-historico-escolar.pdf`;
   fs.writeFileSync(path.join(debugDir, filename), buffer);

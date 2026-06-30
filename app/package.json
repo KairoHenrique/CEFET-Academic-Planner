@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "SIGAA_SCRAPER_MOCK=true tsx --test tests/bloco-2a-b24-b26.test.ts tests/bloco-2a-b27.test.ts tests/bloco-2a-b28.test.ts tests/bloco-2a-b30.test.ts tests/bloco-2a-b65-f37.test.ts tests/disciplinas-subject-display.test.ts",
+    "test": "SIGAA_SCRAPER_MOCK=true tsx --test tests/bloco-2a-b24-b26.test.ts tests/bloco-2a-b27.test.ts tests/bloco-2a-b28.test.ts tests/bloco-2a-b30.test.ts tests/bloco-2a-b31.test.ts tests/bloco-2a-b65-f37.test.ts tests/disciplinas-subject-display.test.ts",
     "test:scraper:live": "tsx --test tests/scraper-live.test.ts"
   },
   "dependencies": {

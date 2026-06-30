@@ -13,9 +13,13 @@ export function SyncButton() {
   const [passwordPromptOpen, setPasswordPromptOpen] = useState(false);
   const [password, setPassword] = useState("");
 
-  const runSync = async (credentials?: { username: string; password: string; savePassword?: boolean }) => {
+  const runSync = async (credentials?: {
+    username: string;
+    password: string;
+    savePassword?: boolean;
+  }) => {
     sync.resetError();
-    const ok = await sync.startSync(credentials);
+    const ok = await sync.startSync(credentials, { mode: "full" });
     if (ok) {
       setPasswordPromptOpen(false);
       setPassword("");
