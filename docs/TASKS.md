@@ -4,13 +4,13 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
 
 > ## Direção atual — Sync SIGAA → Cloud → PIX → Mobile
 >
-> **Prioridade:** terminar Bloco 1 (SQLite) → **Scraper/sync real (Bloco 2) enquanto o semestre está ativo** → depois Supabase/deploy. **PDFs / nuvem pessoal (B57 · B29 · F35)** = **escopo futuro** — ver [§ Escopo futuro — PDFs](#escopo-futuro--materiais-pdf-e-nuvem-pessoal-). Ver também [`docs/SCOPE-CLOUD.md`](./SCOPE-CLOUD.md).
+> **Prioridade:** terminar Bloco 1 (SQLite) → **Scraper/sync real (Bloco 2) enquanto o semestre está ativo** → depois Supabase/deploy. Materiais PDF / nuvem pessoal = **[Apêndice — fora da ordem #0–#11](#apêndice--escopo-futuro-fora-da-ordem-011)**. Ver também [`docs/SCOPE-CLOUD.md`](./SCOPE-CLOUD.md).
 >
 > - **Regras acadêmicas:** [`docs/SCOPE.md`](./SCOPE.md)
 > - **Ordem de execução:** [§ Ordem oficial](#ordem-oficial-de-execução-v3)
 > - **Modo testes:** deploy global após sync validado; RLS na fase 6c (antes do PIX)
 
-**Navegação rápida:** [Sequência #0→#11](#sequência-completa--o-que-fazer-e-em-qual-ordem) · [Ordem oficial v3](#ordem-oficial-de-execução-v3) · [Checklist BACK→FRONT](#checklist-mestre-ordem-de-execução) · [Detalhe por bloco](#detalhe-dos-blocos) · [Escopo cloud](./SCOPE-CLOUD.md) · [PDFs na nuvem pessoal](./SCOPE.md#56-download-automático-de-pdfs)
+**Navegação rápida:** [Sequência #0→#11](#sequência-completa--o-que-fazer-e-em-qual-ordem) · [Ordem oficial v3](#ordem-oficial-de-execução-v3) · [Checklist BACK→FRONT](#checklist-mestre-ordem-de-execução) · [Detalhe por bloco](#detalhe-dos-blocos) · [Escopo cloud](./SCOPE-CLOUD.md) · [Apêndice escopo futuro](#apêndice--escopo-futuro-fora-da-ordem-011)
 
 **Legenda:**
 - `[ ]` — Não iniciada
@@ -106,14 +106,13 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 > **Progresso:** Bloco 1 ✅ · **Bloco 2a:** B27·B65·F37 `[@]` · integralização **via histórico** (decisão jun/2026 — scraper **B30**) · **3F** fora do Bloco 1.
 
-Roadmap detalhado: ver **[Ordem oficial v3](#ordem-oficial-de-execução-v3)** e **[Checklist mestre](#checklist-mestre-ordem-de-execução)**. **Bloco 2a** — B28 `[@]` (turma virtual, validação live pendente); próximo **B30** (histórico + calendário). **B57 · B29 · F35** (PDFs → nuvem) = escopo futuro.
+Roadmap detalhado: ver **[Ordem oficial v3](#ordem-oficial-de-execução-v3)** e **[Checklist mestre](#checklist-mestre-ordem-de-execução)**. **Bloco 2a** — B28 `[@]` (turma virtual, validação live pendente); próximo **B30 → B31**.
 
 ---
 
 ## Ordem oficial de execução (v3)
 
 > **Princípio (jun/2025):** terminar Bloco 1 no SQLite → **sync SIGAA real (Bloco 2) antes do Supabase** — semestre acaba em breve e só com turma ativa dá para validar Playwright de verdade → depois cloud (6a/6b) → RLS (6c) → PIX → mobile → inteligência → polimento.  
-> **PDFs / nuvem pessoal:** **escopo futuro** (B57 · B29 · F35) — **não** baixar materiais SIGAA agora; quando implementado, arquivos vão para Drive/Dropbox/OneDrive do aluno, **nunca** Supabase Storage.  
 > **Modo testes global (6a):** URL pública + Supabase free; **RLS/multi-tenant só na 6c**, antes do PIX.
 
 ```
@@ -272,9 +271,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [ ] **FRONT:** F18
 - [@] **FRONT:** F37 *(menu perfil: matrícula + badge sync automático)*
 
-**Escopo futuro (não iniciar agora):** B57 · B29 · F35 — PDFs → nuvem pessoal — ver [§ Escopo futuro](#escopo-futuro--materiais-pdf-e-nuvem-pessoal-).
-
-**Ordem 2a:** `B24–B26` → `B27` → `B28` → `B30` → `B31` → `F18`
+**Ordem 2a (8 itens):** `B24–B26` → `B27` · `B65` → `B28` → `B30` → `B31` → `F18` · `F37` `[@]`
 
 ---
 
@@ -392,7 +389,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 |---------|-------|--------|-----------|
 | #0 | 0 — Planejamento | ✅ | Concluído |
 | **#1** | **1 — SQLite** | ✅ **Concluído** | 49 / 49 |
-| **#2** | **2a — Scraper dev** | ⬜ **Em andamento** | 2 / 8 |
+| **#2** | **2a — Scraper dev** | ⬜ **Em andamento** | 4 / 8 |
 | **#3** | **2b — Worker sync** | ⬜ | 0 / 4 |
 | #4 | 6a — Cloud deploy | ⬜ *(após #3)* | 0 / 8 |
 | #5 | 6b — Cloud auth | ⬜ | 0 / 9 |
@@ -574,7 +571,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 |--------------|-------------|
 | **2.1 Auth** | Login Playwright, sessão, senha AES opcional, erros |
 | **2.2 Portal** | RG, semestre, tarefas; CH portal (% / total) **auxiliar** |
-| **2.3 Turma** | Notas, faltas, grupo, tarefas *(PDFs → nuvem = futuro)* |
+| **2.3 Turma** | Notas, faltas, grupo, tarefas |
 | **2.4 Extra** | Turmas ofertadas, calendário, **histórico escolar → integralização** |
 
 | # | Tipo | Task | Resumo | Fase | Status |
@@ -591,19 +588,9 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | F37 | Front | Menu perfil (avatar) | Matrícula, dados SIGAA; sync automático informativo | 2.2 | [@] |
 | F19 | Front | `/simulador` via API | Montar grade com turmas ofertadas reais | 2.4 | [ ] |
 
-**Ordem 2a (#2):** `B24 → B25 → B26` → `B27` → `B28` → `B30` → `B31` → `F18`
+**Ordem 2a (#2):** `B24 → B25 → B26` → `B27` · `B65` → `B28` → `B30` → `B31` → `F18` · `F37` `[@]`
 
-#### Escopo futuro — Materiais PDF e nuvem pessoal 🔮
-
-> **Decisão (jun/2026):** não implementar download de PDFs / OAuth de nuvem neste ciclo. UI placeholder em `SubjectDownloadsPanel`. Implementar **após B31** validado.
-
-| # | Tipo | Task | Resumo | Fase | Status |
-|---|------|------|--------|------|--------|
-| B57 | Back | OAuth nuvem pessoal | Conectar Google Drive / Dropbox / OneDrive; tokens cifrados | futuro | [ ] 🔮 |
-| B29 | Back | PDFs → nuvem | Materiais SIGAA → `CEFET Academic Planner/{semestre}/{matéria}/` | futuro | [ ] 🔮 |
-| F35 | Front | UI nuvem pessoal | Conectar/desconectar nuvem; preview pastas; toggle por disciplina | futuro | [ ] 🔮 |
-
-**Arquivos relacionados (stub / spec):** `SubjectDownloadsPanel.tsx`, `docs/SCOPE.md` §5.6, `docs/SCOPE-CLOUD.md`, colunas `arquivos_baixados` / `pdf_auto_download` em `semestre_atual`.
+> **Nota:** **B29** (PDFs) saiu da ordem 2a — estava entre B28 e B30; ver [Apêndice](#apêndice--escopo-futuro-fora-da-ordem-011).
 
 #### 2b — Worker servidor (#3)
 
@@ -661,8 +648,6 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 > **Fora do 6b:** pagamento PIX e planos pagos = **Bloco 7** (B47–B53). Dev local Bloco 1–2 mantém login SIGAA simples até cloud.
 
 **Removido / absorvido:** F30 (onboarding SIGAA separado) — credenciais entram no **cadastro** (F29).
-
-> **PDFs / nuvem:** B57 · B29 · F35 = **escopo futuro** — ver [§ Escopo futuro — PDFs](#escopo-futuro--materiais-pdf-e-nuvem-pessoal-).
 
 #### 6c — Multi-tenant (#6)
 
@@ -851,7 +836,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Extrair tooltip de cada nota (title → "Avaliação: X | Nota Máxima: Y")
 - [x] Extrair grupo (Alunos → Ver Grupo): membros, matrícula, email
 - [x] Extrair tarefas (Atividades → Tarefas): individuais e em grupo, descrição, instruções, entregáveis
-- [ ] ~~Download de materiais/PDFs~~ → **escopo futuro** (B57 + B29 + F35) — ver [§ Escopo futuro](#escopo-futuro--materiais-pdf-e-nuvem-pessoal-)
+- [ ] ~~Download de materiais/PDFs~~ — fora do Bloco 2; ver [Apêndice](#apêndice--escopo-futuro-fora-da-ordem-011)
 
 ### 2.4 Scraper: Funcionalidades Adicionais
 - [ ] Consultar turmas ofertadas para o próximo semestre (Ensino → Consultar Turmas)
@@ -982,16 +967,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Indicador visual de zona de risco (verde → amarelo → vermelho)
 - [x] Atualização de presença via `PATCH /api/disciplinas/[code]/faltas`
 
-### 4.5 Download Automático de PDFs 🔮 *(escopo futuro — B57 · B29 · F35)*
-
-> **Fora do escopo atual.** Painel `SubjectDownloadsPanel` exibe placeholder “Em breve”. Não baixar PDFs do SIGAA até OAuth + upload na nuvem estarem prontos.
-
-- [x] Placeholder UI na disciplina (badge “Em breve”, botão desabilitado, copy B57/B29)
-- [ ] Toggle on/off por disciplina + persistência — **F35**
-- [ ] Conectar nuvem pessoal (Google Drive / Dropbox / OneDrive) — **B57 + F35**
-- [ ] Scraper envia materiais SIGAA → pasta na nuvem — **B29**
-- [ ] Listar PDFs com link para pasta/arquivo na nuvem — **B29 + F35**
-- [ ] Estrutura: `CEFET Academic Planner/{semestre}/{matéria}/*.pdf` — ver `SCOPE.md` §5.6
+> **Download de PDFs / nuvem pessoal:** fora da ordem #0–#11 — checklist completo no [Apêndice](#apêndice--escopo-futuro-fora-da-ordem-011). Placeholder UI: `SubjectDownloadsPanel`.
 
 ---
 
@@ -1077,6 +1053,34 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 ---
 
+## Apêndice — Escopo futuro (fora da ordem #0–#11)
+
+> **Não entra na sequência de execução.** Estas tasks **não** bloqueiam Bloco 2, cloud, PIX nem mobile. Implementar **somente após B31 validado** (sync real estável).  
+> **Decisão (jun/2026):** não baixar materiais SIGAA neste ciclo. Arquivos vão para Drive/Dropbox/OneDrive do aluno — **nunca** Supabase Storage. Spec: [`SCOPE.md` §5.6](./SCOPE.md#56-download-automático-de-pdfs) · [`SCOPE-CLOUD.md`](./SCOPE-CLOUD.md).
+
+| # | Tipo | Task | Resumo | Ordem interna | Status |
+|---|------|------|--------|---------------|--------|
+| B57 | Back | OAuth nuvem pessoal | Conectar Google Drive / Dropbox / OneDrive; tokens cifrados | 1º | [ ] 🔮 |
+| B29 | Back | PDFs → nuvem | Materiais SIGAA → `CEFET Academic Planner/{semestre}/{matéria}/` | 2º (após B57) | [ ] 🔮 |
+| F35 | Front | UI nuvem pessoal | Conectar/desconectar nuvem; preview pastas; toggle por disciplina | 3º (paralelo a B29) | [ ] 🔮 |
+
+**Ordem interna (quando retomar):** `B57` → `B29` + `F35`
+
+**Checklist de entrega (referência):**
+
+- [x] Placeholder UI na disciplina (`SubjectDownloadsPanel` — badge “Em breve”, botão desabilitado)
+- [ ] Toggle on/off por disciplina + persistência — **F35**
+- [ ] Conectar nuvem pessoal (Google Drive / Dropbox / OneDrive) — **B57 + F35**
+- [ ] Scraper envia materiais SIGAA → pasta na nuvem — **B29**
+- [ ] Listar PDFs com link para pasta/arquivo na nuvem — **B29 + F35**
+- [ ] Estrutura: `CEFET Academic Planner/{semestre}/{matéria}/*.pdf`
+
+**Arquivos / schema (stub):** `SubjectDownloadsPanel.tsx`, colunas `arquivos_baixados` / `pdf_auto_download` em `semestre_atual`.
+
+**Histórico:** **B29** ocupava a posição entre **B28** e **B30** na ordem 2a antiga; removido da fila ativa em jun/2026.
+
+---
+
 ## Notas para Outros Agentes de IA
 
 Se você é um agente de IA continuando este projeto, aqui estão informações cruciais:
@@ -1097,7 +1101,7 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 8. **Próximo passo do roadmap:** informe **depois do push** (tasks em `[@]` ou `[x]`). Com commits locais só `[%]`, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v3](#ordem-oficial-de-execução-v3) — **Bloco 2 (sync) antes do Bloco 6 (Supabase)**. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy **após** sync validado; RLS **só na 6c** (antes do PIX).
-11. **Próximo passo:** validar **B28** live (sync ~2 min, notas/faltas). Depois **B30 → B31**. B27·B28·B65·F37 em `[@]`. **PDFs/nuvem (B57·B29·F35)** = escopo futuro. **Integralização fiel:** `historico` na **B30**.
+11. **Próximo passo:** validar **B28** live (sync ~2 min, notas/faltas). Depois **B30 → B31**. B27·B28·B65·F37 em `[@]`. **Integralização fiel:** `historico` na **B30**. PDFs/nuvem = [Apêndice](#apêndice--escopo-futuro-fora-da-ordem-011) — **não** na ordem 2a.
 12. **Integralização:** CH concluída = `historico` + PPC (`computeChDoneFromDisciplinas`); portal SIGAA só % / total currículo; matérias já passadas = **B30**.
 13. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial.
 14. **Código frontend** está em `app/src/` (não na raiz `src/`). Mock data em `app/src/config/mock/`.
