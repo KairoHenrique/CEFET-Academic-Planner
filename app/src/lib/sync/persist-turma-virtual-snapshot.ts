@@ -99,5 +99,11 @@ export function persistTurmaVirtualSnapshot(snapshot: TurmaVirtualSnapshot): voi
         curso: membro.curso,
       }))
     );
+
+    if (disciplina.grupo.length > 0 || disciplina.grupoNome) {
+      patchSyncedSemestreTurmaMetadata(disciplinaId, {
+        grupo_nome: disciplina.grupoNome,
+      });
+    }
   }
 }

@@ -2,15 +2,18 @@
 
 import { useState } from "react";
 import type { Subject } from "@/lib/types/subject";
+import type { DisciplinaGrupoDto } from "@/lib/types/disciplinas-api";
 import { Icon } from "@/components/ui/Icon";
 import { PrioritySelect } from "@/components/ui/PrioritySelect";
 import { ColorDotPicker } from "@/components/ui/ColorDotPicker";
 import { SubjectDetailEditModal } from "@/components/disciplinas/SubjectDetailEditModal";
+import { SubjectGroupModal } from "@/components/disciplinas/SubjectGroupModal";
 import { useSubjectPriorities } from "@/hooks/useStoredPriorities";
 import { useSubjectAppearance } from "@/hooks/useSubjectAppearance";
 
 interface SubjectDetailHeaderProps {
   subject: Subject;
+  grupo?: DisciplinaGrupoDto;
 }
 
 function MetaPortalHint({ label, value }: { label: string; value: string }) {
@@ -22,8 +25,11 @@ function MetaPortalHint({ label, value }: { label: string; value: string }) {
   );
 }
 
-export function SubjectDetailHeader({ subject }: SubjectDetailHeaderProps) {
+export function SubjectDetailHeader({ subject, grupo }: SubjectDetailHeaderProps) {
   const [editOpen, setEditOpen] = useState(false);
+  const [groupOpen, setGroupOpen] = useState(false);
+  const members = grupo?.membros ?? [];
+  const hasGrupo = members.length > 0;
   const { getPriority, setSubjectPriority } = useSubjectPriorities();
   const { updateColor, updateDisplay, isSaving } = useSubjectAppearance(
     subject.code,
@@ -37,10 +43,26 @@ export function SubjectDetailHeader({ subject }: SubjectDetailHeaderProps) {
   return (
     <div className="card subject-detail-header">
       <div className="subject-detail-top">
-        <div>
+        <div className="subject-detail-head">
           <p className="page-header-eyebrow">{subject.shortLabel}</p>
           <h2 className="subject-detail-title">{subject.name}</h2>
         </div>
+        {hasGrupo ? (
+          <div className="subject-detail-top-aside">
+            <button
+              type="button"
+              className="btn-outline subject-group-trigger"
+              onClick={() => setGroupOpen(true)}
+              aria-label={`Ver grupo com ${members.length} integrante${members.length === 1 ? "" : "s"}`}
+            >
+              <Icon name="users" size={16} />
+              Ver grupo
+              <span className="subject-group-count" aria-hidden="true">
+                {members.length}
+              </span>
+            </button>
+          </div>
+        ) : null}
         <div className="subject-detail-actions">
           <button
             type="button"
@@ -111,6 +133,14 @@ export function SubjectDetailHeader({ subject }: SubjectDetailHeaderProps) {
         isSaving={isSaving}
         onSave={(payload) => updateDisplay(payload)}
       />
+      {hasGrupo ? (
+        <SubjectGroupModal
+          open={groupOpen}
+          onClose={() => setGroupOpen(false)}
+          groupName={grupo?.nome ?? null}
+          members={members}
+        />
+      ) : null}
     </div>
   );
 }

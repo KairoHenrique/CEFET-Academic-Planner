@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type { SubjectEvaluation } from "@/lib/types/subject";
+import { roundFinalGradeTotal } from "@/lib/disciplinas/grade-rounding";
 import { computePendingTeacherPoints } from "@/lib/disciplinas/grade-risk";
 
 interface UseGradeSimulationOptions {
@@ -32,9 +33,8 @@ export function useGradeSimulation({
     });
   }, [evaluations, simulateMode, simulated]);
 
-  const simulatedTotal = resolvedScores.reduce<number>(
-    (acc, score) => acc + (score ?? 0),
-    0
+  const simulatedTotal = roundFinalGradeTotal(
+    resolvedScores.reduce<number>((acc, score) => acc + (score ?? 0), 0)
   );
 
   const approved = simulatedTotal >= passingGrade;

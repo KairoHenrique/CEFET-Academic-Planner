@@ -1,4 +1,5 @@
 import { getNotasByDisciplina } from "@/lib/db/queries";
+import { roundFinalGradeTotal } from "@/lib/disciplinas/grade-rounding";
 
 export function computeGrade(disciplinaId: string): number | null {
   const notas = getNotasByDisciplina(disciplinaId);
@@ -11,5 +12,5 @@ export function computeGrade(disciplinaId: string): number | null {
     (acc, nota) => acc + (nota.nota_obtida ?? 0),
     0
   );
-  return Math.round(total * 10) / 10;
+  return roundFinalGradeTotal(total);
 }

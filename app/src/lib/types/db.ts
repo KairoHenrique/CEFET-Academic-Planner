@@ -43,6 +43,7 @@ export interface SemestreAtualRow {
   horario_exibicao: string | null;
   professor_exibicao: string | null;
   horas_semanais_exibicao: number | null;
+  grupo_nome: string | null;
   professor: string | null;
   max_faltas: number | null;
   nota_maxima: number | null;

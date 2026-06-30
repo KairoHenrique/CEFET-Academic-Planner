@@ -5,6 +5,7 @@ import {
   SUBJECT_DISPLAY_PASSING_GRADE,
   SUBJECT_RECOVERY_GRADE,
 } from "@/lib/disciplinas/grade-display";
+import { roundFinalGradeTotal } from "@/lib/disciplinas/grade-rounding";
 
 export type { GradeRisk, GradeRiskZone };
 
@@ -36,7 +37,7 @@ function computeCurrentTotal(
     0
   );
   const hasScore = nonExtra.some((ev) => ev.score !== null);
-  if (hasScore) return Math.round(fromEvaluations * 10) / 10;
+  if (hasScore) return roundFinalGradeTotal(fromEvaluations);
   return grade ?? 0;
 }
 

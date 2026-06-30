@@ -4004,8 +4004,124 @@ a:hover {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: var(--space-4);
   margin-bottom: var(--space-4);
+}
+
+.subject-detail-head {
+  flex: 1 1 12rem;
+  min-width: 0;
+}
+
+.subject-detail-top-aside {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+}
+
+.subject-group-trigger {
+  margin-top: 0;
+  border-color: color-mix(in srgb, var(--gold-400) 45%, var(--border-emphasis));
+  color: var(--gold-200);
+  background: rgba(212, 168, 67, 0.06);
+}
+
+.subject-group-trigger:hover {
+  background: rgba(212, 168, 67, 0.12);
+  box-shadow: var(--shadow-glow-gold);
+}
+
+.subject-group-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-full);
+  background: rgba(212, 168, 67, 0.18);
+  color: var(--gold-200);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.subject-group-modal-lead {
+  margin: 0 0 var(--space-4);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.subject-group-modal-lead strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.subject-group-modal-badge {
+  color: var(--gold-200);
+  border-color: rgba(212, 168, 67, 0.35);
+  background: rgba(212, 168, 67, 0.1);
+}
+
+.subject-group-table-wrap {
+  max-height: min(24rem, 60vh);
+  overflow: auto;
+}
+
+.modal-panel:has(.subject-group-table-wrap) {
+  width: min(720px, calc(100vw - 32px));
+}
+
+.subject-group-table td {
+  color: var(--text-secondary);
+  vertical-align: top;
+}
+
+.subject-group-name {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.subject-group-matricula {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+}
+
+.subject-group-curso {
+  color: var(--text-secondary);
+  min-width: 7.5rem;
+  max-width: 11rem;
+  line-height: 1.45;
+  word-break: break-word;
+}
+
+.subject-group-empty {
+  color: var(--text-tertiary);
+}
+
+.subject-group-email {
+  color: var(--gold-200);
+  text-decoration: none;
+  word-break: break-word;
+}
+
+.subject-group-email:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 720px) {
+  .subject-detail-top-aside {
+    width: 100%;
+    margin-left: 0;
+    order: 3;
+  }
+
+  .subject-group-trigger {
+    width: 100%;
+    justify-content: center;
+  }
 }
 
 .subject-detail-title {
@@ -4691,6 +4807,7 @@ a:hover {
   display: flex;
   flex-direction: column;
   margin: var(--space-4);
+  color: var(--text-primary);
 }
 
 .modal-header {

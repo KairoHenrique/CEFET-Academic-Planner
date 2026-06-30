@@ -18,6 +18,11 @@ export interface TurmaVirtualGrupoMembro {
   curso: string | null;
 }
 
+export interface TurmaVirtualGrupoParseResult {
+  nomeGrupo: string | null;
+  membros: TurmaVirtualGrupoMembro[];
+}
+
 export interface TurmaVirtualTarefa {
   titulo: string;
   descricao: string | null;
@@ -39,6 +44,7 @@ export interface TurmaVirtualDisciplinaSnapshot {
   maxFaltas: number | null;
   notas: TurmaVirtualNota[];
   faltas: TurmaVirtualFalta[];
+  grupoNome: string | null;
   grupo: TurmaVirtualGrupoMembro[];
   tarefas: TurmaVirtualTarefa[];
   scrapeWarnings: string[];

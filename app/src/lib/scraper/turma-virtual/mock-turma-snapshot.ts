@@ -6,6 +6,10 @@ import type {
   TurmaVirtualSnapshot,
 } from "@/lib/scraper/types/turma-virtual";
 
+const MOCK_GRUPO_NOMES: Record<string, string> = {
+  "ENG-SOFT": "Grupo 1",
+};
+
 const MOCK_GRUPO: Record<
   string,
   Array<{ nome: string; matricula: string; email: string; curso: string }>
@@ -52,6 +56,7 @@ function buildDisciplinaSnapshot(
       data: record.date,
       status: record.status,
     })),
+    grupoNome: MOCK_GRUPO_NOMES[subject.code] ?? null,
     grupo: grupo.map((membro) => ({
       nome: membro.nome,
       matricula: membro.matricula,

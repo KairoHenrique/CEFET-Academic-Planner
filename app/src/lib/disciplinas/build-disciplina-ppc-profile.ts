@@ -67,6 +67,6 @@ export function buildDisciplinaPpcProfile(code: string): SubjectDetailResponse {
       records: [],
       daysRemaining: 0,
     },
-    grupo: [],
+    grupo: { nome: null, membros: [] },
   };
 }
