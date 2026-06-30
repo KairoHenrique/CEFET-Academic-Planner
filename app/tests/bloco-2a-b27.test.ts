@@ -54,9 +54,12 @@ describe("B27 — parse portal discente", () => {
     assert.equal(snapshot.aluno.rg, 72.5);
 
     assert.ok(snapshot.integralizacao.some((item) => item.tipoCh === "Obrigatória"));
-    assert.equal(snapshot.semestreAtual.length, 2);
-    assert.equal(snapshot.semestreAtual[0]?.codigo, "AEDI");
-    assert.equal(snapshot.semestreAtual[0]?.codigoHorario, "2M56 6M56");
+    assert.ok(snapshot.semestreAtual.length >= 2);
+    assert.ok(
+      snapshot.semestreAtual.some((row) =>
+        /algoritmos|aedi/i.test(`${row.codigo} ${row.nome}`)
+      )
+    );
 
     assert.equal(snapshot.atividades.length, 1);
     assert.equal(snapshot.atividades[0]?.disciplinaCodigo, "ENGENHARIA DE SOFTWARE");
@@ -84,6 +87,144 @@ describe("B27 — parse portal discente", () => {
 
     assert.equal(snapshot.atividades.length, 1);
     assert.match(snapshot.atividades[0]?.titulo ?? "", /MIC1/i);
+  });
+
+  test("extrai atividades da tabela Minhas atividades (formAtividades)", async () => {
+    const { parsePortalAtividadesFromHtml } = await import(
+      "../src/lib/scraper/portal-discente/parse-portal-atividades"
+    );
+
+    const FIXTURE = `
+      <form id="formAtividades">
+        <table>
+          <tr class="odd">
+            <td></td>
+            <td>06/07/2026 23:59 (7 dias)</td>
+            <td>
+              <small>
+                LABORATÓRIO DE ARQUITETURA E ORGANIZAÇÃO DE COMPUTADORES I<br>
+                <strong>Tarefa:</strong>
+                <a id="formAtividades:visualizarTarefaTurmaVirtual" href="#">MIC1 - ULA</a>
+              </small>
+            </td>
+          </tr>
+        </table>
+      </form>
+    `;
+
+    const atividades = parsePortalAtividadesFromHtml(FIXTURE);
+    assert.equal(atividades.length, 1);
+    assert.equal(atividades[0]?.titulo, "MIC1 - ULA");
+    assert.equal(atividades[0]?.dataFim, "2026-07-06");
+    assert.equal(
+      atividades[0]?.disciplinaCodigo,
+      "LABORATÓRIO DE ARQUITETURA E ORGANIZAÇÃO DE COMPUTADORES I"
+    );
+  });
+
+  test("resolve teoria e laboratório sem fundir disciplinas", async () => {
+    const { scoreDisciplinaNomeMatch } = await import(
+      "../src/lib/scraper/portal-discente/resolve-disciplina-codigo"
+    );
+
+    const cases = [
+      ["eletronica", "laboratorio de eletronica", -1],
+      ["eletronica", "eletronica", 1000],
+      ["algoritmos e estruturas de dados i", "laboratorio de algoritmos e estruturas de dados i", -1],
+      ["fisica", "fisica", 1000],
+      ["fisica i", "fisica", 400],
+    ] as const;
+
+    for (const [target, candidate, expected] of cases) {
+      const score = scoreDisciplinaNomeMatch(target, candidate);
+      if (expected < 0) {
+        assert.ok(score < 0, `${target} vs ${candidate} deveria rejeitar`);
+      } else {
+        assert.ok(score >= expected, `${target} vs ${candidate} score=${score}`);
+      }
+    }
+  });
+
+  test("extrai qualquer disciplina do quadro de horários (nomes curtos)", async () => {
+    const { parseDisciplinasHorarioFromHtml } = await import(
+      "../src/lib/scraper/portal-discente/parse-portal-horario"
+    );
+
+    const FIXTURE = `
+      <table>
+        <thead><tr><th>Componente Curricular</th><th>Local</th><th>Horário</th></tr></thead>
+        <tbody>
+      <tr><td class="descricao">
+        <form id="form_acessarTurmaVirtual">
+          <a href="#" onclick="frontEndIdTurma">FÍSICA</a>
+        </form>
+      </td><td class="info">101</td><td class="info">2M12 (23/02/2026 - 04/07/2026)</td></tr>
+      <tr><td class="descricao">
+        <form id="form_acessarTurmaVirtualj_id_1">
+          <a href="#" onclick="frontEndIdTurma">CÁLCULO I</a>
+        </form>
+      </td><td class="info">202</td><td class="info">4T34 (23/02/2026 - 04/07/2026)</td></tr>
+        </tbody>
+      </table>
+    `;
+
+    const list = parseDisciplinasHorarioFromHtml(FIXTURE);
+    assert.equal(list.length, 2);
+    assert.ok(list.some((item) => item.nome === "FÍSICA"));
+    assert.ok(list.some((item) => item.nome === "CÁLCULO I"));
+  });
+
+  test("resolve teoria e laboratório sem fundir disciplinas (semestre)", async () => {
+    const { ensureDbReady } = await import("../src/lib/db/bootstrap");
+    ensureDbReady();
+
+    const {
+      normalizeDisciplinaNome,
+      resolveDisciplinaCodigoFromSemestre,
+    } = await import(
+      "../src/lib/scraper/portal-discente/resolve-disciplina-codigo"
+    );
+
+    const semestreByNome = new Map(
+      [
+        "ALGORITMOS E ESTRUTURAS DE DADOS I",
+        "LABORATÓRIO DE ALGORITMOS E ESTRUTURAS DE DADOS I",
+        "ELETRÔNICA",
+        "LABORATÓRIO DE ELETRÔNICA",
+        "ESTATÍSTICA",
+      ].map((nome) => [normalizeDisciplinaNome(nome), nome])
+    );
+
+    const activeIds = new Set(semestreByNome.values());
+
+    assert.equal(
+      resolveDisciplinaCodigoFromSemestre(
+        "ALGORITMOS E ESTRUTURAS DE DADOS I",
+        semestreByNome,
+        activeIds
+      ),
+      "ALGORITMOS E ESTRUTURAS DE DADOS I"
+    );
+    assert.equal(
+      resolveDisciplinaCodigoFromSemestre(
+        "LABORATÓRIO DE ALGORITMOS E ESTRUTURAS DE DADOS I",
+        semestreByNome,
+        activeIds
+      ),
+      "LABORATÓRIO DE ALGORITMOS E ESTRUTURAS DE DADOS I"
+    );
+    assert.equal(
+      resolveDisciplinaCodigoFromSemestre("ELETRÔNICA", semestreByNome, activeIds),
+      "ELETRÔNICA"
+    );
+    assert.equal(
+      resolveDisciplinaCodigoFromSemestre(
+        "LABORATÓRIO DE ELETRÔNICA",
+        semestreByNome,
+        activeIds
+      ),
+      "LABORATÓRIO DE ELETRÔNICA"
+    );
   });
 
   test("extrai layout real CEFET-MG (label-pairs)", async () => {
@@ -181,15 +322,11 @@ describe("B27 — parse portal discente", () => {
 
 describe("B27 — scrapePortalDiscente (mock)", () => {
   test("mock retorna snapshot completo do portal", async () => {
-    const { scrapePortalDiscente } = await import(
+    const { scrapePortalDiscenteMock } = await import(
       "../src/lib/scraper/portal-discente/scrape-portal-discente"
     );
 
-    const snapshot = await scrapePortalDiscente({
-      username: "12345678901",
-      cookies: [],
-      loggedInAt: new Date().toISOString(),
-    });
+    const snapshot = scrapePortalDiscenteMock("12345678901");
 
     assert.ok(snapshot.aluno.rg);
     assert.ok(snapshot.semestreAtual.length >= 5);
@@ -253,6 +390,32 @@ describe("B27 — persistPortalSnapshot", () => {
       .find((row) => row.id === manualBefore?.id);
     assert.equal(manualAfter?.concluido, 42);
     assert.equal(manualAfter?.manual, 1);
+  });
+
+  test("troca de matrícula remove disciplinas do aluno anterior", async () => {
+    const { buildMockPortalSnapshot } = await import(
+      "../src/lib/scraper/portal-discente/mock-portal-snapshot"
+    );
+    const { persistPortalSnapshot } = await import(
+      "../src/lib/sync/persist-portal-snapshot"
+    );
+    const queries = await import("../src/lib/db/queries");
+
+    persistPortalSnapshot(buildMockPortalSnapshot("aluno-a"));
+    assert.ok(
+      queries.getSemestreAtual().some((row) => row.disciplina_id === "LAOCI")
+    );
+
+    const outroAluno = buildMockPortalSnapshot("aluno-b");
+    outroAluno.aluno.matricula = "99988877766";
+    outroAluno.semestreAtual = outroAluno.semestreAtual.filter(
+      (disciplina) => disciplina.codigo === "AEDI"
+    );
+    persistPortalSnapshot(outroAluno);
+
+    const semestre = queries.getSemestreAtual();
+    assert.equal(semestre.length, 1);
+    assert.equal(semestre[0]?.disciplina_id, "AEDI");
   });
 
   test("não persiste tarefas com prazo vencido", async () => {

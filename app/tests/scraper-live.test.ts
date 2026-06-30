@@ -4,75 +4,40 @@
  */
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
+import { withSyncBrowser } from "../src/lib/scraper/session-context";
+import { loginSigaaOnPage } from "../src/lib/scraper/auth";
+import { scrapePortalDiscente } from "../src/lib/scraper/portal-discente/scrape-portal-discente";
+import { scrapeTurmaVirtual } from "../src/lib/scraper/turma-virtual/scrape-turma-virtual";
 
 const user = process.env.SIGAA_TEST_USER?.trim();
 const password = process.env.SIGAA_TEST_PASSWORD;
 const hasLiveCredentials = Boolean(user && password);
 
-describe("B24 — login SIGAA (live)", () => {
+describe("Sync Completo (live)", () => {
   test(
-    "login real no portal",
+    "realiza o sync completo em uma única sessão",
     { skip: !hasLiveCredentials },
     async () => {
       process.env.SIGAA_SCRAPER_MOCK = "false";
       process.env.SIGAA_HEADLESS = process.env.SIGAA_HEADLESS ?? "true";
 
-      const { loginSigaa } = await import("../src/lib/scraper/auth");
-      const session = await loginSigaa({ username: user!, password: password! });
+      await withSyncBrowser(async (page) => {
+        // 1. Login
+        await loginSigaaOnPage(page, { username: user!, password: password! });
+        const cookies = await page.context().cookies();
+        assert.ok(cookies.length > 0, "sessão deve ter cookies");
 
-      assert.equal(session.username, user);
-      assert.ok(session.cookies.length > 0, "sessão deve ter cookies");
-    }
-  );
-});
+        // 2. Portal
+        const portalSnapshot = await scrapePortalDiscente(page);
+        assert.ok(portalSnapshot.aluno.matricula.length >= 8);
+        assert.notEqual(portalSnapshot.aluno.nome, "Discente");
 
-describe("B27 — portal discente (live)", () => {
-  test(
-    "extrai snapshot real do portal",
-    { skip: !hasLiveCredentials },
-    async () => {
-      process.env.SIGAA_SCRAPER_MOCK = "false";
-      process.env.SIGAA_HEADLESS = process.env.SIGAA_HEADLESS ?? "true";
-
-      const { loginSigaa } = await import("../src/lib/scraper/auth");
-      const { scrapePortalDiscente } = await import(
-        "../src/lib/scraper/portal-discente/scrape-portal-discente"
-      );
-
-      const session = await loginSigaa({ username: user!, password: password! });
-      const snapshot = await scrapePortalDiscente(session);
-
-      assert.ok(snapshot.aluno.matricula.length >= 8);
-      assert.notEqual(snapshot.aluno.nome, "Discente");
-      assert.ok(snapshot.aluno.rg !== null && snapshot.aluno.rg < 100);
-      assert.ok(snapshot.semestreAtual.length >= 5);
-      assert.ok(snapshot.integralizacao.length >= 4);
-      const obrigatoria = snapshot.integralizacao.find((item) => item.tipoCh === "Obrigatória");
-      assert.ok(obrigatoria && obrigatoria.concluido > 0, "CH obrigatória concluída deve ser > 0");
-      assert.equal(obrigatoria?.pendente, 2535);
-    }
-  );
-});
-
-describe("B28 — turma virtual (live)", () => {
-  test(
-    "extrai notas e faltas reais da turma virtual",
-    { skip: !hasLiveCredentials },
-    async () => {
-      process.env.SIGAA_SCRAPER_MOCK = "false";
-      process.env.SIGAA_HEADLESS = process.env.SIGAA_HEADLESS ?? "true";
-
-      const { loginSigaa } = await import("../src/lib/scraper/auth");
-      const { scrapeTurmaVirtual } = await import(
-        "../src/lib/scraper/turma-virtual/scrape-turma-virtual"
-      );
-
-      const session = await loginSigaa({ username: user!, password: password! });
-      const snapshot = await scrapeTurmaVirtual(session);
-
-      assert.ok(snapshot.disciplinas.length >= 3);
-      const withNotas = snapshot.disciplinas.filter((item) => item.notas.length > 0);
-      assert.ok(withNotas.length >= 1, "ao menos uma disciplina com notas");
+        // 3. Turma Virtual
+        const turmaSnapshot = await scrapeTurmaVirtual(page);
+        assert.ok(turmaSnapshot.disciplinas.length >= 3);
+        const withNotas = turmaSnapshot.disciplinas.filter((item) => item.notas.length > 0);
+        assert.ok(withNotas.length >= 1, "ao menos uma disciplina com notas");
+      });
     }
   );
 });

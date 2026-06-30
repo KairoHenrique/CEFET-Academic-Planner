@@ -8,6 +8,7 @@ import {
   type AttendanceRecord,
   type AttendanceStatus,
 } from "@/lib/types/attendance";
+import { computeAbsenceRisk } from "@/lib/disciplinas/absence-risk";
 import { useSubjectAttendance } from "@/hooks/useSubjectAttendance";
 
 interface SubjectAbsencePanelProps {
@@ -42,11 +43,11 @@ export function SubjectAbsencePanel({
   const [editRecord, setEditRecord] = useState<AttendanceRecord | null>(null);
   const [editStatus, setEditStatus] = useState<AttendanceStatus>("presente");
 
-  const ratio = maxAbsences > 0 ? (absences / maxAbsences) * 100 : 0;
-  const zone =
-    ratio >= 80 ? "danger" : ratio >= 50 ? "warning" : "success";
-  const label =
-    ratio >= 80 ? "Crítico" : ratio >= 50 ? "Atenção" : "Seguro";
+  const { label, badgeClass, ratio } = computeAbsenceRisk(
+    absences,
+    maxAbsences
+  );
+  const failedByAbsence = maxAbsences > 0 && absences > maxAbsences;
 
   const openEdit = (record: AttendanceRecord) => {
     setEditRecord(record);
@@ -71,7 +72,7 @@ export function SubjectAbsencePanel({
         <SectionHeader
           title="Frequência"
           icon="clipboard"
-          badge={<span className={`badge ${zone}`}>{label}</span>}
+          badge={<span className={`badge ${badgeClass}`}>{label}</span>}
         />
 
         <div className="absence-summary">
@@ -80,7 +81,16 @@ export function SubjectAbsencePanel({
             <span className="subject-stat-max"> / {maxAbsences}</span>
           </span>
           <p className="absence-detail">
-            faltas permitidas · <strong>{daysRemaining}</strong> dias de aula restantes
+            {failedByAbsence ? (
+              <>
+                limite de <strong>{maxAbsences}</strong> faltas excedido
+              </>
+            ) : (
+              <>
+                faltas permitidas · <strong>{daysRemaining}</strong> faltas
+                restantes
+              </>
+            )}
           </p>
         </div>
 
@@ -117,7 +127,9 @@ export function SubjectAbsencePanel({
                   <td>{record.date}</td>
                   <td>
                     <span className={`badge ${statusBadge[record.status]}`}>
-                      {attendanceStatusLabels[record.status]}
+                      {record.status === "falta" && (record.quantidade ?? 0) > 1
+                        ? `${record.quantidade} faltas`
+                        : attendanceStatusLabels[record.status]}
                     </span>
                   </td>
                 </tr>

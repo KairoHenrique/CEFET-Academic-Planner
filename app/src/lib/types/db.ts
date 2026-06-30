@@ -39,6 +39,10 @@ export interface SemestreAtualRow {
   cor: string | null;
   apelido: string | null;
   nome_exibicao: string | null;
+  local_exibicao: string | null;
+  horario_exibicao: string | null;
+  professor_exibicao: string | null;
+  horas_semanais_exibicao: number | null;
   professor: string | null;
   max_faltas: number | null;
   nota_maxima: number | null;
@@ -68,6 +72,7 @@ export interface FaltaRow {
   disciplina_id: string;
   data: string;
   status: "presente" | "falta" | "nao_registrada";
+  quantidade?: number;
   manual?: number;
   status_override?: number;
 }

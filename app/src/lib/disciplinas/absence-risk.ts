@@ -13,7 +13,7 @@ export function computeAbsenceRisk(
 ): AbsenceRisk {
   const ratio = max > 0 ? Math.min(100, (current / max) * 100) : 0;
 
-  if (max > 0 && current >= max) {
+  if (max > 0 && current > max) {
     return {
       label: "Reprovado por falta",
       badgeClass: "danger",

@@ -4,7 +4,7 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
 
 > ## Direção atual — Sync SIGAA → Cloud → PIX → Mobile
 >
-> **Prioridade:** terminar Bloco 1 (SQLite) → **Scraper/sync real (Bloco 2) enquanto o semestre está ativo** → depois Supabase/deploy. PDFs **não** vão para o Supabase — vão para a **nuvem pessoal** do aluno. Ver [`docs/SCOPE-CLOUD.md`](./SCOPE-CLOUD.md).
+> **Prioridade:** terminar Bloco 1 (SQLite) → **Scraper/sync real (Bloco 2) enquanto o semestre está ativo** → depois Supabase/deploy. **PDFs / nuvem pessoal (B57 · B29 · F35)** = **escopo futuro** — ver [§ Escopo futuro — PDFs](#escopo-futuro--materiais-pdf-e-nuvem-pessoal-). Ver também [`docs/SCOPE-CLOUD.md`](./SCOPE-CLOUD.md).
 >
 > - **Regras acadêmicas:** [`docs/SCOPE.md`](./SCOPE.md)
 > - **Ordem de execução:** [§ Ordem oficial](#ordem-oficial-de-execução-v3)
@@ -106,20 +106,20 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 > **Progresso:** Bloco 1 ✅ · **Bloco 2a:** B27·B65·F37 `[@]` · integralização **via histórico** (decisão jun/2026 — scraper **B30**) · **3F** fora do Bloco 1.
 
-Roadmap detalhado: ver **[Ordem oficial v3](#ordem-oficial-de-execução-v3)** e **[Checklist mestre](#checklist-mestre-ordem-de-execução)**. **Bloco 2a** — B28 `[@]` (turma virtual, validação live pendente); próximo **B57** (OAuth nuvem).
+Roadmap detalhado: ver **[Ordem oficial v3](#ordem-oficial-de-execução-v3)** e **[Checklist mestre](#checklist-mestre-ordem-de-execução)**. **Bloco 2a** — B28 `[@]` (turma virtual, validação live pendente); próximo **B30** (histórico + calendário). **B57 · B29 · F35** (PDFs → nuvem) = escopo futuro.
 
 ---
 
 ## Ordem oficial de execução (v3)
 
 > **Princípio (jun/2025):** terminar Bloco 1 no SQLite → **sync SIGAA real (Bloco 2) antes do Supabase** — semestre acaba em breve e só com turma ativa dá para validar Playwright de verdade → depois cloud (6a/6b) → RLS (6c) → PIX → mobile → inteligência → polimento.  
-> **PDFs:** **nunca** no Supabase Storage; scraper envia para a **nuvem pessoal** do aluno (OAuth Drive/Dropbox/OneDrive) em pastas `{App}/{semestre}/{matéria}/`.  
+> **PDFs / nuvem pessoal:** **escopo futuro** (B57 · B29 · F35) — **não** baixar materiais SIGAA agora; quando implementado, arquivos vão para Drive/Dropbox/OneDrive do aluno, **nunca** Supabase Storage.  
 > **Modo testes global (6a):** URL pública + Supabase free; **RLS/multi-tenant só na 6c**, antes do PIX.
 
 ```
 FASE A   Bloco 1 (3E)          SQLite local — grade semanal ✅
     ↓
-FASE B   Bloco 2a            Scraper dev (B24–B31, B57) — sync REAL ⚠️ prioridade semestre
+FASE B   Bloco 2a            Scraper dev (B24–B31) — sync REAL ⚠️ prioridade semestre
          Bloco 2b            Worker servidor (B54–B56)
     ↓
 FASE C   Bloco 6a            Supabase + deploy global (seed, sem RLS rígido)
@@ -140,7 +140,7 @@ FASE G   Bloco 9             Multi-PPC (Mecatrônica, Moda) 🔒 só após mobil
 |---|------|-------|-------------|---------------------|
 | **0** | — | **0** | Planejamento | ✅ Concluído |
 | **1** | A | **1** | SQLite local completo (3E ✅) | ✅ Fechado — iniciar sync |
-| **2** | B | **2a** | Scraper B24–B31 + OAuth nuvem (B57) | **Validar sync com SIGAA real antes do fim do semestre** |
+| **2** | B | **2a** | Scraper B24–B31 (sync + histórico) | **Validar sync com SIGAA real antes do fim do semestre** |
 | **3** | B | **2b** | Worker B54–B56 | Sync assíncrono em produção |
 | **4** | C | **6a** | Supabase + PG + deploy URL pública | Testes globais **depois** do sync funcionar |
 | **5** | C | **6b** | Auth: login CPF; cadastro e-mail/tel/curso | Contas + PPC + gate |
@@ -153,7 +153,7 @@ FASE G   Bloco 9             Multi-PPC (Mecatrônica, Moda) 🔒 só após mobil
 
 ### Sync antes da cloud (decisão de produto)
 
-- Bloco **2a** roda em **dev local + SQLite** — não precisa Supabase para testar login SIGAA, portal, turmas e PDFs.
+- Bloco **2a** roda em **dev local + SQLite** — não precisa Supabase para testar login SIGAA, portal e turmas.
 - Objetivo: substituir `seed-demo` por pipeline Playwright **ainda com semestre ativo**.
 - Supabase (**6a**) só depois que B31 (integração no `runSync`) estiver validado.
 
@@ -268,14 +268,13 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [@] **BACK:**  B27 *(portal: semestre, RG, tarefas; CH portal auxiliar; apelidos auto)*
 - [@] **BACK:**  B65 *(sync automático 30 min; rate limit manual removido)*
 - [@] **BACK:**  B28 *(turma virtual: notas, faltas, grupo, tarefas — bugfix nav CEFET; validação live pendente)*
-- [ ] **BACK:**  B57 *(OAuth nuvem pessoal — Drive/Dropbox/OneDrive)*
-- [ ] **BACK:**  B29 *(PDFs SIGAA → pasta na nuvem do aluno)*
 - [ ] **BACK:**  B30 → B31
 - [ ] **FRONT:** F18
 - [@] **FRONT:** F37 *(menu perfil: matrícula + badge sync automático)*
-- [ ] **FRONT:** F35 *(Conectar minha nuvem + preview da estrutura de pastas)*
 
-**Ordem 2a:** `B24–B26` → `B27` → `B28` → `B57` → `B29` → `B30` → `B31` → `F18` → `F35`
+**Escopo futuro (não iniciar agora):** B57 · B29 · F35 — PDFs → nuvem pessoal — ver [§ Escopo futuro](#escopo-futuro--materiais-pdf-e-nuvem-pessoal-).
+
+**Ordem 2a:** `B24–B26` → `B27` → `B28` → `B30` → `B31` → `F18`
 
 ---
 
@@ -491,7 +490,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | B12 | Back | `PATCH /api/tarefas/[id]` | Toggle concluída, editar, excluir | [x] |
 | B12b | Back | `POST .../tarefas` | Criar tarefa manual na disciplina | [x] |
 | B12c | Back | `PATCH .../faltas` | Atualizar presença/falta por data | [x] |
-| B12d | Back | `PATCH .../appearance` | Cor, apelido e nome de exibição da matéria | [x] |
+| B12d | Back | `PATCH .../appearance` | Cor, apelido, nome, sala, horário, professor, horas/sem | [%] |
 | F6 | Front | `/disciplinas` | `SubjectList` via API + TanStack Query | [x] |
 | F7 | Front | `/disciplinas/[code]` | Painéis de notas, faltas, tarefas via API | [x] |
 | F8 | Front | `useSubjectGrades` | CRUD notas, inline, nota extra | [x] |
@@ -501,7 +500,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | F8d | Front | Risco de nota + recuperação | `GradeRiskIndicator`, `RecoveryGradeEntry`, `grade-risk.ts` (recuperação em localStorage) | [x] |
 | F8e | Front | Prioridade + selects | `PrioritySelect`, `PlannerSelect`, `useStoredPriorities`, `TaskSortSelect` | [x] |
 | F8f | Front | Simulador (polish) | Menu overlay, layout estável com frequência, OK em Necessário, pré-preenche notas reais | [x] |
-| F8g | Front | Aparência da matéria | `ColorDotPicker`, modal nome/apelido, `useSubjectAppearance` | [x] |
+| F8g | Front | Aparência da matéria | Cor, modal editar header (nome/apelido/sala/horário/h·sem/professor), `useSubjectAppearance` | [%] |
 | F8h | Front | Validação de notas | Clamp pontos a distribuir, nota extra até 100, contador no modal | [x] |
 | F8i | Front | TanStack Query dashboard | `useDashboard` migrado para Query + invalidação cruzada | [x] |
 
@@ -575,7 +574,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 |--------------|-------------|
 | **2.1 Auth** | Login Playwright, sessão, senha AES opcional, erros |
 | **2.2 Portal** | RG, semestre, tarefas; CH portal (% / total) **auxiliar** |
-| **2.3 Turma** | Notas, faltas, grupo, tarefas, download PDFs |
+| **2.3 Turma** | Notas, faltas, grupo, tarefas *(PDFs → nuvem = futuro)* |
 | **2.4 Extra** | Turmas ofertadas, calendário, **histórico escolar → integralização** |
 
 | # | Tipo | Task | Resumo | Fase | Status |
@@ -586,16 +585,25 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | B27 | Back | Scraper portal discente | RG, semestre, atividades; CH portal auxiliar (% / total) | 2.2 | [@] |
 | B65 | Back | Sync automático + last_run | Auto a cada 30 min; manual sem rate limit (dev) | 2.2 | [@] |
 | B28 | Back | Scraper turma virtual | Notas, faltas, tarefas e grupo por matéria | 2.3 | [@] |
-| B57 | Back | OAuth nuvem pessoal | Conectar Google Drive / Dropbox / OneDrive; tokens cifrados | 2.3 | [ ] |
-| B29 | Back | PDFs → nuvem | Materiais SIGAA → `CEFET Academic Planner/{semestre}/{matéria}/` | 2.3 | [ ] |
-| B30 | Back | Turmas + calendário + histórico | Ofertas próximo sem + datas oficiais + **histórico escolar → `historico`** | 2.4 | [ ] |
+| B30 | Back | Turmas + calendário + histórico | Ofertas próximo sem + datas oficiais + **histórico escolar → `historico`** | 2.4 | [/] |
 | B31 | Back | Integrar no `runSync` | Troca seed-demo por pipeline real | 2.x | [ ] |
 | F18 | Front | Erros reais no login | Remove simulação mock de falhas | 2.1 | [ ] |
-| F35 | Front | UI nuvem pessoal | Conectar/desconectar nuvem; preview pastas; toggle por disciplina | 2.3 | [ ] |
 | F37 | Front | Menu perfil (avatar) | Matrícula, dados SIGAA; sync automático informativo | 2.2 | [@] |
 | F19 | Front | `/simulador` via API | Montar grade com turmas ofertadas reais | 2.4 | [ ] |
 
-**Ordem 2a (#2):** `B24 → B25 → B26` → `B27` → `B28` → `B57` → `B29` → `B30` → `B31` → `F18` → `F35`
+**Ordem 2a (#2):** `B24 → B25 → B26` → `B27` → `B28` → `B30` → `B31` → `F18`
+
+#### Escopo futuro — Materiais PDF e nuvem pessoal 🔮
+
+> **Decisão (jun/2026):** não implementar download de PDFs / OAuth de nuvem neste ciclo. UI placeholder em `SubjectDownloadsPanel`. Implementar **após B31** validado.
+
+| # | Tipo | Task | Resumo | Fase | Status |
+|---|------|------|--------|------|--------|
+| B57 | Back | OAuth nuvem pessoal | Conectar Google Drive / Dropbox / OneDrive; tokens cifrados | futuro | [ ] 🔮 |
+| B29 | Back | PDFs → nuvem | Materiais SIGAA → `CEFET Academic Planner/{semestre}/{matéria}/` | futuro | [ ] 🔮 |
+| F35 | Front | UI nuvem pessoal | Conectar/desconectar nuvem; preview pastas; toggle por disciplina | futuro | [ ] 🔮 |
+
+**Arquivos relacionados (stub / spec):** `SubjectDownloadsPanel.tsx`, `docs/SCOPE.md` §5.6, `docs/SCOPE-CLOUD.md`, colunas `arquivos_baixados` / `pdf_auto_download` em `semestre_atual`.
 
 #### 2b — Worker servidor (#3)
 
@@ -654,7 +662,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 **Removido / absorvido:** F30 (onboarding SIGAA separado) — credenciais entram no **cadastro** (F29).
 
-> **PDFs:** OAuth nuvem pessoal = **B57** (Bloco 2a), não Supabase Storage.
+> **PDFs / nuvem:** B57 · B29 · F35 = **escopo futuro** — ver [§ Escopo futuro — PDFs](#escopo-futuro--materiais-pdf-e-nuvem-pessoal-).
 
 #### 6c — Multi-tenant (#6)
 
@@ -787,7 +795,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
       ↓
 #1  Bloco 1   SQLite local (3E)               ✅
       ↓
-#2  Bloco 2a  Scraper dev + sync REAL          ⬜ 4/8 [@] — B28 turma virtual (live pendente); próximo B57
+#2  Bloco 2a  Scraper dev + sync REAL          ⬜ 4/8 [@] — B28 turma virtual (live pendente); próximo B30
 #3  Bloco 2b  Worker servidor
       ↓
 #4  Bloco 6a  Supabase + deploy global       (após sync validado)
@@ -843,7 +851,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Extrair tooltip de cada nota (title → "Avaliação: X | Nota Máxima: Y")
 - [x] Extrair grupo (Alunos → Ver Grupo): membros, matrícula, email
 - [x] Extrair tarefas (Atividades → Tarefas): individuais e em grupo, descrição, instruções, entregáveis
-- [ ] Download de materiais/PDFs (Materiais): enviar para **nuvem pessoal** do aluno (`CEFET Academic Planner/{semestre}/{matéria}/`) — **B57 + B29**
+- [ ] ~~Download de materiais/PDFs~~ → **escopo futuro** (B57 + B29 + F35) — ver [§ Escopo futuro](#escopo-futuro--materiais-pdf-e-nuvem-pessoal-)
 
 ### 2.4 Scraper: Funcionalidades Adicionais
 - [ ] Consultar turmas ofertadas para o próximo semestre (Ensino → Consultar Turmas)
@@ -931,7 +939,9 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 > **Resumo:** Página da matéria: notas (inline/extra), faltas, tarefas CRUD, simulador local de aprovação. Backend no **Bloco 1, Etapa 3A** ✅.
 
 ### 4.1 Página Individual da Disciplina
-- [x] Header com nome, apelido (`shortLabel`), professor, CH, sala, horário — **via API** (F7 + F8g aparência)
+- [x] Header com nome, apelido (`shortLabel`), sala, horário, **horas/sem** (grade SIGAA), professor — **via API** (F7 + F8g)
+- [%] Modal **Editar disciplina**: nome, apelido, sala, horário, horas semanais, professor; linha *Portal* quando difere do sync (`SubjectDetailEditModal`, `PATCH .../appearance`)
+- [x] Horas no header = **blocos do horário** (2h/aula), não CH total do PPC; ementa mantém CH do PPC
 - [x] Seção de Ementa (texto do PPC) — **via API**
 - [x] Card de Nota Atual (tabela de avaliações, pontos faltando) — **via API**; add manual via F8
 - [x] Card de Faltas (barra de progresso até o limite, cores por zona de risco) — **via API**
@@ -972,12 +982,16 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Indicador visual de zona de risco (verde → amarelo → vermelho)
 - [x] Atualização de presença via `PATCH /api/disciplinas/[code]/faltas`
 
-### 4.5 Download Automático de PDFs
-- [/] Toggle on/off por disciplina — **na página da disciplina** (`SubjectDownloadsPanel`); persistência local até **F35**
-- [x] Indicador de "X arquivos baixados" por matéria
+### 4.5 Download Automático de PDFs 🔮 *(escopo futuro — B57 · B29 · F35)*
+
+> **Fora do escopo atual.** Painel `SubjectDownloadsPanel` exibe placeholder “Em breve”. Não baixar PDFs do SIGAA até OAuth + upload na nuvem estarem prontos.
+
+- [x] Placeholder UI na disciplina (badge “Em breve”, botão desabilitado, copy B57/B29)
+- [ ] Toggle on/off por disciplina + persistência — **F35**
 - [ ] Conectar nuvem pessoal (Google Drive / Dropbox / OneDrive) — **B57 + F35**
-- [ ] Listar PDFs na UI com link para pasta/arquivo na nuvem do aluno — **B29 + F35**
-- [ ] Estrutura de pastas na nuvem: `CEFET Academic Planner/{semestre}/{matéria}/*.pdf` — ver `SCOPE.md` §5.6
+- [ ] Scraper envia materiais SIGAA → pasta na nuvem — **B29**
+- [ ] Listar PDFs com link para pasta/arquivo na nuvem — **B29 + F35**
+- [ ] Estrutura: `CEFET Academic Planner/{semestre}/{matéria}/*.pdf` — ver `SCOPE.md` §5.6
 
 ---
 
@@ -1083,7 +1097,7 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 8. **Próximo passo do roadmap:** informe **depois do push** (tasks em `[@]` ou `[x]`). Com commits locais só `[%]`, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v3](#ordem-oficial-de-execução-v3) — **Bloco 2 (sync) antes do Bloco 6 (Supabase)**. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy **após** sync validado; RLS **só na 6c** (antes do PIX).
-11. **Próximo passo:** validar **B28** live (sync ~2 min, notas em Eng. Software). Depois **B57** → **B29**. B27·B28·B65·F37 em `[@]`. **Integralização fiel:** `historico` na **B30**.
+11. **Próximo passo:** validar **B28** live (sync ~2 min, notas/faltas). Depois **B30 → B31**. B27·B28·B65·F37 em `[@]`. **PDFs/nuvem (B57·B29·F35)** = escopo futuro. **Integralização fiel:** `historico` na **B30**.
 12. **Integralização:** CH concluída = `historico` + PPC (`computeChDoneFromDisciplinas`); portal SIGAA só % / total currículo; matérias já passadas = **B30**.
 13. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial.
 14. **Código frontend** está em `app/src/` (não na raiz `src/`). Mock data em `app/src/config/mock/`.

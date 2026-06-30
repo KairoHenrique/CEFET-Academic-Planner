@@ -11,9 +11,7 @@ import {
   replaceSyncedGrupoForDisciplina,
   upsertSyncedFalta,
   upsertSyncedNota,
-  upsertSyncedTarefa,
 } from "@/lib/db/queries";
-import { isAtividadePrazoVencido } from "@/lib/tasks/dates";
 import type { TurmaVirtualSnapshot } from "@/lib/scraper/types/turma-virtual";
 
 function buildSemestreCodigoByNome(): Map<string, string> {
@@ -72,6 +70,8 @@ export function persistTurmaVirtualSnapshot(snapshot: TurmaVirtualSnapshot): voi
     }
 
     for (const nota of disciplina.notas) {
+      if (nota.notaObtida === null && nota.notaMaxima === null) continue;
+
       upsertSyncedNota({
         disciplina_id: disciplinaId,
         avaliacao_nome: nota.avaliacaoNome,
@@ -86,6 +86,7 @@ export function persistTurmaVirtualSnapshot(snapshot: TurmaVirtualSnapshot): voi
         disciplina_id: disciplinaId,
         data: falta.data,
         status: falta.status,
+        quantidade: falta.quantidade ?? 0,
       });
     }
 
@@ -98,36 +99,5 @@ export function persistTurmaVirtualSnapshot(snapshot: TurmaVirtualSnapshot): voi
         curso: membro.curso,
       }))
     );
-
-    for (const tarefa of disciplina.tarefas) {
-      if (
-        tarefa.dataFim &&
-        isAtividadePrazoVencido(tarefa.dataFim, tarefa.horaFim)
-      ) {
-        continue;
-      }
-
-      upsertSyncedTarefa({
-        disciplina_id: disciplinaId,
-        titulo: tarefa.titulo,
-        descricao: tarefa.descricao,
-        data_inicio: tarefa.dataInicio,
-        data_fim: tarefa.dataFim,
-        hora_fim: tarefa.horaFim ?? "23:59",
-        tipo: tarefa.tipo,
-        possui_nota: tarefa.possuiNota ? 1 : 0,
-        concluida: 0,
-        manual: 0,
-        instrucoes:
-          tarefa.instrucoes.length > 0
-            ? JSON.stringify(tarefa.instrucoes)
-            : null,
-        entregaveis:
-          tarefa.entregaveis.length > 0
-            ? JSON.stringify(tarefa.entregaveis)
-            : null,
-        pontuacao_maxima: tarefa.pontuacaoMaxima,
-      });
-    }
   }
 }

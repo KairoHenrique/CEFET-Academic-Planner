@@ -11,28 +11,40 @@ import type { SyncRequest, SyncStep } from "@/lib/types/sync";
 
 const STEP_DELAY_MS = 280;
 
-/** Etapas exibidas enquanto o servidor raspa o SIGAA (~2 min). */
-const PENDING_SYNC_STEPS: Array<{ label: string; progress: number }> = [
-  { label: "Autenticando no SIGAA…", progress: 8 },
-  { label: "Carregando portal do discente…", progress: 22 },
-  { label: "Sincronizando turma virtual…", progress: 38 },
-  { label: "Baixando notas e faltas…", progress: 52 },
-];
+/** Live SIGAA ~3–5 min; barra avança suavemente até 92% enquanto o POST não retorna. */
+const PENDING_TARGET_PROGRESS = 92;
+const PENDING_ESTIMATED_MS = 4 * 60 * 1000;
+const PENDING_TICK_MS = 900;
 
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function pendingLabelForProgress(progress: number): string {
+  if (progress >= 78) return "Baixando histórico escolar…";
+  if (progress >= 52) return "Baixando notas e faltas…";
+  if (progress >= 38) return "Sincronizando turma virtual…";
+  if (progress >= 22) return "Carregando portal do discente…";
+  return "Autenticando no SIGAA…";
+}
+
 function startPendingSyncProgress(
   onStep: (step: SyncStep) => void
 ): () => void {
-  let index = 0;
-  onStep(PENDING_SYNC_STEPS[0]!);
+  const startedAt = Date.now();
+  let progress = 5;
+
+  onStep({ label: pendingLabelForProgress(progress), progress });
 
   const timer = window.setInterval(() => {
-    index = Math.min(index + 1, PENDING_SYNC_STEPS.length - 1);
-    onStep(PENDING_SYNC_STEPS[index]!);
-  }, 12_000);
+    const elapsed = Date.now() - startedAt;
+    const estimated = Math.min(
+      PENDING_TARGET_PROGRESS,
+      5 + Math.floor((elapsed / PENDING_ESTIMATED_MS) * (PENDING_TARGET_PROGRESS - 5))
+    );
+    progress = Math.max(progress, estimated);
+    onStep({ label: pendingLabelForProgress(progress), progress });
+  }, PENDING_TICK_MS);
 
   return () => window.clearInterval(timer);
 }
@@ -60,6 +72,10 @@ export function useSync() {
   const [error, setError] = useState<string | null>(null);
 
   const startSync = useCallback(async (credentials?: SyncRequest) => {
+    if (syncing) {
+      return false;
+    }
+
     setSyncing(true);
     setError(null);
     setProgress(0);
@@ -98,7 +114,7 @@ export function useSync() {
       setSyncing(false);
       return false;
     }
-  }, []);
+  }, [syncing]);
 
   const resetError = useCallback(() => setError(null), []);
 

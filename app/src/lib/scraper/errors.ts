@@ -89,7 +89,7 @@ export function mapUnknownScraperError(error: unknown): ScraperError {
     return ScraperError.offline();
   }
 
-  return ScraperError.authFailed(
-    "Não foi possível autenticar no SIGAA. Tente novamente."
+  return ScraperError.scrapeFailed(
+    message || "Não foi possível extrair dados do SIGAA. Tente novamente."
   );
 }

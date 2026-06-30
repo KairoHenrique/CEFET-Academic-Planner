@@ -1,3 +1,4 @@
+import { memo } from "react";
 import Link from "next/link";
 import type { CalendarEvent } from "@/lib/types/calendar";
 import { formatEventDate } from "@/lib/types/calendar";
@@ -9,6 +10,7 @@ import type { ScheduleSlotData } from "@/config/mock/schedule";
 import type { AcademicTask } from "@/config/mock/tasks";
 import { disciplinaDetailPath } from "@/lib/disciplinas/disciplina-path";
 import { Icon } from "./Icon";
+import { FormattedDescription } from "./FormattedDescription";
 
 interface EventDetailContentProps {
   event: CalendarEvent;
@@ -34,7 +36,7 @@ export function EventDetailContent({ event, onClose, onToggleDone }: EventDetail
       </p>
     )}
 
-    <p className="detail-description">{event.description}</p>
+    <FormattedDescription text={event.description} />
 
     <div className="detail-actions">
       {event.subjectCode && (
@@ -140,7 +142,7 @@ interface TaskDetailContentProps {
   onEdit?: () => void;
 }
 
-export function TaskDetailContent({
+export const TaskDetailContent = memo(function TaskDetailContent({
   task,
   onClose,
   onToggleDone,
@@ -167,7 +169,7 @@ export function TaskDetailContent({
         {task.subject}
       </p>
 
-      <p className="detail-description">{task.description}</p>
+      <FormattedDescription text={task.description} />
 
       {task.instructions.length > 0 && (
         <div className="detail-block">
@@ -220,7 +222,7 @@ export function TaskDetailContent({
       </div>
     </>
   );
-}
+});
 
 interface DayEventsContentProps {
   day: number;

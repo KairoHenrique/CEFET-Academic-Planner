@@ -121,7 +121,7 @@ export function computeGradeRisk(params: {
     fullyDistributed,
   };
 
-  if (maxAbsences > 0 && absences >= maxAbsences) {
+  if (maxAbsences > 0 && absences > maxAbsences) {
     return {
       ...base,
       zone: "danger",

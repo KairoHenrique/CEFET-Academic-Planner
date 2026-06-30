@@ -9,6 +9,8 @@ import type {
 import { timeSlots, weekDays } from "@/lib/types/schedule";
 import { parseHorarioTraduzido } from "./parse-horario-traduzido";
 import { parseSigaaCodigoHorario } from "./parse-sigaa-codigo";
+import { resolveSubjectDisplayRoom } from "@/lib/disciplinas/subject-room";
+import { resolveDisplayWeeklyHours } from "@/lib/disciplinas/subject-schedule-meta";
 import { resolveSlotRooms } from "./resolve-slot-rooms";
 import {
   createEmptyScheduleGrid,
@@ -49,7 +51,7 @@ function buildSlotData(
     room,
     color: row.cor ?? "#3AA0E8",
     professor: row.professor ?? undefined,
-    ch: row.carga_horaria ?? undefined,
+    ch: resolveDisplayWeeklyHours(row) ?? undefined,
     displayName,
   };
 }
@@ -61,7 +63,7 @@ function placeSubjectOnGrid(
   const positions = resolveSchedulePositions(row);
   if (positions.length === 0) return;
 
-  const rooms = resolveSlotRooms(row.local, positions.length);
+  const rooms = resolveSlotRooms(resolveSubjectDisplayRoom(row), positions.length);
 
   positions.forEach((position, index) => {
     if (grid[position.dayIdx]?.[position.slotIdx]) return;
