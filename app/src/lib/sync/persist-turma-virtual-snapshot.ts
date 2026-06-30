@@ -13,6 +13,12 @@ import {
   upsertSyncedNota,
 } from "@/lib/db/queries";
 import type { TurmaVirtualSnapshot } from "@/lib/scraper/types/turma-virtual";
+import { isTurmaSnapshotPersistable } from "@/lib/sync/turma-snapshot-policy";
+
+export interface PersistTurmaResult {
+  persisted: boolean;
+  reason?: string;
+}
 
 function buildSemestreCodigoByNome(): Map<string, string> {
   const map = new Map<string, string>();
@@ -47,7 +53,16 @@ function resolveDisciplinaId(
   return activeIds.has(fallback) ? fallback : null;
 }
 
-export function persistTurmaVirtualSnapshot(snapshot: TurmaVirtualSnapshot): void {
+export function persistTurmaVirtualSnapshot(
+  snapshot: TurmaVirtualSnapshot
+): PersistTurmaResult {
+  if (!isTurmaSnapshotPersistable(snapshot)) {
+    return {
+      persisted: false,
+      reason: "Snapshot da turma virtual vazio — dados anteriores preservados.",
+    };
+  }
+
   clearTurmaVirtualSyncedData();
 
   const semestreByNome = buildSemestreCodigoByNome();
@@ -106,4 +121,6 @@ export function persistTurmaVirtualSnapshot(snapshot: TurmaVirtualSnapshot): voi
       });
     }
   }
+
+  return { persisted: true };
 }

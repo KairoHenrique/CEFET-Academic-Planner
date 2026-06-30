@@ -1,19 +1,29 @@
-import Database from "better-sqlite3";
-import path from "path";
-import fs from "fs";
+import type Database from "better-sqlite3";
+import {
+  getActiveDatabase,
+  getActiveSigaaUsername,
+  resolveDbPathForUser,
+} from "./connection-manager";
+
+export {
+  getActiveSigaaUsername,
+  normalizeSigaaUsername,
+  resolveDbPathForUser,
+  resolveUserDataDir,
+  runWithUserDb,
+  resetConnectionsForTests,
+} from "./connection-manager";
 
 export function resolveDbPath(): string {
-  return process.env.DB_PATH || path.join(process.cwd(), ".data", "planner.db");
+  return resolveDbPathForUser(getActiveSigaaUsername());
 }
 
-const dbPath = resolveDbPath();
-const dbDir = path.dirname(dbPath);
-
-if (!fs.existsSync(dbDir)) {
-  fs.mkdirSync(dbDir, { recursive: true });
-}
-
-const db = new Database(dbPath);
-db.pragma("journal_mode = WAL");
+const db = new Proxy({} as Database.Database, {
+  get(_target, property) {
+    const connection = getActiveDatabase();
+    const value = Reflect.get(connection, property, connection);
+    return typeof value === "function" ? value.bind(connection) : value;
+  },
+});
 
 export default db;

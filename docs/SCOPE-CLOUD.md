@@ -50,7 +50,7 @@ SaaS para alunos do CEFET-MG: app web hospedado, dados no **Supabase** (Postgres
 
 | Camada | Tecnologia | Observação |
 |---|---|---|
-| **Frontend Web** | Next.js (existente) | Deploy em Vercel ou similar |
+| **Frontend Web** | Next.js (existente) | Deploy no Cloudflare Pages |
 | **Backend / API** | Next.js API Routes + Supabase client | Dev local ainda usa SQLite; prod usa Postgres |
 | **Banco** | Supabase PostgreSQL | RLS: cada aluno vê só seus dados |
 | **Auth do app** | Supabase Auth | E-mail/senha ou magic link (definir) |
@@ -103,8 +103,8 @@ Assinatura **por período de acesso** (v1):
 ### 3.3 Renovação
 
 - Ao expirar, usuário vê tela de **renovação** com novo PIX.
-- Dados acadêmicos **permanecem** no Supabase (não apagar ao expirar).
-- Grace period (ex.: 3 dias) — **a definir**.
+- **Grace period e Exclusão de Dados:** O aluno tem um período de tolerância de **7 dias**. Se não renovar/pagar nesse prazo, todos os **dados acadêmicos são apagados** do banco (para economizar espaço no Supabase Free).
+- O **CPF do usuário nunca é apagado** da tabela `trial_por_cpf`, garantindo que ele não possa usufruir do trial novamente caso crie outra conta.
 
 ### 3.4 Gateway PIX (a escolher)
 
@@ -267,8 +267,8 @@ Fluxo:
 | Ambiente | Web | Supabase | Worker |
 |---|---|---|---|
 | **Dev** | `localhost:3000` | Projeto Supabase dev (free) | Local ou staging |
-| **Staging** | Preview Vercel | Branch DB ou projeto separado | Staging worker |
-| **Prod** | Domínio final (TBD) | Projeto Supabase prod (free → paid se necessário) | Worker prod |
+| **Staging** | Preview Cloudflare Pages | Branch DB ou projeto separado | Staging worker |
+| **Prod** | Cloudflare Pages (Domínio TBD) | Supabase prod (free) + Cron job de ping | Worker prod |
 
 **Variáveis de ambiente (exemplos):**
 
@@ -286,7 +286,7 @@ Fluxo:
 2. **Criptografia:** SIGAA em repouso (AES/Vault); HTTPS em trânsito.
 3. **RLS:** isolamento estrito por `user_id`.
 4. **Logs:** sem senhas, CPF ou e-mail em texto claro.
-5. **Retenção:** dados mantidos após expiração; exclusão sob demanda (direito do titular).
+5. **Retenção:** Dados acadêmicos são apagados automaticamente 7 dias após a expiração do plano ou trial sem pagamento. O registro de CPF permanece para controle anti-abuso. Exclusão antecipada sob demanda (direito do titular).
 6. **Termos de uso + política de privacidade** antes do go-live com pagamento.
 
 ---
@@ -323,7 +323,7 @@ Durante beta/testes com URL pública:
 
 - [ ] Preços dos planos (semestre / ano)
 - [ ] Gateway PIX definitivo
-- [ ] Domínio e hosting web (Vercel?)
+
 - [ ] Onde hospedar worker Playwright
 - [ ] Mobile: Supabase client direto vs. API Next.js
 - [ ] Provedor de e-mail transacional (Resend, SES, etc.)
@@ -338,6 +338,7 @@ Durante beta/testes com URL pública:
 - [x] **Notificações por e-mail** com opt-out em Configurações (avatar)
 - [x] **PDFs não vão para Supabase Storage** — nuvem pessoal do aluno (`CEFET Academic Planner/{semestre}/{matéria}/`)
 - [x] **Sync SIGAA (Bloco 2) antes do Supabase (Bloco 6)** — validar com semestre ativo
+- [x] **Hosting Web:** Cloudflare Pages (Frontend) + Supabase (Backend/Auth) + Ping script/cron (Anti-inatividade do DB free)
 
 ---
 

@@ -392,7 +392,11 @@ describe("B27 — persistPortalSnapshot", () => {
     assert.equal(manualAfter?.manual, 1);
   });
 
-  test("troca de matrícula remove disciplinas do aluno anterior", async () => {
+  test("cada CPF mantém SQLite isolado ao trocar de conta", async () => {
+    const { runWithUserDb, resetConnectionsForTests } = await import(
+      "../src/lib/db/connection-manager"
+    );
+    const { ensureDbReady } = await import("../src/lib/db/bootstrap");
     const { buildMockPortalSnapshot } = await import(
       "../src/lib/scraper/portal-discente/mock-portal-snapshot"
     );
@@ -401,21 +405,43 @@ describe("B27 — persistPortalSnapshot", () => {
     );
     const queries = await import("../src/lib/db/queries");
 
-    persistPortalSnapshot(buildMockPortalSnapshot("aluno-a"));
-    assert.ok(
-      queries.getSemestreAtual().some((row) => row.disciplina_id === "LAOCI")
-    );
+    const { seedPpcIfEmpty } = await import("../src/lib/db/seed-ppc");
 
-    const outroAluno = buildMockPortalSnapshot("aluno-b");
-    outroAluno.aluno.matricula = "99988877766";
-    outroAluno.semestreAtual = outroAluno.semestreAtual.filter(
-      (disciplina) => disciplina.codigo === "AEDI"
-    );
-    persistPortalSnapshot(outroAluno);
+    const dataRoot = path.join(tmpDir, "multi-user");
+    process.env.PLANNER_DATA_ROOT = dataRoot;
+    delete process.env.DB_PATH;
+    resetConnectionsForTests();
 
-    const semestre = queries.getSemestreAtual();
-    assert.equal(semestre.length, 1);
-    assert.equal(semestre[0]?.disciplina_id, "AEDI");
+    runWithUserDb("11111111111", () => {
+      ensureDbReady();
+      seedPpcIfEmpty();
+      persistPortalSnapshot(buildMockPortalSnapshot("aluno-a"));
+    });
+
+    runWithUserDb("22222222222", () => {
+      ensureDbReady();
+      seedPpcIfEmpty();
+      const outroAluno = buildMockPortalSnapshot("aluno-b");
+      outroAluno.aluno.matricula = "99988877766";
+      outroAluno.semestreAtual = outroAluno.semestreAtual.filter(
+        (disciplina) => disciplina.codigo === "AEDI"
+      );
+      persistPortalSnapshot(outroAluno);
+      assert.equal(queries.getSemestreAtual().length, 1);
+    });
+
+    runWithUserDb("11111111111", () => {
+      ensureDbReady();
+      assert.ok(queries.getSemestreAtual().length >= 3);
+    });
+
+    process.env.DB_PATH = path.join(tmpDir, "test.db");
+    delete process.env.PLANNER_DATA_ROOT;
+    resetConnectionsForTests();
+    const { ensureDbReady: bootstrapAgain } = await import("../src/lib/db/bootstrap");
+    const { seedPpcIfEmpty: seedAgain } = await import("../src/lib/db/seed-ppc");
+    bootstrapAgain();
+    seedAgain();
   });
 
   test("não persiste tarefas com prazo vencido", async () => {

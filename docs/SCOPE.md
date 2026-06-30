@@ -51,7 +51,7 @@ Este documento detalha as funcionalidades e premissas de domínio do projeto. Se
 - Todo **CPF novo** recebe **7 dias** de uso gratuito a partir do **primeiro cadastro** com aquele CPF.
 - **Um trial por CPF, para sempre** — criar nova conta com outro e-mail mas **mesmo CPF** **não** reinicia o trial.
 - Após os 7 dias: acesso bloqueado até **pagamento PIX** (semestre/ano — ver `SCOPE-CLOUD.md` §3).
-- Dados acadêmicos **permanecem** após expirar; só o **acesso** é bloqueado.
+- **Atenção (Retenção de Dados):** Se o aluno não realizar o pagamento em até 7 dias após a expiração (do trial ou da assinatura), todos os seus dados acadêmicos **serão apagados** do banco de dados para poupar espaço. O CPF, no entanto, continuará salvo na lista de controle para impedir que ele ganhe um novo trial no futuro.
 
 ### 2.2 Login e persistência de credenciais
 

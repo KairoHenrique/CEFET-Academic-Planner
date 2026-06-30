@@ -13,7 +13,16 @@ import type {
   PatchDisciplinaAppearanceResponse,
 } from "@/lib/types/disciplinas-api";
 import type { AcademicTask } from "@/lib/types/task";
-import type { SyncRequest, SyncSuccessResponse } from "@/lib/types/sync";
+import type { SyncRequest, SyncSuccessResponse, SyncMode } from "@/lib/types/sync";
+import { getSession } from "@/lib/auth/session";
+
+export interface SyncReadinessResponse {
+  ok: true;
+  canFastLogin: boolean;
+  reason: "ready" | "no_data";
+}
+
+export type { SyncMode };
 import type { CalendarEvent } from "@/lib/types/calendar";
 import type {
   CalendarResponse,
@@ -71,9 +80,16 @@ async function parseJsonBody<T>(response: Response): Promise<T> {
   }
 }
 
+function buildSigaaUserHeaders(username?: string): HeadersInit {
+  const activeUser = username?.trim() || getSession()?.username?.trim();
+  if (!activeUser) return {};
+  return { "X-Planner-Sigaa-User": activeUser };
+}
+
 async function requestJson<T>(
   path: string,
-  init?: RequestInit
+  init?: RequestInit,
+  sigaaUsername?: string
 ): Promise<T> {
   let response: Response;
 
@@ -82,6 +98,7 @@ async function requestJson<T>(
       ...init,
       headers: {
         "Content-Type": "application/json",
+        ...buildSigaaUserHeaders(sigaaUsername),
         ...init?.headers,
       },
     });
@@ -106,13 +123,40 @@ async function requestJson<T>(
   return body;
 }
 
+export async function getSyncReadiness(
+  username: string
+): Promise<SyncReadinessResponse> {
+  const params = new URLSearchParams({ username: username.trim() });
+  return requestJson<SyncReadinessResponse>(
+    `/api/sync/readiness?${params.toString()}`
+  );
+}
+
+export async function postSigaaVerify(
+  credentials: Pick<SyncRequest, "username" | "password" | "savePassword">
+): Promise<{ ok: true }> {
+  return requestJson<{ ok: true }>(
+    "/api/auth/verify-sigaa",
+    {
+      method: "POST",
+      body: JSON.stringify(credentials),
+    },
+    credentials.username
+  );
+}
+
 export async function postSync(
-  credentials: SyncRequest
+  credentials: SyncRequest,
+  mode: SyncMode = credentials.mode ?? "full"
 ): Promise<SyncSuccessResponse> {
-  return requestJson<SyncSuccessResponse>("/api/sync", {
-    method: "POST",
-    body: JSON.stringify(credentials),
-  });
+  return requestJson<SyncSuccessResponse>(
+    "/api/sync",
+    {
+      method: "POST",
+      body: JSON.stringify({ ...credentials, mode }),
+    },
+    credentials.username
+  );
 }
 
 export async function getDashboard(): Promise<DashboardResponse> {
