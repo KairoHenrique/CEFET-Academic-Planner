@@ -1,5 +1,6 @@
 import { notFoundError } from "@/lib/api/errors";
 import { getDisciplinaByCodigo } from "@/lib/db/queries";
+import { maxAbsencesFromCefetCh, normalizeCefetCh } from "@/lib/disciplinas/cefet-ch";
 import type { SubjectDetailResponse } from "@/lib/types/disciplinas-api";
 import { resolvePpcEmenta } from "./resolve-ppc-ementa";
 import { resolveSubjectShortLabel } from "./subject-display-name";
@@ -16,10 +17,13 @@ export function buildDisciplinaPpcProfile(code: string): SubjectDetailResponse {
     throw notFoundError("Disciplina não encontrada no PPC do curso.");
   }
 
+  const ch = normalizeCefetCh(disciplina.carga_horaria ?? 0);
+  const maxAbsences = maxAbsencesFromCefetCh(ch);
+
   const ementa = resolvePpcEmenta(
     disciplina.codigo,
     disciplina.nome,
-    disciplina.carga_horaria ?? 0
+    ch
   );
 
   const evaluations: never[] = [];
@@ -48,16 +52,16 @@ export function buildDisciplinaPpcProfile(code: string): SubjectDetailResponse {
         recoveryGrade: SUBJECT_RECOVERY_GRADE,
         grade: null,
         absences: 0,
-        maxAbsences: 15,
+        maxAbsences,
       }),
       absences: 0,
-      maxAbsences: 15,
+      maxAbsences,
       tasks: 0,
       color: "#3AA0E8",
       evaluations,
       professor: undefined,
       schedule: undefined,
-      ch: disciplina.carga_horaria ?? undefined,
+      ch,
       ementa,
       downloadedFiles: 0,
       pdfAutoDownload: false,

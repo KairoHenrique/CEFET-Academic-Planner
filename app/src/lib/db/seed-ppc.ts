@@ -2,6 +2,7 @@ import db from "./index";
 import path from "path";
 import fs from "fs";
 import { countDisciplinas, saveDisciplina, saveRequisito } from "./queries";
+import { normalizeCefetCh, maxAbsencesFromCefetCh } from "@/lib/disciplinas/cefet-ch";
 import { resolvePpcEmenta } from "@/lib/disciplinas/resolve-ppc-ementa";
 
 interface PpcSeedItem {
@@ -33,7 +34,8 @@ function loadPpcSeedData(): PpcSeedItem[] {
 }
 
 function withResolvedEmenta(item: PpcSeedItem): PpcSeedItem["disciplina"] {
-  const { codigo, nome, carga_horaria, periodo, tipo } = item.disciplina;
+  const { codigo, nome, periodo, tipo } = item.disciplina;
+  const carga_horaria = normalizeCefetCh(item.disciplina.carga_horaria);
   return {
     codigo,
     nome,
@@ -51,7 +53,7 @@ export function syncPpcEmentasToDb(): void {
     UPDATE disciplinas
     SET
       ementa = @ementa,
-      carga_horaria = COALESCE(NULLIF(carga_horaria, 0), @carga_horaria),
+      carga_horaria = @carga_horaria,
       periodo = COALESCE(periodo, @periodo)
     WHERE codigo = @codigo
   `

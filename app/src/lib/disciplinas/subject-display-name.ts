@@ -13,6 +13,8 @@ const STOP_WORDS = new Set([
   "o",
   "as",
   "os",
+  "uma",
+  "um",
 ]);
 
 const ROMAN_NUMERAL = /^(i|ii|iii|iv|v|vi)$/i;
@@ -31,14 +33,12 @@ export function sanitizeSubjectNickname(value: string): string {
   return sanitizeSubjectDisplayName(value).slice(0, SUBJECT_NICKNAME_MAX_LENGTH);
 }
 
-function isPpcStyleCode(code: string): boolean {
+/** Códigos curtos do PPC/SIGAA (AEDI, LAOCI) — não slugs longos nem `01/1`. */
+function isUsableShortCode(code: string): boolean {
   const normalized = code.trim().toUpperCase();
-  if (normalized.length < 2 || normalized.length > 10) return false;
-  if (!/^[A-Z0-9-]+$/.test(normalized)) return false;
-
-  const hyphenCount = (normalized.match(/-/g) ?? []).length;
-  if (hyphenCount > 1) return false;
-  if (hyphenCount === 1 && normalized.length > 9) return false;
+  if (normalized.length < 2 || normalized.length > 6) return false;
+  if (!/^[A-Z0-9]+$/.test(normalized)) return false;
+  if (/^\d/.test(normalized)) return false;
 
   return true;
 }
@@ -53,8 +53,24 @@ function extractSignificantWords(name: string): string[] {
   });
 }
 
+function splitTrailingRoman(
+  words: string[]
+): { coreWords: string[]; roman: string | null } {
+  if (words.length === 0) return { coreWords: words, roman: null };
+
+  const last = words[words.length - 1];
+  if (!ROMAN_NUMERAL.test(last)) {
+    return { coreWords: words, roman: null };
+  }
+
+  return {
+    coreWords: words.slice(0, -1),
+    roman: last.toUpperCase(),
+  };
+}
+
 function buildInitialsFromWords(words: string[]): string {
-  return words.map((word) => word[0]?.toUpperCase() ?? "").join("");
+  return words.map((word) => toLabelToken(word)[0] ?? "").join("");
 }
 
 function truncateNickname(value: string): string {
@@ -62,19 +78,55 @@ function truncateNickname(value: string): string {
   return value.slice(0, SUBJECT_NICKNAME_MAX_LENGTH);
 }
 
+function stripAccents(value: string): string {
+  return value.normalize("NFD").replace(/\p{M}/gu, "");
+}
+
+function toLabelToken(value: string): string {
+  return stripAccents(value).toUpperCase();
+}
+
+function appendRomanSuffix(base: string, roman: string | null): string {
+  if (!roman) return truncateNickname(base);
+  const combined = `${base}${roman}`;
+  if (combined.length <= SUBJECT_NICKNAME_MAX_LENGTH) return combined;
+  return truncateNickname(`${base.slice(0, Math.max(1, SUBJECT_NICKNAME_MAX_LENGTH - roman.length))}${roman}`);
+}
+
 function suggestFromSignificantWords(words: string[]): string {
   if (words.length === 0) return "DISC";
 
-  if (words.length === 1) {
-    return truncateNickname(words[0].toUpperCase());
+  const { coreWords, roman } = splitTrailingRoman(words);
+
+  if (coreWords.length === 0 && roman) {
+    return truncateNickname(roman);
   }
 
-  const initials = buildInitialsFromWords(words);
-  if (initials.length <= 3 && words[0].length >= 10) {
-    return truncateNickname(words[0].slice(0, 8).toUpperCase());
+  const firstWord = coreWords[0];
+  const firstUpper = toLabelToken(firstWord);
+
+  if (coreWords.length === 1) {
+    return appendRomanSuffix(truncateNickname(firstUpper), roman);
   }
 
-  return truncateNickname(initials);
+  const initials = buildInitialsFromWords(coreWords);
+
+  // Nome descritivo longo (ex.: Cálculo com Funções de uma Variável Real → CALCUL)
+  if (initials.length >= 4 && firstWord.length >= 5) {
+    return appendRomanSuffix(firstUpper.slice(0, 6), roman);
+  }
+
+  // Primeira palavra domina (ex.: Empreendedorismo e Plano de Negócios → EMPREEND)
+  if (initials.length <= 3 && firstWord.length >= 12) {
+    return appendRomanSuffix(truncateNickname(firstUpper).slice(0, 8), roman);
+  }
+
+  // Iniciais curtas demais (ex.: Inglês Instrumental II → INGII, não III)
+  if (initials.length <= 2) {
+    return appendRomanSuffix(firstUpper.slice(0, 3), roman);
+  }
+
+  return appendRomanSuffix(initials, roman);
 }
 
 function suggestFromDisciplineName(name: string): string {
@@ -95,12 +147,17 @@ function suggestFromDisciplineName(name: string): string {
   return suggestFromSignificantWords(extractSignificantWords(trimmed));
 }
 
-/** Gera apelido curto (AEDI, LAOCI, EMPREEND…) a partir do nome SIGAA / PPC. */
+/** Gera apelido curto (AEDI, LAOCI, INGII…) a partir do nome SIGAA / PPC. */
 export function suggestSubjectNickname(name: string, code: string): string {
-  if (isPpcStyleCode(code)) {
+  if (isUsableShortCode(code)) {
     return code.trim().toUpperCase();
   }
 
+  return suggestFromDisciplineName(name);
+}
+
+/** Rótulo curto para mapa e cards — sempre derivado do nome, nunca `01/1`. */
+export function suggestDisciplineShortLabel(name: string): string {
   return suggestFromDisciplineName(name);
 }
 
@@ -125,7 +182,7 @@ export function resolveSubjectShortLabel(
     return suggestSubjectNickname(name, code);
   }
 
-  if (isPpcStyleCode(code)) {
+  if (isUsableShortCode(code)) {
     return code.trim().toUpperCase();
   }
 

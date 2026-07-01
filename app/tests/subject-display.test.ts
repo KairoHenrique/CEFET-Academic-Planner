@@ -15,9 +15,9 @@ import {
 
 describe("resolvePpcEmenta", () => {
   test("mostra só carga horária do PPC na ementa, sem período", () => {
-    const ementa = resolvePpcEmenta("01/3", "Algoritmos e Estruturas de Dados I", 50);
+    const ementa = resolvePpcEmenta("01/3", "Algoritmos e Estruturas de Dados I", 60);
 
-    assert.match(ementa, /Carga horária: 50h/);
+    assert.match(ementa, /Carga horária: 60h/);
     assert.doesNotMatch(ementa, /período/i);
   });
 });

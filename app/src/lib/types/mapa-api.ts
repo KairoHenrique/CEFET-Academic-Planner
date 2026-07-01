@@ -9,6 +9,8 @@ export const COURSE_MAP_STATUS_LABELS: Record<CourseMapStatus, string> = {
 
 export interface CourseMapNode {
   code: string;
+  /** Sigla legível derivada do nome (ex.: CALCUL, AEDI, INGII) — não o código PPC `01/1`. */
+  shortLabel: string;
   name: string;
   ch: number;
   type: string | null;

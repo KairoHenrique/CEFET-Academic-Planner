@@ -5,6 +5,7 @@ import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 import {
   suggestSubjectNickname,
+  suggestDisciplineShortLabel,
   resolveSubjectShortLabel,
 } from "../src/lib/disciplinas/subject-display-name";
 
@@ -66,6 +67,26 @@ describe("subject-display-name — apelidos SIGAA", () => {
         "ALGORITMOS E ESTRUTURAS DE DADOS I"
       ),
       "AEDI"
+    );
+  });
+
+  test("inglês instrumental II não vira sigla III", () => {
+    assert.equal(
+      suggestDisciplineShortLabel("Inglês Instrumental II"),
+      "INGII"
+    );
+    assert.equal(
+      suggestSubjectNickname("INGLES INSTRUMENTAL II", "G05IINT2.0"),
+      "INGII"
+    );
+  });
+
+  test("suggestDisciplineShortLabel usa nome, não código PPC", () => {
+    assert.equal(
+      suggestDisciplineShortLabel(
+        "Cálculo com Funções de uma Variável Real"
+      ),
+      "CALCUL"
     );
   });
 });
