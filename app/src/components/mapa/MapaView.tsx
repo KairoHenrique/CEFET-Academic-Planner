@@ -64,6 +64,14 @@ export function MapaView() {
       <div className="col-12">
         <MapaStatsBar stats={data.stats} />
       </div>
+      {!data.historicoSynced && (
+        <div className="col-12 mapa-historico-warning" role="status">
+          <p>
+            Histórico escolar ainda não sincronizou — disciplinas concluídas podem
+            aparecer trancadas. Faça uma sincronização completa (botão Sync na barra).
+          </p>
+        </div>
+      )}
       <div className="col-12">
         <CourseMapGrid periods={data.periods} statusLabels={data.statusLabels} />
       </div>

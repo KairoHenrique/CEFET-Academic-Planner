@@ -1,5 +1,7 @@
 import { getAluno } from "@/lib/db/queries";
+import { buildPerfilAccount } from "@/lib/perfil/build-account";
 import { buildInitials } from "@/lib/perfil/build-initials";
+import { buildPerfilSubscription } from "@/lib/perfil/build-subscription-dev";
 import type { PerfilResponse } from "@/lib/types/perfil-api";
 import {
   getSyncAutoIntervalMinutes,
@@ -21,6 +23,8 @@ export function buildPerfil(): PerfilResponse {
           initials: buildInitials(aluno.nome),
         }
       : null,
+    account: buildPerfilAccount(),
+    subscription: buildPerfilSubscription(),
     sync: {
       automatic: true,
       intervalMinutes: getSyncAutoIntervalMinutes(),

@@ -35,6 +35,7 @@ describe("task deadline reminders", () => {
       [
         {
           id: 1,
+          disciplinaId: "CALC",
           title: "Lista 1",
           subtitle: "Cálculo",
           href: "/disciplinas/CALC",
@@ -46,8 +47,14 @@ describe("task deadline reminders", () => {
     );
 
     assert.equal(items.length, 2);
-    assert.equal(items[0].fingerprint, "task-reminder:1:24h");
-    assert.equal(items[1].fingerprint, "task-reminder:1:1h");
+    assert.equal(
+      items[0].fingerprint,
+      "task-reminder:calc|lista 1|2026-06-26|24h"
+    );
+    assert.equal(
+      items[1].fingerprint,
+      "task-reminder:calc|lista 1|2026-06-26|1h"
+    );
   });
 
   test("fora da janela de 24h não gera lembrete", () => {

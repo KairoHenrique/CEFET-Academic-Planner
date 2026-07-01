@@ -121,9 +121,41 @@ Critérios para escolha (fase de implementação):
 
 - Cartão de crédito
 - Boleto
-- Cupons / afiliados
+- Cupons públicos / códigos de afiliado em massa (diferente de **chaves gift** operador — §3.6)
 - Plano família / institucional
 - Nota fiscal automática (pode ser manual no início)
+
+### 3.6 Chaves de plano (gift card)
+
+Complementa PIX e trial (`SCOPE.md` §2.1.1). Implementação cloud:
+
+**Tabela `plan_gift_keys` (exemplo):**
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `code` | `char(8)` UNIQUE | Código normalizado uppercase |
+| `plan_type` | enum | `semester` \| `year` \| `custom_days` |
+| `duration_days` | int | Dias de acesso após resgate |
+| `status` | enum | `available` \| `redeemed` \| `revoked` \| `expired` |
+| `expires_at` | timestamptz nullable | Validade da **chave** (não do plano) |
+| `redeemed_by_cpf` | text nullable | CPF que resgatou |
+| `redeemed_at` | timestamptz nullable | |
+| `created_by` | text | Operador (dev panel) |
+| `internal_label` | text nullable | Ex.: “Beta testers jun/26” |
+
+**Regras:**
+
+- Geração: `crypto.randomBytes` → charset `A-Z0-9` → 8 chars; colisão → regerar.
+- Resgate atômico: transação `UPDATE … WHERE status = 'available' AND code = ?` — falha se já usada.
+- Após resgate: upsert em `subscriptions` com `source = 'gift_key'` e `expires_at = now() + duration_days`.
+- **Não** reinicia trial por CPF; chave **adiciona** ou **substitui** período pago conforme regra de negócio (v1: estende a partir de `now()` se expirado, ou soma se ainda `active` — definir na implementação **B69**).
+
+**API aluno:**
+
+- `POST /api/billing/redeem-key` — body `{ code }` + sessão CPF autenticado.
+- Rate limit por IP/CPF (anti brute-force de 8 chars).
+
+**Promoções:** flag global `promotions_enabled` (config operador) controla banners em `/planos`; independente das chaves gift.
 
 ---
 
@@ -140,16 +172,17 @@ Critérios para escolha (fase de implementação):
 | **Senha do app** | **Não existe** separada — mesma senha do SIGAA |
 | **Validação de senha** | **SIGAA** no sync (Playwright) |
 | **Validação no app** | CPF + gate trial/assinatura + `curso_id` válido |
-| **Armazenamento** | CPF, e-mail, telefone, `curso_id`, senha SIGAA **cifrada** |
+| **Armazenamento** | CPF, e-mail, telefone, `curso_id`, senha SIGAA **cifrada** *(meta produção — **B71**)* |
 | **Identidade Auth** | **CPF** como identificador principal (não e-mail) — ver B44 |
 
 Recuperação de acesso: por **e-mail** ou **telefone** cadastrados (não usa e-mail como login).
 
 ### 4.2 Credenciais SIGAA (sync)
 
-- CPF + senha gravados no cadastro (senha sempre cifrada).
-- Worker Playwright usa credenciais cifradas; **nunca** log em texto claro.
-- Opção “lembrar senha” no device = perfil no servidor, não plaintext no browser.
+- CPF + senha gravados no cadastro.
+- **Fase beta (atual):** SQLite dev pode guardar senha recuperável para painel `/dev` (testadores consentientes); **B25** cifra opcional “lembrar senha” mas operador pode ver plaintext no painel.
+- **Produção (B71):** senha **sempre** cifrada; worker Playwright descriptografa só em memória no worker; **nunca** log em texto claro.
+- Opção “lembrar senha” no device = perfil no servidor, não plaintext no browser *(pós-B71)*.
 
 ### 4.3 Fluxo pós-login
 
@@ -299,7 +332,53 @@ Fluxo:
 
 ---
 
-## 8. Deploy e ambientes
+## 8. Painel Dev (operador)
+
+> Regras de produto: `SCOPE.md` §10. Implementação **somente server-side** com credencial de operador.
+
+### 8.1 Autenticação do operador
+
+| Mecanismo | Detalhe |
+|---|---|
+| **Rota** | `/dev` (Next.js route group `(dev)` ou middleware) |
+| **Segredo** | `PLANNER_DEV_SECRET` (header ou cookie httpOnly após login operador) |
+| **Allowlist** | Opcional: `PLANNER_DEV_CPFS` — CPF do operador autorizado |
+| **Produção** | Painel **desligado** se env ausente; 404 para não vazar existência |
+
+Alunos **nunca** veem link para `/dev`.
+
+**Fase testes:** painel dev **lista senha SIGAA em claro** por conta (operador only) — para abrir o SIGAA manualmente e validar sync/scraper. Testadores são voluntários informados.
+
+**Pós-B71:** painel dev **não** exibe senha; apenas status `credential_saved` + ações de re-sync.
+
+### 8.2 APIs operador (service role)
+
+Prefixo sugerido: `/api/dev/*` — middleware valida segredo antes de handler.
+
+| Endpoint | Função |
+|---|---|
+| `GET /api/dev/accounts` | Lista contas + assinatura + último sync + **senha SIGAA (fase testes)** |
+| `GET /api/dev/gift-keys` | Lista chaves gift |
+| `POST /api/dev/gift-keys` | Cria N chaves com pacote |
+| `PATCH /api/dev/gift-keys/[code]` | Revogar chave disponível |
+| `PATCH /api/dev/accounts/[cpf]/subscription` | Simular expirar/estender |
+| `POST /api/dev/accounts/[cpf]/sync` | Enfileirar sync (worker) |
+| `PATCH /api/dev/config/promotions` | Toggle promoções globais |
+| `GET /api/dev/audit-log` | Ações sensíveis recentes |
+
+Todas as rotas usam **`SUPABASE_SERVICE_ROLE_KEY`** (bypass RLS) com validação explícita de operador.
+
+### 8.3 Simulação de mapa (aluno)
+
+Persistência por `user_id`:
+
+- Tabela `mapa_simulacao` ou JSON em `user_preferences`: `disciplina_id[]` simuladas como concluídas.
+- API: `GET/PATCH /api/mapa/simulacao` — merge no `GET /api/mapa?simulacao=1` ou campo separado no response.
+- **Dev local (SQLite):** mesma lógica em `configuracoes` ou tabela dedicada antes da cloud.
+
+---
+
+## 9. Deploy e ambientes
 
 | Ambiente | Web | Supabase | Worker |
 |---|---|---|---|
@@ -314,10 +393,12 @@ Fluxo:
 - `SUPABASE_SERVICE_ROLE_KEY` (só server)
 - `PIX_GATEWAY_*` (TBD)
 - `SIGAA_WORKER_URL` / fila
+- `PLANNER_DEV_SECRET` (painel operador — §8)
+- `PLANNER_DEV_CPFS` (opcional)
 
 ---
 
-## 9. Segurança e LGPD
+## 10. Segurança e LGPD
 
 1. **Minimização:** coletar só o necessário (e-mail, nome, credenciais SIGAA cifradas).
 2. **Criptografia:** SIGAA em repouso (AES/Vault); HTTPS em trânsito.
@@ -325,10 +406,11 @@ Fluxo:
 4. **Logs:** sem senhas, CPF ou e-mail em texto claro.
 5. **Retenção:** Dados acadêmicos são apagados automaticamente 7 dias após a expiração do plano ou trial sem pagamento. O registro de CPF permanece para controle anti-abuso. Exclusão antecipada sob demanda (direito do titular).
 6. **Termos de uso + política de privacidade** antes do go-live com pagamento.
+7. **Painel dev:** audit log obrigatório; **fase testes** pode exibir senha ao operador; **B71** remove exibição antes do go-live.
 
 ---
 
-## 10. Fases de implementação (ordem oficial v3)
+## 11. Fases de implementação (ordem oficial v3)
 
 > Detalhamento completo em `docs/TASKS.md` — [Ordem oficial v3](./TASKS.md#ordem-oficial-de-execução-v3).
 
@@ -340,7 +422,8 @@ Fluxo:
 | 4 | C | **6a** | Supabase + deploy **global** (testes, RLS flexível) — **após sync validado** |
 | 5 | C | **6b** | Auth app + credenciais SIGAA cifradas |
 | 6 | C | **6c** | RLS multi-tenant (**antes do PIX**) |
-| 7 | D | **7** | Assinatura PIX |
+| 7 | D | **7** | Assinatura PIX + gift keys + painel dev |
+| 7b | D | **7** | **B71** endurecimento credenciais — **última task antes do go-live** |
 | 8 | E | **8** | Mobile Expo Go |
 | 9 | F | **3** | Inteligência acadêmica |
 | 10 | F | **4** | Polimento UX |
@@ -356,7 +439,7 @@ Durante beta/testes com URL pública:
 
 ---
 
-## 11. Decisões em aberto (TBD)
+## 12. Decisões em aberto (TBD)
 
 - [ ] Preços dos planos (semestre / ano)
 - [ ] Gateway PIX definitivo
@@ -375,7 +458,9 @@ Durante beta/testes com URL pública:
 - [x] **Validação de senha delegada ao SIGAA** (sync Playwright)
 - [x] **Notificações por e-mail** com opt-out em Configurações (avatar)
 - [x] **PDFs não vão para Supabase Storage** — nuvem pessoal do aluno (`CEFET Academic Planner/{semestre}/{matéria}/`)
-- [x] **Sync SIGAA (Bloco 2) antes do Supabase (Bloco 6)** — validar com semestre ativo
+- [x] **Chaves de plano (gift):** 8 chars, uso único, emissão só operador (`SCOPE.md` §2.1.1)
+- [x] **Simulação de mapa:** overlay local; não altera histórico sync (`SCOPE.md` §6.1.1)
+- [x] **Painel dev:** `/dev` + `PLANNER_DEV_SECRET`; **fase testes** exibe senhas ao operador; **B71** endurece antes da produção
 - [x] **Hosting Web:** Cloudflare Pages (Frontend) + Supabase (Backend/Auth) + Ping script/cron (Anti-inatividade do DB free)
 
 ---

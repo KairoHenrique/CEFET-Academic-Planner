@@ -364,7 +364,6 @@ export function SubjectTasksPanel({
         open={Boolean(selectedFromState)}
         onClose={closeDetailModal}
         title={selectedFromState?.title ?? "Tarefa"}
-        scrollOptimized
       >
         {selectedFromState && (
           <TaskDetailContent

@@ -32,7 +32,6 @@ export function SubjectGroupModal({
       open={open}
       onClose={onClose}
       title="Integrantes do grupo"
-      scrollOptimized
       headerAside={
         <span className="badge subject-group-modal-badge">
           {memberCountLabel(members.length)}

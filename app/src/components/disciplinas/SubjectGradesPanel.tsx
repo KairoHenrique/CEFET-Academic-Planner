@@ -320,6 +320,7 @@ export function SubjectGradesPanel({ subject }: SubjectGradesPanelProps) {
             <button
               type="button"
               className={`btn-outline grades-simulate-toggle ${simulateMode ? "active" : ""}`}
+              data-tutorial-id="tutorial-simulate-btn"
               onClick={() => (simulateMode ? exitSimulation() : enterSimulation())}
             >
               <Icon name="calculator" size={14} />

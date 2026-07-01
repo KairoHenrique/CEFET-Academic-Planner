@@ -39,6 +39,25 @@ export function mergeNotificationBaseline(fingerprints: string[]): void {
   writeNotificationBaseline([...merged]);
 }
 
+/** Fingerprints antigas baseadas em id SQLite — invalidadas após sync do portal. */
+function isLegacyNotificationKey(key: string): boolean {
+  if (key.startsWith("task:id:")) return true;
+  return /^task-reminder:\d+:/.test(key);
+}
+
+export function migrateLegacyNotificationBaseline(
+  stableFingerprints: string[]
+): boolean {
+  const baseline = readNotificationBaseline();
+  if (!baseline || stableFingerprints.length === 0) return false;
+
+  const hasLegacy = [...baseline].some(isLegacyNotificationKey);
+  if (!hasLegacy) return false;
+
+  mergeNotificationBaseline(stableFingerprints);
+  return true;
+}
+
 export function seedNotificationBaselineIfMissing(fingerprints: string[]): void {
   if (readNotificationBaseline() !== null) return;
   writeNotificationBaseline(fingerprints);

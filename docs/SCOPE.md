@@ -33,7 +33,7 @@ Este documento detalha as funcionalidades e premissas de domínio do projeto. Se
 | Campo | Onde | Regra de negócio |
 |---|---|---|
 | **CPF** | Cadastro + **login** | Login SIGAA (só números). **Chave anti-abuso** do trial (§2.1). |
-| **Senha SIGAA** | Cadastro + login | Mesma senha do portal. Cifrada no servidor; validada pelo **SIGAA no sync**. |
+| **Senha SIGAA** | Cadastro + login | Mesma senha do portal. **Fase testes (jun/2026):** visível no painel dev para debug do sync — testadores **informados e consentientes**. **Produção:** cifrada em repouso (**B71** — última task pré-go-live). Validada pelo **SIGAA no sync**. |
 | **E-mail** | **Só cadastro** | Contato e **notificações** (atividades, nota de prova). **Não** é usuário de login. Opt-out em Configurações (§2.5). |
 | **Telefone** | **Só cadastro** | Contato (WhatsApp/SMS futuro, suporte). **Não** é login na v1. |
 | **Curso** | **Cadastro** (obrigatório) | **Eng. Computação**, **Eng. Mecatrônica** ou **Design de Moda** — define qual **PPC** alimenta mapa, integralização e simulador (§6.2). |
@@ -53,11 +53,35 @@ Este documento detalha as funcionalidades e premissas de domínio do projeto. Se
 - Após os 7 dias: acesso bloqueado até **pagamento PIX** (semestre/ano — ver `SCOPE-CLOUD.md` §3).
 - **Atenção (Retenção de Dados):** Se o aluno não realizar o pagamento em até 7 dias após a expiração (do trial ou da assinatura), todos os seus dados acadêmicos **serão apagados** do banco de dados para poupar espaço. O CPF, no entanto, continuará salvo na lista de controle para impedir que ele ganhe um novo trial no futuro.
 
+### 2.1.1 Chaves de plano (gift card) *(decisão de produto — jun/2026)*
+
+Alternativa ao PIX para liberar acesso: **chave de resgate** gerada **somente pelo operador** (painel dev — §10). Comportamento de **gift card**:
+
+| Regra | Detalhe |
+|---|---|
+| **Formato** | **8 caracteres** alfanuméricos (`A–Z`, `0–9`), gerados aleatoriamente (ex.: `K7M2P9QX`). Entrada **case-insensitive**. |
+| **Uso único** | Cada chave **funciona uma vez**. Após resgate → status `resgatada`; não pode ser reutilizada nem transferida. |
+| **Benefício** | Cada chave carrega um **pacote configurável** na criação: tipo de plano (ex.: semestre, ano), **duração em dias** ou data fim fixa, rótulo interno (ex.: “promo lançamento”). |
+| **Quem cria** | **Somente o operador** via painel dev (§10). Alunos **não** geram chaves. |
+| **Onde resgatar** | Cadastro, login (trial expirado), `/planos` ou modal “Tenho uma chave de plano”. |
+| **Efeito** | Estende ou ativa assinatura (`active`) pelo período da chave — **sem PIX** naquele resgate. |
+| **Anti-abuso** | Chave inválida, expirada (se tiver validade) ou já usada → mensagem genérica; log interno no painel dev. |
+
+**Fluxo resumo:**
+
+1. Operador cria chave no painel dev → sistema gera código + grava pacote (dias/plano).
+2. Aluno informa a chave na autenticação ou em `/planos`.
+3. Sistema valida → vincula `subscription` ao CPF → marca chave como `resgatada` + `resgatada_por_cpf` + timestamp.
+4. Gate de acesso (§2.0) passa a tratar como assinatura ativa até o fim do período da chave.
+
+> Detalhes de schema, promoções globais e segurança do painel: `SCOPE-CLOUD.md` §3.6 e §8.
+
 ### 2.2 Login e persistência de credenciais
 
 - **Login** = **CPF + senha SIGAA** (e-mail e telefone **não** autenticam).
-- Opção **“Lembrar senha neste computador”** → senha cifrada no perfil (servidor).
-- Sync automático usa credenciais cifradas quando o aluno optou por lembrar.
+- Opção **“Lembrar senha neste computador”** → senha salva no SQLite local (dev) / perfil cifrado (produção — **B71**).
+- **Fase beta / testes com voluntários:** o painel dev (§10) **exibe a senha SIGAA** para o operador abrir o portal manualmente e validar scraper, mapa, histórico, etc. Só participantes que **sabem e aceitam** esse uso.
+- **Antes do go-live:** task **B71** remove exibição de senhas, endurece cifragem (AES + segredos em env), bloqueia retorno de credencial ao client do aluno e audita acessos no painel dev.
 
 ### 2.3 Dados Sincronizados (o que o scraper busca)
 A cada sincronização, o Playwright navega pelo SIGAA e extrai:
@@ -258,6 +282,20 @@ CEFET Academic Planner/
   - 🔴 **Trancada** — Falta pré-requisito.
 - Ao clicar em uma disciplina, abre o dashboard individual com a ementa.
 
+#### 6.1.1 Simulação de mapa de curso *(decisão de produto — jun/2026)*
+
+Modo **“what-if”** na página `/mapa`, **separado** do mapa real (sync/histórico) e **separado** do simulador de matrícula (§6.3):
+
+| Aspecto | Regra |
+|---|---|
+| **Objetivo** | O aluno marca disciplinas como **“simular concluída”** e vê em tempo real o que **desbloqueia** (pré-requisitos, travas de CH de capstone). |
+| **Fonte de verdade** | Mapa real = `historico` + semestre atual (sync). Simulação = **overlay local** (preferência do usuário) — **não altera** `historico` nem o SIGAA. |
+| **Persistência** | Conjunto simulado salvo por usuário (localStorage no dev SQLite; Postgres na cloud). Botão **“Limpar simulação”** volta ao mapa real. |
+| **UI** | Toggle **“Modo simulação”** no topo do mapa; nós simulados com indicador visual distinto (ex.: borda tracejada / ícone “sim”). |
+| **Integração** | Opcional: exportar lista de disciplinas simuladas para o **simulador de matrícula** (§6.3) como ponto de partida. |
+
+**Regra #1 (§2.4):** dados simulados são **preferência do usuário** — sync nunca apaga a simulação; reset só manual.
+
 ### 6.2 Carregamento do PPC**
 
 Cada curso tem seu **PPC**. O aluno escolhe o **curso no cadastro**; mapa, integralização e simulador usam o PPC associado.
@@ -364,3 +402,73 @@ Ver **`docs/SCOPE-CLOUD.md` §7** — app **Expo Go**, backend Supabase, sem scr
 6. **Co-requisitos** são matérias que devem ser cursadas no mesmo semestre (ex: uma teoria e seu laboratório). Não é pré-requisito.
 7. **O sistema não altera dados no SIGAA.** É somente leitura (scraping).
 8. **Um curso por vez até o mobile:** Eng. Computação deve estar completa (web → cloud → sync → PIX → mobile) antes de indexar Mecatrônica ou Moda (§6.2).
+9. **Simulação de mapa ≠ histórico real:** overlay local; não substitui sync do PDF (§7).
+10. **Chaves de plano:** uso único; emissão exclusiva do operador (§2.1.1, §10).
+11. **Senhas no painel dev (fase testes):** visíveis ao operador para debug SIGAA; **B71** encerra isso antes do go-live.
+
+---
+
+## 10. Painel Dev (operador)
+
+> **Acesso:** rota protegida **`/dev`** (ou subdomínio admin). **Somente o operador** (fundador do produto) — não é visível na navbar do aluno.  
+> **Autenticação:** credencial de operador via variável de ambiente (`PLANNER_DEV_SECRET` / allowlist de CPF) — **nunca** exposta no client.  
+> Detalhes técnicos e LGPD: `SCOPE-CLOUD.md` §8.
+
+### 10.1 Visão geral de contas
+
+Listagem e busca de **todas as contas** registradas:
+
+| Coluna / dado | Uso |
+|---|---|
+| CPF (parcialmente mascarado) | Identificação |
+| Matrícula, nome, curso | Dados SIGAA sync |
+| E-mail, telefone | Contato cadastro |
+| Status assinatura | `trial_active`, `active`, `expired`, etc. |
+| Plano + validade | Semestre/ano/chave resgatada + `expires_at` |
+| Trial | Início/fim; CPF já consumiu trial? |
+| Último sync | Timestamp + outcome parcial |
+| **Senha SIGAA** | **Fase testes:** exibida em claro no painel dev (só operador) — copiar/abrir SIGAA para debug. **Pós-B71:** oculta; só “salva / não salva” + botão “forçar re-sync” |
+| Ações rápidas | Abrir sync forçado, copiar CPF, link “testar login SIGAA” (dev) |
+
+### 10.2 Chaves de plano (gift cards)
+
+- **Criar** chave: gera código 8 chars + define pacote (dias, plano, validade opcional da chave, nota interna).
+- **Listar** chaves: código, status (`disponível` / `resgatada` / `expirada`), quem resgatou (CPF), quando.
+- **Revogar** chave ainda não resgatada (opcional v1).
+- **Exportar** CSV de chaves geradas (operador only).
+
+### 10.3 Promoções e billing
+
+- Toggle global: **“Promoções ativas”** (ex.: exibir banner na `/planos`).
+- Configurar textos/preços promocionais (sem alterar planos base até Bloco 7 PIX).
+- Visão de pagamentos PIX pendentes/confirmados (quando Bloco 7 existir).
+
+### 10.4 Ferramentas de simulação (operador)
+
+Para **suporte e testes** — ações que **não** existem para o aluno comum:
+
+| Ação | Efeito |
+|---|---|
+| Simular expiração de trial/assinatura | Força gate de billing na conta escolhida |
+| Simular renovação / estender validade | +N dias sem PIX |
+| Disparar sync forçado | Enfileira job (worker) ou stub dev |
+| Ver mapa/integralização da conta | Abrir como “impersonate read-only” (sem editar dados do aluno) |
+| Reset dados acadêmicos | Apaga SQLite/Postgres do usuário (confirmação dupla) |
+
+### 10.5 Auditoria
+
+Toda ação sensível no painel dev gera **log interno** (quem, o quê, quando, alvo CPF) — sem PII desnecessário nos logs **após B71**.
+
+### 10.6 Endurecimento de credenciais — **última task pré-produção (B71)**
+
+> Enquanto **B71** não estiver `[x]`, o produto permanece em **modo testes** quanto a senhas.
+
+| Entrega B71 | Detalhe |
+|---|---|
+| Painel dev | Deixa de exibir senha em claro; operador usa apenas “re-sync” / logs de erro |
+| Armazenamento | Senha SIGAA **sempre** cifrada em repouso (AES-256 + `CREDENTIALS_ENCRYPTION_KEY` rotacionável) |
+| API aluno | Nenhum endpoint devolve senha ou ciphertext ao browser |
+| Logs | Zero senha/CPF completo em texto claro |
+| LGPD | Termos atualizados para produção; beta com testadores documentado como exceção encerrada |
+
+**Ordem:** **B71** roda **depois** de sync, billing e painel dev funcionarem — **immediately before** deploy público / PIX amplo.

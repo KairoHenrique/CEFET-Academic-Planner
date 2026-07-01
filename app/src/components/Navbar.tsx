@@ -12,6 +12,18 @@ import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { LogoutButton } from "@/components/auth/LogoutButton";
 import { ProfileMenu } from "@/components/profile/ProfileMenu";
 
+function tutorialIdForHref(href: string): string {
+  const map: Record<string, string> = {
+    "/": "nav-dashboard",
+    "/calendario": "nav-calendario",
+    "/disciplinas": "nav-disciplinas",
+    "/mapa": "nav-mapa",
+    "/integralizacao": "nav-integralizacao",
+    "/simulador": "nav-simulador",
+  };
+  return map[href] ?? `nav-${href.replace(/\//g, "")}`;
+}
+
 export function Navbar() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -34,6 +46,7 @@ export function Navbar() {
                 <Link
                   href={link.href}
                   className={isActive(link.href) ? "active" : ""}
+                  data-tutorial-id={tutorialIdForHref(link.href)}
                 >
                   <span className="navbar-link-icon">
                     <Icon name={link.icon} size={16} />

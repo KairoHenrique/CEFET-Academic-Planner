@@ -97,7 +97,7 @@ export function SubjectList() {
               </tr>
             </thead>
             <tbody>
-              {sortedItems.map((subject) => {
+              {sortedItems.map((subject, index) => {
                 const absenceRisk = computeAbsenceRisk(
                   subject.absences,
                   subject.maxAbsences
@@ -106,6 +106,8 @@ export function SubjectList() {
                   <tr
                     key={subject.code}
                     className="data-table-row-clickable subject-table-row"
+                    data-tutorial-id={index === 0 ? "tutorial-discipline-row" : undefined}
+                    data-discipline-code={index === 0 ? subject.code : undefined}
                     onClick={() => openSubject(subject.code)}
                     role="link"
                     tabIndex={0}

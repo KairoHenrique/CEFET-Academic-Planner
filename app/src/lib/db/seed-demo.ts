@@ -10,6 +10,7 @@ import {
   saveCalendarioEvent,
   saveDisciplina,
   saveIntegralizacao,
+  setConfig,
   upsertSyncedFalta,
   upsertSyncedNota,
   upsertSyncedSemestreAtual,
@@ -57,6 +58,9 @@ export function seedDemoStudentData(): void {
     rg: 56.33,
     status: "Regular",
   });
+
+  setConfig("account.email", "kairo.contato@email.com");
+  setConfig("account.phone", "37999887766");
 
   const activeDisciplinaIds: string[] = [];
 

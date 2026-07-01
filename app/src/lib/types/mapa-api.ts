@@ -37,4 +37,6 @@ export interface MapaResponse {
   statusLabels: Record<CourseMapStatus, string>;
   periods: CourseMapPeriod[];
   stats: MapaStats;
+  /** False quando a tabela `historico` está vazia — mapa incompleto até sync do PDF. */
+  historicoSynced: boolean;
 }

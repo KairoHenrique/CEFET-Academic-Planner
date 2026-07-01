@@ -14,7 +14,12 @@ import { useSubjectRecovery } from "@/hooks/useSubjectRecovery";
 import type { SubjectSummary } from "@/lib/types/subject";
 import Link from "next/link";
 
-export function SubjectCard({ subject }: { subject: SubjectSummary }) {
+interface SubjectCardProps {
+  subject: SubjectSummary;
+  tutorialAnchor?: boolean;
+}
+
+export function SubjectCard({ subject, tutorialAnchor = false }: SubjectCardProps) {
   const { getPriority, setSubjectPriority } = useSubjectPriorities();
   const { gradeRisk, recoveryScore, setRecoveryScore } = useSubjectRecovery(
     subject.code,
@@ -29,20 +34,24 @@ export function SubjectCard({ subject }: { subject: SubjectSummary }) {
     <div
       className="subject-card"
       style={{ borderLeft: `2px solid ${subject.color}` }}
+      data-tutorial-id={tutorialAnchor ? "tutorial-subject-card" : undefined}
     >
       <div className="subject-card-header">
         <h3 className="subject-name">{subject.name}</h3>
-        <PrioritySelect
-          className="subject-card-priority"
-          level={priority}
-          compact
-          onChange={(level) => setSubjectPriority(subject.code, level)}
-        />
+        <span data-tutorial-id={tutorialAnchor ? "tutorial-subject-priority" : undefined}>
+          <PrioritySelect
+            className="subject-card-priority"
+            level={priority}
+            compact
+            onChange={(level) => setSubjectPriority(subject.code, level)}
+          />
+        </span>
       </div>
 
       <div className="subject-card-body">
         <div className="subject-stats-grid">
-          <GradeRiskIndicator
+          <div data-tutorial-id={tutorialAnchor ? "tutorial-subject-grade" : undefined}>
+            <GradeRiskIndicator
             grade={subject.grade}
             gradeRisk={gradeRisk}
             variant="card"
@@ -53,6 +62,7 @@ export function SubjectCard({ subject }: { subject: SubjectSummary }) {
             onRecoveryScoreSave={setRecoveryScore}
             onRecoveryScoreClear={() => setRecoveryScore(null)}
           />
+          </div>
 
           <Link
             href={href}
@@ -77,7 +87,10 @@ export function SubjectCard({ subject }: { subject: SubjectSummary }) {
           className="subject-card-nav-block"
           aria-label={`Abrir disciplina ${subject.name}`}
         >
-          <div className="subject-card-bars">
+          <div
+            className="subject-card-bars"
+            data-tutorial-id={tutorialAnchor ? "tutorial-subject-bars" : undefined}
+          >
             {hasGrade && (
               <GradeRiskBar
                 gradeRisk={gradeRisk}
