@@ -5,9 +5,11 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getNotifications, SYNC_COMPLETE_EVENT } from "@/lib/api/client";
 import {
   mergeNotificationBaseline,
+  migrateLegacyNotificationBaseline,
   readNotificationBaseline,
   seedNotificationBaselineIfMissing,
 } from "@/lib/notifications/notification-baseline";
+import { buildTaskReminderNotificationFingerprint } from "@/lib/notifications/notification-fingerprint";
 import {
   archiveRecentPanelItems,
   readRecentPanelItems,
@@ -60,10 +62,27 @@ export function useNotifications() {
 
   useEffect(() => {
     if (!query.data?.items) return;
-    seedNotificationBaselineIfMissing(
-      query.data.items.map((item) => item.fingerprint)
-    );
-  }, [query.data?.items]);
+
+    const stableFingerprints = [
+      ...query.data.items.map((item) => item.fingerprint),
+      ...(query.data.pendingTasks ?? []).flatMap((task) =>
+        (["24h", "1h"] as const).map((slot) =>
+          buildTaskReminderNotificationFingerprint(
+            task.disciplinaId,
+            task.title,
+            task.dueDateIso,
+            slot
+          )
+        )
+      ),
+    ];
+
+    seedNotificationBaselineIfMissing(stableFingerprints);
+
+    if (migrateLegacyNotificationBaseline(stableFingerprints)) {
+      setBaselineVersion((value) => value + 1);
+    }
+  }, [query.data?.items, query.data?.pendingTasks]);
 
   useEffect(() => {
     const onSyncComplete = () => {

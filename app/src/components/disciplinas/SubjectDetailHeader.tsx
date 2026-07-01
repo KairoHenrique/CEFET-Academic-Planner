@@ -63,7 +63,10 @@ export function SubjectDetailHeader({ subject, grupo }: SubjectDetailHeaderProps
             </button>
           </div>
         ) : null}
-        <div className="subject-detail-actions">
+        <div
+          className="subject-detail-actions"
+          data-tutorial-id="tutorial-discipline-properties"
+        >
           <button
             type="button"
             className="subject-nickname-trigger"

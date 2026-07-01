@@ -11,6 +11,7 @@ export interface NotificationSnapshotItem {
 
 export interface PendingTaskReminderSource {
   id: number;
+  disciplinaId: string;
   title: string;
   subtitle: string;
   href: string;

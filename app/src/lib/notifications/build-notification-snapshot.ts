@@ -48,6 +48,7 @@ export function buildNotificationSnapshot(): {
 
     pendingTasks.push({
       id: row.id,
+      disciplinaId: row.disciplina_id,
       title: row.titulo,
       subtitle: disciplinaNome,
       href: `/disciplinas/${encodeURIComponent(row.disciplina_id)}`,
@@ -56,7 +57,11 @@ export function buildNotificationSnapshot(): {
     });
 
     items.push({
-      fingerprint: buildTaskNotificationFingerprint(row.id),
+      fingerprint: buildTaskNotificationFingerprint(
+        row.disciplina_id,
+        row.titulo,
+        row.data_fim
+      ),
       kind: "task",
       title: row.titulo,
       subtitle: disciplinaNome,

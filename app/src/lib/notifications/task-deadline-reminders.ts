@@ -1,4 +1,5 @@
 import { getTaskDueDateTime, normalizeTime } from "@/lib/tasks/dates";
+import { buildTaskReminderNotificationFingerprint } from "@/lib/notifications/notification-fingerprint";
 import type {
   NotificationSnapshotItem,
   PendingTaskReminderSource,
@@ -10,10 +11,18 @@ const ONE_HOUR_MS = 60 * 60 * 1000;
 const TWENTY_FOUR_HOURS_MS = 24 * ONE_HOUR_MS;
 
 export function buildTaskReminderFingerprint(
-  taskId: number,
+  task: Pick<
+    PendingTaskReminderSource,
+    "disciplinaId" | "title" | "dueDateIso"
+  >,
   slot: TaskReminderSlot
 ): string {
-  return `task-reminder:${taskId}:${slot}`;
+  return buildTaskReminderNotificationFingerprint(
+    task.disciplinaId,
+    task.title,
+    task.dueDateIso,
+    slot
+  );
 }
 
 export function getActiveTaskReminderSlots(
@@ -62,7 +71,7 @@ export function buildTaskDeadlineReminderItems(
   for (const task of tasks) {
     for (const slot of getActiveTaskReminderSlots(task, now)) {
       items.push({
-        fingerprint: buildTaskReminderFingerprint(task.id, slot),
+        fingerprint: buildTaskReminderFingerprint(task, slot),
         kind: "task-reminder",
         title: buildReminderTitle(slot),
         subtitle: buildReminderSubtitle(task, slot),

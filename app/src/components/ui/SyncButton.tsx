@@ -63,6 +63,7 @@ export function SyncButton() {
       <button
         type="button"
         className="navbar-sync-btn"
+        data-tutorial-id="sync-sigaa"
         onClick={handleClick}
         disabled={sync.syncing}
         title="Sincronizar com SIGAA"

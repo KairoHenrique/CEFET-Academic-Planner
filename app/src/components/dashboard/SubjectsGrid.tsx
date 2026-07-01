@@ -19,7 +19,7 @@ export function SubjectsGrid({ disciplinas }: SubjectsGridProps) {
   }, [disciplinas, getPriority, map]);
 
   return (
-    <section>
+    <section data-tutorial-id="tutorial-subjects-section">
       <SectionHeader
         title="Disciplinas do Semestre"
         icon="books"
@@ -28,8 +28,12 @@ export function SubjectsGrid({ disciplinas }: SubjectsGridProps) {
       />
 
       <div className="subjects-grid">
-        {sorted.map((subject) => (
-          <SubjectCard key={subject.code} subject={subject} />
+        {sorted.map((subject, index) => (
+          <SubjectCard
+            key={subject.code}
+            subject={subject}
+            tutorialAnchor={index === 0}
+          />
         ))}
       </div>
     </section>

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Icon } from "@/components/ui/Icon";
+import { isUrgentTaskReminderFingerprint } from "@/lib/notifications/notification-fingerprint";
 import { useNotifications } from "@/hooks/useNotifications";
 import type { NotificationSnapshotItem } from "@/lib/types/notifications-api";
 
@@ -24,7 +25,7 @@ function countByKind(items: NotificationSnapshotItem[]) {
 function iconForNotification(item: NotificationSnapshotItem) {
   if (item.kind === "grade") return "star" as const;
   if (item.kind === "task-reminder") {
-    return item.fingerprint.endsWith(":1h")
+    return isUrgentTaskReminderFingerprint(item.fingerprint)
       ? ("priority-high" as const)
       : ("clipboard" as const);
   }
@@ -32,7 +33,7 @@ function iconForNotification(item: NotificationSnapshotItem) {
 }
 
 function kindClassName(item: NotificationSnapshotItem): string {
-  if (item.kind === "task-reminder" && item.fingerprint.endsWith(":1h")) {
+  if (item.kind === "task-reminder" && isUrgentTaskReminderFingerprint(item.fingerprint)) {
     return "notification-bell-kind notification-bell-kind--task-reminder-urgent";
   }
   if (item.kind === "task-reminder") {
@@ -123,6 +124,7 @@ export function NotificationBell() {
       <button
         type="button"
         className="notification-bell-btn"
+        data-tutorial-id="notifications-bell"
         onClick={handleToggle}
         aria-label={
           totalUnread > 0

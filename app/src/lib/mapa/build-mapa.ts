@@ -162,5 +162,6 @@ export function buildMapa(): MapaResponse {
       unlocked: totals.unlocked,
       locked: totals.locked,
     },
+    historicoSynced: historico.length > 0,
   };
 }

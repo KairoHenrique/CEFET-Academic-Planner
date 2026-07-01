@@ -188,7 +188,6 @@ export function UpcomingTasks({ tasks: initialTasks }: UpcomingTasksProps) {
         open={Boolean(selectedFromState)}
         onClose={closeDetailModal}
         title={selectedFromState?.title ?? "Tarefa"}
-        scrollOptimized
       >
         {selectedFromState && (
           <TaskDetailContent
