@@ -16,10 +16,12 @@ import {
   mergeDisciplinaSets,
   resolveCourseMapStatusResult,
 } from "@/lib/mapa/course-status";
-import { getObrigatoriaTotalFromCatalog } from "@/lib/mapa/period-ch-gates";
+import { normalizeCefetCh } from "@/lib/disciplinas/cefet-ch";
+import { suggestDisciplineShortLabel } from "@/lib/disciplinas/subject-display-name";
 import { computeChDoneFromDisciplinas } from "@/lib/integralizacao/compute-ch-from-disciplinas";
 import { getChCatalog } from "@/lib/integralizacao/ch-catalog";
 import { mapDisciplineTipoToChType } from "@/lib/integralizacao/map-discipline-tipo-to-ch";
+import { getObrigatoriaTotalFromCatalog } from "@/lib/mapa/period-ch-gates";
 import type { DisciplinaRow } from "@/lib/types/db";
 import type {
   CourseMapNode,
@@ -84,8 +86,9 @@ function buildPeriods(
 
       return {
         code: disciplina.codigo,
+        shortLabel: suggestDisciplineShortLabel(disciplina.nome),
         name: disciplina.nome,
-        ch: disciplina.carga_horaria ?? 0,
+        ch: normalizeCefetCh(disciplina.carga_horaria ?? 0),
         type: disciplina.tipo,
         status: resolved.status,
         blockedBy: resolved.blockedBy,

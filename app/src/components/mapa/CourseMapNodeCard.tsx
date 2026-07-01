@@ -35,7 +35,7 @@ export function CourseMapNodeCard({
     <>
       <Icon name={nodeIcon(node.status)} size={14} aria-hidden />
       <div>
-        <p className="course-node-code">{node.code}</p>
+        <p className="course-node-code">{node.shortLabel}</p>
         <p className="course-node-name">{node.name}</p>
         {node.status !== "locked" && (
           <p className="course-node-ch">{node.ch}h</p>
