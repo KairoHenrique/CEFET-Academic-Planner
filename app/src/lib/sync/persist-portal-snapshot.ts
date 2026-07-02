@@ -11,6 +11,7 @@ import {
 } from "@/lib/scraper/portal-discente/resolve-disciplina-codigo";
 import {
   clearPortalSyncedData,
+  getTarefas,
   pruneSyncedSemestreAtual,
   saveAluno,
   upsertPortalDisciplina,
@@ -28,6 +29,53 @@ import { isPortalSnapshotPersistable } from "@/lib/sync/portal-snapshot-policy";
 export interface PersistPortalResult {
   persisted: boolean;
   reason?: string;
+}
+
+interface SyncedTarefaContent {
+  descricao: string | null;
+  instrucoes: string | null;
+  entregaveis: string | null;
+}
+
+function tarefaContentCacheKey(disciplinaId: string, titulo: string): string {
+  return `${disciplinaId.toLowerCase()}\0${titulo.toLowerCase()}`;
+}
+
+function buildSyncedTarefaContentCache(): Map<string, SyncedTarefaContent> {
+  const cache = new Map<string, SyncedTarefaContent>();
+
+  for (const tarefa of getTarefas()) {
+    if (tarefa.manual === 1) continue;
+    cache.set(tarefaContentCacheKey(tarefa.disciplina_id, tarefa.titulo), {
+      descricao: tarefa.descricao,
+      instrucoes: tarefa.instrucoes,
+      entregaveis: tarefa.entregaveis,
+    });
+  }
+
+  return cache;
+}
+
+function resolveAtividadeInstrucoes(
+  atividade: PortalDiscenteSnapshot["atividades"][number],
+  preserved: SyncedTarefaContent | undefined
+): string | null {
+  if (atividade.enviada && preserved?.instrucoes) return preserved.instrucoes;
+  if (atividade.instrucoes && atividade.instrucoes.length > 0) {
+    return JSON.stringify(atividade.instrucoes);
+  }
+  return preserved?.instrucoes ?? null;
+}
+
+function resolveAtividadeEntregaveis(
+  atividade: PortalDiscenteSnapshot["atividades"][number],
+  preserved: SyncedTarefaContent | undefined
+): string | null {
+  if (atividade.enviada && preserved?.entregaveis) return preserved.entregaveis;
+  if (atividade.entregaveis && atividade.entregaveis.length > 0) {
+    return JSON.stringify(atividade.entregaveis);
+  }
+  return preserved?.entregaveis ?? null;
 }
 
 function buildSemestreCodigoByNome(
@@ -58,6 +106,7 @@ export function persistPortalSnapshot(
 
   ensureStudentSyncIsolation(snapshot.aluno.matricula);
   seedPpcIfEmpty();
+  const tarefaContentCache = buildSyncedTarefaContentCache();
   clearPortalSyncedData();
 
   saveAluno({
@@ -134,25 +183,26 @@ export function persistPortalSnapshot(
     );
     if (!disciplinaId) continue;
 
+    const preserved = tarefaContentCache.get(
+      tarefaContentCacheKey(disciplinaId, atividade.titulo)
+    );
+
     upsertSyncedTarefa({
       disciplina_id: disciplinaId,
       titulo: atividade.titulo,
-      descricao: atividade.descricao,
+      descricao:
+        atividade.enviada && preserved?.descricao
+          ? preserved.descricao
+          : atividade.descricao ?? preserved?.descricao ?? null,
       data_inicio: null,
       data_fim: atividade.dataFim,
       hora_fim: atividade.horaFim ?? "23:59",
       tipo: atividade.tipo,
       possui_nota: 0,
-      concluida: 0,
+      concluida: atividade.enviada ? 1 : 0,
       manual: 0,
-      instrucoes:
-        atividade.instrucoes && atividade.instrucoes.length > 0
-          ? JSON.stringify(atividade.instrucoes)
-          : null,
-      entregaveis:
-        atividade.entregaveis && atividade.entregaveis.length > 0
-          ? JSON.stringify(atividade.entregaveis)
-          : null,
+      instrucoes: resolveAtividadeInstrucoes(atividade, preserved),
+      entregaveis: resolveAtividadeEntregaveis(atividade, preserved),
       pontuacao_maxima: null,
     });
   }

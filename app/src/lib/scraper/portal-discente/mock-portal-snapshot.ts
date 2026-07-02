@@ -48,6 +48,7 @@ export function buildMockPortalSnapshot(username: string): PortalDiscenteSnapsho
         horaFim: task.dueTime ?? "23:59",
         tipo: task.type,
         descricao: task.description ?? null,
+        enviada: task.done,
       })),
   };
 }

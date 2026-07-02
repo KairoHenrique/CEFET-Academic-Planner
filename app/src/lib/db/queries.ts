@@ -744,6 +744,36 @@ export function upsertSyncedTarefa(tarefa: Omit<TarefaRow, "id">): void {
   if (existing) {
     if (existing.manual === 1) return;
 
+    const concluidaSync =
+      (existing.concluida_override ?? 0) === 1
+        ? existing.concluida
+        : tarefa.concluida;
+
+    const preserveRichContent =
+      concluidaSync === 1 &&
+      Boolean(existing.descricao?.trim()) &&
+      !tarefa.descricao?.trim();
+
+    if (preserveRichContent) {
+      db.prepare(
+        `
+        UPDATE tarefas
+        SET concluida = ?, data_fim = ?, hora_fim = ?
+        WHERE id = ?
+      `
+      ).run(
+        concluidaSync,
+        tarefa.data_fim,
+        tarefa.hora_fim ?? "23:59",
+        existing.id
+      );
+      return;
+    }
+
+    const descricao = tarefa.descricao ?? existing.descricao;
+    const instrucoes = tarefa.instrucoes ?? existing.instrucoes;
+    const entregaveis = tarefa.entregaveis ?? existing.entregaveis;
+
     db.prepare(
       `
       UPDATE tarefas
@@ -753,16 +783,16 @@ export function upsertSyncedTarefa(tarefa: Omit<TarefaRow, "id">): void {
       WHERE id = ?
     `
     ).run(
-      tarefa.descricao,
+      descricao,
       tarefa.data_inicio,
       tarefa.data_fim,
       tarefa.hora_fim ?? "23:59",
       tarefa.tipo,
       tarefa.possui_nota,
-      tarefa.instrucoes,
-      tarefa.entregaveis,
+      instrucoes,
+      entregaveis,
       tarefa.pontuacao_maxima,
-      tarefa.concluida,
+      concluidaSync,
       existing.id
     );
     return;

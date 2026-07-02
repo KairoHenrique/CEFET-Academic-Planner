@@ -35,6 +35,8 @@ export interface PortalAtividadePendente {
   horaFim: string | null;
   tipo: "individual" | "grupo" | null;
   descricao: string | null;
+  /** Tarefa/questionário já enviado no SIGAA (ícone verde no portal). */
+  enviada: boolean;
   linkId?: string | null;
   tipoLabel?: string | null;
   instrucoes?: string[];

@@ -436,6 +436,7 @@ function parseAtividadeFromPair(key: string, value: string): PortalAtividadePend
     horaFim,
     tipo: inferTipoAtividade(trimmedValue),
     descricao: trimmedValue,
+    enviada: false,
   };
 }
 
