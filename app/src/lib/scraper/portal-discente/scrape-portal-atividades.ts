@@ -106,7 +106,7 @@ export async function enrichPortalAtividadesComDetalhes(
 
   for (const link of links.slice(0, MAX_ATIVIDADE_CLICKS)) {
     const atividade = findAtividadeForLink(atividades, link);
-    if (!atividade) continue;
+    if (!atividade || atividade.enviada) continue;
 
     const clicked = await page.evaluate((linkId) => {
       const anchor = document.getElementById(linkId) as HTMLAnchorElement | null;

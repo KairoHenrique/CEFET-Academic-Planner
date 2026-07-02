@@ -1,4 +1,5 @@
 import { stripHtmlTags } from "@/lib/scraper/turma-virtual/html-utils";
+import { isPortalAtividadeEnviada } from "@/lib/scraper/portal-discente/parse-portal-atividade-status";
 import type { PortalAtividadePendente } from "@/lib/scraper/types/portal-discente";
 
 const BR_DATE_PATTERN = /(\d{2})\/(\d{2})\/(\d{4})/;
@@ -90,8 +91,10 @@ export function parsePortalAtividadesFromHtml(html: string): PortalAtividadePend
 
     if (cells.length < 3) continue;
 
+    const statusCell = cells[0] ?? "";
     const dateCell = cells[1] ?? "";
     const contentCell = cells[2] ?? "";
+    const enviada = isPortalAtividadeEnviada(statusCell);
     const plainContent = stripHtmlTags(contentCell);
 
     if (ATIVIDADE_EXCLUDE_PATTERN.test(plainContent)) continue;
@@ -113,6 +116,7 @@ export function parsePortalAtividadesFromHtml(html: string): PortalAtividadePend
       horaFim,
       tipo: inferTipoAtividade(plainContent),
       descricao: null,
+      enviada,
       linkId: parsedContent.linkId,
       tipoLabel: parsedContent.tipoLabel,
       instrucoes: [],

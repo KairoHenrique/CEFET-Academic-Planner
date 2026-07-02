@@ -120,6 +120,47 @@ describe("B27 — parse portal discente", () => {
       atividades[0]?.disciplinaCodigo,
       "LABORATÓRIO DE ARQUITETURA E ORGANIZAÇÃO DE COMPUTADORES I"
     );
+    assert.equal(atividades[0]?.enviada, false);
+  });
+
+  test("detecta tarefa enviada pelo ícone verde (check.png) do SIGAA", async () => {
+    const { parsePortalAtividadesFromHtml } = await import(
+      "../src/lib/scraper/portal-discente/parse-portal-atividades"
+    );
+
+    const FIXTURE = `
+      <form id="formAtividades">
+        <table>
+          <tr class="odd">
+            <td style="text-align:center;"><img src="/sigaa/img/check.png" title="Tarefa enviada"></td>
+            <td>06/07/2026 23:59 (4 dias)</td>
+            <td>
+              <small>
+                LABORATÓRIO DE ARQUITETURA E ORGANIZAÇÃO DE COMPUTADORES I<br>
+                <strong>Tarefa:</strong>
+                <a id="formAtividades:visualizarTarefaTurmaVirtual" href="#">MIC1 - A Unidade Lógica e Aritmética</a>
+              </small>
+            </td>
+          </tr>
+          <tr class="">
+            <td style="text-align:center;"><img src="/sigaa/img/prova_semana.png" title="Atividade na Semana"></td>
+            <td>06/07/2026 23:59 (4 dias)</td>
+            <td>
+              <small>
+                ARQUITETURA E ORGANIZAÇÃO DE COMPUTADORES I<br>
+                <strong>Tarefa:</strong>
+                <a id="formAtividades:visualizarTarefaTurmaVirtualj_id_1" href="#">Lista capítulo 3</a>
+              </small>
+            </td>
+          </tr>
+        </table>
+      </form>
+    `;
+
+    const atividades = parsePortalAtividadesFromHtml(FIXTURE);
+    assert.equal(atividades.length, 2);
+    assert.equal(atividades[0]?.enviada, true);
+    assert.equal(atividades[1]?.enviada, false);
   });
 
   test("resolve teoria e laboratório sem fundir disciplinas", async () => {
@@ -366,6 +407,61 @@ describe("B27 — persistPortalSnapshot", () => {
 
     const tarefas = queries.getTarefas();
     assert.ok(tarefas.length >= 1);
+  });
+
+  test("tarefa enviada no portal marca concluída sem apagar descrição", async () => {
+    const { buildMockPortalSnapshot } = await import(
+      "../src/lib/scraper/portal-discente/mock-portal-snapshot"
+    );
+    const { persistPortalSnapshot } = await import(
+      "../src/lib/sync/persist-portal-snapshot"
+    );
+    const queries = await import("../src/lib/db/queries");
+
+    const snapshot = buildMockPortalSnapshot("12345678901");
+    snapshot.semestreAtual = [
+      {
+        codigo: "LAOCI",
+        nome: "LABORATÓRIO DE ARQUITETURA E ORGANIZAÇÃO DE COMPUTADORES I",
+        local: "304",
+        codigoHorario: null,
+        horarioTraduzido: null,
+      },
+    ];
+    snapshot.atividades = [
+      {
+        disciplinaCodigo:
+          "LABORATÓRIO DE ARQUITETURA E ORGANIZAÇÃO DE COMPUTADORES I",
+        titulo: "MIC1 - A Unidade Lógica e Aritmética",
+        dataFim: "2026-07-06",
+        horaFim: "23:59",
+        tipo: "individual",
+        descricao: "Descrição rica da MIC1 com instruções detalhadas.",
+        enviada: false,
+        instrucoes: ["Montar circuito na protoboard"],
+        entregaveis: ["PDF do relatório"],
+      },
+    ];
+
+    persistPortalSnapshot(snapshot);
+
+    snapshot.atividades[0] = {
+      ...snapshot.atividades[0],
+      enviada: true,
+      descricao: null,
+      instrucoes: [],
+      entregaveis: [],
+    };
+    persistPortalSnapshot(snapshot);
+
+    const tarefa = queries
+      .getTarefas()
+      .find((row) => row.titulo === "MIC1 - A Unidade Lógica e Aritmética");
+    assert.ok(tarefa);
+    assert.equal(tarefa.concluida, 1);
+    assert.match(tarefa.descricao ?? "", /Descrição rica da MIC1/);
+    assert.match(tarefa.instrucoes ?? "", /protoboard/);
+    assert.match(tarefa.entregaveis ?? "", /relatório/);
   });
 
   test("não sobrescreve integralização manual no sync", async () => {
