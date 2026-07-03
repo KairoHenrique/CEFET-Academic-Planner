@@ -13,6 +13,7 @@ import {
   buildGradeNotificationFingerprint,
   buildTaskNotificationFingerprint,
 } from "@/lib/notifications/notification-fingerprint";
+import { buildGradeNotificationSubtitle } from "@/lib/notifications/grade-notification-copy";
 import { normalizeTime } from "@/lib/tasks/dates";
 
 export function buildNotificationSnapshot(): {
@@ -84,9 +85,16 @@ export function buildNotificationSnapshot(): {
       ),
       kind: "grade",
       title: row.avaliacao_nome,
-      subtitle: `${disciplinaNome} · nota ${row.nota_obtida}`,
+      subtitle: buildGradeNotificationSubtitle(
+        disciplinaNome,
+        row.nota_obtida,
+        row.nota_maxima
+      ),
       href: `/disciplinas/${encodeURIComponent(row.disciplina_id)}`,
       at: null,
+      disciplinaNome,
+      notaObtida: row.nota_obtida,
+      notaMaxima: row.nota_maxima,
     });
   }
 

@@ -7,6 +7,10 @@ export interface NotificationSnapshotItem {
   subtitle: string;
   href: string;
   at: string | null;
+  /** Preenchido em notificações de nota (avaliação referente está em `title`). */
+  disciplinaNome?: string;
+  notaObtida?: number;
+  notaMaxima?: number | null;
 }
 
 export interface PendingTaskReminderSource {

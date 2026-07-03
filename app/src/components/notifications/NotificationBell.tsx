@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { formatGradePoints } from "@/lib/disciplinas/grade-input";
 import { Icon } from "@/components/ui/Icon";
 import { isUrgentTaskReminderFingerprint } from "@/lib/notifications/notification-fingerprint";
 import { useNotifications } from "@/hooks/useNotifications";
@@ -40,6 +41,34 @@ function kindClassName(item: NotificationSnapshotItem): string {
     return "notification-bell-kind notification-bell-kind--task-reminder";
   }
   return `notification-bell-kind notification-bell-kind--${item.kind}`;
+}
+
+function renderGradeSubtitle(item: NotificationSnapshotItem) {
+  if (item.notaObtida === undefined) {
+    return <span className="notification-bell-item-subtitle">{item.subtitle}</span>;
+  }
+
+  const obtida = formatGradePoints(item.notaObtida);
+  const disciplinaNome = item.disciplinaNome ?? item.subtitle;
+
+  if (item.notaMaxima === null || item.notaMaxima === undefined || item.notaMaxima <= 0) {
+    return (
+      <span className="notification-bell-item-subtitle">
+        {disciplinaNome} · nota{" "}
+        <strong className="notification-bell-grade-score">{obtida}</strong>
+      </span>
+    );
+  }
+
+  const maxima = formatGradePoints(item.notaMaxima);
+  return (
+    <span className="notification-bell-item-subtitle">
+      {disciplinaNome} ·{" "}
+      <strong className="notification-bell-grade-score">
+        {obtida} / {maxima}
+      </strong>
+    </span>
+  );
 }
 
 function mergePanelItems(
@@ -199,12 +228,16 @@ export function NotificationBell() {
                       <span className="notification-bell-item-title">
                         {item.title}
                       </span>
-                      <span className="notification-bell-item-subtitle">
-                        {item.subtitle}
-                        {item.kind === "task" && formatDueDate(item.at) && (
-                          <> · {formatDueDate(item.at)}</>
-                        )}
-                      </span>
+                      {item.kind === "grade" ? (
+                        renderGradeSubtitle(item)
+                      ) : (
+                        <span className="notification-bell-item-subtitle">
+                          {item.subtitle}
+                          {item.kind === "task" && formatDueDate(item.at) && (
+                            <> · {formatDueDate(item.at)}</>
+                          )}
+                        </span>
+                      )}
                     </span>
                   </Link>
                 </li>

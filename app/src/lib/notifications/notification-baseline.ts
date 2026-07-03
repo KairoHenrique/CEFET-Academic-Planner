@@ -1,4 +1,5 @@
 import { getSession } from "@/lib/auth/session";
+import { normalizeStoredBaselineFingerprint } from "@/lib/notifications/notification-fingerprint";
 
 const STORAGE_PREFIX = "planner:notifications:baseline:";
 
@@ -16,7 +17,7 @@ export function readNotificationBaseline(): Set<string> | null {
     const raw = localStorage.getItem(key);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as string[];
-    return new Set(parsed);
+    return new Set(parsed.map(normalizeStoredBaselineFingerprint));
   } catch {
     return null;
   }
@@ -25,7 +26,8 @@ export function readNotificationBaseline(): Set<string> | null {
 export function writeNotificationBaseline(fingerprints: string[]): void {
   const key = storageKey();
   if (!key || typeof window === "undefined") return;
-  localStorage.setItem(key, JSON.stringify(fingerprints));
+  const normalized = fingerprints.map(normalizeStoredBaselineFingerprint);
+  localStorage.setItem(key, JSON.stringify(normalized));
 }
 
 /** Une itens já vistos com o snapshot atual (evita re-notificar após re-sync). */
@@ -61,4 +63,13 @@ export function migrateLegacyNotificationBaseline(
 export function seedNotificationBaselineIfMissing(fingerprints: string[]): void {
   if (readNotificationBaseline() !== null) return;
   writeNotificationBaseline(fingerprints);
+}
+
+/** Primeira baseline após sync: só o que já existia antes, não notas novas do scrape. */
+export function initializeNotificationBaselineFromPreSync(
+  preSyncFingerprints: string[]
+): boolean {
+  if (readNotificationBaseline() !== null) return false;
+  writeNotificationBaseline(preSyncFingerprints);
+  return true;
 }
