@@ -2302,6 +2302,23 @@ a:hover {
   overflow-wrap: anywhere;
 }
 
+.subject-card .subject-name-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.subject-card .subject-name-link:hover {
+  color: var(--gold-200);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.subject-card .subject-name-link:focus-visible {
+  outline: 2px solid var(--gold-400);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
 .subject-stats-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

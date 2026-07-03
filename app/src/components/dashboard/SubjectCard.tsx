@@ -37,7 +37,15 @@ export function SubjectCard({ subject, tutorialAnchor = false }: SubjectCardProp
       data-tutorial-id={tutorialAnchor ? "tutorial-subject-card" : undefined}
     >
       <div className="subject-card-header">
-        <h3 className="subject-name">{subject.name}</h3>
+        <h3 className="subject-name">
+          <Link
+            href={href}
+            className="subject-name-link"
+            aria-label={`Abrir disciplina ${subject.name}`}
+          >
+            {subject.name}
+          </Link>
+        </h3>
         <span data-tutorial-id={tutorialAnchor ? "tutorial-subject-priority" : undefined}>
           <PrioritySelect
             className="subject-card-priority"
