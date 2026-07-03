@@ -5,7 +5,8 @@ import {
 } from "@/lib/scraper/portal-discente/resolve-disciplina-codigo";
 import { stripSemestreSuffix } from "@/lib/scraper/turma-virtual/portal-turma-navigation";
 import {
-  clearTurmaVirtualSyncedData,
+  clearFaltasSyncedForDisciplina,
+  clearNotasSyncedForDisciplina,
   getSemestreAtual,
   patchSyncedSemestreTurmaMetadata,
   replaceSyncedGrupoForDisciplina,
@@ -14,6 +15,11 @@ import {
 } from "@/lib/db/queries";
 import type { TurmaVirtualSnapshot } from "@/lib/scraper/types/turma-virtual";
 import { isTurmaSnapshotPersistable } from "@/lib/sync/turma-snapshot-policy";
+import {
+  shouldReplaceSyncedFaltas,
+  shouldReplaceSyncedGrupo,
+  shouldReplaceSyncedNotas,
+} from "@/lib/sync/turma-sync-replace-policy";
 
 export interface PersistTurmaResult {
   persisted: boolean;
@@ -63,8 +69,6 @@ export function persistTurmaVirtualSnapshot(
     };
   }
 
-  clearTurmaVirtualSyncedData();
-
   const semestreByNome = buildSemestreCodigoByNome();
   const activeIds = buildActiveDisciplinaIds();
 
@@ -84,41 +88,51 @@ export function persistTurmaVirtualSnapshot(
       });
     }
 
-    for (const nota of disciplina.notas) {
-      if (nota.notaObtida === null && nota.notaMaxima === null) continue;
+    if (shouldReplaceSyncedNotas(disciplina)) {
+      clearNotasSyncedForDisciplina(disciplinaId);
 
-      upsertSyncedNota({
-        disciplina_id: disciplinaId,
-        avaliacao_nome: nota.avaliacaoNome,
-        nota_maxima: nota.notaMaxima,
-        nota_obtida: nota.notaObtida,
-        manual: 0,
-      });
+      for (const nota of disciplina.notas) {
+        if (nota.notaObtida === null && nota.notaMaxima === null) continue;
+
+        upsertSyncedNota({
+          disciplina_id: disciplinaId,
+          avaliacao_nome: nota.avaliacaoNome,
+          nota_maxima: nota.notaMaxima,
+          nota_obtida: nota.notaObtida,
+          manual: 0,
+        });
+      }
     }
 
-    for (const falta of disciplina.faltas) {
-      upsertSyncedFalta({
-        disciplina_id: disciplinaId,
-        data: falta.data,
-        status: falta.status,
-        quantidade: falta.quantidade ?? 0,
-      });
+    if (shouldReplaceSyncedFaltas(disciplina)) {
+      clearFaltasSyncedForDisciplina(disciplinaId);
+
+      for (const falta of disciplina.faltas) {
+        upsertSyncedFalta({
+          disciplina_id: disciplinaId,
+          data: falta.data,
+          status: falta.status,
+          quantidade: falta.quantidade ?? 0,
+        });
+      }
     }
 
-    replaceSyncedGrupoForDisciplina(
-      disciplinaId,
-      disciplina.grupo.map((membro) => ({
-        nome: membro.nome,
-        matricula: membro.matricula,
-        email: membro.email,
-        curso: membro.curso,
-      }))
-    );
+    if (shouldReplaceSyncedGrupo(disciplina)) {
+      replaceSyncedGrupoForDisciplina(
+        disciplinaId,
+        disciplina.grupo.map((membro) => ({
+          nome: membro.nome,
+          matricula: membro.matricula,
+          email: membro.email,
+          curso: membro.curso,
+        }))
+      );
 
-    if (disciplina.grupo.length > 0 || disciplina.grupoNome) {
-      patchSyncedSemestreTurmaMetadata(disciplinaId, {
-        grupo_nome: disciplina.grupoNome,
-      });
+      if (disciplina.grupo.length > 0 || disciplina.grupoNome) {
+        patchSyncedSemestreTurmaMetadata(disciplinaId, {
+          grupo_nome: disciplina.grupoNome,
+        });
+      }
     }
   }
 

@@ -617,6 +617,41 @@ describe("B28 — persistTurmaVirtualSnapshot", () => {
     assert.equal(nota?.nota_obtida, 7.5);
     assert.equal(nota?.manual, 1);
   });
+
+  test("preserva notas sync quando scrape da disciplina falha", async () => {
+    const { scrapeTurmaVirtualMock } = await import(
+      "../src/lib/scraper/turma-virtual/scrape-turma-virtual"
+    );
+    const { persistTurmaVirtualSnapshot } = await import(
+      "../src/lib/sync/persist-turma-virtual-snapshot"
+    );
+    const { upsertSyncedNota, getNotasByDisciplina } = await import(
+      "../src/lib/db/queries"
+    );
+
+    upsertSyncedNota({
+      disciplina_id: "LAEDI",
+      avaliacao_nome: "PRO1",
+      nota_maxima: 30,
+      nota_obtida: 22,
+      manual: 0,
+    });
+
+    const snapshot = scrapeTurmaVirtualMock();
+    const laedi = snapshot.disciplinas.find((item) =>
+      item.sigaaNome.includes("Lab. Alg.")
+    );
+    assert.ok(laedi);
+    laedi.notas = [];
+    laedi.scrapeWarnings = ["Não foi possível entrar na disciplina."];
+
+    persistTurmaVirtualSnapshot(snapshot);
+
+    const nota = getNotasByDisciplina("LAEDI").find(
+      (item) => item.avaliacao_nome === "PRO1"
+    );
+    assert.equal(nota?.nota_obtida, 22);
+  });
 });
 
 describe("B28 — runSync integração turma virtual", () => {

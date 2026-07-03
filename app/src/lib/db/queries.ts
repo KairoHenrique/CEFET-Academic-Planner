@@ -362,11 +362,17 @@ export function upsertSyncedNota(
   if (existing) {
     if (isNotaProtectedByUser(existing)) return;
 
+    const notaMaxima = nota.nota_maxima ?? existing.nota_maxima;
+    const notaObtida =
+      nota.nota_obtida !== null && nota.nota_obtida !== undefined
+        ? nota.nota_obtida
+        : existing.nota_obtida;
+
     db.prepare(
       `UPDATE notas
        SET nota_maxima = ?, nota_obtida = ?, manual = ?
        WHERE id = ?`
-    ).run(nota.nota_maxima, nota.nota_obtida, nota.manual, existing.id);
+    ).run(notaMaxima, notaObtida, nota.manual, existing.id);
     return;
   }
 
@@ -497,6 +503,15 @@ export function clearNotasSynced(): void {
   ).run();
 }
 
+export function clearNotasSyncedForDisciplina(disciplinaId: string): void {
+  db.prepare(
+    `DELETE FROM notas
+     WHERE disciplina_id = ? COLLATE NOCASE
+       AND manual = 0
+       AND COALESCE(nota_override, 0) = 0`
+  ).run(disciplinaId);
+}
+
 // --- FALTAS ---
 export function getFaltasByDisciplina(disciplinaId: string): FaltaRow[] {
   return db
@@ -581,6 +596,15 @@ export function clearFaltasSynced(): void {
   db.prepare(
     "DELETE FROM faltas WHERE manual = 0 AND COALESCE(status_override, 0) = 0"
   ).run();
+}
+
+export function clearFaltasSyncedForDisciplina(disciplinaId: string): void {
+  db.prepare(
+    `DELETE FROM faltas
+     WHERE disciplina_id = ? COLLATE NOCASE
+       AND manual = 0
+       AND COALESCE(status_override, 0) = 0`
+  ).run(disciplinaId);
 }
 
 // --- TAREFAS ---
