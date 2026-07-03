@@ -159,6 +159,8 @@ export function persistPortalSnapshot(
       grupo_nome: null,
       codigo_horario: disciplina.codigoHorario,
       horario_traduzido: disciplina.horarioTraduzido,
+      turma_data_inicio: disciplina.turmaDataInicio ?? null,
+      turma_data_fim: disciplina.turmaDataFim ?? null,
       cor: pickStablePaletteColor(codigo),
       apelido: suggestSubjectNickname(disciplina.nome, codigo),
       nome_exibicao: null,

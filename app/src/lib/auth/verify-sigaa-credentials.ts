@@ -16,7 +16,6 @@ async function verifyLiveCredentials(credentials: SyncRequest): Promise<void> {
     await loginSigaaOnPage(page, {
       username: credentials.username,
       password: credentials.password,
-      savePassword: false,
     });
   });
 }

@@ -36,7 +36,7 @@ import type {
 } from "@/lib/types/integralizacao-api";
 import type { MapaResponse } from "@/lib/types/mapa-api";
 import type { NotificationsSnapshotResponse } from "@/lib/types/notifications-api";
-import type { PerfilResponse } from "@/lib/types/perfil-api";
+import type { PerfilResponse, PatchPerfilBody } from "@/lib/types/perfil-api";
 import type { ScheduleApiResponse } from "@/lib/types/schedule-api";
 
 export type ClientErrorCode =
@@ -160,12 +160,41 @@ export async function postSync(
   );
 }
 
+export interface CalendarioSyncResponse {
+  ok: boolean;
+  skipped?: boolean;
+  partial?: boolean;
+  rowsWritten: number;
+  message: string;
+}
+
+export async function postCalendarioSync(
+  credentials: SyncRequest,
+  options?: { force?: boolean }
+): Promise<CalendarioSyncResponse> {
+  return requestJson<CalendarioSyncResponse>(
+    "/api/sync/calendario",
+    {
+      method: "POST",
+      body: JSON.stringify({ ...credentials, force: options?.force === true }),
+    },
+    credentials.username
+  );
+}
+
 export async function getDashboard(): Promise<DashboardResponse> {
   return requestJson<DashboardResponse>("/api/dashboard");
 }
 
 export async function getPerfil(): Promise<PerfilResponse> {
   return requestJson<PerfilResponse>("/api/perfil");
+}
+
+export async function patchPerfil(body: PatchPerfilBody): Promise<PerfilResponse> {
+  return requestJson<PerfilResponse>("/api/perfil", {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  });
 }
 
 function buildDisciplinaListQuery(

@@ -1,4 +1,5 @@
 import { getAluno } from "@/lib/db/queries";
+import { getNotificationPreferences } from "@/lib/notifications/notification-preferences";
 import { buildPerfilAccount } from "@/lib/perfil/build-account";
 import { buildInitials } from "@/lib/perfil/build-initials";
 import { buildPerfilSubscription } from "@/lib/perfil/build-subscription-dev";
@@ -30,5 +31,6 @@ export function buildPerfil(): PerfilResponse {
       intervalMinutes: getSyncAutoIntervalMinutes(),
       lastSyncAt: getSyncLastAt(),
     },
+    notifications: getNotificationPreferences(),
   };
 }

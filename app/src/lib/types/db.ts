@@ -50,6 +50,8 @@ export interface SemestreAtualRow {
   nota_aprovacao: number | null;
   arquivos_baixados: number | null;
   pdf_auto_download: number | null;
+  turma_data_inicio: string | null;
+  turma_data_fim: string | null;
 }
 
 export interface SemestreAtualWithDisciplina extends SemestreAtualRow {
@@ -122,11 +124,19 @@ export interface CalendarioAcademicoRow {
   semestre: string | null;
 }
 
+export type EventoCalendarioRecorrencia = "none" | "daily" | "weekly";
+
 export interface EventoCalendarioRow {
   id: number;
   titulo: string;
   descricao: string | null;
   data: string;
+  data_fim: string | null;
+  hora_inicio: string | null;
+  hora_fim: string | null;
+  recorrencia: EventoCalendarioRecorrencia;
+  recorrencia_ate: string | null;
+  recorrencia_dias: string | null;
   tipo: "aula" | "tarefa" | "prova" | "evento" | "monitoria" | "estagio" | "estudo" | "outro";
   disciplina_id: string | null;
   cor: string | null;

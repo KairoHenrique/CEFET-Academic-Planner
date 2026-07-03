@@ -7,12 +7,13 @@ import {
   eventTypeLabels,
   UNLINKED_SUBJECT_VALUE,
 } from "@/lib/types/calendar";
-import { DEFAULT_EVENT_COLOR } from "@/lib/colors/palette";
+import { resolveDefaultEventColor } from "@/lib/colors/event-type-colors";
 import { useDisciplinas } from "@/hooks/useDisciplinas";
 import { Input } from "@/components/ui/Input";
 import { PlannerSelect } from "@/components/ui/PlannerSelect";
 import { ColorDotPicker } from "@/components/ui/ColorDotPicker";
-
+import { WeekdayRecurrencePicker } from "@/components/calendario/WeekdayRecurrencePicker";
+import type { WeekdayIndex } from "@/lib/calendar/recurrence-weekdays";
 import type { ManualCalendarEventInput } from "@/lib/types/calendar-api";
 
 interface AddEventFormProps {
@@ -27,6 +28,18 @@ const TYPE_OPTIONS = CALENDAR_EVENT_TYPES.map((value) => ({
   label: eventTypeLabels[value],
 }));
 
+function formatTodayIso(): string {
+  const today = new Date();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+  return `${today.getFullYear()}-${month}-${day}`;
+}
+
+function resolveDefaultDate(value: string): string {
+  if (value && /^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+  return formatTodayIso();
+}
+
 export function AddEventForm({
   defaultDate,
   isSubmitting = false,
@@ -34,18 +47,24 @@ export function AddEventForm({
   onCancel,
 }: AddEventFormProps) {
   const { items: subjects } = useDisciplinas();
+  const resolvedDefaultDate = resolveDefaultDate(defaultDate);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [type, setType] = useState<CalendarEvent["type"]>("tarefa");
   const [subjectCode, setSubjectCode] = useState("");
   const [color, setColor] = useState("");
   const [colorTouched, setColorTouched] = useState(false);
-  const [date, setDate] = useState(defaultDate);
+  const [startDate, setStartDate] = useState(resolvedDefaultDate);
+  const [startTime, setStartTime] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [endTime, setEndTime] = useState("");
+  const [recurrenceDays, setRecurrenceDays] = useState<WeekdayIndex[]>([]);
 
   const defaultSubjectCode = subjects[0]?.code ?? UNLINKED_SUBJECT_VALUE;
   const activeSubjectCode = subjectCode || defaultSubjectCode;
   const isUnlinked = activeSubjectCode === UNLINKED_SUBJECT_VALUE;
   const subject = subjects.find((item) => item.code === activeSubjectCode);
+  const hasWeeklyRecurrence = recurrenceDays.length > 0;
 
   useEffect(() => {
     if (!subjectCode && subjects.length > 0) {
@@ -53,17 +72,37 @@ export function AddEventForm({
     }
   }, [subjectCode, subjects, defaultSubjectCode]);
 
+  useEffect(() => {
+    setTitle("");
+    setDescription("");
+    setType("tarefa");
+    setSubjectCode("");
+    setColor("");
+    setColorTouched(false);
+    setStartDate(resolvedDefaultDate);
+    setStartTime("");
+    setEndDate("");
+    setEndTime("");
+    setRecurrenceDays([]);
+  }, [resolvedDefaultDate]);
+
+  useEffect(() => {
+    if (colorTouched) return;
+    setColor(
+      resolveDefaultEventColor(type, !isUnlinked ? subject?.color : null)
+    );
+  }, [type, subject?.color, isUnlinked, colorTouched]);
+
   const previewColor = useMemo(() => {
     if (colorTouched && color) return color;
-    if (!isUnlinked && subject) return subject.color;
-    return DEFAULT_EVENT_COLOR;
-  }, [color, colorTouched, isUnlinked, subject]);
+    return resolveDefaultEventColor(type, !isUnlinked ? subject?.color : null);
+  }, [color, colorTouched, isUnlinked, subject?.color, type]);
 
   const subjectOptions = useMemo(
     () => [
       ...subjects.map((item) => ({
         value: item.code,
-        label: `${item.code} — ${item.name}`,
+        label: item.name,
       })),
       { value: UNLINKED_SUBJECT_VALUE, label: "Não associado à matéria" },
     ],
@@ -79,9 +118,12 @@ export function AddEventForm({
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     if (!title.trim() || isSubmitting) return;
+    if (hasWeeklyRecurrence && !endDate) return;
 
     const resolvedColor =
-      colorTouched && color ? color : !isUnlinked && subject ? subject.color : "";
+      colorTouched && color
+        ? color
+        : resolveDefaultEventColor(type, !isUnlinked ? subject?.color : null);
 
     onSubmit({
       title: title.trim(),
@@ -91,10 +133,15 @@ export function AddEventForm({
           ? "Evento pessoal adicionado manualmente."
           : "Tarefa adicionada manualmente."),
       type,
-      date,
+      date: startDate,
+      dateEnd: endDate || undefined,
+      timeStart: startTime || undefined,
+      timeEnd: endTime || undefined,
+      recurrence: hasWeeklyRecurrence ? "weekly" : "none",
+      recurrenceDays: hasWeeklyRecurrence ? recurrenceDays : undefined,
       subject: isUnlinked ? undefined : subject?.name,
       subjectCode: isUnlinked ? undefined : activeSubjectCode,
-      color: resolvedColor || DEFAULT_EVENT_COLOR,
+      color: resolvedColor,
       colorOverride: colorTouched,
       done: false,
     });
@@ -107,6 +154,7 @@ export function AddEventForm({
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         placeholder="Ex.: Revisar capítulo 3"
+        autoComplete="off"
         required
         disabled={isSubmitting}
       />
@@ -141,19 +189,73 @@ export function AddEventForm({
           />
         </div>
         <p className="add-event-color-hint">
-          {isUnlinked
-            ? "Cor automática se você não personalizar."
-            : "Usando a cor da matéria. Toque na bolinha para outra cor neste evento."}
+          {type === "aula" && !isUnlinked
+            ? "Aulas usam a cor da matéria. Toque na bolinha para personalizar."
+            : isUnlinked
+              ? "Cor automática por tipo se você não personalizar."
+              : "Cor sugerida pelo tipo. Toque na bolinha para mudar."}
         </p>
       </div>
-      <Input
-        label="Data"
-        type="date"
-        value={date}
-        onChange={(e) => setDate(e.target.value)}
-        required
+
+      <div className="add-event-datetime-block">
+        <span className="form-label">Início</span>
+        <div className="add-event-datetime-row">
+          <Input
+            label="Data de início"
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            required
+            disabled={isSubmitting}
+          />
+          <Input
+            label="Hora de início"
+            type="time"
+            value={startTime}
+            onChange={(e) => setStartTime(e.target.value)}
+            disabled={isSubmitting}
+          />
+        </div>
+      </div>
+
+      <div className="add-event-datetime-block">
+        <span className="form-label">
+          Fim{" "}
+          <span className="form-label-optional">
+            {hasWeeklyRecurrence ? "(obrigatório p/ repetir)" : "(opcional)"}
+          </span>
+        </span>
+        <div className="add-event-datetime-row">
+          <Input
+            label="Data de fim"
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            disabled={isSubmitting}
+            min={startDate || undefined}
+            required={hasWeeklyRecurrence}
+          />
+          <Input
+            label="Hora de fim"
+            type="time"
+            value={endTime}
+            onChange={(e) => setEndTime(e.target.value)}
+            disabled={isSubmitting}
+          />
+        </div>
+        <p className="add-event-field-hint">
+          {hasWeeklyRecurrence
+            ? "Repete toda semana nos dias marcados, até a data de fim."
+            : "Sem fim informado, vale só no dia de início."}
+        </p>
+      </div>
+
+      <WeekdayRecurrencePicker
+        selectedDays={recurrenceDays}
         disabled={isSubmitting}
+        onChange={setRecurrenceDays}
       />
+
       <label className="form-field">
         <span className="form-label">Descrição</span>
         <textarea

@@ -14,7 +14,7 @@ export const SITE_TUTORIAL_STEPS: SiteTutorialStep[] = [
   {
     id: "welcome",
     targetId: null,
-    title: "Bem-vindo ao Academic Planner",
+    title: "Bem-vindo ao ACME HUB",
     body: "Este tutorial explica como ler os cards do dashboard, definir prioridades, entender as barras de nota e falta, e simular cenários nas disciplinas. Avance com Próximo ou feche com Pular.",
   },
   {

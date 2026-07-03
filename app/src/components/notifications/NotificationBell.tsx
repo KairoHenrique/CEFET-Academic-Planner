@@ -3,8 +3,15 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { formatGradePoints } from "@/lib/disciplinas/grade-input";
+import {
+  GRADE_SCORE_GOLD,
+  resolveGradeScorePercentColor,
+} from "@/lib/disciplinas/grade-display";
 import { Icon } from "@/components/ui/Icon";
-import { isUrgentTaskReminderFingerprint } from "@/lib/notifications/notification-fingerprint";
+import {
+  isUrgentCalendarReminderFingerprint,
+  isUrgentTaskReminderFingerprint,
+} from "@/lib/notifications/notification-fingerprint";
 import { useNotifications } from "@/hooks/useNotifications";
 import type { NotificationSnapshotItem } from "@/lib/types/notifications-api";
 
@@ -20,11 +27,21 @@ function countByKind(items: NotificationSnapshotItem[]) {
     (item) => item.kind === "task" || item.kind === "task-reminder"
   ).length;
   const newGrades = items.filter((item) => item.kind === "grade").length;
-  return { newTasks, newGrades };
+  const newCalendarEvents = items.filter(
+    (item) =>
+      item.kind === "calendar-event-reminder" || item.kind === "class-reminder"
+  ).length;
+  return { newTasks, newGrades, newCalendarEvents };
 }
 
 function iconForNotification(item: NotificationSnapshotItem) {
   if (item.kind === "grade") return "star" as const;
+  if (item.kind === "class-reminder") return "books" as const;
+  if (item.kind === "calendar-event-reminder") {
+    return isUrgentCalendarReminderFingerprint(item.fingerprint)
+      ? ("priority-high" as const)
+      : ("calendar" as const);
+  }
   if (item.kind === "task-reminder") {
     return isUrgentTaskReminderFingerprint(item.fingerprint)
       ? ("priority-high" as const)
@@ -34,6 +51,18 @@ function iconForNotification(item: NotificationSnapshotItem) {
 }
 
 function kindClassName(item: NotificationSnapshotItem): string {
+  if (item.kind === "class-reminder") {
+    return "notification-bell-kind notification-bell-kind--class-reminder";
+  }
+  if (
+    item.kind === "calendar-event-reminder" &&
+    isUrgentCalendarReminderFingerprint(item.fingerprint)
+  ) {
+    return "notification-bell-kind notification-bell-kind--calendar-event-reminder-urgent";
+  }
+  if (item.kind === "calendar-event-reminder") {
+    return "notification-bell-kind notification-bell-kind--calendar-event-reminder";
+  }
   if (item.kind === "task-reminder" && isUrgentTaskReminderFingerprint(item.fingerprint)) {
     return "notification-bell-kind notification-bell-kind--task-reminder-urgent";
   }
@@ -50,23 +79,35 @@ function renderGradeSubtitle(item: NotificationSnapshotItem) {
 
   const obtida = formatGradePoints(item.notaObtida);
   const disciplinaNome = item.disciplinaNome ?? item.subtitle;
+  const hasMax =
+    item.notaMaxima !== null &&
+    item.notaMaxima !== undefined &&
+    item.notaMaxima > 0;
 
-  if (item.notaMaxima === null || item.notaMaxima === undefined || item.notaMaxima <= 0) {
-    return (
-      <span className="notification-bell-item-subtitle">
-        {disciplinaNome} · nota{" "}
-        <strong className="notification-bell-grade-score">{obtida}</strong>
-      </span>
-    );
-  }
+  const obtainedColor = hasMax
+    ? resolveGradeScorePercentColor(item.notaObtida, item.notaMaxima)
+    : GRADE_SCORE_GOLD;
 
-  const maxima = formatGradePoints(item.notaMaxima);
   return (
     <span className="notification-bell-item-subtitle">
       {disciplinaNome} ·{" "}
-      <strong className="notification-bell-grade-score">
-        {obtida} / {maxima}
-      </strong>
+      <span className="notification-bell-grade-line">
+        Nota{" "}
+        <strong
+          className="notification-bell-grade-obtained"
+          style={{ color: obtainedColor }}
+        >
+          {obtida}
+        </strong>
+        {hasMax && (
+          <>
+            <strong className="notification-bell-grade-sep">/</strong>
+            <strong className="notification-bell-grade-max">
+              {formatGradePoints(item.notaMaxima!)}
+            </strong>
+          </>
+        )}
+      </span>
     </span>
   );
 }
@@ -157,7 +198,7 @@ export function NotificationBell() {
         onClick={handleToggle}
         aria-label={
           totalUnread > 0
-            ? `${totalUnread} novidades: tarefas ou notas`
+            ? `${totalUnread} novidades no app`
             : "Notificações"
         }
         aria-expanded={open}
@@ -187,11 +228,20 @@ export function NotificationBell() {
                     {panelCounts.newTasks === 1 ? "" : "s"}
                   </span>
                 )}
-                {panelCounts.newTasks > 0 && panelCounts.newGrades > 0 && " · "}
+                {panelCounts.newTasks > 0 &&
+                  (panelCounts.newGrades > 0 || panelCounts.newCalendarEvents > 0) &&
+                  " · "}
                 {panelCounts.newGrades > 0 && (
                   <span>
                     {panelCounts.newGrades} nota
                     {panelCounts.newGrades === 1 ? "" : "s"}
+                  </span>
+                )}
+                {panelCounts.newGrades > 0 && panelCounts.newCalendarEvents > 0 && " · "}
+                {panelCounts.newCalendarEvents > 0 && (
+                  <span>
+                    {panelCounts.newCalendarEvents} evento
+                    {panelCounts.newCalendarEvents === 1 ? "" : "s"}
                   </span>
                 )}
               </p>

@@ -68,9 +68,12 @@ export const calendarEvents: CalendarEvent[] = [
 ];
 
 export const academicDates = [
-  { label: "Início das aulas", date: "10/02/2026" },
-  { label: "Trancamento de matéria", date: "28/03/2026" },
-  { label: "Recesso", date: "25/06 – 12/07/2026" },
-  { label: "Provas finais", date: "14/07 – 25/07/2026" },
+  { label: "Período Letivo 2026.1", date: "02/03/26 – 06/07/26" },
+  { label: "Matrícula OnLine", date: "22/01/26 – 25/01/26" },
+  { label: "Matrícula Extraordinária", date: "05/03/26 – 06/03/26" },
+  { label: "Rematrícula", date: "29/01/26 – 01/02/26" },
+  { label: "Ajustes das Rematrículas/Turmas", date: "09/03/26 – 10/03/26" },
+  { label: "Recesso", date: "25/06/26 – 12/07/26" },
+  { label: "Provas finais", date: "14/07/26 – 25/07/26" },
 ];
 

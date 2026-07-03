@@ -3,7 +3,7 @@ import { LoginForm } from "@/components/auth/LoginForm";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Entrar | Acme Hub",
+  title: "Entrar | ACME HUB",
 };
 
 export default function LoginPage() {

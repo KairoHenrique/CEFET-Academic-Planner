@@ -5,12 +5,10 @@ import { getSyncCredentials } from "@/lib/auth/credentials";
 import { buildInitials } from "@/lib/perfil/build-initials";
 import { usePerfil } from "@/hooks/usePerfil";
 import { ProfileModal } from "@/components/profile/ProfileModal";
-import { SiteTutorial } from "@/components/tutorial/SiteTutorial";
 
 export function ProfileMenu() {
   const { data, isLoading } = usePerfil();
   const [profileOpen, setProfileOpen] = useState(false);
-  const [tutorialOpen, setTutorialOpen] = useState(false);
 
   const profile = data?.profile;
   const credentials = getSyncCredentials();
@@ -36,10 +34,7 @@ export function ProfileMenu() {
         onClose={() => setProfileOpen(false)}
         data={data}
         loading={isLoading}
-        onStartTutorial={() => setTutorialOpen(true)}
       />
-
-      <SiteTutorial open={tutorialOpen} onClose={() => setTutorialOpen(false)} />
     </>
   );
 }

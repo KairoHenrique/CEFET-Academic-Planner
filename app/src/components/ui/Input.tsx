@@ -6,13 +6,19 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   error?: string;
 }
 
-export function Input({ label, hint, error, id, className = "", ...props }: InputProps) {
+export function Input({ label, hint, error, id, className = "", value, ...props }: InputProps) {
   const inputId = id ?? label.toLowerCase().replace(/\s+/g, "-");
+  const safeValue = value == null || value === "null" ? "" : value;
 
   return (
     <label className={`form-field ${className}`} htmlFor={inputId}>
       <span className="form-label">{label}</span>
-      <input id={inputId} className={`form-input ${error ? "form-input-error" : ""}`} {...props} />
+      <input
+        id={inputId}
+        className={`form-input ${error ? "form-input-error" : ""}`}
+        value={safeValue}
+        {...props}
+      />
       {hint && !error && <span className="form-hint">{hint}</span>}
       {error && <span className="form-error" role="alert">{error}</span>}
     </label>

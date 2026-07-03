@@ -6,6 +6,8 @@ import type {
 } from "@/lib/types/calendar-api";
 import { normalizeHexColor } from "@/lib/colors/palette";
 import { CALENDAR_EVENT_TYPES } from "@/lib/calendar/event-types";
+import { countIsoDaysInclusive } from "@/lib/calendar/date-range";
+import { parseRecurrenceDaysInput } from "@/lib/calendar/recurrence-weekdays";
 import type {
   DisciplinaListFilter,
   PatchDisciplinaAppearanceBody,
@@ -16,6 +18,7 @@ import type {
 } from "@/lib/types/disciplinas-api";
 import { isChType, isManualChType } from "@/lib/integralizacao/ch-catalog";
 import type { PostIntegralizacaoBody } from "@/lib/types/integralizacao-api";
+import type { PatchPerfilBody } from "@/lib/types/perfil-api";
 
 const DISCIPLINA_FILTERS: DisciplinaListFilter[] = [
   "todas",
@@ -368,6 +371,19 @@ function parseOptionalHexColor(value: unknown): string | undefined {
   return normalized;
 }
 
+function parseOptionalIsoDate(value: unknown, fieldName: string): string | undefined {
+  if (value === undefined || value === null || value === "") return undefined;
+  return parseIsoDate(value, fieldName);
+}
+
+function parseOptionalTime(value: unknown, fieldName: string): string | undefined {
+  if (value === undefined || value === null || value === "") return undefined;
+  if (typeof value !== "string" || !/^\d{2}:\d{2}$/.test(value)) {
+    throw validationError(`${fieldName} deve estar no formato HH:MM.`);
+  }
+  return value;
+}
+
 export function parseCreateCalendarEventBody(
   body: unknown
 ): CreateCalendarEventBody {
@@ -377,8 +393,62 @@ export function parseCreateCalendarEventBody(
 
   const record = body as Record<string, unknown>;
   const title = requireNonEmptyString(record.title, "Título");
-  const date = parseIsoDate(record.date, "Data");
+  const date = parseIsoDate(record.date, "Início");
   const type = parseCalendarEventType(record.type);
+  const dateEnd = parseOptionalIsoDate(record.dateEnd, "Fim");
+  const timeStart = parseOptionalTime(record.timeStart, "Hora de início");
+  const timeEnd = parseOptionalTime(record.timeEnd, "Hora de fim");
+  const recurrenceRaw = record.recurrence;
+  const recurrence =
+    recurrenceRaw === "weekly"
+      ? "weekly"
+      : recurrenceRaw === "daily"
+        ? "daily"
+        : "none";
+  const recurrenceUntil = parseOptionalIsoDate(
+    record.recurrenceUntil,
+    "Repetir até"
+  );
+  const recurrenceDays = parseRecurrenceDaysInput(record.recurrenceDays);
+
+  if (dateEnd && dateEnd < date) {
+    throw validationError("A data de fim deve ser igual ou posterior ao início.");
+  }
+
+  if (recurrence === "weekly") {
+    if (recurrenceDays.length === 0) {
+      throw validationError("Selecione ao menos um dia da semana para repetir.");
+    }
+    if (!dateEnd) {
+      throw validationError(
+        "Informe a data de fim para repetir nos dias selecionados."
+      );
+    }
+    if (dateEnd < date) {
+      throw validationError(
+        "A data de fim deve ser igual ou posterior ao início."
+      );
+    }
+  }
+
+  if (recurrence === "daily") {
+    if (!recurrenceUntil) {
+      throw validationError("Informe até quando repetir o evento.");
+    }
+    if (recurrenceUntil < date) {
+      throw validationError(
+        "A data limite da recorrência deve ser igual ou posterior ao início."
+      );
+    }
+    if (dateEnd && dateEnd !== date) {
+      throw validationError(
+        "Com recorrência diária, use apenas a data de início e o horário."
+      );
+    }
+    if (countIsoDaysInclusive(date, recurrenceUntil) > 366) {
+      throw validationError("A recorrência diária pode ter no máximo 366 dias.");
+    }
+  }
 
   const subjectCode =
     typeof record.subjectCode === "string" ? record.subjectCode.trim() : undefined;
@@ -386,6 +456,12 @@ export function parseCreateCalendarEventBody(
   return {
     title,
     date,
+    dateEnd,
+    timeStart,
+    timeEnd,
+    recurrence,
+    recurrenceUntil,
+    recurrenceDays: recurrence === "weekly" ? recurrenceDays : undefined,
     type,
     description:
       typeof record.description === "string" ? record.description : undefined,
@@ -572,4 +648,74 @@ export function parsePostIntegralizacaoBody(body: unknown): PostIntegralizacaoBo
     tipoCh,
     horas: Math.trunc(horas),
   };
+}
+
+function parseOptionalBoolean(value: unknown): boolean | undefined {
+  if (value === undefined) return undefined;
+  if (typeof value === "boolean") return value;
+  if (value === 1 || value === "1" || value === "true") return true;
+  if (value === 0 || value === "0" || value === "false") return false;
+  throw validationError("Preferência de notificação inválida.");
+}
+
+export function parsePatchPerfilBody(body: unknown): PatchPerfilBody {
+  if (!body || typeof body !== "object") {
+    throw validationError("Corpo da requisição inválido.");
+  }
+
+  const record = body as Record<string, unknown>;
+  const patch: PatchPerfilBody = {};
+
+  if (record.email !== undefined) {
+    patch.email =
+      record.email === null
+        ? null
+        : typeof record.email === "string"
+          ? record.email
+          : (() => {
+              throw validationError("E-mail inválido.");
+            })();
+  }
+
+  if (record.phone !== undefined) {
+    patch.phone =
+      record.phone === null
+        ? null
+        : typeof record.phone === "string"
+          ? record.phone
+          : (() => {
+              throw validationError("Celular inválido.");
+            })();
+  }
+
+  if (record.notifications !== undefined) {
+    if (!record.notifications || typeof record.notifications !== "object") {
+      throw validationError("Preferências de notificação inválidas.");
+    }
+
+    const prefs = record.notifications as Record<string, unknown>;
+    const notifications: NonNullable<PatchPerfilBody["notifications"]> = {};
+
+    if (prefs.tasks !== undefined) {
+      notifications.tasks = parseOptionalBoolean(prefs.tasks);
+    }
+    if (prefs.grades !== undefined) {
+      notifications.grades = parseOptionalBoolean(prefs.grades);
+    }
+    if (prefs.taskReminders !== undefined) {
+      notifications.taskReminders = parseOptionalBoolean(prefs.taskReminders);
+    }
+    if (prefs.calendarReminders !== undefined) {
+      notifications.calendarReminders = parseOptionalBoolean(prefs.calendarReminders);
+    }
+    if (prefs.classReminders !== undefined) {
+      notifications.classReminders = parseOptionalBoolean(prefs.classReminders);
+    }
+
+    if (Object.keys(notifications).length > 0) {
+      patch.notifications = notifications;
+    }
+  }
+
+  return patch;
 }

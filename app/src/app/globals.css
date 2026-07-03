@@ -1,5 +1,5 @@
 /* ============================================
-   CEFET Academic Planner — Design System
+   ACME HUB — Design System
    Paleta: Cruzeiro (Azul Vivo + Dourado)
    Estética: camisa 2024 — topografia, piping dourado
    ============================================ */
@@ -47,6 +47,7 @@
   --gold-400: #D4A843;
   --gold-500: #B8912E;
   --gold-600: #9A7A24;
+  --gold: var(--gold-300);
 
   /* Superfícies — opacas para legibilidade sobre o fundo jersey */
   --bg-primary: #001020;
@@ -262,6 +263,16 @@ a:hover {
   border: 1px solid var(--border-emphasis);
 }
 
+.brand-logo-img {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+}
+
 .navbar-links {
   display: flex;
   align-items: center;
@@ -444,6 +455,21 @@ a:hover {
   background: rgba(255, 120, 80, 0.16);
 }
 
+.notification-bell-kind--calendar-event-reminder {
+  color: #9ec8ff;
+  background: rgba(58, 160, 232, 0.14);
+}
+
+.notification-bell-kind--calendar-event-reminder-urgent {
+  color: #ff9b7a;
+  background: rgba(255, 120, 80, 0.16);
+}
+
+.notification-bell-kind--class-reminder {
+  color: #b8d4ff;
+  background: rgba(90, 140, 220, 0.16);
+}
+
 .notification-bell-copy {
   display: flex;
   flex-direction: column;
@@ -464,9 +490,19 @@ a:hover {
   line-height: 1.4;
 }
 
-.notification-bell-grade-score {
-  color: var(--accent-cyan);
-  font-weight: 600;
+.notification-bell-grade-line {
+  display: inline;
+  white-space: nowrap;
+}
+
+.notification-bell-grade-obtained {
+  font-weight: 700;
+}
+
+.notification-bell-grade-sep,
+.notification-bell-grade-max {
+  color: var(--gold-300);
+  font-weight: 700;
 }
 
 .navbar-sync-btn {
@@ -600,7 +636,54 @@ a:hover {
 }
 
 .modal-panel:has(.profile-modal-body) {
-  width: min(560px, calc(100vw - 32px));
+  width: min(560px, calc(100vw - 24px));
+  max-height: calc(100dvh - 12px);
+}
+
+.modal-panel:has(.profile-modal-body) .modal-header {
+  padding: var(--space-4) var(--space-5);
+}
+
+.modal-body:has(.profile-modal-body) {
+  padding: var(--space-4) var(--space-5);
+}
+
+.profile-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.modal-body:has(.profile-modal-body) .profile-modal-hero {
+  gap: var(--space-3);
+}
+
+.modal-body:has(.profile-modal-body) .profile-modal-section-title {
+  margin-bottom: var(--space-2);
+}
+
+.modal-body:has(.profile-modal-body) .profile-section-heading {
+  margin-bottom: var(--space-2);
+}
+
+.modal-body:has(.profile-modal-body) .profile-info-list {
+  gap: var(--space-2);
+}
+
+.modal-body:has(.profile-modal-body) .profile-plan-card {
+  padding: var(--space-3);
+}
+
+.modal-body:has(.profile-modal-body) .profile-plan-remaining {
+  margin: var(--space-2) 0 var(--space-1);
+}
+
+.modal-body:has(.profile-modal-body) .profile-plan-expires {
+  margin-bottom: var(--space-3);
+}
+
+.modal-body:has(.profile-modal-body) .profile-sync-footer {
+  padding-top: var(--space-3);
 }
 
 .profile-modal-loading {
@@ -608,12 +691,6 @@ a:hover {
   padding: var(--space-4);
   font-size: 0.875rem;
   color: var(--text-secondary);
-}
-
-.profile-modal-body {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-5);
 }
 
 .profile-modal-hero {
@@ -658,6 +735,215 @@ a:hover {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--text-muted);
+}
+
+.profile-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.profile-section-heading .profile-modal-section-title {
+  margin: 0;
+}
+
+.profile-section-edit-btn {
+  display: none;
+}
+
+.profile-edit-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--gold-300);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color var(--transition-fast);
+}
+
+.profile-edit-link:hover:not(:disabled) {
+  color: var(--gold-200);
+}
+
+.profile-edit-link:focus-visible {
+  outline: 2px solid var(--gold-400);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+.profile-contact-edit {
+  display: grid;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.profile-contact-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-shrink: 0;
+}
+
+.profile-cancel-link {
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color var(--transition-fast);
+}
+
+.profile-cancel-link:hover:not(:disabled) {
+  color: var(--text-secondary);
+}
+
+.profile-cancel-link:focus-visible {
+  outline: 2px solid var(--gold-400);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+.profile-cancel-link:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.profile-notifications-section .profile-modal-section-title {
+  margin-bottom: var(--space-2);
+}
+
+.profile-pref-panel {
+  border: 1px solid var(--border-muted);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.profile-pref-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 8px var(--space-3);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.profile-pref-item + .profile-pref-item {
+  border-top: 1px solid var(--border-muted);
+}
+
+.profile-pref-item:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.profile-pref-item-copy {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  min-width: 0;
+  flex: 1;
+}
+
+.profile-pref-item-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+.profile-pref-item-hint {
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.profile-pref-switch-wrap {
+  position: relative;
+  flex-shrink: 0;
+  width: 36px;
+  height: 20px;
+}
+
+.profile-pref-switch {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.profile-pref-switch:disabled {
+  cursor: not-allowed;
+}
+
+.profile-pref-switch:disabled + .profile-pref-switch-track {
+  opacity: 0.5;
+}
+
+.profile-pref-switch-track {
+  position: relative;
+  display: block;
+  width: 36px;
+  height: 20px;
+  border-radius: 999px;
+  border: 1px solid var(--border-emphasis);
+  background: rgba(255, 255, 255, 0.08);
+  pointer-events: none;
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast);
+}
+
+.profile-pref-switch-track::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--text-tertiary);
+  transition:
+    transform var(--transition-fast),
+    background var(--transition-fast);
+}
+
+.profile-pref-switch:checked + .profile-pref-switch-track {
+  background: rgba(212, 168, 67, 0.22);
+  border-color: var(--gold-400);
+}
+
+.profile-pref-switch:checked + .profile-pref-switch-track::after {
+  transform: translateX(16px);
+  background: var(--gold-300);
+}
+
+.profile-pref-switch:focus-visible + .profile-pref-switch-track {
+  box-shadow: 0 0 0 2px var(--gold-400);
+}
+
+.profile-inline-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.profile-save-error {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 120, 80, 0.12);
+  color: #ff9b7a;
+  font-size: 0.8125rem;
 }
 
 .profile-info-list {
@@ -754,22 +1040,34 @@ a:hover {
   text-decoration: none;
 }
 
-.profile-modal-actions {
-  border-top: 1px solid var(--border-muted);
+.profile-sync-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: auto;
   padding-top: var(--space-4);
+  border-top: 1px solid var(--border-muted);
 }
 
-.profile-tutorial-btn {
-  width: 100%;
-  justify-content: center;
-}
-
-.profile-modal-footer-hint {
-  margin: var(--space-3) 0 0;
-  font-size: 0.75rem;
-  line-height: 1.5;
+.profile-sync-label {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   color: var(--text-muted);
-  text-align: center;
+}
+
+.profile-sync-value {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.profile-sync-hint {
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+  line-height: 1.4;
 }
 
 .site-tutorial-root {
@@ -1144,6 +1442,8 @@ a:hover {
   flex-direction: column;
   height: 100%;
   min-height: 0;
+  min-width: 0;
+  max-width: 100%;
   overflow: hidden;
 }
 
@@ -1151,12 +1451,14 @@ a:hover {
 .module-slot:has(.absence-panel) {
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
 .module-slot:has(.grades-panel) > .module-shell,
 .module-slot:has(.absence-panel) > .module-shell {
   flex: 1;
   min-height: 0;
+  min-width: 0;
   display: flex;
   flex-direction: column;
 }
@@ -1165,6 +1467,8 @@ a:hover {
 .module-slot:has(.absence-panel) > .module-shell > * {
   flex: 1;
   min-height: 0;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .grades-panel-header,
@@ -1181,23 +1485,78 @@ a:hover {
 }
 
 .grades-panel .grades-table-wrap {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow-y: auto;
+  flex: 0 0 auto;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: visible;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 .absence-panel .attendance-table-wrap {
-  flex: 0 0 auto;
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
   margin-top: var(--space-4);
-  max-height: calc(
-    var(--subject-panel-table-head) +
-      var(--subject-panel-table-row) * var(--subject-panel-table-rows)
-  );
-  overflow-x: hidden;
+  overflow-x: auto;
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
   -webkit-overflow-scrolling: touch;
+}
+
+/* Disciplina — Notas define altura; Frequência usa a mesma altura máxima */
+.subject-panels-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+  align-items: start;
+  min-width: 0;
+}
+
+.subject-panel-col {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.subject-panel-col--grades > .grades-panel {
+  height: auto;
+  max-height: none;
+  flex: 0 0 auto;
+}
+
+.subject-panel-col--synced {
+  height: var(--subject-panel-sync-height, auto);
+  max-height: var(--subject-panel-sync-height, none);
+  min-height: 0;
+  overflow: hidden;
+}
+
+.subject-panel-col--synced > .absence-panel {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  max-height: 100%;
+}
+
+.subject-panels-row .absence-panel .attendance-table-wrap {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: 100%;
+  overflow-x: auto;
+  overflow-y: auto;
+}
+
+.grades-table-wrap .data-table th:first-child,
+.grades-table-wrap .data-table td:first-child {
+  min-width: 0;
+  max-width: 1px;
+  word-break: break-word;
 }
 
 .module-slot:has(.grades-panel) {
@@ -4138,16 +4497,24 @@ a:hover {
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
+  grid-auto-rows: minmax(76px, auto);
   gap: var(--space-1);
 }
 
 .calendar-day {
-  min-height: 72px;
-  padding: var(--space-2);
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-muted);
   background: rgba(255, 255, 255, 0.03);
   text-align: left;
+}
+
+.calendar-day-btn:not(.empty) {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  min-height: 76px;
+  padding: 6px;
 }
 
 .calendar-day-btn {
@@ -4155,7 +4522,7 @@ a:hover {
   cursor: pointer;
   font: inherit;
   color: inherit;
-  transition: all var(--transition-fast);
+  transition: border-color var(--transition-fast), background var(--transition-fast);
 }
 
 .calendar-day-btn:not(.empty):hover {
@@ -4163,50 +4530,92 @@ a:hover {
   background: var(--bg-hover);
 }
 
-.calendar-day-btn.has-events {
-  border-color: var(--border-default);
-}
-
 .calendar-day.empty {
   border-color: transparent;
   background: transparent;
+  cursor: default;
+  min-height: 76px;
 }
 
 .calendar-day.today {
   border-color: var(--gold-400);
-  background: rgba(212, 168, 67, 0.1);
+  background: rgba(212, 168, 67, 0.08);
+}
+
+.calendar-day-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  flex-shrink: 0;
 }
 
 .calendar-day-number {
   font-size: 0.8125rem;
   font-weight: 600;
   color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.calendar-day-meta {
+  flex-shrink: 0;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--gold-400);
+  border-radius: var(--radius-full);
+  background: transparent;
+  font-size: 0.5rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: color-mix(in srgb, var(--text-tertiary) 65%, var(--text-secondary));
+  line-height: 1;
+  padding: 1px 3px;
+}
+
+.calendar-day-meta:not([data-long]) {
+  width: 0.875rem;
+  height: 0.875rem;
+  padding: 0;
+}
+
+.calendar-day-meta[data-long] {
+  min-width: 0.875rem;
+  height: 0.875rem;
+  padding: 0 3px;
 }
 
 .calendar-day-events {
   display: flex;
-  gap: 3px;
-  margin-top: var(--space-2);
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .calendar-event-pill {
   display: block;
   width: 100%;
-  padding: 2px 4px;
+  padding: 2px 5px;
   border-radius: 4px;
   border: 1px solid;
   font-size: 0.5625rem;
   font-weight: 600;
-  line-height: 1.2;
+  line-height: 1.25;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  flex-shrink: 0;
 }
 
 .calendar-event-more {
   font-size: 0.5625rem;
+  font-weight: 600;
   color: var(--text-tertiary);
+  line-height: 1.2;
+  padding-left: 2px;
 }
 
 .calendar-events-header {
@@ -4328,11 +4737,110 @@ a:hover {
   margin-top: 2px;
 }
 
+.calendar-academic-dates-col {
+  align-self: start;
+}
+
+.academic-dates-card {
+  padding: var(--space-4) var(--space-5);
+}
+
+.academic-dates-card .section-header {
+  margin-bottom: var(--space-3);
+}
+
+.academic-dates-groups {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-4);
+}
+
+.academic-dates-semester-block {
+  flex: 1 1 16rem;
+  min-width: 0;
+}
+
+.academic-dates-divider {
+  display: none;
+  flex-shrink: 0;
+  width: 3px;
+  align-self: stretch;
+  margin-block: var(--space-3);
+  margin-inline: var(--space-4);
+  border-radius: var(--radius-full);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.55) 0%,
+    rgba(255, 255, 255, 0.28) 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(0, 0, 0, 0.25) 6%,
+    #000 16%,
+    #000 84%,
+    rgba(0, 0, 0, 0.25) 94%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(0, 0, 0, 0.25) 6%,
+    #000 16%,
+    #000 84%,
+    rgba(0, 0, 0, 0.25) 94%,
+    transparent 100%
+  );
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.04);
+}
+
+@media (min-width: 640px) {
+  .academic-dates-groups {
+    flex-wrap: nowrap;
+    gap: 0;
+  }
+
+  .academic-dates-divider {
+    display: block;
+  }
+
+  .academic-dates-semester-block {
+    flex: 1 1 0;
+  }
+}
+
+.academic-dates-semester-block + .academic-dates-semester-block {
+  padding-top: 0;
+  border-top: none;
+}
+
+.academic-dates-semester-title {
+  margin: 0 0 var(--space-2);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--gold-300);
+}
+
+.academic-dates-semester-code {
+  color: var(--gold-300);
+  font-weight: 700;
+}
+
+.academic-dates-empty {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
 .academic-dates-list {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--space-2);
 }
 
 .academic-date-item {
@@ -4862,6 +5370,7 @@ a:hover {
   gap: var(--space-3);
   flex-wrap: wrap;
   margin-bottom: var(--space-4);
+  min-width: 0;
 }
 
 .grades-panel-header .section-header {
@@ -5711,6 +6220,11 @@ a:hover {
   font-size: 1.35rem;
 }
 
+.login-brand .brand-logo-img {
+  width: 3.5rem;
+  height: 3.5rem;
+}
+
 .login-brand-text {
   min-width: 0;
 }
@@ -6110,6 +6624,129 @@ a:hover {
   gap: var(--space-4);
 }
 
+.modal-panel:has(.add-event-form) {
+  width: min(520px, calc(100vw - 24px));
+  max-height: calc(100dvh - 12px);
+}
+
+.modal-panel:has(.add-event-form) .modal-header {
+  padding: var(--space-4) var(--space-5);
+}
+
+.modal-body:has(.add-event-form) {
+  padding: var(--space-4) var(--space-5);
+}
+
+.modal-body:has(.add-event-form) .detail-actions {
+  margin-top: var(--space-3);
+  padding-top: 0;
+}
+
+.add-event-datetime-block.is-disabled {
+  opacity: 0.72;
+}
+
+.add-event-datetime-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: var(--space-3);
+}
+
+.add-event-field-hint,
+.form-label-optional {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.add-event-field-hint {
+  margin: var(--space-1) 0 0;
+}
+
+.add-event-recurrence {
+  display: none;
+}
+
+.weekday-recurrence {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.weekday-recurrence-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.weekday-recurrence-day {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-muted);
+  background: rgba(0, 0, 0, 0.12);
+  color: var(--text-secondary);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    border-color var(--transition-fast),
+    background var(--transition-fast),
+    color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.weekday-recurrence-day:hover:not(:disabled) {
+  border-color: var(--border-emphasis);
+  color: var(--text-primary);
+}
+
+.weekday-recurrence-day.is-active {
+  border-color: var(--gold-400);
+  background: rgba(212, 168, 67, 0.1);
+  color: var(--gold-300);
+  box-shadow:
+    0 0 0 1px rgba(212, 168, 67, 0.28),
+    0 0 10px rgba(212, 168, 67, 0.22);
+}
+
+.weekday-recurrence-day:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--gold-400);
+}
+
+.weekday-recurrence-day:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.weekday-recurrence-letter {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.weekday-recurrence-day.is-active .weekday-recurrence-letter {
+  color: var(--gold-300);
+}
+
+.event-type-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--event-type-accent) 55%, transparent);
+  background: color-mix(in srgb, var(--event-type-accent) 16%, transparent);
+  color: var(--event-type-accent);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
 .color-dot-picker {
   display: inline-flex;
   align-items: center;
@@ -6190,42 +6827,6 @@ a:hover {
   font-size: 0.8125rem;
   line-height: 1.45;
   color: var(--text-secondary);
-}
-
-/* ---- Calendar density ---- */
-.calendar-day.density-1 {
-  background: rgba(212, 168, 67, 0.04);
-}
-
-.calendar-day.density-2 {
-  background: rgba(212, 168, 67, 0.08);
-  border-color: color-mix(in srgb, var(--gold-400) 35%, transparent);
-}
-
-.calendar-day.density-3,
-.calendar-day.density-4 {
-  background: rgba(212, 168, 67, 0.12);
-  border-color: var(--gold-400);
-}
-
-.calendar-day-count {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  font-size: 0.5625rem;
-  font-weight: 700;
-  color: var(--gold-300);
-  background: rgba(0, 0, 0, 0.35);
-  border-radius: var(--radius-full);
-  min-width: 16px;
-  height: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.calendar-day {
-  position: relative;
 }
 
 .calendar-event-pill.done {
@@ -6390,6 +6991,15 @@ a:hover {
   .dashboard-grid .col-7,
   .dashboard-grid .col-8 {
     grid-column: span 12;
+  }
+
+  .subject-panels-row {
+    grid-template-columns: 1fr;
+  }
+
+  .subject-panel-col--synced {
+    height: auto !important;
+    max-height: none !important;
   }
 
   .dashboard-page .col-stat {

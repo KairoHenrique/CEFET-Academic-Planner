@@ -8,9 +8,9 @@ export function buildGradeNotificationSubtitle(
   const obtida = formatGradePoints(notaObtida);
 
   if (notaMaxima === null || notaMaxima <= 0) {
-    return `${disciplinaNome} · nota ${obtida}`;
+    return `${disciplinaNome} · Nota ${obtida}`;
   }
 
   const maxima = formatGradePoints(notaMaxima);
-  return `${disciplinaNome} · ${obtida} / ${maxima}`;
+  return `${disciplinaNome} · Nota ${obtida} / ${maxima}`;
 }

@@ -26,6 +26,8 @@ export interface PortalDisciplinaSemestre {
   local: string | null;
   codigoHorario: string | null;
   horarioTraduzido: string | null;
+  turmaDataInicio?: string | null;
+  turmaDataFim?: string | null;
 }
 
 export interface PortalAtividadePendente {

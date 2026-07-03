@@ -5,9 +5,16 @@ export interface AcademicDateItem {
   date: string;
 }
 
+export interface AcademicDateSemesterGroup {
+  semestre: string;
+  items: AcademicDateItem[];
+}
+
 export interface CalendarResponse {
   events: CalendarEvent[];
+  /** @deprecated Prefer academicDateGroups */
   academicDates: AcademicDateItem[];
+  academicDateGroups: AcademicDateSemesterGroup[];
 }
 
 export interface CreateCalendarEventBody {
@@ -15,12 +22,21 @@ export interface CreateCalendarEventBody {
   description?: string;
   type: CalendarEvent["type"];
   date: string;
+  dateEnd?: string;
+  timeStart?: string;
+  timeEnd?: string;
+  recurrence?: "none" | "daily" | "weekly";
+  recurrenceUntil?: string;
+  recurrenceDays?: number[];
   subjectCode?: string;
   color?: string;
 }
 
 export type ManualCalendarEventInput = Omit<CalendarEvent, "id" | "manual"> & {
   colorOverride?: boolean;
+  recurrence?: "none" | "daily" | "weekly";
+  recurrenceUntil?: string;
+  recurrenceDays?: number[];
 };
 
 export type PatchCalendarEventBody =

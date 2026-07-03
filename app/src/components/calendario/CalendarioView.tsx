@@ -6,7 +6,6 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { CalendarMonth, CalendarEventsList } from "@/components/calendario/CalendarMonth";
 import { CalendarAcademicDates } from "@/components/calendario/CalendarAcademicDates";
 import { CalendarSkeleton } from "@/components/calendario/CalendarSkeleton";
-import { EditableSchedulePanel } from "@/components/schedule/EditableSchedulePanel";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Modal } from "@/components/ui/Modal";
 import { FilterBar } from "@/components/ui/FilterBar";
@@ -139,17 +138,11 @@ export function CalendarioView() {
         />
       </div>
 
-      <div className="col-5">
+      <div className="col-12 calendar-academic-dates-col">
         <CalendarAcademicDates
-          items={calendar.academicDates}
+          groups={calendar.academicDateGroups}
           isLoading={calendar.isLoading}
         />
-      </div>
-
-      <div className="col-7">
-        <div className="card">
-          <EditableSchedulePanel />
-        </div>
       </div>
 
       <Modal

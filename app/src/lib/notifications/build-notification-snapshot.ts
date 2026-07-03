@@ -5,20 +5,29 @@ import {
   getSemestreAtual,
   getTarefas,
 } from "@/lib/db/queries";
-import type {
-  NotificationSnapshotItem,
-  PendingTaskReminderSource,
-} from "@/lib/types/notifications-api";
+import { buildPendingCalendarReminderSources } from "@/lib/notifications/build-pending-calendar-reminder-sources";
 import {
   buildGradeNotificationFingerprint,
   buildTaskNotificationFingerprint,
 } from "@/lib/notifications/notification-fingerprint";
+import {
+  getNotificationPreferences,
+  isNotificationKindEnabled,
+} from "@/lib/notifications/notification-preferences";
 import { buildGradeNotificationSubtitle } from "@/lib/notifications/grade-notification-copy";
 import { normalizeTime } from "@/lib/tasks/dates";
+import type {
+  NotificationSnapshotItem,
+  PendingCalendarReminderSource,
+  PendingTaskReminderSource,
+} from "@/lib/types/notifications-api";
 
 export function buildNotificationSnapshot(): {
   items: NotificationSnapshotItem[];
   pendingTasks: PendingTaskReminderSource[];
+  pendingCalendarEvents: PendingCalendarReminderSource[];
+  pendingClassSessions: PendingCalendarReminderSource[];
+  preferences: ReturnType<typeof getNotificationPreferences>;
   capturedAt: string;
 } {
   const aluno = getAluno();
@@ -28,6 +37,7 @@ export function buildNotificationSnapshot(): {
     );
   }
 
+  const preferences = getNotificationPreferences();
   const semestreRows = getSemestreAtual();
   const activeIds = new Set(
     semestreRows.map((row) => row.disciplina_id.toLowerCase())
@@ -57,45 +67,49 @@ export function buildNotificationSnapshot(): {
       dueTime: normalizeTime(row.hora_fim),
     });
 
-    items.push({
-      fingerprint: buildTaskNotificationFingerprint(
-        row.disciplina_id,
-        row.titulo,
-        row.data_fim
-      ),
-      kind: "task",
-      title: row.titulo,
-      subtitle: disciplinaNome,
-      href: `/disciplinas/${encodeURIComponent(row.disciplina_id)}`,
-      at: row.data_fim,
-    });
+    if (isNotificationKindEnabled("task", preferences)) {
+      items.push({
+        fingerprint: buildTaskNotificationFingerprint(
+          row.disciplina_id,
+          row.titulo,
+          row.data_fim
+        ),
+        kind: "task",
+        title: row.titulo,
+        subtitle: disciplinaNome,
+        href: `/disciplinas/${encodeURIComponent(row.disciplina_id)}`,
+        at: row.data_fim,
+      });
+    }
   }
 
-  for (const row of getNotasForSemestreAtual()) {
-    if (row.nota_obtida === null) continue;
+  if (isNotificationKindEnabled("grade", preferences)) {
+    for (const row of getNotasForSemestreAtual()) {
+      if (row.nota_obtida === null) continue;
 
-    const disciplinaNome =
-      nameByCode.get(row.disciplina_id) ?? row.disciplina_id;
+      const disciplinaNome =
+        nameByCode.get(row.disciplina_id) ?? row.disciplina_id;
 
-    items.push({
-      fingerprint: buildGradeNotificationFingerprint(
-        row.disciplina_id,
-        row.avaliacao_nome,
-        row.nota_obtida
-      ),
-      kind: "grade",
-      title: row.avaliacao_nome,
-      subtitle: buildGradeNotificationSubtitle(
+      items.push({
+        fingerprint: buildGradeNotificationFingerprint(
+          row.disciplina_id,
+          row.avaliacao_nome,
+          row.nota_obtida
+        ),
+        kind: "grade",
+        title: row.avaliacao_nome,
+        subtitle: buildGradeNotificationSubtitle(
+          disciplinaNome,
+          row.nota_obtida,
+          row.nota_maxima
+        ),
+        href: `/disciplinas/${encodeURIComponent(row.disciplina_id)}`,
+        at: null,
         disciplinaNome,
-        row.nota_obtida,
-        row.nota_maxima
-      ),
-      href: `/disciplinas/${encodeURIComponent(row.disciplina_id)}`,
-      at: null,
-      disciplinaNome,
-      notaObtida: row.nota_obtida,
-      notaMaxima: row.nota_maxima,
-    });
+        notaObtida: row.nota_obtida,
+        notaMaxima: row.nota_maxima,
+      });
+    }
   }
 
   items.sort((a, b) => {
@@ -105,5 +119,14 @@ export function buildNotificationSnapshot(): {
     return aDate.localeCompare(bDate);
   });
 
-  return { items, pendingTasks, capturedAt: new Date().toISOString() };
+  const calendarSources = buildPendingCalendarReminderSources();
+
+  return {
+    items,
+    pendingTasks,
+    pendingCalendarEvents: calendarSources.events,
+    pendingClassSessions: calendarSources.classes,
+    preferences,
+    capturedAt: new Date().toISOString(),
+  };
 }

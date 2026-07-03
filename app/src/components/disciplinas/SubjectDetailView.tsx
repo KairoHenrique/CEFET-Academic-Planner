@@ -6,6 +6,7 @@ import { DashboardStateCard } from "@/components/dashboard/DashboardStateCard";
 import { SubjectDetailHeader } from "@/components/disciplinas/SubjectDetailHeader";
 import { SubjectGradesPanel } from "@/components/disciplinas/SubjectGradesPanel";
 import { SubjectAbsencePanel } from "@/components/disciplinas/SubjectAbsencePanel";
+import { SubjectPanelsRow } from "@/components/disciplinas/SubjectPanelsRow";
 import { SubjectTasksPanel } from "@/components/disciplinas/SubjectTasksPanel";
 import { SubjectSyllabusPanel } from "@/components/disciplinas/SubjectSyllabusPanel";
 import { SubjectDownloadsPanel } from "@/components/disciplinas/SubjectDownloadsPanel";
@@ -84,18 +85,18 @@ export function SubjectDetailView({ code }: SubjectDetailViewProps) {
       <div className="col-12">
         <SubjectSyllabusPanel ementa={subject.ementa} />
       </div>
-      <div className="col-6">
-        <SubjectGradesPanel subject={subject} />
-      </div>
-      <div className="col-6">
-        <SubjectAbsencePanel
-          subjectCode={subject.code}
-          absences={subject.absences}
-          maxAbsences={subject.maxAbsences}
-          daysRemaining={attendance.daysRemaining}
-          records={attendance.records}
-        />
-      </div>
+      <SubjectPanelsRow
+        gradesPanel={<SubjectGradesPanel subject={subject} />}
+        absencePanel={
+          <SubjectAbsencePanel
+            subjectCode={subject.code}
+            absences={subject.absences}
+            maxAbsences={subject.maxAbsences}
+            daysRemaining={attendance.daysRemaining}
+            records={attendance.records}
+          />
+        }
+      />
       <div className="col-8">
         <SubjectTasksPanel subjectCode={subject.code} tasks={tasks} />
       </div>
