@@ -36,7 +36,9 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 **Tasks em `[@]` agora (jun/2026):** *(nenhuma — F37 aprovada jun/2026)*.
 
-**Aprovadas `[x]` (jun/2026):** **B27** (portal) · **B28** (turma virtual + UI grupo + arredondamento nota final) · **B65** (sync automático + `last_run` dev) · **B30** (histórico escolar PDF → `historico` + integralização) · **F38** (sino in-app: tarefas/notas novas + lembretes 24h/1h).
+**Aprovadas `[x]` (jun/2026):** **B27** (portal) · **B28** (turma virtual + UI grupo + arredondamento nota final) · **B65** (sync automático + `last_run` dev) · **B30** (histórico escolar PDF → `historico` + integralização) · **F38** (sino in-app: tarefas/notas novas + lembretes 24h/1h; polish `04887c9`/`5923e9c`).
+
+**Polish pós-push (jun/2026, sem nova task):** `04887c9` — fix alerta nota nova pós-sync (baseline pré-sync) + nota obtida/máxima no sino · `5923e9c` — nome da disciplina no `SubjectCard` abre `/disciplinas/[código]`.
 
 ### Decisão — Integralização via histórico (jun/2026)
 
@@ -106,7 +108,8 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ### 1.4 API e Integração UI ↔ SQLite
 
-> **Progresso:** Bloco 1 ✅ · **Bloco 2a:** B27·B28·B65·B30·**B31·F18·F37·F38** ✅ · **3F** fora do Bloco 1.
+> **Progresso:** Bloco 1 ✅ · **Bloco 2a:** B27·B28·B65·B30·**B31·F18·F37·F38** ✅ · **3F** fora do Bloco 1.  
+> **Polish jun/2026 (push `main`):** `04887c9` F38 — baseline pré-sync + detalhe nota no sino · `5923e9c` dashboard — link no nome da disciplina (`SubjectCard`).
 
 Roadmap detalhado: ver **[Ordem oficial v3](#ordem-oficial-de-execução-v3)** e **[Checklist mestre](#checklist-mestre-ordem-de-execução)**. **Bloco 2a** — **8/8** ✅. **Próximo:** **B66** `[/]` (calendário acadêmico — escopo aprovado stakeholder). **Bloco 2b** — fila worker. **B67** = turmas ofertadas, pós-B66.
 
@@ -273,12 +276,12 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] **BACK:**  B31 *(pipeline full/incremental, policies por etapa, login rápido, DB por CPF — commit `a7a02ac`, testes `bloco-2a-b31`)*
 - [x] **FRONT:** F18 *(erros reais no login; mock de falhas removido; hint 1º sync)*
 - [x] **FRONT:** F37 *(modal perfil, tutorial, /planos, dados conta + assinatura dev)*
-- [x] **FRONT:** F38 *(sino in-app: tarefas/notas novas + lembretes 24h/1h)*
+- [x] **FRONT:** F38 *(sino in-app: tarefas/notas novas + lembretes 24h/1h; polish `04887c9` baseline pré-sync + nota obtida/máxima)*
 - [/] **BACK:**  B66 · B67 *(calendário acadêmico + turmas ofertadas — **B66 autorizado**, pós-2a)*
 
 **Ordem 2a (8 itens oficiais):** `B24–B26` → `B27` · `B65` → `B28` → `B30` → `B31` → `F18` · `F37` `[x]`
 
-**Extras 2a (não contam no 8/8):** `F38` `[x]` · modulação só no dashboard · fix mapa/histórico/notificações (jun/2026)
+**Extras 2a (não contam no 8/8):** `F38` `[x]` · modulação só no dashboard · fix mapa/histórico/notificações (jun/2026) · polish `04887c9`/`5923e9c` documentado
 
 **Ordem 2.4 extra (pós-B31):** `B66` → `B67` → `F19`
 
@@ -603,7 +606,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | B67 | Back | Turmas ofertadas | Ensino → Consultar Turmas (próximo semestre) | 2.4 | [ ] |
 | F18 | Front | Erros reais no login | Erros API/SIGAA; hint 1º sync bloqueante | 2.1 | [x] |
 | F37 | Front | Menu perfil (avatar) | Modal perfil, tutorial, /planos, conta + assinatura dev | 2.2 | [x] |
-| F38 | Front | Sino notificações in-app | Tarefas/notas novas pós-sync; lembretes 24h/1h | 2.x | [x] |
+| F38 | Front | Sino notificações in-app | Tarefas/notas novas pós-sync; lembretes 24h/1h; baseline pré-sync; nota obtida/máxima | 2.x | [x] |
 | F19 | Front | `/simulador` via API | Montar grade com turmas ofertadas reais (**depende B67**) | 2.4 | [ ] |
 
 **Ordem 2a (#2):** `B24 → B25 → B26` → `B27` · `B65` → `B28` → `B30` → `B31` → `F18` · `F37` `[x]`
@@ -655,7 +658,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | # | Tipo | Task | Resumo | Status |
 |---|------|------|--------|--------|
 | B44 | Back | Conta do aluno | Cadastro: e-mail, telefone, CPF, `curso_id`, senha cifrada; **login só CPF** | [ ] |
-| B45 | Back | Credenciais cifradas | Persistência AES (CPF + senha) — estende B25 para conta cloud | [ ] |
+| B45 | Back | Credenciais cifradas | Persistência AES (CPF + senha) no servidor — **obrigatório** para sync sem usuário online (worker **B56**) | [ ] |
 | B58 | Back | Trial por CPF | Registro `trial_por_cpf`: 7 dias **uma vez** por CPF (anti-abuso) | [ ] |
 | B59 | Back | Gate de acesso | Middleware: `trial_active` \| `active` liberam; expirado → billing | [ ] |
 | B63 | Back | `curso_id` na conta | Enum Comp/Meca/Moda; mapa/integralização filtram PPC por curso | [ ] |
@@ -864,6 +867,12 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Sync manual (navbar/login) **sem** rate limit nesta fase dev
 - [ ] **Produção:** fila worker + cooldowns (**B54–B56**, **O3**) — ver [Apêndice B65](#apêndice--b65-sync-automático-dev-remover-antes-de-produção) e `SCOPE-CLOUD.md` §6.3
 
+#### F38 — Sino notificações in-app `[x]`
+- [x] Badge + painel 24h (`NotificationBell`, `useNotifications`)
+- [x] Fingerprints estáveis para tarefas e notas; lembretes 24h/1h
+- [x] **Polish `04887c9`:** baseline pré-sync (`notification-pre-sync-baseline`) — nota nova não some após sync; fingerprint de nota sem valor; subtítulo com nota obtida/máxima
+- [x] **Polish dashboard `5923e9c`:** nome da disciplina no `SubjectCard` navega para `/disciplinas/[código]`
+
 ### 2.3 Scraper: Turma Virtual (por disciplina)
 - [x] Navegar para cada disciplina da turma virtual (`scrape-turma-virtual.ts` + delay entre disciplinas)
 - [x] Extrair frequência (Alunos → Frequência): lista de datas com status
@@ -926,7 +935,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Hint “primeiro acesso demora” abaixo do botão sincronizando (**F18**)
 - [x] Modulação de layout **somente no dashboard** (demais telas layout fixo)
 - [x] Menu perfil no avatar — modal, tutorial, /planos (**F37** ✅ · back **B65** `[x]`)
-- [x] Sino de notificações in-app — tarefas/notas novas + lembretes 24h/1h (**F38**)
+- [x] Sino de notificações in-app — tarefas/notas novas + lembretes 24h/1h (**F38**); polish `04887c9` (baseline pré-sync, nota obtida/máxima no painel)
 - [ ] Cadastro produção: e-mail, telefone, CPF, **curso (Comp/Meca/Moda)**, senha (F29 · B44 · B58 · B63)
 - [ ] Login produção: **apenas CPF + senha** (sem e-mail no login)
 - [ ] Menu Config no avatar + toggle e-mail (**F36** · **B61** — produção; perfil dev = **F37**)
@@ -938,6 +947,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [/] Lista "Próximas Entregas" (5 próximas tarefas/avaliações) — filtros via API (incl. Concluídas) + regra 3 dias após prazo; **limite de 5 pendente**
 - [x] Modal com detalhes da tarefa ao clicar (descrição, entregáveis, link à disciplina)
 - [x] Grid de cards de disciplinas (nota, faltas, próxima atividade por matéria) — **via API**
+- [x] Nome da disciplina no card é link para a página da matéria (`SubjectCard` · `5923e9c`)
 - [x] Indicador de risco de nota e badge Recuperação nos cards (`GradeRiskIndicator`; prioridade fora do `<Link>`)
 - [x] Ordenação e prioridade em "Próximas Entregas" (`TaskSortSelect`, `PrioritySelect`)
 - [x] Botão de re-sincronização na navbar (Sync SIGAA)
@@ -1279,5 +1289,6 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 11. **Próximo passo:** **B66** calendário acadêmico `[/]` → **B67** turmas → **Bloco 2b** (B54–B56). Gift/dev/simulação mapa: [Apêndice gift/dev](#apêndice--chaves-gift-e-painel-dev-jun2026). **B71** = última pré-go-live.
 12. **Integralização:** CH concluída = `historico` + PPC (`computeChDoneFromDisciplinas`); portal SIGAA só % / total currículo; matérias já passadas = **B30** ✅.
 13. **Gift + painel dev + simulação mapa:** escopo em `SCOPE.md` §2.1.1, §6.1.1, §10 — tasks **B68–B71**, **F39–F41**, **F40** — [Apêndice gift/dev](#apêndice--chaves-gift-e-painel-dev-jun2026). **B71** = última task (cifragem plena / ocultar senhas no painel).
-13. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial.
-14. **Código frontend** está em `app/src/` (não na raiz `src/`). Mock data em `app/src/config/mock/`.
+14. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial. **Polish em task `[x]`** (ex.: F38, dashboard) também exige nota no TASKS no mesmo ciclo do push.
+15. **Credenciais SIGAA:** sync **sem** o aluno no site exige senha **cifrada no servidor** (dev: B25 opcional + `useAutoSync` no client; produção: **B45** + worker **B56**). Ver `SCOPE.md` §2 · `SCOPE-CLOUD.md` §4–§6.
+16. **Código frontend** está em `app/src/` (não na raiz `src/`). Mock data em `app/src/config/mock/`.
