@@ -43,9 +43,17 @@ export function buildTaskReminderNotificationFingerprint(
 export function buildGradeNotificationFingerprint(
   disciplinaId: string,
   avaliacao: string,
-  nota: number
+  _nota?: number
 ): string {
-  return `grade:${disciplinaId}|${avaliacao}|${normalizeGradeNota(nota)}`;
+  return `grade:${disciplinaId.toLowerCase()}|${normalizeNotificationText(avaliacao)}`;
+}
+
+/** Baseline antiga incluía a nota no fingerprint (`grade:ID|PRO1|7.5`). */
+export function normalizeStoredBaselineFingerprint(fingerprint: string): string {
+  const legacyGrade = fingerprint.match(/^grade:([^|]+)\|(.+)\|[\d.]+$/i);
+  if (!legacyGrade) return fingerprint;
+
+  return buildGradeNotificationFingerprint(legacyGrade[1], legacyGrade[2]);
 }
 
 export function isUrgentTaskReminderFingerprint(fingerprint: string): boolean {

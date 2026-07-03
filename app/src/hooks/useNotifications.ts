@@ -4,12 +4,14 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getNotifications, SYNC_COMPLETE_EVENT } from "@/lib/api/client";
 import {
+  initializeNotificationBaselineFromPreSync,
   mergeNotificationBaseline,
   migrateLegacyNotificationBaseline,
   readNotificationBaseline,
   seedNotificationBaselineIfMissing,
 } from "@/lib/notifications/notification-baseline";
 import { buildTaskReminderNotificationFingerprint } from "@/lib/notifications/notification-fingerprint";
+import { consumePreSyncNotificationBaseline } from "@/lib/notifications/notification-pre-sync-baseline";
 import {
   archiveRecentPanelItems,
   readRecentPanelItems,
@@ -63,6 +65,13 @@ export function useNotifications() {
   useEffect(() => {
     if (!query.data?.items) return;
 
+    const preSync = consumePreSyncNotificationBaseline();
+    if (preSync !== null) {
+      if (initializeNotificationBaselineFromPreSync(preSync)) {
+        setBaselineVersion((value) => value + 1);
+      }
+    }
+
     const stableFingerprints = [
       ...query.data.items.map((item) => item.fingerprint),
       ...(query.data.pendingTasks ?? []).flatMap((task) =>
@@ -77,10 +86,10 @@ export function useNotifications() {
       ),
     ];
 
-    seedNotificationBaselineIfMissing(stableFingerprints);
-
     if (migrateLegacyNotificationBaseline(stableFingerprints)) {
       setBaselineVersion((value) => value + 1);
+    } else if (preSync === null) {
+      seedNotificationBaselineIfMissing(stableFingerprints);
     }
   }, [query.data?.items, query.data?.pendingTasks]);
 

@@ -3,11 +3,13 @@
 import { useCallback, useState } from "react";
 import {
   ApiClientError,
+  getNotifications,
   notifySyncComplete,
   postSync,
 } from "@/lib/api/client";
 import { getSyncCredentials } from "@/lib/auth/credentials";
 import { clearSession } from "@/lib/auth/session";
+import { capturePreSyncNotificationBaseline } from "@/lib/notifications/notification-pre-sync-baseline";
 import type { SyncMode, SyncRequest, SyncStep } from "@/lib/types/sync";
 
 const STEP_DELAY_MS = 280;
@@ -87,6 +89,17 @@ async function playSyncSteps(steps: SyncStep[], onStep: (step: SyncStep) => void
   }
 }
 
+async function captureNotificationBaselineBeforeSync(): Promise<void> {
+  try {
+    const snapshot = await getNotifications();
+    capturePreSyncNotificationBaseline(
+      snapshot.items.map((item) => item.fingerprint)
+    );
+  } catch {
+    capturePreSyncNotificationBaseline([]);
+  }
+}
+
 export function useSync() {
   const [syncing, setSyncing] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -130,6 +143,7 @@ export function useSync() {
         }
 
         try {
+          await captureNotificationBaselineBeforeSync();
           result = await postSync({ ...creds, mode }, mode);
         } finally {
           stopPending?.();

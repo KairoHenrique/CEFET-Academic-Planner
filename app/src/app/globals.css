@@ -464,6 +464,11 @@ a:hover {
   line-height: 1.4;
 }
 
+.notification-bell-grade-score {
+  color: var(--accent-cyan);
+  font-weight: 600;
+}
+
 .navbar-sync-btn {
   display: flex;
   align-items: center;
