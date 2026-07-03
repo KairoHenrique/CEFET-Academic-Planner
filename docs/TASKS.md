@@ -51,7 +51,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 | **B16/B17** (já ✅) | API/UI; após B30, `build-integralizacao` passa a priorizar cálculo local |
 | **Manual** | CH complementar/extensão/flexibilizada continua via `POST /api/integralizacao` |
 
-**Pendente pós-B30:** refatorar `build-integralizacao` para usar histórico como primário e portal só como fallback/validação.
+**Pós-B30 (jun/2026):** `build-integralizacao` + `resolveCategoryDoneHours` priorizam histórico PDF (`fromHistoricoPdf`) e cálculo local (`computeChDoneFromDisciplinas`); portal SIGAA permanece auxiliar/fallback.
 
 ---
 
@@ -108,10 +108,11 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ### 1.4 API e Integração UI ↔ SQLite
 
-> **Progresso:** Bloco 1 ✅ · **Bloco 2a:** B27·B28·B65·B30·**B31·F18·F37·F38** ✅ · **3F** fora do Bloco 1.  
-> **Polish jun/2026 (push `main`):** `04887c9` F38 — baseline pré-sync + detalhe nota no sino · `5923e9c` dashboard — link no nome da disciplina (`SubjectCard`).
+> **Progresso:** Bloco 1 ✅ (`49/49` — **B12d**/**F8g**/`refino pós-B30` alinhados jun/2026) · **Bloco 2a:** B27·B28·B65·B30·**B31·F18·F37·F38** ✅ · **3F** fora do Bloco 1.  
+> **Polish jun/2026 (push `main`):** `04887c9` F38 — baseline pré-sync + detalhe nota no sino · `5923e9c` dashboard — link no nome da disciplina (`SubjectCard`).  
+> **Em andamento:** **B66** `[/]` (scraper calendário acadêmico SIGAA).
 
-Roadmap detalhado: ver **[Ordem oficial v3](#ordem-oficial-de-execução-v3)** e **[Checklist mestre](#checklist-mestre-ordem-de-execução)**. **Bloco 2a** — **8/8** ✅. **Próximo:** **B66** `[/]` (calendário acadêmico — escopo aprovado stakeholder). **Bloco 2b** — fila worker. **B67** = turmas ofertadas, pós-B66.
+Roadmap detalhado: ver **[Ordem oficial v3](#ordem-oficial-de-execução-v3)** e **[Checklist mestre](#checklist-mestre-ordem-de-execução)**. **Bloco 2a** — **8/8** ✅. **Próximo:** **B66** `[/]` (scraper calendário acadêmico; infra API/UI já pronta). **Bloco 2b** — fila worker. **B67** = turmas ofertadas, pós-B66.
 
 ---
 
@@ -225,7 +226,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | **#10** | 4 | Polimento UX | Por último (antes de multi-PPC) | 0/3 |
 | **#11** | 9 | Multi-PPC (Mecatrônica, Moda) | **🔒 Só após #8** | 0/4 |
 
-> **Atalho:** [Checklist #1](#1--bloco-1--api--ui--sqlite-4749) · [#2–#3](#2-3--bloco-2--scraper-sigaa-detalhe) · [#4–#6](#4-6--bloco-6--cloud--supabase-detalhe) · [#7](#7--bloco-7--assinatura-pix-detalhe) · [#8](#8--bloco-8--mobile-expo-go-detalhe) · [#9](#9--bloco-3--inteligência-acadêmica-detalhe) · [#10](#10--bloco-4--polimento-ux-detalhe) · [#11](#11--expansão-multi-ppc-detalhe)
+> **Atalho:** [Checklist #1](#1--bloco-1--api--ui--sqlite-4949) · [#2–#3](#2-3--bloco-2--scraper-sigaa-detalhe) · [#4–#6](#4-6--bloco-6--cloud--supabase-detalhe) · [#7](#7--bloco-7--assinatura-pix-detalhe) · [#8](#8--bloco-8--mobile-expo-go-detalhe) · [#9](#9--bloco-3--inteligência-acadêmica-detalhe) · [#10](#10--bloco-4--polimento-ux-detalhe) · [#11](#11--expansão-multi-ppc-detalhe)
 
 ---
 
@@ -277,7 +278,8 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] **FRONT:** F18 *(erros reais no login; mock de falhas removido; hint 1º sync)*
 - [x] **FRONT:** F37 *(modal perfil, tutorial, /planos, dados conta + assinatura dev)*
 - [x] **FRONT:** F38 *(sino in-app: tarefas/notas novas + lembretes 24h/1h; polish `04887c9` baseline pré-sync + nota obtida/máxima)*
-- [/] **BACK:**  B66 · B67 *(calendário acadêmico + turmas ofertadas — **B66 autorizado**, pós-2a)*
+- [/] **BACK:**  B66 *(calendário acadêmico — infra API/UI ✅; scraper SIGAA pendente)*
+- [ ] **BACK:**  B67 *(turmas ofertadas — pós-B66)*
 
 **Ordem 2a (8 itens oficiais):** `B24–B26` → `B27` · `B65` → `B28` → `B30` → `B31` → `F18` · `F37` `[x]`
 
@@ -503,7 +505,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | B12 | Back | `PATCH /api/tarefas/[id]` | Toggle concluída, editar, excluir | [x] |
 | B12b | Back | `POST .../tarefas` | Criar tarefa manual na disciplina | [x] |
 | B12c | Back | `PATCH .../faltas` | Atualizar presença/falta por data | [x] |
-| B12d | Back | `PATCH .../appearance` | Cor, apelido, nome, sala, horário, professor, horas/sem | [%] |
+| B12d | Back | `PATCH .../appearance` | Cor, apelido, nome, sala, horário, professor, horas/sem | [x] |
 | F6 | Front | `/disciplinas` | `SubjectList` via API + TanStack Query | [x] |
 | F7 | Front | `/disciplinas/[code]` | Painéis de notas, faltas, tarefas via API | [x] |
 | F8 | Front | `useSubjectGrades` | CRUD notas, inline, nota extra | [x] |
@@ -513,7 +515,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | F8d | Front | Risco de nota + recuperação | `GradeRiskIndicator`, `RecoveryGradeEntry`, `grade-risk.ts` (recuperação em localStorage) | [x] |
 | F8e | Front | Prioridade + selects | `PrioritySelect`, `PlannerSelect`, `useStoredPriorities`, `TaskSortSelect` | [x] |
 | F8f | Front | Simulador (polish) | Menu overlay, layout estável com frequência, OK em Necessário, pré-preenche notas reais | [x] |
-| F8g | Front | Aparência da matéria | Cor, modal editar header (nome/apelido/sala/horário/h·sem/professor), `useSubjectAppearance` | [%] |
+| F8g | Front | Aparência da matéria | Cor, modal editar header (nome/apelido/sala/horário/h·sem/professor), `useSubjectAppearance` | [x] |
 | F8h | Front | Validação de notas | Clamp pontos a distribuir, nota extra até 100, contador no modal | [x] |
 | F8i | Front | TanStack Query dashboard | `useDashboard` migrado para Query + invalidação cruzada | [x] |
 
@@ -540,7 +542,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | B16 | Back | `GET /api/integralizacao` | Totais por tipo de CH (PPC + histórico local) | [x] |
 | B17 | Back | `POST /api/integralizacao` | Registrar horas complementares manuais | [x] |
 | — | Decisão | CH via histórico | Primário = `historico` sync (**B30**); portal = auxiliar | [x] |
-| — | Back | Refino pós-B30 | `build-integralizacao` prioriza histórico sobre CH pendente SIGAA | [ ] |
+| — | Back | Refino pós-B30 | `build-integralizacao` + `resolveCategoryDoneHours` priorizam histórico PDF | [x] |
 | F11 | Front | Painéis integralização | Donut + tabela via API + cadastro de horas | [x] |
 | F11b | Front | Glossário de CH | Modal “Entenda suas horas” + ícone ? (obrigatória, optativa/eletiva, complementar, extensão, flexibilizada) | [x] |
 
@@ -602,7 +604,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | B28 | Back | Scraper turma virtual | Notas, faltas, tarefas, grupo e nome do grupo por matéria | 2.3 | [x] |
 | B30 | Back | Histórico escolar | Ensino → Emitir Histórico (PDF) → `historico` + CH resumo | 2.4 | [x] |
 | B31 | Back | Integrar no `runSync` | Pipeline full/incremental; policies; login rápido; DB/CPF | 2.x | [x] |
-| B66 | Back | Calendário acadêmico | Ensino → Calendário Acadêmico → `calendario_academico` | 2.4 | [/] |
+| B66 | Back | Calendário acadêmico | Infra + API + UI ✅; scraper Ensino → `calendario_academico` pendente | 2.4 | [/] |
 | B67 | Back | Turmas ofertadas | Ensino → Consultar Turmas (próximo semestre) | 2.4 | [ ] |
 | F18 | Front | Erros reais no login | Erros API/SIGAA; hint 1º sync bloqueante | 2.1 | [x] |
 | F37 | Front | Menu perfil (avatar) | Modal perfil, tutorial, /planos, conta + assinatura dev | 2.2 | [x] |
@@ -904,11 +906,11 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Testes `bloco-2a-b31.test.ts` · commit `a7a02ac`
 
 #### B66 — Calendário acadêmico `[/]`
-> **Escopo aprovado** pelo stakeholder (jun/2026) — implementação do scraper em andamento.
+> **Escopo aprovado** (jun/2026). **Infra pronta** — schema, `GET /api/calendar`, painel em `/calendario` (seed/mock até scraper SIGAA).
 
+- [x] Schema `calendario_academico` + `build-calendar` + `CalendarAcademicDates` em `/calendario`
 - [ ] Scraper Ensino → Calendário Acadêmico
-- [ ] Popular `calendario_academico` (evento, data_inicio, data_fim, semestre)
-- [ ] Alimentar painel “Calendário Acadêmico” em `/calendario` (via `GET /api/calendar`)
+- [ ] Popular `calendario_academico` via sync SIGAA (substitui seed/mock)
 
 #### B67 — Turmas ofertadas `[ ]`
 - [ ] Scraper Ensino → Consultar Turmas (próximo semestre)
@@ -999,7 +1001,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 ### 4.1 Página Individual da Disciplina
 - [x] Header com nome, apelido (`shortLabel`), sala, horário, **horas/sem** (grade SIGAA), professor — **via API** (F7 + F8g)
-- [%] Modal **Editar disciplina**: nome, apelido, sala, horário, horas semanais, professor; linha *Portal* quando difere do sync (`SubjectDetailEditModal`, `PATCH .../appearance`)
+- [x] Modal **Editar disciplina**: nome, apelido, sala, horário, horas semanais, professor; linha *Portal* quando difere do sync (`SubjectDetailEditModal`, `PATCH .../appearance` · **B12d**/**F8g**)
 - [x] Horas no header = **blocos do horário** (2h/aula), não CH total do PPC; ementa mantém CH do PPC
 - [x] Seção de Ementa (texto do PPC) — **via API**
 - [x] Card de Nota Atual (tabela de avaliações, pontos faltando) — **via API**; add manual via F8
@@ -1090,9 +1092,9 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [ ] Alerta quando estiver perto de concluir uma categoria
 
 ### 5.5 Calendário Acadêmico
-- [x] Tela com as datas oficiais do semestre (matrícula, trancamento, aulas, recessos)
-- [/] Alertas/notificações para datas próximas — lembretes de **tarefa** 24h/1h via sino (**F38** ✅); datas acadêmicas **B66** pendente
-- [ ] Verificação periódica de novas datas publicadas
+- [x] Tela com datas do semestre via `GET /api/calendar` + painel acadêmico (**seed/mock** até scraper **B66**)
+- [/] Alertas/notificações para datas próximas — lembretes de **tarefa** 24h/1h via sino (**F38** ✅); datas acadêmicas dependem **B66** (scraper)
+- [ ] Verificação periódica de novas datas publicadas (pós-scraper **B66**)
 
 ---
 
@@ -1109,9 +1111,9 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Barras de progresso douradas (global `.progress-bar-fill`)
 - [x] Caixas de seleção unificadas (pill escuro Cruzeiro, menu em overlay) — `PlannerSelect`, `PrioritySelect`
 - [ ] Adicionar animações de transição entre páginas
-- [/] Adicionar loading skeletons em todas as telas — **dashboard** + **disciplinas** (lista/detalhe); demais telas = F25
+- [/] Adicionar loading skeletons em todas as telas — **feito:** dashboard, disciplinas (lista + detalhe inline), calendário, mapa, integralização, grade semanal; **pendente:** `/simulador`, login (**F25**)
 - [x] Responsividade básica (breakpoints mobile/tablet/desktop)
-- [/] Favicon e título personalizado na aba do navegador — título em `layout.tsx` ✅; **favicon.ico pendente**
+- [/] Favicon e título personalizado na aba do navegador — `layout.tsx` com título placeholder (`Acme Hub`); **favicon.ico** e branding CEFET pendentes (**F27**)
 
 ---
 
@@ -1286,7 +1288,7 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 8. **Próximo passo do roadmap:** informe **depois do push** (tasks em `[@]` ou `[x]`). Com commits locais só `[%]`, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v3](#ordem-oficial-de-execução-v3) — **Bloco 2 (sync) antes do Bloco 6 (Supabase)**. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy **após** sync validado; RLS **só na 6c** (antes do PIX).
-11. **Próximo passo:** **B66** calendário acadêmico `[/]` → **B67** turmas → **Bloco 2b** (B54–B56). Gift/dev/simulação mapa: [Apêndice gift/dev](#apêndice--chaves-gift-e-painel-dev-jun2026). **B71** = última pré-go-live.
+11. **Próximo passo:** **B66** scraper calendário acadêmico `[/]` (infra pronta) → **B67** turmas → **Bloco 2b** (B54–B56). Gift/dev/simulação mapa: [Apêndice gift/dev](#apêndice--chaves-gift-e-painel-dev-jun2026). **B71** = última pré-go-live.
 12. **Integralização:** CH concluída = `historico` + PPC (`computeChDoneFromDisciplinas`); portal SIGAA só % / total currículo; matérias já passadas = **B30** ✅.
 13. **Gift + painel dev + simulação mapa:** escopo em `SCOPE.md` §2.1.1, §6.1.1, §10 — tasks **B68–B71**, **F39–F41**, **F40** — [Apêndice gift/dev](#apêndice--chaves-gift-e-painel-dev-jun2026). **B71** = última task (cifragem plena / ocultar senhas no painel).
 14. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial. **Polish em task `[x]`** (ex.: F38, dashboard) também exige nota no TASKS no mesmo ciclo do push.
