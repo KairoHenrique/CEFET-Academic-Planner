@@ -84,22 +84,34 @@ Alternativa ao PIX para liberar acesso: **chave de resgate** gerada **somente pe
 - **Antes do go-live:** task **B71** remove exibição de senhas, endurece cifragem (AES + segredos em env), bloqueia retorno de credencial ao client do aluno e audita acessos no painel dev.
 
 ### 2.3 Dados Sincronizados (o que o scraper busca)
-A cada sincronização, o Playwright navega pelo SIGAA e extrai:
 
-| Dado | Fonte no SIGAA | Frequência |
-|---|---|---|
-| Dados Institucionais (Matrícula, Curso, Status, Email, Entrada) | Portal do Discente | A cada login |
-| Índices Acadêmicos (RG — Rendimento Global) | Portal do Discente → Detalhar | A cada login |
-| Integralização (CH Obrigatória, Optativa, Complementar, Extensão, Flexibilizada, % Integralizado) | Portal do Discente | A cada login |
-| Componentes Curriculares do semestre (matérias, locais, códigos de horário) | Portal do Discente | A cada login |
-| Atividades/Tarefas pendentes (data, tipo, matéria) | Portal do Discente + Turma Virtual → Atividades → Tarefas | A cada login |
-| Frequência por disciplina (datas, presenças, faltas) | Turma Virtual → Alunos → Frequência | A cada login |
-| Notas por disciplina (PRO1, SEM, PRO2, Nota, Resultado) | Turma Virtual → Alunos → Ver Notas | A cada login |
-| Grupo de estudos por disciplina | Turma Virtual → Alunos → Ver Grupo | A cada login |
-| Materiais/PDFs das disciplinas | Turma Virtual → Materiais | A cada login |
-| Turmas ofertadas (próximo semestre) | Ensino → Consultar Turmas | Sob demanda (pré-matrícula) |
-| Calendário Acadêmico | Ensino → Calendário Acadêmico | Periódico (início/fim de semestre) |
-| Histórico Escolar (PDF) | Ensino → Emitir Histórico | Sob demanda |
+> **Orquestração (rascunho):** sugestão de como agrupar robôs e gatilhos — **não é decisão fechada**. Matriz em [`SCOPE-CLOUD.md` §6.5](./SCOPE-CLOUD.md#65-orquestração-de-robôs--timing-e-gatilhos-pré-mobile); tabelas globais em §5.4. **Você decide na task #6d (B68-orq)** antes do mobile.
+
+O Playwright navega pelo SIGAA e extrai, agrupado por robô:
+
+| Robô | Dado | Fonte no SIGAA | Escopo |
+|---|---|---|---|
+| **R1 — Pipeline principal** | Matrícula, curso, status, e-mail, entrada | Portal do Discente | Por aluno |
+| **R1** | RG (rendimento global) | Portal → Detalhar | Por aluno |
+| **R1** | CH pendente / % integralizado (auxiliar) | Portal do Discente | Por aluno |
+| **R1** | Matérias do semestre (nome, local, horário) | Portal do Discente | Por aluno |
+| **R1** | Tarefas/atividades pendentes | Portal + Turma Virtual → Tarefas | Por aluno |
+| **R1** | Frequência, notas, grupo | Turma Virtual → Alunos | Por aluno |
+| **R1** | Materiais/PDFs (lista) | Turma Virtual → Materiais | Por aluno · upload = apêndice |
+| **R1 — Histórico** | Histórico escolar (PDF) | Ensino → Emitir Histórico | Por aluno · muda raramente |
+| **R2 — Calendário** | Calendário acadêmico (datas do semestre) | Ensino → Calendário Acadêmico | **Global** (campus/semestre) |
+| **R3 — Turmas** | Turmas ofertadas (próximo semestre) | Ensino → Consultar Turmas | **Global** por `curso_id` + semestre |
+
+**Gatilhos — sugestão de referência (decisão na #6d / B68-orq):**
+
+| Momento | O que dispara |
+|---|---|
+| **1º login** (sem snapshot) | **R1 full** bloqueante (portal + histórico + turma) · fila prioritária |
+| **Login rápido** (já sincronizado) | Entrada imediata · **R1 incremental** em background (fila normal) |
+| **Botão Sincronizar** | **R1 incremental** (fim da fila normal · cooldown 5 min) — **não** re-raspa histórico se TTL ok |
+| **Auto-sync** | **R1 incremental** se `last_sync + 3h` (produção; dev local = 30 min) |
+| **Calendário R2** | Job **global** (cron operador ou 1×/semana) — **não** por clique do aluno |
+| **Turmas R3** | Sob demanda no `/simulador` ou botão explícito · TTL ~24h |
 
 ### 2.4 URLs Importantes do SIGAA
 ```

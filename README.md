@@ -1,6 +1,6 @@
-# 🎓 CEFET Academic Planner
+# ACME HUB
 
-> Um planejador acadêmico inteligente e automatizado para alunos do CEFET-MG, que sincroniza dados diretamente do SIGAA e oferece uma experiência moderna, visual e muito superior ao portal padrão.
+> Planejador acadêmico para alunos do **CEFET-MG**: sincroniza dados do SIGAA e oferece dashboard, calendário, mapa do curso e integralização em uma interface moderna (paleta Cruzeiro 💙 + 💛).
 
 ![Status](https://img.shields.io/badge/Status-Em%20Desenvolvimento-blue)
 ![Plataforma](https://img.shields.io/badge/Plataforma-Windows%20%7C%20Linux-green)
@@ -10,83 +10,49 @@
 
 ## 🎯 O que é?
 
-O CEFET Academic Planner é uma **plataforma web** para alunos do CEFET-MG. Sincroniza dados do SIGAA automaticamente e apresenta uma interface premium com cores inspiradas no Cruzeiro (💙 Azul + 💛 Dourado).
+O **ACME HUB** é uma plataforma web (futuro: mobile Expo + assinatura PIX) que centraliza a vida acadêmica do aluno fora do portal SIGAA.
 
-**Resumo:** SaaS com backend **Supabase**, sync SIGAA via **worker Playwright** no servidor, **assinatura PIX** e app **mobile Expo Go**. Em desenvolvimento local, o app roda em `localhost:3000` com SQLite.
+**Hoje (dev local):** Next.js em `localhost:3000`, SQLite por aluno (`.data/users/{cpf}/`), scraper Playwright no mesmo processo Node.
 
----
-
-## ✨ Funcionalidades Principais
-
-### 🔐 Autenticação e Sincronização com o SIGAA
-- Login com credenciais do SIGAA; sync via **worker Playwright** no servidor.
-- **Sync automático** a cada login: puxa dados institucionais, notas, faltas, tarefas e horários.
-- O aluno escolhe se quer salvar as credenciais SIGAA cifradas no perfil ou digitar a cada sync.
-
-### 📊 Dashboard Central
-- Visão geral do semestre: **RG (Rendimento Global)**, progresso de integralização (barra visual), próximas entregas.
-- Resumo rápido de cada disciplina com nota atual, faltas restantes e tarefas pendentes.
-
-### 📅 Calendário Inteligente (Duas Visões)
-- **Grade Semanal:** Traduz automaticamente os códigos do SIGAA (ex: `6M56`) para uma tabela visual (Segunda a Sexta, com horários reais como 7:00–8:40). Editável pelo aluno.
-- **Agenda Mensal:** Calendário no estilo planner com todas as tarefas, provas e trabalhos. Suporta:
-  - ✅ Checklist (marcar como feito)
-  - 🔍 Filtros por matéria, tipo ou status
-  - ➕ Adicionar tarefas manuais
-
-### 📚 Gestão de Disciplinas (Híbrida: SIGAA + Manual)
-Como nem todo professor usa o SIGAA corretamente, o aluno pode cadastrar e editar atividades manualmente.
-
-- **Notas Inteligentes:**
-  - Tabela mista (dados do SIGAA + manuais).
-  - Mostra sempre: pontos distribuídos, pontos faltando, porcentagem atual.
-  - Hover mostra o valor máximo de cada avaliação.
-- **Simulador de Notas:** Insira notas fictícias em avaliações futuras para prever se passa e como fica o RG.
-- **Controle de Faltas por Limite Máximo (não por %):**
-
-  | Carga Horária | Máx. Faltas | Dias reais (~) |
-  |:---:|:---:|:---:|
-  | 30h | 7 | 3 |
-  | 45h | 11 | 5 |
-  | 60h | 15 | 7 |
-  | 75h | 18 | 9 |
-  | 90h | 22 | 11 |
-  | 120h | 30 | 15 |
-
-- **Tarefas Individuais e em Grupo:** Sincronizadas do SIGAA com opção de baixar arquivos de instrução.
-- **Download Automático de PDFs:** Toggle por matéria; materiais vão para a **nuvem pessoal** do aluno (`CEFET Academic Planner/{semestre}/{matéria}/`), não para o Supabase.
-- **Grupos de Estudo:** Visualização dos membros do grupo cadastrado pelo professor.
-
-### 🗺️ Mapa Mental do Curso (Motor do PPC)
-- Visualização em **grafo interativo** de toda a grade curricular, mostrando:
-  - ✅ Disciplinas concluídas (selo verde)
-  - 🔓 Disciplinas desbloqueadas (pré-requisitos atendidos)
-  - 🔒 Disciplinas trancadas (falta pré-requisito)
-  - 🔗 Co-requisitos (precisam ser cursadas juntas)
-  - Ementa de cada disciplina no dashboard individual
-- Organizado por período (1º ao 10º).
-- Baseado no PPC oficial do curso.
-
-### 🧮 Simulador de Matrícula (Pré-horário)
-- No início do semestre, consulta as turmas ofertadas no SIGAA.
-- Cruza com o histórico do aluno e o mapa de pré-requisitos.
-- **Sugere automaticamente** quais matérias o aluno pode pegar.
-- Permite **montar a grade visualmente** (drag-and-drop) antes da matrícula oficial.
-- Alerta de **choque de horários**.
-
-### ⏰ Gestão de Integralização (Horas)
-- Tela dedicada para o aluno cadastrar e acompanhar suas horas:
-  - CH Obrigatória, Optativa, Complementar, Extensão, Flexibilizada.
-- Corrige a falta de clareza e os bugs do cálculo oficial do SIGAA.
-- Barra de progresso visual por categoria.
-
-### 📆 Calendário Acadêmico
-- Busca automática das datas oficiais do CEFET (início/fim de aulas, matrícula, trancamento).
-- Alertas e lembretes para o aluno não perder prazos.
+**Roadmap:** Supabase + worker em fila (Bloco 2b) + deploy global — ver [`docs/TASKS.md`](docs/TASKS.md) e [`docs/SCOPE-CLOUD.md`](docs/SCOPE-CLOUD.md).
 
 ---
 
-## 🏗️ Arquitetura e Stack Tecnológica
+## ✨ Funcionalidades
+
+### 🔐 Autenticação e sync SIGAA
+- Login com CPF + senha SIGAA; sync **full** no primeiro acesso e **incremental** depois.
+- Credenciais SIGAA opcionais cifradas no SQLite (`CREDENTIALS_ENCRYPTION_KEY`).
+- Sync automático em background (intervalo configurável — ver apêndice B65 no TASKS).
+- Sino de notificações: tarefas/notas novas pós-sync + lembretes 24h/1h.
+
+### 📊 Dashboard
+- RG, integralização (CH por categoria), próximas entregas, cards por disciplina.
+- Link no nome da disciplina → página da matéria.
+
+### 📅 Calendário (duas visões)
+- **Grade semanal:** códigos SIGAA traduzidos (ex.: `6M56` → horário real); extras editáveis pelo aluno.
+- **Agenda mensal:** tarefas, provas e eventos; filtros, checklist e tarefas manuais.
+- **Datas acadêmicas oficiais:** painel com início/fim de aulas, recesso, provas — populado pelo robô **B66** (calendário acadêmico SIGAA).
+
+### 📚 Disciplinas
+- Notas e faltas do SIGAA + edição manual; simulador de notas; tarefas individuais e em grupo.
+- Limite de faltas por carga horária (regra do PPC — ver [`docs/SCOPE.md`](docs/SCOPE.md)).
+
+### 🗺️ Mapa do curso e integralização
+- Grafo do PPC: concluídas, desbloqueadas, trancadas, co-requisitos.
+- Integralização prioriza **histórico escolar** (PDF B30) + PPC; portal SIGAA como auxiliar.
+
+### 🔜 Em roadmap (ainda não no app)
+- Simulador de matrícula com turmas ofertadas (**B67**).
+- Download de materiais para nuvem pessoal do aluno (`ACME HUB/{semestre}/{matéria}/`).
+- App mobile (Expo), PIX e multi-tenant Supabase.
+
+---
+
+## 🏗️ Arquitetura
+
+### Visão alvo (produção)
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -95,101 +61,121 @@ Como nem todo professor usa o SIGAA corretamente, o aluno pode cadastrar e edita
                              │ HTTPS / JWT
                              ▼
 ┌─────────────────────────────────────────────────────────────┐
-│  Supabase — Auth · PostgreSQL (RLS) · (PDFs na nuvem do aluno) │
+│  Supabase — Auth · PostgreSQL (RLS)                         │
 └────────────────────────────┬────────────────────────────────┘
                              │
                              ▼
 ┌─────────────────────────────────────────────────────────────┐
-│  Worker Playwright — sync SIGAA (fila assíncrona)           │
+│  Worker Playwright — fila assíncrona de sync SIGAA          │
 └────────────────────────────┬────────────────────────────────┘
                              ▼
                     https://sig.cefetmg.br
 ```
 
-| Componente | Tecnologia | Observação |
-|---|---|---|
-| **Frontend Web** | Next.js (App Router) | Deploy Vercel ou similar |
-| **Backend / API** | Next.js API Routes + Supabase | Dev local: SQLite (Bloco 1) |
-| **Banco (prod)** | Supabase PostgreSQL | Multi-tenant com RLS |
-| **Scraper SIGAA** | Playwright (worker servidor) | Não roda no browser/celular |
-| **Pagamentos** | PIX (gateway TBD) | Assinatura por período |
-| **Mobile** | Expo (React Native) | Testes via Expo Go |
-| **Estilização** | CSS (design system Cruzeiro) | Dark mode padrão |
+### Sync SIGAA hoje (dev — robôs separados)
 
-### 🎨 Paleta de Cores (Estilo Cruzeiro 💙💛)
+O pipeline principal **não** inclui tudo. Cada fonte do SIGAA tem robô próprio — falha em uma etapa não apaga as outras.
 
-| Uso | Cor | Hex |
-|---|---|---|
-| Primária (backgrounds, headers) | Azul Vivo | `#0060B1` |
-| Primária Escura (hover, active) | Azul Escuro | `#004A8C` |
-| Primária Clara (cards, destaques) | Azul Claro | `#1A8FE3` |
-| Secundária (botões, ícones, badges) | Dourado | `#D4A843` |
-| Secundária Clara (hover) | Dourado Claro | `#E8C66A` |
-| Background | Cinza Escuro | `#0D1117` |
-| Surface (cards) | Cinza Médio | `#161B22` |
-| Texto Principal | Branco | `#F0F6FC` |
-| Texto Secundário | Cinza Claro | `#8B949E` |
-| Sucesso (concluído) | Verde | `#3FB950` |
-| Alerta (atenção) | Laranja | `#D29922` |
-| Erro (reprovado, limite) | Vermelho | `#F85149` |
+| Robô | Endpoint / gatilho | Dados |
+|------|-------------------|--------|
+| Portal discente | `POST /api/sync` | RG, semestre, tarefas, integralização portal |
+| Turma virtual | `POST /api/sync` | Notas, faltas, grupo |
+| Histórico escolar | `POST /api/sync` | PDF → tabela `historico` |
+| **Calendário acadêmico (B66)** | `POST /api/sync/calendario` | `calendario_academico` — disparo em background após sync principal |
+
+**B66:** menu *Ensino → Calendário Acadêmico* nem sempre existe no SIGAA. Se indisponível, o snapshot é marcado como `unavailable` e **os dados locais são preservados**. O semestre alvo é derivado da **data atual** (ex.: jul/2026 → `2026.1` + `2026.2`).
+
+| Componente | Tecnologia |
+|---|---|
+| Frontend | Next.js 16 (App Router), React 19, TanStack Query |
+| API / dev DB | Next.js API Routes + SQLite (`better-sqlite3`) |
+| Scraper | Playwright (headless no servidor) |
+| Estilo | CSS — design system Cruzeiro, dark mode padrão |
+| Prod (futuro) | Supabase PostgreSQL, worker em fila, PIX, Expo |
 
 ---
 
-## 📱 Mobile
-
-App **Expo Go** para testes no celular — mesmo backend Supabase. Detalhes em [`docs/SCOPE-CLOUD.md`](docs/SCOPE-CLOUD.md) §7.
-
----
-
-## 🚀 Como Rodar
+## 🚀 Como rodar
 
 ### Pré-requisitos
-- [Node.js](https://nodejs.org/) v18+ instalado
-- Navegador moderno (Chrome, Firefox, Edge)
+- [Node.js](https://nodejs.org/) 18+
+- Navegador Chromium (instalado pelo Playwright na primeira vez)
 
 ### Instalação
+
 ```bash
-# Clone o repositório
-git clone https://github.com/seu-usuario/CEFET-Academic-Planner.git
-cd CEFET-Academic-Planner
+git clone <url-do-repositorio>
+cd CEFET-Academic-Planner/app
 
-# Instale as dependências
 npm install
+npx playwright install chromium
 
-# Inicie o app
+cp .env.example .env.local
+# Edite .env.local: CREDENTIALS_ENCRYPTION_KEY (mín. 16 caracteres)
+# Para sync real: SIGAA_SCRAPER_MOCK=false
+
 npm run dev
 ```
 
-### Acesso
-Abra o navegador em: **http://localhost:3000**
+Abra **http://localhost:3000**, faça login com CPF + senha SIGAA e use o botão **Sync SIGAA** na navbar.
+
+### Testes
+
+```bash
+cd app
+npm test
+# Suite B66 (calendário):
+npx tsx --test tests/bloco-2a-b66.test.ts
+# Sync real (credenciais no ambiente):
+npm run test:scraper:live
+```
+
+### Variáveis úteis (`.env.local`)
+
+| Variável | Descrição |
+|----------|-----------|
+| `CREDENTIALS_ENCRYPTION_KEY` | Cifra senha SIGAA salva no perfil |
+| `SIGAA_SCRAPER_MOCK` | `true` = dados mock (padrão nos testes npm) |
+| `SIGAA_HISTORICO_PDF_PATH` | Dev: pula download e parseia PDF local |
+| `SIGAA_CALENDARIO_HTML_PATH` | Dev: parseia HTML local do calendário |
+| `SIGAA_HEADLESS` | `false` para ver o browser durante debug |
 
 ---
 
-## 📂 Estrutura do Projeto
+## 📂 Estrutura do projeto
 
 ```
-CEFET-Academic-Planner/
-├── app/                     # Next.js (código em app/src/)
+CEFET-Academic-Planner/          # nome da pasta do repositório (legado)
+├── app/                          # Next.js — código em app/src/
+│   ├── src/
+│   │   ├── app/api/              # API Routes (sync, dashboard, calendar…)
+│   │   ├── lib/scraper/          # Playwright: portal, turma, histórico, calendário
+│   │   ├── lib/sync/             # Orquestração e policies de persistência
+│   │   ├── config/brand.ts       # Marca: ACME HUB
+│   │   └── components/           # UI
+│   ├── tests/                    # Testes Node (tsx --test)
+│   └── .env.example
 ├── docs/
-│   ├── SCOPE.md             # Regras acadêmicas
-│   ├── SCOPE-CLOUD.md       # Arquitetura cloud, PIX, mobile
-│   ├── TASKS.md             # Roadmap e tasks
-│   └── ppc/                 # PPC e grade curricular
-├── mobile/                  # Expo (futuro — Bloco 8)
-├── package.json
+│   ├── SCOPE.md                  # Regras acadêmicas
+│   ├── SCOPE-CLOUD.md            # Cloud, PIX, mobile, fila worker
+│   ├── TASKS.md                  # Roadmap e status das tasks
+│   └── ppc/                      # Grade curricular PPC
+├── mobile/                       # Expo (futuro)
 └── README.md
 ```
 
 ---
 
-## 📄 Documentação Adicional
+## 📄 Documentação
 
-- **[docs/SCOPE.md](docs/SCOPE.md)** — Regras de negócio acadêmicas (notas, faltas, PPC, calendário).
-- **[docs/SCOPE-CLOUD.md](docs/SCOPE-CLOUD.md)** — Arquitetura cloud, assinatura PIX e mobile.
-- **[docs/TASKS.md](docs/TASKS.md)** — Roadmap com ordem de execução e status das tasks.
+- **[docs/SCOPE.md](docs/SCOPE.md)** — Notas, faltas, PPC, calendário, integralização.
+- **[docs/SCOPE-CLOUD.md](docs/SCOPE-CLOUD.md)** — Arquitetura cloud, fila de sync, PIX, mobile.
+- **[docs/TASKS.md](docs/TASKS.md)** — Ordem oficial de execução e status (fonte de verdade do roadmap).
+
+**Status jun/2026:** Bloco 1 ✅ · Bloco 2a (B27–B31, F18, F37, F38) ✅ · **B66** calendário acadêmico em validação · próximo: **B67** turmas ofertadas.
 
 ---
 
 ## 📜 Licença
 
-MIT License — Use, modifique e distribua livremente.
+MIT License — use, modifique e distribua livremente.

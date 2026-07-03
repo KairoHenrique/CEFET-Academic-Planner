@@ -39,9 +39,26 @@ export interface PerfilSyncStatus {
   lastSyncAt: string | null;
 }
 
+export interface NotificationPreferences {
+  tasks: boolean;
+  grades: boolean;
+  taskReminders: boolean;
+  /** Eventos manuais e marcos — 24h e 1h antes. */
+  calendarReminders: boolean;
+  /** Aulas da grade — apenas 30 min antes. */
+  classReminders: boolean;
+}
+
 export interface PerfilResponse {
   profile: PerfilAluno | null;
   account: PerfilAccount;
   subscription: PerfilSubscription;
   sync: PerfilSyncStatus;
+  notifications: NotificationPreferences;
+}
+
+export interface PatchPerfilBody {
+  email?: string | null;
+  phone?: string | null;
+  notifications?: Partial<NotificationPreferences>;
 }

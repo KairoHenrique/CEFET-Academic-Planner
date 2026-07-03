@@ -1,27 +1,9 @@
 import Link from "next/link";
 import type { PerfilResponse } from "@/lib/types/perfil-api";
-import {
-  formatCpf,
-  formatDateTime,
-  formatPhone,
-  formatRemainingDays,
-} from "@/lib/perfil/format-profile-value";
-
-interface ProfileInfoRowProps {
-  label: string;
-  value: string;
-  hint?: string;
-}
-
-function ProfileInfoRow({ label, value, hint }: ProfileInfoRowProps) {
-  return (
-    <div className="profile-info-row">
-      <dt className="profile-info-label">{label}</dt>
-      <dd className="profile-info-value">{value}</dd>
-      {hint ? <dd className="profile-info-hint">{hint}</dd> : null}
-    </div>
-  );
-}
+import { formatDateTime, formatRemainingDays } from "@/lib/perfil/format-profile-value";
+import { ProfileAccountSection } from "@/components/profile/ProfileAccountSection";
+import { ProfileNotificationSection } from "@/components/profile/ProfileNotificationSection";
+import { ProfileSyncFooter } from "@/components/profile/ProfileSyncFooter";
 
 function subscriptionStatusLabel(
   status: PerfilResponse["subscription"]["status"]
@@ -39,11 +21,23 @@ function subscriptionStatusLabel(
 
 interface ProfileModalBodyProps {
   data: PerfilResponse;
-  onStartTutorial: () => void;
+  isSaving: boolean;
+  saveError: string | null;
+  onSaveContact: (input: { email: string; phone: string }) => Promise<void>;
+  onToggleNotification: (
+    key: keyof PerfilResponse["notifications"],
+    enabled: boolean
+  ) => void;
 }
 
-export function ProfileModalBody({ data, onStartTutorial }: ProfileModalBodyProps) {
-  const { profile, account, subscription, sync } = data;
+export function ProfileModalBody({
+  data,
+  isSaving,
+  saveError,
+  onSaveContact,
+  onToggleNotification,
+}: ProfileModalBodyProps) {
+  const { profile, account, subscription, sync, notifications } = data;
 
   return (
     <div className="profile-modal-body">
@@ -59,35 +53,21 @@ export function ProfileModalBody({ data, onStartTutorial }: ProfileModalBodyProp
         </div>
       </header>
 
-      <section className="profile-modal-section" aria-labelledby="profile-dados-title">
-        <h3 id="profile-dados-title" className="profile-modal-section-title">
-          Dados da conta
-        </h3>
-        <dl className="profile-info-list">
-          <ProfileInfoRow
-            label="Matrícula"
-            value={profile?.matricula ?? "—"}
-          />
-          <ProfileInfoRow label="CPF" value={formatCpf(account.cpf)} />
-          <ProfileInfoRow
-            label="E-mail da conta"
-            value={account.email ?? "Não informado"}
-          />
-          <ProfileInfoRow
-            label="Celular"
-            value={formatPhone(account.phone)}
-          />
-          <ProfileInfoRow label="Curso" value={profile?.curso ?? "—"} />
-          <ProfileInfoRow
-            label="Último sync"
-            value={formatDateTime(sync.lastSyncAt)}
-            hint={`Sync automático a cada ${sync.intervalMinutes} min.`}
-          />
-        </dl>
-      </section>
+      {saveError ? (
+        <p className="profile-save-error" role="alert">
+          {saveError}
+        </p>
+      ) : null}
+
+      <ProfileAccountSection
+        profile={profile}
+        account={account}
+        isSaving={isSaving}
+        onSaveContact={onSaveContact}
+      />
 
       <section
-        className="profile-modal-section"
+        className="profile-modal-section profile-plan-section"
         aria-labelledby="profile-plano-title"
       >
         <h3 id="profile-plano-title" className="profile-modal-section-title">
@@ -115,18 +95,13 @@ export function ProfileModalBody({ data, onStartTutorial }: ProfileModalBodyProp
         </div>
       </section>
 
-      <section className="profile-modal-section profile-modal-actions">
-        <button
-          type="button"
-          className="btn-outline profile-tutorial-btn"
-          onClick={onStartTutorial}
-        >
-          Tutorial do site
-        </button>
-        <p className="profile-modal-footer-hint">
-          Passe por cada área do app com legendas explicando o que cada parte faz.
-        </p>
-      </section>
+      <ProfileNotificationSection
+        preferences={notifications}
+        isSaving={isSaving}
+        onToggle={onToggleNotification}
+      />
+
+      <ProfileSyncFooter sync={sync} />
     </div>
   );
 }

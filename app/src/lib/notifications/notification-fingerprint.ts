@@ -48,6 +48,25 @@ export function buildGradeNotificationFingerprint(
   return `grade:${disciplinaId.toLowerCase()}|${normalizeNotificationText(avaliacao)}`;
 }
 
+export function buildCalendarEventReminderFingerprint(
+  eventId: string,
+  startDateIso: string,
+  slot: "24h" | "1h"
+): string {
+  return `calendar-event-reminder:${eventId}|${startDateIso}|${slot}`;
+}
+
+export function buildClassReminderFingerprint(
+  eventId: string,
+  startDateIso: string
+): string {
+  return `class-reminder:${eventId}|${startDateIso}|30m`;
+}
+
+export function isUrgentClassReminderFingerprint(fingerprint: string): boolean {
+  return fingerprint.startsWith("class-reminder:");
+}
+
 /** Baseline antiga incluía a nota no fingerprint (`grade:ID|PRO1|7.5`). */
 export function normalizeStoredBaselineFingerprint(fingerprint: string): string {
   const legacyGrade = fingerprint.match(/^grade:([^|]+)\|(.+)\|[\d.]+$/i);
@@ -57,7 +76,23 @@ export function normalizeStoredBaselineFingerprint(fingerprint: string): string 
 }
 
 export function isUrgentTaskReminderFingerprint(fingerprint: string): boolean {
-  return fingerprint.endsWith("|1h");
+  return fingerprint.endsWith("|1h") && fingerprint.startsWith("task-reminder:");
+}
+
+export function isUrgentCalendarReminderFingerprint(fingerprint: string): boolean {
+  return (
+    fingerprint.startsWith("calendar-event-reminder:") &&
+    fingerprint.endsWith("|1h")
+  );
+}
+
+/** @deprecated Use isUrgentTaskReminderFingerprint or isUrgentCalendarReminderFingerprint */
+export function isUrgentReminderFingerprint(fingerprint: string): boolean {
+  return (
+    isUrgentTaskReminderFingerprint(fingerprint) ||
+    isUrgentCalendarReminderFingerprint(fingerprint) ||
+    isUrgentClassReminderFingerprint(fingerprint)
+  );
 }
 
 export function buildNotificationFingerprint(

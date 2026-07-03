@@ -1,4 +1,4 @@
-import { stripHtmlTags } from "@/lib/scraper/turma-virtual/html-utils";
+import { parseBrDateToIso, stripHtmlTags } from "@/lib/scraper/turma-virtual/html-utils";
 import type { PortalDisciplinaSemestre } from "@/lib/scraper/types/portal-discente";
 
 const SIGAA_HORARIO_PATTERN = /\b[2-6][MTN](?:12|34|56)\b/gi;
@@ -18,6 +18,19 @@ function extractHorarioCodigo(value: string): string | null {
   const matches = value.match(SIGAA_HORARIO_PATTERN);
   if (!matches?.length) return null;
   return matches.join(" ").toUpperCase();
+}
+
+export function extractTurmaPeriodFromHorarioText(
+  text: string
+): { dataInicio: string; dataFim: string } | null {
+  const match = text.match(/(\d{2}\/\d{2}\/\d{4})\s*[-–]\s*(\d{2}\/\d{2}\/\d{4})/);
+  if (!match) return null;
+
+  const dataInicio = parseBrDateToIso(match[1]);
+  const dataFim = parseBrDateToIso(match[2]);
+  if (!dataInicio || !dataFim) return null;
+
+  return { dataInicio, dataFim };
 }
 
 function extractLocalFromRow(rowHtml: string): string | null {
@@ -89,12 +102,16 @@ export function parseDisciplinasHorarioFromHtml(
     const codigoHorario = extractHorarioCodigo(horarioRaw);
     if (!codigoHorario) continue;
 
+    const turmaPeriod = extractTurmaPeriodFromHorarioText(horarioRaw);
+
     disciplinas.set(normalizeNomeKey(nome), {
       codigo: nome,
       nome,
       local: extractLocalFromRow(rowHtml),
       codigoHorario,
       horarioTraduzido: null,
+      turmaDataInicio: turmaPeriod?.dataInicio ?? null,
+      turmaDataFim: turmaPeriod?.dataFim ?? null,
     });
   }
 

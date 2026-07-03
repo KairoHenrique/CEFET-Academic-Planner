@@ -26,7 +26,18 @@ const labEvaluations = (
 
 type SubjectSeed = Omit<
   Subject,
-  "ementa" | "downloadedFiles" | "pdfAutoDownload" | "gradeRisk" | "nickname" | "displayName" | "shortLabel" | "officialName" | "syncedRoom"
+  | "ementa"
+  | "downloadedFiles"
+  | "pdfAutoDownload"
+  | "gradeRisk"
+  | "nickname"
+  | "displayName"
+  | "shortLabel"
+  | "officialName"
+  | "syncedRoom"
+  | "syncedSchedule"
+  | "syncedProfessor"
+  | "syncedWeeklyHours"
 >;
 
 const semesterSubjectsSeed: SubjectSeed[] = [

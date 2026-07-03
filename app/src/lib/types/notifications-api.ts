@@ -1,4 +1,9 @@
-export type NotificationKind = "task" | "grade" | "task-reminder";
+export type NotificationKind =
+  | "task"
+  | "grade"
+  | "task-reminder"
+  | "calendar-event-reminder"
+  | "class-reminder";
 
 export interface NotificationSnapshotItem {
   fingerprint: string;
@@ -23,8 +28,24 @@ export interface PendingTaskReminderSource {
   dueTime: string;
 }
 
+import type { NotificationPreferences } from "@/lib/types/perfil-api";
+
+export interface PendingCalendarReminderSource {
+  eventId: string;
+  title: string;
+  subtitle: string;
+  href: string;
+  startDateIso: string;
+  startTime: string;
+}
+
 export interface NotificationsSnapshotResponse {
   items: NotificationSnapshotItem[];
   pendingTasks: PendingTaskReminderSource[];
+  /** Eventos manuais e marcos (sem aulas). */
+  pendingCalendarEvents: PendingCalendarReminderSource[];
+  /** Aulas expandidas da grade. */
+  pendingClassSessions: PendingCalendarReminderSource[];
+  preferences: NotificationPreferences;
   capturedAt: string;
 }

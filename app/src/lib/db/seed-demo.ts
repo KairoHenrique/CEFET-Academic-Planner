@@ -95,6 +95,8 @@ export function seedDemoStudentData(): void {
       nota_aprovacao: subject.passingGrade,
       arquivos_baixados: subject.downloadedFiles,
       pdf_auto_download: subject.pdfAutoDownload ? 1 : 0,
+      turma_data_inicio: "2026-02-23",
+      turma_data_fim: "2026-07-04",
     });
 
     for (const evaluation of subject.evaluations) {

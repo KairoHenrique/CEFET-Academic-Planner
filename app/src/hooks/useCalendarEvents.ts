@@ -9,20 +9,11 @@ import {
 } from "@/lib/api/client";
 import { invalidateTaskSyncQueries } from "@/lib/query/invalidate-task-sync";
 import { queryKeys } from "@/lib/query/keys";
-import type { CalendarEvent } from "@/lib/types/calendar";
 import type {
   CalendarResponse,
   CreateCalendarEventBody,
   ManualCalendarEventInput,
 } from "@/lib/types/calendar-api";
-
-function sortEvents(events: CalendarEvent[]): CalendarEvent[] {
-  return [...events].sort((a, b) => {
-    const byDate = a.date.localeCompare(b.date);
-    if (byDate !== 0) return byDate;
-    return a.title.localeCompare(b.title, "pt-BR");
-  });
-}
 
 function toCreateBody(event: ManualCalendarEventInput): CreateCalendarEventBody {
   return {
@@ -30,6 +21,12 @@ function toCreateBody(event: ManualCalendarEventInput): CreateCalendarEventBody 
     description: event.description,
     type: event.type,
     date: event.date,
+    dateEnd: event.dateEnd,
+    timeStart: event.timeStart,
+    timeEnd: event.timeEnd,
+    recurrence: event.recurrence,
+    recurrenceUntil: event.recurrenceUntil,
+    recurrenceDays: event.recurrenceDays,
     subjectCode: event.subjectCode,
     color: event.colorOverride ? event.color : undefined,
   };
@@ -49,6 +46,7 @@ export function useCalendarEvents() {
 
   const events = query.data?.events ?? [];
   const academicDates = query.data?.academicDates ?? [];
+  const academicDateGroups = query.data?.academicDateGroups ?? [];
 
   const toggleMutation = useMutation({
     mutationFn: ({
@@ -88,18 +86,9 @@ export function useCalendarEvents() {
 
   const addMutation = useMutation({
     mutationFn: (body: CreateCalendarEventBody) => apiCreateCalendarEvent(body),
-    onSuccess: (created) => {
-      queryClient.setQueryData<CalendarResponse>(
-        queryKeys.calendar(),
-        (current) => {
-          if (!current) return current;
-          return {
-            ...current,
-            events: sortEvents([...current.events, created]),
-          };
-        }
-      );
+    onSuccess: () => {
       void invalidateTaskSyncQueries(queryClient);
+      void queryClient.invalidateQueries({ queryKey: queryKeys.calendar() });
     },
   });
 
@@ -132,6 +121,7 @@ export function useCalendarEvents() {
   return {
     events,
     academicDates,
+    academicDateGroups,
     isLoading: query.isLoading,
     isFetching: query.isFetching,
     isAdding: addMutation.isPending,

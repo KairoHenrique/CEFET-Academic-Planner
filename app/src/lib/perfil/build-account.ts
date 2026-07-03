@@ -34,3 +34,20 @@ export function buildPerfilAccount(): PerfilAccount {
     phone: getAccountPhone(),
   };
 }
+
+export function saveAccountContact(input: {
+  email?: string | null;
+  phone?: string | null;
+}): PerfilAccount {
+  if (input.email !== undefined) {
+    const normalized = input.email?.trim() ?? "";
+    setConfig(CONFIG_ACCOUNT_EMAIL, normalized);
+  }
+
+  if (input.phone !== undefined) {
+    const digits = input.phone?.replace(/\D/g, "") ?? "";
+    setConfig(CONFIG_ACCOUNT_PHONE, digits);
+  }
+
+  return buildPerfilAccount();
+}

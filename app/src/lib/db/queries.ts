@@ -1,4 +1,8 @@
 import db from "./index";
+import {
+  isValidCalendarioEventoLabel,
+  isValidCalendarioIsoDate,
+} from "@/lib/scraper/calendario/calendario-event-filter";
 import { isPpcCanonicalCodigo } from "@/lib/scraper/portal-discente/resolve-disciplina-codigo";
 import type {
   AlunoRow,
@@ -192,13 +196,13 @@ export function saveSemestreAtual(entry: SemestreAtualRow): void {
       disciplina_id, local, local_exibicao, codigo_horario, horario_traduzido,
       horario_exibicao, professor, professor_exibicao, horas_semanais_exibicao,
       cor, apelido, nome_exibicao, max_faltas, nota_maxima, nota_aprovacao,
-      arquivos_baixados, pdf_auto_download
+      arquivos_baixados, pdf_auto_download, turma_data_inicio, turma_data_fim
     )
     VALUES (
       @disciplina_id, @local, @local_exibicao, @codigo_horario, @horario_traduzido,
       @horario_exibicao, @professor, @professor_exibicao, @horas_semanais_exibicao,
       @cor, @apelido, @nome_exibicao, @max_faltas, @nota_maxima, @nota_aprovacao,
-      @arquivos_baixados, @pdf_auto_download
+      @arquivos_baixados, @pdf_auto_download, @turma_data_inicio, @turma_data_fim
     )
     ON CONFLICT(disciplina_id) DO UPDATE SET
       local = excluded.local,
@@ -216,7 +220,9 @@ export function saveSemestreAtual(entry: SemestreAtualRow): void {
       nota_maxima = excluded.nota_maxima,
       nota_aprovacao = excluded.nota_aprovacao,
       arquivos_baixados = excluded.arquivos_baixados,
-      pdf_auto_download = excluded.pdf_auto_download
+      pdf_auto_download = excluded.pdf_auto_download,
+      turma_data_inicio = excluded.turma_data_inicio,
+      turma_data_fim = excluded.turma_data_fim
   `
   ).run({
     ...entry,
@@ -226,6 +232,8 @@ export function saveSemestreAtual(entry: SemestreAtualRow): void {
     horario_exibicao: entry.horario_exibicao ?? null,
     professor_exibicao: entry.professor_exibicao ?? null,
     horas_semanais_exibicao: entry.horas_semanais_exibicao ?? null,
+    turma_data_inicio: entry.turma_data_inicio ?? null,
+    turma_data_fim: entry.turma_data_fim ?? null,
   });
 }
 
@@ -1032,6 +1040,26 @@ export function clearCalendarioAcademico(): void {
   db.prepare("DELETE FROM calendario_academico").run();
 }
 
+/** Remove linhas de turma/script/forum gravadas por parse incorreto (B66). */
+export function purgeInvalidCalendarioAcademico(): number {
+  const deleteStmt = db.prepare("DELETE FROM calendario_academico WHERE id = ?");
+  let removed = 0;
+
+  for (const row of getCalendarioAcademico()) {
+    const validLabel = isValidCalendarioEventoLabel(row.evento);
+    const validDates =
+      isValidCalendarioIsoDate(row.data_inicio) &&
+      (row.data_fim == null || isValidCalendarioIsoDate(row.data_fim));
+
+    if (!validLabel || !validDates) {
+      deleteStmt.run(row.id);
+      removed++;
+    }
+  }
+
+  return removed;
+}
+
 // --- CALENDÁRIO (leitura) ---
 export function getTarefasForCalendar(): TarefaCalendarRow[] {
   return db
@@ -1095,20 +1123,30 @@ export function getEventoCalendarioById(id: number): EventoCalendarioRow | undef
 }
 
 export function insertEventoCalendario(
-  event: Omit<EventoCalendarioRow, "id" | "disciplina_nome">
+  event: Omit<EventoCalendarioRow, "id" | "disciplina_nome" | "disciplina_apelido">
 ): number {
   const result = db
     .prepare(
       `
     INSERT INTO eventos_calendario (
-      titulo, descricao, data, tipo, disciplina_id, cor, concluida, manual
+      titulo, descricao, data, data_fim, hora_inicio, hora_fim,
+      recorrencia, recorrencia_ate, recorrencia_dias, tipo, disciplina_id, cor, concluida, manual
     )
     VALUES (
-      @titulo, @descricao, @data, @tipo, @disciplina_id, @cor, @concluida, @manual
+      @titulo, @descricao, @data, @data_fim, @hora_inicio, @hora_fim,
+      @recorrencia, @recorrencia_ate, @recorrencia_dias, @tipo, @disciplina_id, @cor, @concluida, @manual
     )
   `
     )
-    .run(event);
+    .run({
+      ...event,
+      data_fim: event.data_fim ?? null,
+      hora_inicio: event.hora_inicio ?? null,
+      hora_fim: event.hora_fim ?? null,
+      recorrencia: event.recorrencia ?? "none",
+      recorrencia_ate: event.recorrencia_ate ?? null,
+      recorrencia_dias: event.recorrencia_dias ?? null,
+    });
   return Number(result.lastInsertRowid);
 }
 
@@ -1129,11 +1167,17 @@ export function getTarefaCalendarById(id: number): TarefaCalendarRow | undefined
 export function updateEventoCalendarioFields(
   id: number,
   fields: Partial<
-    Pick<
+      Pick<
       EventoCalendarioRow,
       | "titulo"
       | "descricao"
       | "data"
+      | "data_fim"
+      | "hora_inicio"
+      | "hora_fim"
+      | "recorrencia"
+      | "recorrencia_ate"
+      | "recorrencia_dias"
       | "tipo"
       | "disciplina_id"
       | "cor"

@@ -10,7 +10,19 @@ import {
   readNotificationBaseline,
   seedNotificationBaselineIfMissing,
 } from "@/lib/notifications/notification-baseline";
-import { buildTaskReminderNotificationFingerprint } from "@/lib/notifications/notification-fingerprint";
+import {
+  buildCalendarEventReminderItems,
+  buildClassSessionReminderItems,
+} from "@/lib/notifications/calendar-event-reminder-items";
+import {
+  buildCalendarEventReminderFingerprint,
+  buildClassReminderFingerprint,
+  buildTaskReminderNotificationFingerprint,
+} from "@/lib/notifications/notification-fingerprint";
+import {
+  DEFAULT_NOTIFICATION_PREFERENCES,
+  isNotificationKindEnabled,
+} from "@/lib/notifications/notification-preferences-shared";
 import { consumePreSyncNotificationBaseline } from "@/lib/notifications/notification-pre-sync-baseline";
 import {
   archiveRecentPanelItems,
@@ -19,6 +31,7 @@ import {
 import { buildTaskDeadlineReminderItems } from "@/lib/notifications/task-deadline-reminders";
 import { queryKeys } from "@/lib/query/keys";
 import type { NotificationSnapshotItem } from "@/lib/types/notifications-api";
+import type { NotificationPreferences } from "@/lib/types/perfil-api";
 
 const REMINDER_TICK_MS = 60_000;
 
@@ -32,6 +45,13 @@ function filterUnread(
 ): NotificationSnapshotItem[] {
   if (!baseline) return [];
   return items.filter((item) => !baseline.has(item.fingerprint));
+}
+
+function filterByPreferences(
+  items: NotificationSnapshotItem[],
+  preferences: NotificationPreferences
+): NotificationSnapshotItem[] {
+  return items.filter((item) => isNotificationKindEnabled(item.kind, preferences));
 }
 
 function mergeNotificationItems(
@@ -50,6 +70,34 @@ function mergeNotificationItems(
   return merged;
 }
 
+function extractReminderTaskTitle(subtitle: string): string | null {
+  const match = subtitle.match(/:\s*(.+?)\s·\s/);
+  return match?.[1]?.trim().toLowerCase() ?? null;
+}
+
+/** Evita tarefa nova + lembrete de prazo para a mesma entrega. */
+function dedupeTaskNotificationItems(
+  items: NotificationSnapshotItem[],
+  reminderItems: NotificationSnapshotItem[]
+): NotificationSnapshotItem[] {
+  if (reminderItems.length === 0) return items;
+
+  const remindedDeliveries = new Set(
+    reminderItems
+      .filter((item) => item.kind === "task-reminder")
+      .map((item) => {
+        const title = extractReminderTaskTitle(item.subtitle);
+        return title ? `${item.href}|${title}` : item.href;
+      })
+  );
+
+  return items.filter((item) => {
+    if (item.kind !== "task") return true;
+    const key = `${item.href}|${item.title.trim().toLowerCase()}`;
+    return !remindedDeliveries.has(key);
+  });
+}
+
 export function useNotifications() {
   const queryClient = useQueryClient();
   const [baselineVersion, setBaselineVersion] = useState(0);
@@ -61,6 +109,9 @@ export function useNotifications() {
     staleTime: 60_000,
     retry: 1,
   });
+
+  const preferences =
+    query.data?.preferences ?? DEFAULT_NOTIFICATION_PREFERENCES;
 
   useEffect(() => {
     if (!query.data?.items) return;
@@ -84,6 +135,18 @@ export function useNotifications() {
           )
         )
       ),
+      ...(query.data.pendingCalendarEvents ?? []).flatMap((event) =>
+        (["24h", "1h"] as const).map((slot) =>
+          buildCalendarEventReminderFingerprint(
+            event.eventId,
+            event.startDateIso,
+            slot
+          )
+        )
+      ),
+      ...(query.data.pendingClassSessions ?? []).map((session) =>
+        buildClassReminderFingerprint(session.eventId, session.startDateIso)
+      ),
     ];
 
     if (migrateLegacyNotificationBaseline(stableFingerprints)) {
@@ -91,7 +154,12 @@ export function useNotifications() {
     } else if (preSync === null) {
       seedNotificationBaselineIfMissing(stableFingerprints);
     }
-  }, [query.data?.items, query.data?.pendingTasks]);
+  }, [
+    query.data?.items,
+    query.data?.pendingTasks,
+    query.data?.pendingCalendarEvents,
+    query.data?.pendingClassSessions,
+  ]);
 
   useEffect(() => {
     const onSyncComplete = () => {
@@ -112,13 +180,37 @@ export function useNotifications() {
     void reminderTick;
     if (!query.data) return [];
 
-    const reminderItems = buildTaskDeadlineReminderItems(
-      query.data.pendingTasks ?? [],
-      new Date()
-    );
+    const now = new Date();
+    const taskReminders = preferences.taskReminders
+      ? buildTaskDeadlineReminderItems(query.data.pendingTasks ?? [], now)
+      : [];
+    const calendarReminders = preferences.calendarReminders
+      ? buildCalendarEventReminderItems(
+          query.data.pendingCalendarEvents ?? [],
+          now
+        )
+      : [];
+    const classReminders = preferences.classReminders
+      ? buildClassSessionReminderItems(
+          query.data.pendingClassSessions ?? [],
+          now
+        )
+      : [];
 
-    return mergeNotificationItems(query.data.items, reminderItems);
-  }, [query.data, reminderTick]);
+    const reminderItems = [
+      ...taskReminders,
+      ...calendarReminders,
+      ...classReminders,
+    ];
+
+    return filterByPreferences(
+      dedupeTaskNotificationItems(
+        mergeNotificationItems(query.data.items, reminderItems),
+        taskReminders
+      ),
+      preferences
+    );
+  }, [query.data, reminderTick, preferences]);
 
   const unread = useMemo(() => {
     void baselineVersion;
@@ -145,12 +237,17 @@ export function useNotifications() {
     (item) => item.kind === "task" || item.kind === "task-reminder"
   ).length;
   const newGrades = unread.filter((item) => item.kind === "grade").length;
+  const newCalendarEvents = unread.filter(
+    (item) =>
+      item.kind === "calendar-event-reminder" || item.kind === "class-reminder"
+  ).length;
 
   return {
     unread,
     totalUnread: unread.length,
     newTasks,
     newGrades,
+    newCalendarEvents,
     loading: query.isLoading,
     error: query.error instanceof Error ? query.error.message : null,
     markItemsAsRead,

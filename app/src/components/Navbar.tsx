@@ -37,7 +37,13 @@ export function Navbar() {
         <div className="navbar-inner">
           <Link href="/" className="navbar-brand">
             <BrandLogo />
-            <span>{brand.name}</span>
+            <span style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", lineHeight: "1.1" }}>
+              {brand.name.split(" ").map((word, index) => (
+                <span key={index} style={{ display: "block" }}>
+                  {word}
+                </span>
+              ))}
+            </span>
           </Link>
 
           <ul className="navbar-links">

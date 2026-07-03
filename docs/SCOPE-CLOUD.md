@@ -204,8 +204,8 @@ Recuperação de acesso: por **e-mail** ou **telefone** cadastrados (não usa e-
 ### 5.1 Migração SQLite → PostgreSQL
 
 - Schema atual (`aluno`, `disciplinas`, `notas`, `faltas`, `tarefas`, etc.) vira tabelas Postgres.
-- **Toda tabela de dados do aluno** recebe `user_id UUID REFERENCES auth.users`.
-- **Row Level Security (RLS):** políticas `user_id = auth.uid()`.
+- **Tabelas de dados do aluno** recebem `user_id UUID REFERENCES auth.users` — **exceto catálogo global** (§5.4).
+- **Row Level Security (RLS):** políticas `user_id = auth.uid()` nas tabelas por aluno.
 
 ### 5.2 Dados de referência (PPC)
 
@@ -236,6 +236,46 @@ Fluxo:
 3. Para cada matéria com toggle ativo, upload em CEFET Academic Planner/{semestre}/{matéria}/
 4. UI mostra contagem + link para abrir na nuvem
 ```
+
+### 5.4 Catálogo global vs dados do aluno
+
+> **Rascunho / sugestão** — **não decidido**. Objetivo provável: não abrir Playwright por CPF para dados **idênticos entre alunos**. Implementação e lista final de tabelas = **task #6d (B68-orq)**, antes do mobile; schema Postgres (**B39**) deve considerar isso na migração.
+
+#### Tabelas globais (sem `user_id` · read-only para alunos)
+
+| Tabela | Chave natural | Origem | TTL / refresh | Por quê global |
+|---|---|---|---|---|
+| `disciplinas` | `curso_id` + `codigo` | Seed PPC (**B41**) | Estático (reindex raro) | PPC é igual para todos do mesmo curso |
+| `requisitos` | `curso_id` + par pré/co | Seed PPC | Estático | Grafo do mapa não muda por aluno |
+| `ppc_metas_ch` *(ou colunas no seed)* | `curso_id` + tipo CH | Seed PPC | Estático | Totais de integralização por curso |
+| `calendario_academico` | `semestre` (+ campus futuro) | Robô **R2** (B66) | **7 dias** ou virada de semestre | Calendário CEFET é o mesmo para todos |
+| `turmas_ofertadas` | `curso_id` + `semestre` + turma | Robô **R3** (B67) | **24–48 h** | Oferta é institucional, não pessoal |
+| `app_config` | chave (`promotions_enabled`, etc.) | Operador / seed | Manual | Flags de produto |
+
+**Leitura no app:** APIs fazem `JOIN` por `curso_id` da conta + semestre atual — **sem** credencial SIGAA só para ler PPC/calendário.
+
+#### Tabelas por aluno (`user_id` + RLS · Bloco 6c)
+
+| Tabela | Robô | Notas |
+|---|---|---|
+| `aluno` | R1 portal | Snapshot institucional |
+| `semestre_atual` | R1 portal | Matérias cursando agora |
+| `notas`, `faltas`, `tarefas`, `grupo_membros` | R1 turma | Regra #1: `manual = true` protegido |
+| `historico` | R1 histórico | PDF parseado; refresh raro |
+| `integralizacao` | R1 portal + cálculo local | Linhas `manual` protegidas |
+| `eventos_calendario` *(manual)* | Usuário | Não vem do SIGAA |
+| `configuracoes` | Usuário + sync meta | `sync.last_at`, apelidos, toggles |
+| credenciais SIGAA cifradas | Conta app | Worker **B56** |
+
+#### Dev local (SQLite hoje)
+
+- Um `.db` **por CPF** — PPC e calendário **duplicados** em cada arquivo (aceitável em dev).
+- Na migração **6a:** extrair `disciplinas`/`requisitos`/`calendario_academico` para namespace global; manter só dados pessoais por `user_id`.
+
+#### Anti-padrão (sugestão — evitar em produção)
+
+- Raspar calendário acadêmico **a cada sync** de cada aluno (hoje o client dispara B66 pós-sync — **candidato** a job global na **#6d**).
+- Guardar PPC dentro do SQLite por CPF sem seed centralizado no Postgres.
 
 ---
 
@@ -288,6 +328,85 @@ Fluxo:
 **Não é DDoS:** tráfego serializado + limites por usuário ≈ poucos alunos acessando o portal; risco residual = ToS/bloqueio por IP do SIGAA (mitigar com fila lenta e incremental).
 
 **Escala futura (pago):** subir para 2–5 slots paralelos no **mesmo** desenho de fila — só aumenta `max_concurrent`, sem mudar regras de cooldown.
+
+### 6.5 Orquestração de robôs — timing e gatilhos (pré-mobile)
+
+> **Status: rascunho / sugestão — não decidido.** Fica documentado para consulta; **o stakeholder escolhe na task #6d (B68-orq)** quando chegar antes do mobile. Referência dev atual: `run-sync.ts`, `execute-live-sync-pipeline.ts`, `calendario-sync-plan.ts`, `useAutoSync`, `LoginForm`.
+
+#### Mapa de robôs
+
+| ID | Nome | Endpoint / pipeline | Persiste em |
+|---|---|---|---|
+| **R0** | Auth SIGAA | login Playwright (todas as sessões) | cookies efêmeros |
+| **R1a** | Portal discente | `execute-live-sync-pipeline` → portal | `aluno`, `semestre_atual`, tarefas portal, integralização auxiliar |
+| **R1b** | Histórico PDF | mesma sessão, etapa opcional | `historico` |
+| **R1c** | Turma virtual | mesma sessão, pós-portal | `notas`, `faltas`, `tarefas`, `grupo_membros` |
+| **R2** | Calendário acadêmico | `POST /api/sync/calendario` (**B66**) | `calendario_academico` **global** |
+| **R3** | Turmas ofertadas | futuro **B67** | `turmas_ofertadas` **global** |
+
+R1a+b+c = **job único por aluno** (1 login SIGAA por sync) — não fragmentar em browsers separados no MVP.
+
+#### Matriz gatilho × robô (sugestão de referência)
+
+| Gatilho | R1 full (portal+hist+turma) | R1 incremental | R2 calendário | R3 turmas |
+|---|---|---|---|---|
+| **1º login** (sem dados) | ✅ bloqueante · fila **prioritária** | — | ✅ se cache global vazio | — |
+| **Login rápido** | — | ✅ background · fila normal | só se TTL global expirou | — |
+| **Botão Sincronizar** | — | ✅ fim fila normal · cooldown 5 min | **não** (ler cache global) | — |
+| **Auto-sync** (3h prod) | — | ✅ se elegível | **não** | — |
+| **Abrir `/simulador`** | — | — | — | ✅ se TTL > 24h |
+| **Cron operador** | — | — | ✅ 1×/semana ou virada semestre | ✅ 1×/dia na pré-matrícula |
+
+#### Modos R1 — sugestão do que entraria em cada sync
+
+| Etapa | `full` (1º login) | `incremental` (login rápido / botão / auto) |
+|---|---|---|
+| Portal discente | sempre | sempre |
+| Histórico PDF | sempre | só se `historico` vazio/incompleto **ou** `sync.historico_at + 7d` |
+| Turma virtual | sempre (se portal OK) | sempre (se portal OK) |
+
+TTL dev local hoje: histórico **24h** (`SYNC_HISTORICO_REFRESH_MS`); calendário **7d** (`SYNC_CALENDARIO_REFRESH_MS`); auto **30 min** (B65 — **substituir** por 3h na produção).
+
+#### Botão “Sincronizar” — sugestão de escopo
+
+**Sincroniza (R1 incremental):** matrículas do semestre, RG, tarefas portal, notas, faltas, grupo, tarefas turma.
+
+**Não sincroniza no clique:** histórico (salvo TTL), calendário acadêmico (cache global), turmas ofertadas (salvo `/simulador`), PPC (seed estático).
+
+**Não é “sync tudo”:** evita 3–5 min toda vez; histórico e calendário têm cadência própria.
+
+#### Login — sugestão de escopo
+
+```
+1º acesso CPF
+  → verify SIGAA (opcional fast-path off)
+  → R1 FULL bloqueante (UX com progresso)
+  → se calendario_global vazio → enfileira R2 (prioridade baixa, mesmo worker)
+
+Login rápido (canFastLogin)
+  → verify SIGAA (senha)
+  → sessão app imediata
+  → R1 incremental background (fila normal)
+  → UI mostra lastSyncAt + “atualizando…” discreto
+
+Login com senha errada
+  → dados locais/cloud preservados (nunca apagar snapshot)
+```
+
+#### Job global R2 (calendário) — sugestão de desenho
+
+1. Worker usa **conta reserva** ou **primeiro job do dia** que precisar do calendário (decisão B68).
+2. Grava em `calendario_academico` **sem** `user_id`.
+3. Todas as contas leem via API read-only; `shouldRunCalendarioSync` vira checagem **no servidor** contra `calendario_sync_meta.updated_at`.
+4. Remover `postCalendarioSync({ force: true })` após **cada** sync pessoal (`useSync`) — hoje isso multiplica raspagens.
+
+#### Pontos para decidir na #6d (B68-orq)
+
+- [ ] Conta SIGAA “sistema” para R2/R3 vs. piggyback no primeiro aluno do dia
+- [ ] TTL histórico incremental: **7 dias** *(sugestão)* vs. 24h (dev)
+- [ ] Botão sync: **incremental only** *(sugestão)* vs. opção “Sync completo” no perfil
+- [ ] R3 turmas: só simulador vs. também auto na pré-matrícula
+- [ ] Onde persistir `sync_meta` global (`calendario_sync_meta`, `turmas_sync_meta`)
 
 ### 6.4 Limites e segurança
 
@@ -444,6 +563,7 @@ Durante beta/testes com URL pública:
 - [ ] Preços dos planos (semestre / ano)
 - [ ] Gateway PIX definitivo
 
+- [ ] **Orquestração sync + catálogo global** — sugestão em **§5.4 · §6.5 · #6d (B68-orq)**; **decidir na hora**, antes do mobile #8
 - [ ] Onde hospedar worker Playwright (Railway / Fly.io / VPS — ver §6.3 fila 1×)
 - [x] Política de fila: 1 job global, auto 3h/usuário, manual fim da fila + cooldown 5 min, prioridade 1º login (§6.3)
 - [ ] Mobile: Supabase client direto vs. API Next.js

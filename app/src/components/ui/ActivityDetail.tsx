@@ -1,15 +1,15 @@
 import { memo } from "react";
 import Link from "next/link";
 import type { CalendarEvent } from "@/lib/types/calendar";
-import { formatEventDate } from "@/lib/types/calendar";
+import { formatCalendarEventDateLabel } from "@/lib/types/calendar";
 import {
-  eventTypeLabels,
   canToggleCalendarEvent,
 } from "@/lib/calendar/event-types";
 import type { ScheduleSlotData } from "@/config/mock/schedule";
 import type { AcademicTask } from "@/config/mock/tasks";
 import { disciplinaDetailPath } from "@/lib/disciplinas/disciplina-path";
 import { Icon } from "./Icon";
+import { EventTypeBadge } from "./EventTypeBadge";
 import { FormattedDescription } from "./FormattedDescription";
 
 interface EventDetailContentProps {
@@ -23,10 +23,10 @@ export function EventDetailContent({ event, onClose, onToggleDone }: EventDetail
   <>
       <div className="detail-meta-row">
         <div className="detail-meta-badges">
-          <span className={`badge info`}>{eventTypeLabels[event.type]}</span>
+          <EventTypeBadge type={event.type} color={event.color} />
           {event.done && <span className="badge success">Concluída</span>}
         </div>
-        <span className="detail-date">{formatEventDate(event.date)}</span>
+        <span className="detail-date">{formatCalendarEventDateLabel(event)}</span>
       </div>
 
     {event.subject && (
@@ -282,7 +282,7 @@ export function DayEventsContent({
               >
                 <span className="subject-dot" style={{ background: event.color }} />
                 <span className={event.done ? "event-done" : ""}>{event.title}</span>
-                <span className={`badge info`}>{eventTypeLabels[event.type]}</span>
+                <EventTypeBadge type={event.type} color={event.color} />
               </button>
             </li>
           ))}

@@ -1,4 +1,5 @@
-import { encodeCalendarEventId } from "./calendar-event-id";
+import { formatAcademicDateRange, formatInstitutionalEventLabel } from "@/lib/calendar/academic-date-format";
+import { encodeCalendarEventId } from "@/lib/calendar/calendar-event-id";
 import type { CalendarEvent } from "@/lib/types/calendar";
 import type {
   CalendarioAcademicoRow,
@@ -85,19 +86,10 @@ export function mapCalendarRowsToEvents(input: {
 }
 
 export function formatAcademicDateLabel(row: CalendarioAcademicoRow): string {
-  const formatIso = (iso: string) => {
-    const [year, month, day] = iso.split("-");
-    return `${day}/${month}/${year}`;
-  };
-
-  if (row.data_fim && row.data_fim !== row.data_inicio) {
-    const start = formatIso(row.data_inicio).slice(0, 5);
-    const end = formatIso(row.data_fim);
-    return `${start} – ${end}`;
-  }
-
-  return formatIso(row.data_inicio);
+  return formatAcademicDateRange(row.data_inicio, row.data_fim);
 }
+
+export { formatInstitutionalEventLabel } from "@/lib/calendar/academic-date-format";
 
 export function mapTarefaRowToCalendarEvent(row: TarefaCalendarRow): CalendarEvent {
   return mapTarefaRow(row);

@@ -47,6 +47,8 @@ function runMigrations(database: ReturnType<typeof getActiveDatabase>): void {
     "pdf_auto_download",
     "INTEGER DEFAULT 0"
   );
+  addColumnIfMissing(database, "semestre_atual", "turma_data_inicio", "TEXT");
+  addColumnIfMissing(database, "semestre_atual", "turma_data_fim", "TEXT");
   addColumnIfMissing(database, "tarefas", "instrucoes", "TEXT");
   addColumnIfMissing(database, "tarefas", "entregaveis", "TEXT");
   addColumnIfMissing(database, "tarefas", "pontuacao_maxima", "REAL");
@@ -57,6 +59,17 @@ function runMigrations(database: ReturnType<typeof getActiveDatabase>): void {
   addColumnIfMissing(database, "faltas", "status_override", "INTEGER DEFAULT 0");
   addColumnIfMissing(database, "faltas", "quantidade", "INTEGER DEFAULT 0");
   addColumnIfMissing(database, "tarefas", "concluida_override", "INTEGER DEFAULT 0");
+  addColumnIfMissing(database, "eventos_calendario", "data_fim", "TEXT");
+  addColumnIfMissing(database, "eventos_calendario", "hora_inicio", "TEXT");
+  addColumnIfMissing(database, "eventos_calendario", "hora_fim", "TEXT");
+  addColumnIfMissing(
+    database,
+    "eventos_calendario",
+    "recorrencia",
+    "TEXT DEFAULT 'none'"
+  );
+  addColumnIfMissing(database, "eventos_calendario", "recorrencia_ate", "TEXT");
+  addColumnIfMissing(database, "eventos_calendario", "recorrencia_dias", "TEXT");
   migrateEventosCalendarioTypes(database);
 }
 

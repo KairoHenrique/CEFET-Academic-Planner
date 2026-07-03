@@ -80,6 +80,17 @@ export const SIGAA_HISTORICO_PDF_PATH =
   readStringFromEnvLocal("SIGAA_HISTORICO_PDF_PATH") ??
   (process.env.SIGAA_HISTORICO_PDF_PATH?.trim() || null);
 
+/** Caminho local para HTML do calendário acadêmico (dev/diagnóstico). */
+export const SIGAA_CALENDARIO_HTML_PATH =
+  readStringFromEnvLocal("SIGAA_CALENDARIO_HTML_PATH") ??
+  (process.env.SIGAA_CALENDARIO_HTML_PATH?.trim() || null);
+
+/** Calendário oficial DIRGRAD (fallback quando menu SIGAA não abre detalhe). */
+export const DIRGRAD_CALENDARIO_URL =
+  readStringFromEnvLocal("DIRGRAD_CALENDARIO_URL") ??
+  (process.env.DIRGRAD_CALENDARIO_URL?.trim() ||
+    "https://www.dirgrad.cefetmg.br/dirgrad/calendario/");
+
 export const SIGAA_HEADLESS =
   process.env.SIGAA_HEADLESS !== "false" &&
   process.env.SIGAA_HEADLESS !== "0";

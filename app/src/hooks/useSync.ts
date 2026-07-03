@@ -5,6 +5,7 @@ import {
   ApiClientError,
   getNotifications,
   notifySyncComplete,
+  postCalendarioSync,
   postSync,
 } from "@/lib/api/client";
 import { getSyncCredentials } from "@/lib/auth/credentials";
@@ -154,6 +155,12 @@ export function useSync() {
             setStepLabel(step.label);
             setProgress(step.progress);
           });
+        }
+
+        try {
+          await postCalendarioSync({ ...creds, mode }, { force: true });
+        } catch {
+          // Robô B66 isolado — falha não invalida sync principal.
         }
 
         notifySyncComplete();

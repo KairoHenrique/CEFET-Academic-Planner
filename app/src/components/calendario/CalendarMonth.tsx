@@ -5,8 +5,9 @@ import { Icon } from "@/components/ui/Icon";
 import { Modal } from "@/components/ui/Modal";
 import { AddEventForm } from "@/components/calendario/AddEventForm";
 import {
-  eventTypeLabels,
-  formatEventDate,
+  eventOccursOnIsoDate,
+  formatCalendarEventDateLabel,
+  isUpcomingCalendarEvent,
   parseLocalDate,
   CALENDAR_FILTER_OPTIONS,
   filterLabelToType,
@@ -15,19 +16,12 @@ import {
 } from "@/lib/types/calendar";
 import type { ManualCalendarEventInput } from "@/lib/types/calendar-api";
 import { FilterBar } from "@/components/ui/FilterBar";
+import { EventTypeBadge } from "@/components/ui/EventTypeBadge";
 import { DayEventsContent, EventDetailContent } from "@/components/ui/ActivityDetail";
 
 const WEEKDAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 const FILTER_OPTIONS = [...CALENDAR_FILTER_OPTIONS];
 const filterMap = filterLabelToType;
-
-function densityClass(count: number): string {
-  if (count >= 4) return "density-4";
-  if (count === 3) return "density-3";
-  if (count === 2) return "density-2";
-  if (count === 1) return "density-1";
-  return "";
-}
 
 interface CalendarMonthProps {
   filter: EventTypeFilter;
@@ -66,14 +60,19 @@ export function CalendarMonth({
 
   const eventsByDay = useMemo(() => {
     return events.reduce<Record<number, CalendarEvent[]>>((acc, event) => {
-      const date = parseLocalDate(event.date);
-      if (date.getMonth() !== monthIndex || date.getFullYear() !== year) return acc;
       if (filter !== "todas" && event.type !== filter) return acc;
-      const day = date.getDate();
-      acc[day] = [...(acc[day] ?? []), event];
+
+      for (let day = 1; day <= daysInMonth; day += 1) {
+        const iso = `${year}-${String(monthIndex + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+        if (!eventOccursOnIsoDate(event, iso)) continue;
+        if (parseLocalDate(iso).getMonth() !== monthIndex) continue;
+
+        acc[day] = [...(acc[day] ?? []), event];
+      }
+
       return acc;
     }, {});
-  }, [events, filter, monthIndex, year]);
+  }, [events, filter, monthIndex, year, daysInMonth]);
 
   const dayModalEvents =
     dayModalDay != null ? eventsByDay[dayModalDay] ?? [] : [];
@@ -108,15 +107,30 @@ export function CalendarMonth({
                 key={idx}
                 type="button"
                 disabled={!day}
-                className={`calendar-day calendar-day-btn ${day ? "" : "empty"} ${day && isToday(day) ? "today" : ""} ${dayEvents.length ? "has-events" : ""} ${densityClass(dayEvents.length)}`}
+                className={`calendar-day calendar-day-btn ${day ? "" : "empty"} ${day && isToday(day) ? "today" : ""}`}
+                aria-label={
+                  day
+                    ? dayEvents.length > 0
+                      ? `Dia ${day}, ${dayEvents.length} evento${dayEvents.length > 1 ? "s" : ""}`
+                      : `Dia ${day}`
+                    : undefined
+                }
                 onClick={() => day && setDayModalDay(day)}
               >
                 {day && (
                   <>
-                    {dayEvents.length > 0 && (
-                      <span className="calendar-day-count" aria-hidden="true">{dayEvents.length}</span>
-                    )}
-                    <span className="calendar-day-number">{day}</span>
+                    <div className="calendar-day-top">
+                      <span className="calendar-day-number">{day}</span>
+                      {dayEvents.length > 0 && (
+                        <span
+                          className="calendar-day-meta"
+                          data-long={dayEvents.length > 9 ? true : undefined}
+                          aria-hidden="true"
+                        >
+                          {dayEvents.length}
+                        </span>
+                      )}
+                    </div>
                     <div className="calendar-day-events">
                       {dayEvents.slice(0, 2).map((ev) => (
                         <span
@@ -165,6 +179,7 @@ export function CalendarMonth({
       <Modal open={Boolean(addModal)} onClose={() => setAddModal(null)} title="Novo evento">
         {addModal && (
           <AddEventForm
+            key={addModal}
             defaultDate={addModal}
             isSubmitting={isAdding}
             onSubmit={(event) => { onAddManualEvent(event); setAddModal(null); }}
@@ -194,7 +209,14 @@ export function CalendarEventsList({
   panelHeight,
 }: CalendarEventsListProps) {
   const activeLabel = Object.entries(filterMap).find(([, v]) => v === filter)?.[0] ?? "Todas";
-  const filteredEvents = events.filter((e) => filter === "todas" || e.type === filter);
+  const filteredEvents = events
+    .filter((event) => filter === "todas" || event.type === filter)
+    .filter((event) => isUpcomingCalendarEvent(event))
+    .sort((left, right) => {
+      const byDate = left.date.localeCompare(right.date);
+      if (byDate !== 0) return byDate;
+      return left.title.localeCompare(right.title, "pt-BR");
+    });
 
   return (
     <div
@@ -224,9 +246,12 @@ export function CalendarEventsList({
                 <span className="event-dot" style={{ background: event.color }} />
                 <div>
                   <p className={`event-title ${event.done ? "completed" : ""}`}>{event.title}</p>
-                  <p className="event-meta">{formatEventDate(event.date)}{event.subject && ` · ${event.subject}`}</p>
+                  <p className="event-meta">
+                    {formatCalendarEventDateLabel(event)}
+                    {event.subject && ` · ${event.subject}`}
+                  </p>
                 </div>
-                <span className="badge info">{eventTypeLabels[event.type]}</span>
+                <EventTypeBadge type={event.type} color={event.color} />
               </button>
             </li>
           ))

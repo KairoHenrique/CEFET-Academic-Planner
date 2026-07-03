@@ -7,7 +7,7 @@ export interface ParsedCalendarEventId {
   numericId: number;
 }
 
-const ID_PATTERN = /^(tarefa|evento|academico)-(\d+)$/;
+const ID_PATTERN = /^(tarefa|evento|academico)-(\d+)(?:-.+)?$/;
 
 export function encodeCalendarEventId(
   source: CalendarEventSource,

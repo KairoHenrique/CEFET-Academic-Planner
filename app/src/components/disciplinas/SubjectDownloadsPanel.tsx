@@ -24,7 +24,7 @@ export function SubjectDownloadsPanel({ subjectName }: SubjectDownloadsPanelProp
 
       <p className="panel-footer-note">
         Quando disponível, os arquivos de <strong>{subjectName}</strong> irão para{" "}
-        <code className="path-code">CEFET Academic Planner/{"{semestre}"}/{"{matéria}"}/</code>
+        <code className="path-code">ACME HUB/{"{semestre}"}/{"{matéria}"}/</code>
       </p>
 
       <button type="button" className="btn-outline" disabled aria-disabled="true">

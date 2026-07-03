@@ -1,6 +1,9 @@
 import { notFoundError, validationError } from "@/lib/api/errors";
 import { isAcademicTaskType } from "@/lib/calendar/event-types";
-import { DEFAULT_EVENT_COLOR, pickRandomPaletteColor } from "@/lib/colors/palette";
+import { expandManualCalendarEvents } from "@/lib/calendar/expand-manual-calendar-events";
+import { DEFAULT_EVENT_COLOR } from "@/lib/colors/palette";
+import { resolveDefaultEventColor } from "@/lib/colors/event-type-colors";
+import { serializeRecurrenceDays } from "@/lib/calendar/recurrence-weekdays";
 import {
   getEventoCalendarioById,
   getSemestreAtualByCodigo,
@@ -8,7 +11,7 @@ import {
   insertEventoCalendario,
   saveTarefa,
 } from "@/lib/db/queries";
-import { mapEventoRowToCalendarEvent, mapTarefaRowToCalendarEvent } from "./map-calendar-event";
+import { mapTarefaRowToCalendarEvent } from "./map-calendar-event";
 import type { CalendarEvent } from "@/lib/types/calendar";
 import type { CreateCalendarEventBody } from "@/lib/types/calendar-api";
 
@@ -34,16 +37,24 @@ function resolveEventColor(
   subjectCor: string | null
 ): string {
   if (body.color) return body.color;
-  if (subjectCor) return subjectCor;
-  return pickRandomPaletteColor();
+  return resolveDefaultEventColor(body.type, subjectCor);
 }
 
 function shouldCreateAsTarefa(body: CreateCalendarEventBody): boolean {
   return (
+    body.recurrence !== "daily" &&
+    body.recurrence !== "weekly" &&
+    !(body.dateEnd && body.dateEnd !== body.date) &&
     isAcademicTaskType(body.type) &&
     Boolean(body.subjectCode?.trim()) &&
     !body.color
   );
+}
+
+function resolveManualSpanEnd(body: CreateCalendarEventBody): string | null {
+  if (body.recurrence === "daily" || body.recurrence === "weekly") return null;
+  if (!body.dateEnd || body.dateEnd === body.date) return null;
+  return body.dateEnd;
 }
 
 function createAsTarefa(body: CreateCalendarEventBody): CalendarEvent {
@@ -56,9 +67,9 @@ function createAsTarefa(body: CreateCalendarEventBody): CalendarEvent {
     disciplina_id: subject.disciplinaId,
     titulo: body.title.trim(),
     descricao: body.description?.trim() ?? "",
-    data_inicio: null,
-    data_fim: body.date,
-    hora_fim: "23:59",
+    data_inicio: body.date,
+    data_fim: body.dateEnd ?? body.date,
+    hora_fim: body.timeEnd ?? body.timeStart ?? "23:59",
     tipo: "individual",
     possui_nota: body.type === "prova" ? 1 : 0,
     concluida: 0,
@@ -73,7 +84,12 @@ function createAsTarefa(body: CreateCalendarEventBody): CalendarEvent {
     throw validationError("Não foi possível criar o evento.");
   }
 
-  return mapTarefaRowToCalendarEvent(latest);
+  const mapped = mapTarefaRowToCalendarEvent(latest);
+  return {
+    ...mapped,
+    timeStart: body.timeStart,
+    timeEnd: body.timeEnd ?? body.timeStart,
+  };
 }
 
 function createAsEventoManual(body: CreateCalendarEventBody): CalendarEvent {
@@ -81,10 +97,31 @@ function createAsEventoManual(body: CreateCalendarEventBody): CalendarEvent {
     ? resolveSubject(body.subjectCode)
     : { disciplinaId: null, nome: null, cor: null };
 
+  const recurrence =
+    body.recurrence === "weekly"
+      ? "weekly"
+      : body.recurrence === "daily"
+        ? "daily"
+        : "none";
+
   const eventoId = insertEventoCalendario({
     titulo: body.title.trim(),
     descricao: body.description?.trim() ?? "",
     data: body.date,
+    data_fim: resolveManualSpanEnd(body),
+    hora_inicio: body.timeStart ?? null,
+    hora_fim: body.timeEnd ?? null,
+    recorrencia: recurrence,
+    recorrencia_ate:
+      recurrence === "weekly"
+        ? body.dateEnd ?? null
+        : recurrence === "daily"
+          ? body.recurrenceUntil ?? null
+          : null,
+    recorrencia_dias:
+      recurrence === "weekly" && body.recurrenceDays?.length
+        ? serializeRecurrenceDays(body.recurrenceDays)
+        : null,
     tipo: body.type,
     disciplina_id: subject.disciplinaId,
     cor: resolveEventColor(body, subject.cor) ?? DEFAULT_EVENT_COLOR,
@@ -97,7 +134,12 @@ function createAsEventoManual(body: CreateCalendarEventBody): CalendarEvent {
     throw validationError("Não foi possível criar o evento.");
   }
 
-  return mapEventoRowToCalendarEvent(created);
+  const [expanded] = expandManualCalendarEvents([created]);
+  if (!expanded) {
+    throw validationError("Não foi possível criar o evento.");
+  }
+
+  return expanded;
 }
 
 export function createCalendarEvent(body: CreateCalendarEventBody): CalendarEvent {

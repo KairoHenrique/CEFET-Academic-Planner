@@ -55,5 +55,5 @@ export function isAcademicTaskType(type: CalendarEventType): boolean {
 }
 
 export function canToggleCalendarEvent(id: string): boolean {
-  return !id.startsWith("academico-");
+  return !id.startsWith("academico-") && !id.startsWith("aula-");
 }
