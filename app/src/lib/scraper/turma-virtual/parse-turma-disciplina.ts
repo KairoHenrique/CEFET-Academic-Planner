@@ -25,6 +25,13 @@ export function parseTurmaDisciplinaPages(
   const notasResult = raw.notasHtml
     ? parseNotasPageHtml(raw.notasHtml, { matricula: raw.matricula })
     : { notas: [], maxFaltas: null };
+  if (raw.notasHtml && notasResult.notas.length === 0) {
+    const hintsNotasTable =
+      /nota|avalia|pro1|pro2|b1|m[eé]dia|tooltip/i.test(raw.notasHtml);
+    if (hintsNotasTable) {
+      warnings.push("notas não parseadas");
+    }
+  }
   if (!raw.notasHtml) warnings.push("notas indisponíveis");
 
   const faltas = raw.frequenciaHtml
