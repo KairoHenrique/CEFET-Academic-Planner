@@ -45,7 +45,6 @@ O **ACME HUB** é uma plataforma web (futuro: mobile Expo + assinatura PIX) que 
 
 ### 🔜 Em roadmap (ainda não no app)
 - Simulador de matrícula com turmas ofertadas (**B67**).
-- Download de materiais para nuvem pessoal do aluno (`ACME HUB/{semestre}/{matéria}/`).
 - App mobile (Expo), PIX e multi-tenant Supabase.
 
 ---

@@ -9,7 +9,6 @@ import { SubjectAbsencePanel } from "@/components/disciplinas/SubjectAbsencePane
 import { SubjectPanelsRow } from "@/components/disciplinas/SubjectPanelsRow";
 import { SubjectTasksPanel } from "@/components/disciplinas/SubjectTasksPanel";
 import { SubjectSyllabusPanel } from "@/components/disciplinas/SubjectSyllabusPanel";
-import { SubjectDownloadsPanel } from "@/components/disciplinas/SubjectDownloadsPanel";
 import { Icon } from "@/components/ui/Icon";
 import { useDisciplina } from "@/hooks/useDisciplina";
 
@@ -97,11 +96,8 @@ export function SubjectDetailView({ code }: SubjectDetailViewProps) {
           />
         }
       />
-      <div className="col-8">
+      <div className="col-12">
         <SubjectTasksPanel subjectCode={subject.code} tasks={tasks} />
-      </div>
-      <div className="col-4">
-        <SubjectDownloadsPanel subjectName={subject.name} />
       </div>
     </PageGrid>
   );

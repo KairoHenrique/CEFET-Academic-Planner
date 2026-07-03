@@ -35,8 +35,6 @@ export interface Subject {
   tasks: number;
   color: string;
   ementa: string;
-  downloadedFiles: number;
-  pdfAutoDownload: boolean;
 }
 
 export interface SubjectSummary {

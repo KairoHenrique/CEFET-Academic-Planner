@@ -27,8 +27,6 @@ const labEvaluations = (
 type SubjectSeed = Omit<
   Subject,
   | "ementa"
-  | "downloadedFiles"
-  | "pdfAutoDownload"
   | "gradeRisk"
   | "nickname"
   | "displayName"
@@ -162,55 +160,36 @@ const semesterSubjectsSeed: SubjectSeed[] = [
 const defaultSubjectMeta = {
   ementa:
     "Disciplina do curso de Engenharia da Computação. Conteúdo programático conforme PPC vigente do CEFET-MG.",
-  downloadedFiles: 0,
-  pdfAutoDownload: false,
 };
 
-const subjectMeta: Record<
-  string,
-  Pick<Subject, "ementa" | "downloadedFiles" | "pdfAutoDownload">
-> = {
+const subjectMeta: Record<string, Pick<Subject, "ementa">> = {
   AEDI: {
     ementa:
       "Introdução a estruturas de dados fundamentais: listas, pilhas, filas, árvores e grafos. Análise de complexidade e implementação em linguagem de programação.",
-    downloadedFiles: 8,
-    pdfAutoDownload: true,
   },
   AOCI: {
     ementa:
       "Organização básica de computadores, representação de dados, sistema de numeração, lógica digital e arquitetura de conjunto de instruções.",
-    downloadedFiles: 5,
-    pdfAutoDownload: true,
   },
   "ENG-SOFT": {
     ementa:
       "Processos de software, requisitos, modelagem UML, metodologias ágeis, testes e gestão de projetos. Desenvolvimento de sistema em equipe ao longo do semestre.",
-    downloadedFiles: 14,
-    pdfAutoDownload: true,
   },
   EMPREEND: {
     ementa:
       "Fundamentos de empreendedorismo, plano de negócios, modelagem canvas e pitch de startups.",
-    downloadedFiles: 3,
-    pdfAutoDownload: false,
   },
   SOCIOLOGIA: {
     ementa:
       "Introdução aos conceitos sociológicos, trabalho, tecnologia e sociedade contemporânea.",
-    downloadedFiles: 2,
-    pdfAutoDownload: false,
   },
   LAEDI: {
     ementa:
       "Laboratório prático de implementação de estruturas de dados e algoritmos estudados em AEDI I.",
-    downloadedFiles: 4,
-    pdfAutoDownload: true,
   },
   LAOCI: {
     ementa:
       "Laboratório de circuitos digitais, portas lógicas, ULA e montagem de sistemas combinacionais.",
-    downloadedFiles: 6,
-    pdfAutoDownload: true,
   },
 };
 

@@ -2847,13 +2847,6 @@ a:hover {
   font-size: 0.8125rem;
 }
 
-.subject-downloads-future {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  line-height: 1.5;
-  margin-bottom: var(--space-4);
-}
-
 .subject-edit-actions {
   flex-wrap: wrap;
 }
