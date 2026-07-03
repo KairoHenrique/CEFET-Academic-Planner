@@ -37,7 +37,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 **Tasks em `[@]` agora (jun/2026):** *(nenhuma — F37 aprovada jun/2026)*.
 
-**Aprovadas `[x]` (jun/2026):** **B27** (portal) · **B28** (turma virtual + UI grupo + arredondamento nota final) · **B65** (sync automático + `last_run` dev) · **B30** (histórico escolar PDF → `historico` + integralização) · **F38** (sino in-app: tarefas/notas novas + lembretes 24h/1h; polish `04887c9`/`5923e9c`).
+**Aprovadas `[x]` (jun/2026):** **B27** (portal) · **B28** (turma virtual + UI grupo + arredondamento nota final) · **B65** (sync automático + `last_run` dev) · **B30** (histórico escolar PDF → `historico` + integralização) · **F38** (sino in-app: tarefas/notas novas + lembretes 24h/1h; polish `04887c9`/`5923e9c`) · **B66** (calendário acadêmico SIGAA + painel dual-semestre; `75694c0`).
 
 **Polish pós-push (jun/2026, sem nova task):** `04887c9` — fix alerta nota nova pós-sync (baseline pré-sync) + nota obtida/máxima no sino · `5923e9c` — nome da disciplina no `SubjectCard` abre `/disciplinas/[código]`.
 
@@ -109,11 +109,11 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ### 1.4 API e Integração UI ↔ SQLite
 
-> **Progresso:** Bloco 1 ✅ (`49/49` — **B12d**/**F8g**/`refino pós-B30` alinhados jun/2026) · **Bloco 2a:** B27·B28·B65·B30·**B31·F18·F37·F38** ✅ · **3F** fora do Bloco 1.  
-> **Polish jun/2026 (push `main`):** `04887c9` F38 — baseline pré-sync + detalhe nota no sino · `5923e9c` dashboard — link no nome da disciplina (`SubjectCard`) · **B66 UI** — painel dual-semestre, divisor, rotação na véspera do Período Letivo.  
-> **Em andamento:** **B66** `[@]` (robô + UI calendário acadêmico — código + testes `bloco-2a-b66.test.ts`; **validação live SIGAA pendente**).
+> **Progresso:** Bloco 1 ✅ (`49/49` — **B12d**/**F8g**/`refino pós-B30` alinhados jun/2026) · **Bloco 2a:** B27·B28·B65·B30·**B31·F18·F37·F38·B66** ✅ · **3F** fora do Bloco 1.  
+> **Polish jun/2026 (push `main`):** `04887c9` F38 · `5923e9c` dashboard · `75694c0` **B66** (robô calendário + painel dual-semestre).  
+> **Próximo:** **B67** turmas ofertadas.
 
-Roadmap detalhado: ver **[Ordem oficial v3](#ordem-oficial-de-execução-v3)** e **[Checklist mestre](#checklist-mestre-ordem-de-execução)**. **Bloco 2a** — **8/8** ✅. **Em curso:** **B66** `[@]`. **#6d (B68-orq):** orquestração sync + global — **tasks abertas**, sugestão no escopo; decisão **só quando chegar lá**. **Bloco 2b** — fila worker. **B67** = turmas ofertadas, pós-B66.
+Roadmap detalhado: ver **[Ordem oficial v3](#ordem-oficial-de-execução-v3)** e **[Checklist mestre](#checklist-mestre-ordem-de-execução)**. **Bloco 2a** — **8/8** ✅ · **B66** ✅. **Próximo:** **B67** turmas ofertadas. **#6d (B68-orq):** orquestração sync + global — **tasks abertas**, sugestão no escopo; decisão **só quando chegar lá**. **Bloco 2b** — fila worker.
 
 ---
 
@@ -283,7 +283,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] **FRONT:** F18 *(erros reais no login; mock de falhas removido; hint 1º sync)*
 - [x] **FRONT:** F37 *(modal perfil, tutorial, /planos, dados conta + assinatura dev)*
 - [x] **FRONT:** F38 *(sino in-app: tarefas/notas novas + lembretes 24h/1h; polish `04887c9` baseline pré-sync + nota obtida/máxima)*
-- [@] **BACK:**  B66 *(calendário acadêmico — robô isolado + UI painel dual-semestre; validação live SIGAA pendente)*
+- [x] **BACK:**  B66 *(calendário acadêmico — robô isolado + UI painel dual-semestre)*
 - [ ] **BACK:**  B67 *(turmas ofertadas — pós-B66)*
 
 **Ordem 2a (8 itens oficiais):** `B24–B26` → `B27` · `B65` → `B28` → `B30` → `B31` → `F18` · `F37` `[x]`
@@ -631,7 +631,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | B28 | Back | Scraper turma virtual | Notas, faltas, tarefas, grupo e nome do grupo por matéria | 2.3 | [x] |
 | B30 | Back | Histórico escolar | Ensino → Emitir Histórico (PDF) → `historico` + CH resumo | 2.4 | [x] |
 | B31 | Back | Integrar no `runSync` | Pipeline full/incremental; policies; login rápido; DB/CPF | 2.x | [x] |
-| B66 | Back | Calendário acadêmico | Robô isolado + painel dual-semestre; validação live pendente | 2.4 | [@] |
+| B66 | Back | Calendário acadêmico | Robô isolado + painel dual-semestre | 2.4 | [x] |
 | B67 | Back | Turmas ofertadas | Ensino → Consultar Turmas (próximo semestre) | 2.4 | [ ] |
 | B68-orq | Plan/Back | Orquestração sync + global | Sugestão §5.4/§6.5; decisão na #6d (**B68a–f**) | 2c | [ ] |
 | F18 | Front | Erros reais no login | Erros API/SIGAA; hint 1º sync bloqueante | 2.1 | [x] |
@@ -944,8 +944,8 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [ ] **Decisão stakeholder** — na hora que chegar em #6d
 - [ ] **Implementação** — conforme o que você escolher (B68d–f)
 
-#### B66 — Calendário acadêmico `[@]`
-> **Escopo aprovado** (jun/2026). Robô isolado — calendário nem sempre existe no SIGAA; snapshot `unavailable` **não apaga** dados locais. Semestre alvo derivado da **data atual** (`resolveCalendarioSemesterTargets` — jul/2026: `2026.1` + `2026.2`).
+#### B66 — Calendário acadêmico `[x]`
+> **Escopo aprovado** (jun/2026). Robô isolado — calendário nem sempre existe no SIGAA; snapshot `unavailable` **não apaga** dados locais. Semestre alvo derivado da **data atual** (`resolveCalendarioSemesterTargets` — jul/2026: `2026.1` + `2026.2`). **Aprovado** stakeholder jun/2026 (`75694c0`).
 
 - [x] Schema `calendario_academico` + `build-calendar` + `CalendarAcademicDates` em `/calendario`
 - [x] Scraper Ensino → Calendário Acadêmico (`navigate-to-calendario`, `parse-calendario-html`, `scrape-calendario`)
@@ -955,7 +955,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] UI painel acadêmico: **duas colunas** (semestre corrente + próximo); troca **1 dia antes** do início do Período Letivo (`buildAcademicDateDisplayGroups` · `resolveAcademicSemesterDisplayPair`)
 - [x] Estado vazio por coluna — *Nenhuma informação*; divisor vertical entre semestres (desktop)
 - [x] Grade semanal removida de `/calendario` (mantida no dashboard)
-- [ ] Validação live no SIGAA (menu pode estar indisponível fora de época — comportamento esperado)
+- [x] Validação live no SIGAA
 
 #### B67 — Turmas ofertadas `[ ]`
 - [ ] Scraper Ensino → Consultar Turmas (próximo semestre)
@@ -1139,7 +1139,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 ### 5.5 Calendário Acadêmico
 - [x] Tela com datas do semestre via `GET /api/calendar` + painel acadêmico (seed/mock em dev; **B66** popula `calendario_academico` via sync isolado)
 - [x] Painel dual-semestre: corrente + próximo; rotação na véspera do Período Letivo; divisor visual; vazio por coluna
-- [/] Alertas/notificações para datas próximas — lembretes de **tarefa** 24h/1h via sino (**F38** ✅); datas acadêmicas = **B37** pós-validação **B66**
+- [/] Alertas/notificações para datas próximas — lembretes de **tarefa** 24h/1h via sino (**F38** ✅); datas acadêmicas institucionais = **B37** *(pós-B66 ✅)*
 - [x] Verificação periódica de novas datas — `shouldRunCalendarioSync` + TTL 7d + disparo background pós-sync (**B66**)
 
 ---
@@ -1334,7 +1334,7 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 8. **Próximo passo do roadmap:** informe **depois do push** (tasks em `[@]` ou `[x]`). Com commits locais só `[%]`, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v3](#ordem-oficial-de-execução-v3) — **Bloco 2 (sync) antes do Bloco 6 (Supabase)**. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy **após** sync validado; RLS **só na 6c** (antes do PIX).
-11. **Próximo passo:** **B66** `[@]` — validação live calendário SIGAA → **B67** turmas → **Bloco 2b** (B54–B56). **#6d (B68-orq):** orquestração sync — **aberto**; sugestão no escopo; você decide ao chegar lá. Gift/dev/simulação mapa: [Apêndice gift/dev](#apêndice--chaves-gift-e-painel-dev-jun2026). **B71** = última pré-go-live.
+11. **Próximo passo:** **B67** turmas ofertadas → **Bloco 2b** (B54–B56). **#6d (B68-orq):** orquestração sync — **aberto**; sugestão no escopo; você decide ao chegar lá. Gift/dev/simulação mapa: [Apêndice gift/dev](#apêndice--chaves-gift-e-painel-dev-jun2026). **B71** = última pré-go-live.
 12. **Integralização:** CH concluída = `historico` + PPC (`computeChDoneFromDisciplinas`); portal SIGAA só % / total currículo; matérias já passadas = **B30** ✅.
 13. **Gift + painel dev + simulação mapa:** escopo em `SCOPE.md` §2.1.1, §6.1.1, §10 — tasks **B68–B71**, **F39–F41**, **F40** — [Apêndice gift/dev](#apêndice--chaves-gift-e-painel-dev-jun2026). **B71** = última task (cifragem plena / ocultar senhas no painel).
 14. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial. **Polish em task `[x]`** (ex.: F38, dashboard) também exige nota no TASKS no mesmo ciclo do push.
