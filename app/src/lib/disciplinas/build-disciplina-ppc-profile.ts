@@ -63,8 +63,6 @@ export function buildDisciplinaPpcProfile(code: string): SubjectDetailResponse {
       schedule: undefined,
       ch,
       ementa,
-      downloadedFiles: 0,
-      pdfAutoDownload: false,
     },
     tasks: [],
     attendance: {

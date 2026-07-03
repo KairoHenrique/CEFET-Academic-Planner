@@ -97,7 +97,6 @@ O Playwright navega pelo SIGAA e extrai, agrupado por robô:
 | **R1** | Matérias do semestre (nome, local, horário) | Portal do Discente | Por aluno |
 | **R1** | Tarefas/atividades pendentes | Portal + Turma Virtual → Tarefas | Por aluno |
 | **R1** | Frequência, notas, grupo | Turma Virtual → Alunos | Por aluno |
-| **R1** | Materiais/PDFs (lista) | Turma Virtual → Materiais | Por aluno · upload = apêndice |
 | **R1 — Histórico** | Histórico escolar (PDF) | Ensino → Emitir Histórico | Por aluno · muda raramente |
 | **R2 — Calendário** | Calendário acadêmico (datas do semestre) | Ensino → Calendário Acadêmico | **Global** (campus/semestre) |
 | **R3 — Turmas** | Turmas ofertadas (próximo semestre) | Ensino → Consultar Turmas | **Global** por `curso_id` + semestre |
@@ -145,7 +144,7 @@ Comportamento esperado em cada sync:
 | **Notas / avaliações** | `manual = true` ou nota editada pelo aluno | Inserir novas do SIGAA; atualizar linhas ainda puras |
 | **Tarefas** | `manual = true` | Atualizar tarefas do SIGAA; respeitar “concluída” marcada pelo aluno |
 | **Faltas** | status alterado pelo aluno | Atualizar datas ainda puras do SIGAA |
-| **Semestre atual** | apelido, nome de exibição, cor, toggle de PDF | Atualizar sala, horário, professor, limites |
+| **Semestre atual** | apelido, nome de exibição, cor | Atualizar sala, horário, professor, limites |
 | **Eventos de calendário** | `manual = true` | Inserir/atualizar só eventos automáticos |
 | **Integralização** | `manual = true` | Atualizar só linhas vindas do SIGAA |
 
@@ -250,28 +249,10 @@ Cada disciplina tem uma página própria com:
 - Também aparecem no **Dashboard Central** e na **Agenda Mensal**.
 - O aluno pode **criar tarefas manualmente** para matérias cujo professor não usa o SIGAA.
 
-### 5.6 Download Automático de PDFs
+### 5.6 Download automático de materiais (cancelado)
 
-> **Decisão (jun/2025):** PDFs **não** são armazenados no Supabase nem no servidor do app (exceto buffer temporário durante upload). Ficam na **nuvem pessoal** do aluno.
-
-- Toggle (ativar/desativar) **por disciplina**.
-- Aluno conecta **sua** conta de nuvem via OAuth: **Google Drive**, **Dropbox** ou **OneDrive** (v1 pode começar com um provedor).
-- O app cria (ou reutiliza) a pasta raiz **`CEFET Academic Planner/`** na nuvem do usuário.
-- Estrutura de pastas:
-
-```
-CEFET Academic Planner/
-  {semestre}/              ← ex.: 2025-1
-    {disciplina}/           ← nome ou código da matéria
-      material-01.pdf
-      lista-exercicios.pdf
-```
-
-- Quando o toggle está ativo, o worker/scraper baixa materiais do SIGAA (Turma Virtual → Materiais) e faz upload na pasta `{semestre}/{disciplina}/`.
-- Na UI web, o aluno vê quantidade de arquivos e link para abrir a pasta/arquivo na nuvem.
-- Tokens OAuth ficam **cifrados** no banco (SQLite dev → Postgres prod) — ver **B57**.
-- No mobile v1, download automático fica fora do escopo; leitura via link da nuvem é opcional.
-- **LGPD:** arquivos permanecem na conta do titular; o app só solicita permissão de escrita na pasta do programa.
+> **Decisão (jun/2026):** download automático de materiais da Turma Virtual **não faz parte do escopo**. O aluno acessa PDFs diretamente no SIGAA.  
+> **Permanece no escopo:** histórico escolar oficial (Ensino → Emitir Histórico) — ver **B30** e §7.
 
 ### 5.7 Grupos de Estudo
 - Exibe os membros do grupo cadastrado pelo professor (nome, matrícula, email, curso).

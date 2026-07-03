@@ -214,28 +214,9 @@ Recuperação de acesso: por **e-mail** ou **telefone** cadastrados (não usa e-
 - **Mecatrônica** e **Moda:** indexação Bloco 9; cadastro já grava `curso_id` desde o Bloco 6b.
 - Metas de integralização por categoria variam por PPC/curso.
 
-### 5.3 PDFs — nuvem pessoal do aluno (não Supabase Storage)
+### 5.3 Materiais SIGAA (fora de escopo)
 
-> **Decisão fechada:** não usamos Supabase Storage para materiais do SIGAA.
-
-| Aspecto | Regra |
-|---|---|
-| **Onde ficam os PDFs** | Conta de nuvem **do aluno** (Google Drive, Dropbox, OneDrive) |
-| **Autenticação** | OAuth por provedor; refresh tokens **cifrados** no Postgres/SQLite |
-| **Pasta raiz** | `CEFET Academic Planner/` (nome do app) |
-| **Organização** | `{semestre}/{disciplina}/*.pdf` |
-| **Quem faz upload** | Worker/scraper após download do SIGAA (**B29**) |
-| **Servidor do app** | Só buffer temporário durante upload; **não** persiste PDFs |
-| **LGPD** | Arquivos na conta do titular; permissão mínima na pasta do app |
-
-Fluxo:
-
-```
-1. Aluno conecta nuvem (F35 / B57)
-2. Sync baixa lista de materiais no SIGAA (B28)
-3. Para cada matéria com toggle ativo, upload em CEFET Academic Planner/{semestre}/{matéria}/
-4. UI mostra contagem + link para abrir na nuvem
-```
+> **Cancelado jun/2026:** não há upload de materiais da turma virtual para nuvem pessoal (**B57 · B29 · F35**). O app **não** persiste PDFs de materiais de aula. **Histórico escolar (B30)** continua sendo parseado do PDF oficial do SIGAA.
 
 ### 5.4 Catálogo global vs dados do aluno
 
@@ -577,7 +558,7 @@ Durante beta/testes com URL pública:
 - [x] **Cadastro: e-mail + telefone + CPF + senha SIGAA + curso (Comp/Meca/Moda)**
 - [x] **Validação de senha delegada ao SIGAA** (sync Playwright)
 - [x] **Notificações por e-mail** com opt-out em Configurações (avatar)
-- [x] **PDFs não vão para Supabase Storage** — nuvem pessoal do aluno (`CEFET Academic Planner/{semestre}/{matéria}/`)
+- [x] **Materiais SIGAA:** download automático **fora de escopo** (cancelado jun/2026); histórico escolar PDF (**B30**) permanece
 - [x] **Chaves de plano (gift):** 8 chars, uso único, emissão só operador (`SCOPE.md` §2.1.1)
 - [x] **Simulação de mapa:** overlay local; não altera histórico sync (`SCOPE.md` §6.1.1)
 - [x] **Painel dev:** `/dev` + `PLANNER_DEV_SECRET`; **fase testes** exibe senhas ao operador; **B71** endurece antes da produção

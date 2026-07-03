@@ -134,7 +134,5 @@ export function buildSubjectFromSemestre(
     ementa: disciplina
       ? resolvePpcEmenta(disciplina.codigo, disciplina.nome, ementaCargaHoraria)
       : "Disciplina do curso de Engenharia da Computação. Conteúdo programático conforme PPC vigente do CEFET-MG.",
-    downloadedFiles: semestre.arquivos_baixados ?? 0,
-    pdfAutoDownload: semestre.pdf_auto_download === 1,
   };
 }
