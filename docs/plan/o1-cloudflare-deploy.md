@@ -11,10 +11,43 @@
 |------------|--------|
 | **Next.js + OpenNext** | App web + API Routes no Cloudflare Workers (`nodejs_compat`) |
 | **`GET /api/health`** | Liveness público; `?deep=1` executa `SELECT 1` no Postgres (anti-pausa Supabase) |
-| **Worker `acme-hub-cron-ping`** | Cron diário (12:00 UTC) → `fetch` no health deep com `CRON_SECRET` |
+| **Worker `acme-hub-cron-ping`** | Cron diário **15:00 UTC** (= **12:00 horário de Brasília**) → `fetch` no health deep |
 | **Supabase Session pooler** | `DATABASE_URL` na Cloudflare (região `aws-1-sa-east-1` se aplicável) |
 
 **Separação de responsabilidades:** o cron roda em worker mínimo (resiliência, sem acoplar ao bundle Next). O health deep exige secret quando `CRON_SECRET` está definido — evita abuso do ping ao Postgres.
+
+---
+
+## 0. Testar local (sem deploy)
+
+**Passo 1 — instalar deps** (obrigatório após `git pull` do O1):
+
+```powershell
+cd app
+npm install
+npm run dev
+```
+
+Se aparecer `Cannot find module '@opennextjs/cloudflare'`, rode `npm install` de novo.
+
+**Passo 2 — health no navegador**
+
+| URL | Esperado |
+|-----|----------|
+| http://localhost:3000/api/health | `{ "ok": true, "service": "acme-hub", ... }` |
+| http://localhost:3000/api/health?deep=1 | Com `PLANNER_DATABASE=postgres`: `"database": "ok"` |
+
+**Passo 3 — testes automatizados**
+
+```powershell
+npm run test:o1
+```
+
+**Preview Cloudflare local** (opcional, exige deps instaladas):
+
+```powershell
+npm run preview:cf
+```
 
 ---
 
@@ -70,7 +103,9 @@ npx wrangler secret put PLANNER_HEALTH_URL --config workers/cron-ping/wrangler.j
 npm run deploy:cron-ping
 ```
 
-Cron: **diário 12:00 UTC** (`0 12 * * *`) — dentro da janela 24–48 h do free tier Supabase.
+Cron: **diário 15:00 UTC** (`0 15 * * *`) = **12:00 horário de Brasília (UTC−3)**.
+
+> **Por que UTC?** Cloudflare Cron Triggers **só aceitam fuso UTC** — não dá para configurar “12h Brasília” direto. Convertemos: 15:00 UTC − 3h = 12:00 BRT. Qualquer horário dentro de 24–48 h mantém o Supabase free acordado.
 
 ---
 
