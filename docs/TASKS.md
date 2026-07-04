@@ -43,7 +43,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ## Roadmap detalhado — ordem de execução (#0 → #11)
 
-> **Próximo oficial:** **#6d** (`B68d`–`f`) ou **Bloco 4** (Supabase). **Bloco 2b** ✅ **5/5** · **F19** UI fila `[x]` · **B56** · **O3** · **B54–B55** `[x]` · PPC EngComp **v3** reindexado (jul/2026).
+> **Próximo oficial:** **B39** (schema Postgres) — após push/aprovação do **PLAN** `[%]`. Ver [`docs/plan/6a-supabase-plan.md`](./plan/6a-supabase-plan.md).
 > **Regra:** siga **#0 → #11** · dentro de cada bloco → **BACK (B) antes de FRONT (F)**. Checklist espelho: [Checklist mestre](#checklist-mestre-ordem-de-execução).
 
 ### #0 — Planejamento `✅`
@@ -170,7 +170,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 > **Só após B31 validado.** RLS flexível nesta fase (testes globais).
 
-- [ ] **PLAN:** Projeto Supabase free + env dev/prod
+- [%] **PLAN:** Projeto Supabase free + env dev/prod — [`docs/plan/6a-supabase-plan.md`](./plan/6a-supabase-plan.md) · **Acme-Hub-dev** · `.env.local` ok
 - [ ] **BACK:** B39 *(schema Postgres — tabelas + `user_id` nullable em teste)*
 - [ ] **BACK:** B41 *(seed PPC global — disciplinas/requisitos read-only)*
 - [ ] **BACK:** B42 *(client Supabase — adapter queries SQLite→PG)*
@@ -383,8 +383,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ### 1.4 API e Integração UI ↔ SQLite
 
-> **Progresso:** Bloco 1 ✅ (`49/49`) · **Bloco 2a** ✅ · **Bloco 2b** ✅ **5/5** — **B54–B56** · **O3** · **F19** UI fila `[x]`.
-> **Próximo:** **#6d** `B68d`–`f` (orquestração sync) ou **Bloco 4** (Supabase).
+> **Progresso:** Bloco 1 ✅ · **Bloco 2a/2b** ✅ · **Bloco 6a** — **PLAN** `[%]` (commit local) · **B39** pendente.
 
 Roadmap detalhado: ver **[Roadmap #0→#11 no topo](#roadmap-detalhado--ordem-de-execução-0--11)** · [Ordem oficial v3](#ordem-oficial-de-execução-v3). **F19** simulador (2a) `[x]` · **B67** `[x]`.
 
@@ -445,6 +444,7 @@ FASE G   Bloco 9             Multi-PPC (Mecatrônica, Moda) 🔒 só após mobil
 - Supabase free; seed-demo ou dados já sincronizados do scraper.
 - RLS **permissivo ou desligado** — ok para beta fechado.
 - **6c obrigatório** antes do **Bloco 7** (PIX) e divulgação ampla.
+- **Plano operacional:** [`docs/plan/6a-supabase-plan.md`](./plan/6a-supabase-plan.md).
 
 ---
 
@@ -494,7 +494,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | **#1** | 1 | SQLite local (API + UI) | ✅ **Concluído** | 49/49 |
 | **#2** | 2a | Scraper dev (Playwright local) | ✅ **8/8** · B67 `[x]` · **F19** `[x]` | 8/8 |
 | **#3** | 2b | Worker sync (servidor) | ✅ **5/5** · F19 UI fila `[x]` | 5/5 |
-| **#4** | 6a | Supabase + deploy global | Depois de #3 | 0/8 |
+| **#4** | 6a | Supabase + deploy global | **PLAN** `[%]` · **B39** pendente | 0/8 |
 | **#5** | 6b | Auth: CPF login, cadastro completo | Depois de #4 | 0/9 |
 | **#6** | 6c | RLS multi-tenant | **Obrigatório antes do PIX** | 0/2 |
 | **#6d** | 2c | Orquestração sync + catálogo global | **Antes do mobile (#8)** · policy **§6.6** · **3/6** | 3/6 |
@@ -604,7 +604,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 > Supabase + Postgres + URL pública. **Só após B31 validado.** RLS flexível nesta fase.
 
-- [ ] **PLAN:** Projeto Supabase free + env dev/prod
+- [%] **PLAN:** Projeto Supabase free + env dev/prod — [`docs/plan/6a-supabase-plan.md`](./plan/6a-supabase-plan.md) · **Acme-Hub-dev** · `.env.local` ok
 - [ ] **BACK:**  B39 → B41 → B42 → B43
 - [ ] **OPS:**   O1 → O2
 - [ ] **TEST:**  T1 — smoke: URL abre, seed carrega
@@ -989,7 +989,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 | # | Tipo | Task | Resumo | Status |
 |---|------|------|--------|--------|
-| — | Plan | Projeto Supabase | Free tier + env dev/prod | [ ] |
+| — | Plan | Projeto Supabase | **Acme-Hub-dev** · env dev/prod · [`6a-supabase-plan.md`](./plan/6a-supabase-plan.md) | [%] |
 | B39 | Back | Schema Postgres | Tabelas + `user_id` (nullable em teste) | [ ] |
 | B41 | Back | Seed PPC global | Disciplinas/requisitos read-only | [ ] |
 | B42 | Back | Client Supabase | Adapter queries SQLite→PG | [ ] |
@@ -998,7 +998,17 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | O2 | Ops | Remover `.db` local | Prod sem `app/.data/planner.db` | [ ] |
 | T1 | Test | Smoke deploy | URL abre, seed carrega | [ ] |
 
-**Ordem:** `B39 → B41 → B42 → B43` → `O1 → O2` → `T1`
+**Ordem:** `PLAN` → `B39 → B41 → B42 → B43` → `O1 → O2` → `T1`
+
+#### PLAN — Supabase + env dev/prod `[%]`
+
+- [x] Plano operacional [`docs/plan/6a-supabase-plan.md`](./plan/6a-supabase-plan.md) — ambientes, free tier, worker TBD
+- [x] Variáveis Supabase documentadas em `app/.env.example`
+- [x] Projeto **Acme-Hub-dev** (São Paulo) criado no Supabase
+- [x] `app/.env.local` preenchido (URL, publishable, secret, `DATABASE_URL`)
+- [x] MVP **1 projeto** dev confirmado
+
+> **Próximo:** **B39** — schema Postgres *(não iniciado)*.
 
 #### 6b — Auth (#5)
 
@@ -1706,7 +1716,7 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 8. **Próximo passo do roadmap:** informe **depois do push** (tasks em `[@]` ou `[x]`). Com commits locais só `[%]`, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v3](#ordem-oficial-de-execução-v3) — **Bloco 2 (sync) antes do Bloco 6 (Supabase)**. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy **após** sync validado; RLS **só na 6c** (antes do PIX).
-11. **Próximo passo:** **#6d** `B68d`–`f` (orquestração sync + catálogo global) ou **Bloco 4** Supabase. **Bloco 2b** ✅. **B71** = última pré-go-live.
+11. **Próximo passo:** **B39** (schema Postgres) — após push/aprovação do **PLAN** `[%]`. **Não** iniciar B39 até stakeholder pedir.
 12. **Integralização:** CH concluída = `historico` + PPC (`computeChDoneFromDisciplinas`); portal SIGAA só % / total currículo; matérias já passadas = **B30** ✅.
 13. **Gift + painel dev + simulação mapa:** escopo em `SCOPE.md` §10.7, §6.1.1 · `SCOPE-CLOUD` §6.6 — tasks **B68–B71**, **F39–F41**. Painel: chavinhas R1/R2/R3 + **Orquestração sync** (TTLs/data fixa/batch). **B71** = ocultar senhas SIGAA.
 14. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial. **Polish em task `[x]`** (ex.: F38, dashboard) também exige nota no TASKS no mesmo ciclo do push.

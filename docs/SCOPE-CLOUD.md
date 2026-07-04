@@ -590,6 +590,8 @@ Persistência por `user_id`:
 
 ## 9. Deploy e ambientes
 
+> **Plano operacional 6a:** [`docs/plan/6a-supabase-plan.md`](./plan/6a-supabase-plan.md) (PLAN Bloco 6a — projetos, env, free tier).
+
 | Ambiente | Web | Supabase | Worker |
 |---|---|---|---|
 | **Dev** | `localhost:3000` | Projeto Supabase dev (free) | Local ou staging |
