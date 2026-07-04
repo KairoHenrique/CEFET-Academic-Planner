@@ -43,9 +43,13 @@ export function buildTaskReminderNotificationFingerprint(
 export function buildGradeNotificationFingerprint(
   disciplinaId: string,
   avaliacao: string,
-  _nota?: number
+  nota?: number | null
 ): string {
-  return `grade:${disciplinaId.toLowerCase()}|${normalizeNotificationText(avaliacao)}`;
+  const base = `grade:${disciplinaId.toLowerCase()}|${normalizeNotificationText(avaliacao)}`;
+  if (nota === null || nota === undefined || !Number.isFinite(nota)) {
+    return base;
+  }
+  return `${base}|${normalizeGradeNota(nota)}`;
 }
 
 export function buildCalendarEventReminderFingerprint(
@@ -67,12 +71,40 @@ export function isUrgentClassReminderFingerprint(fingerprint: string): boolean {
   return fingerprint.startsWith("class-reminder:");
 }
 
-/** Baseline antiga incluía a nota no fingerprint (`grade:ID|PRO1|7.5`). */
+/** Baseline legada sem nota (`grade:ID|pro1`) ou com nota (`grade:ID|pro1|7.5`). */
 export function normalizeStoredBaselineFingerprint(fingerprint: string): string {
-  const legacyGrade = fingerprint.match(/^grade:([^|]+)\|(.+)\|[\d.]+$/i);
-  if (!legacyGrade) return fingerprint;
+  const legacyGradeWithNota = fingerprint.match(/^grade:([^|]+)\|(.+)\|([\d.]+)$/i);
+  if (legacyGradeWithNota) {
+    return buildGradeNotificationFingerprint(
+      legacyGradeWithNota[1],
+      legacyGradeWithNota[2],
+      parseFloat(legacyGradeWithNota[3])
+    );
+  }
+  return fingerprint;
+}
 
-  return buildGradeNotificationFingerprint(legacyGrade[1], legacyGrade[2]);
+/** Chave legada sem nota no baseline — cobre qualquer nota já vista da avaliação. */
+export function buildLegacyGradeEvaluationBaselineKey(
+  disciplinaId: string,
+  avaliacao: string
+): string {
+  return `grade:${disciplinaId.toLowerCase()}|${normalizeNotificationText(avaliacao)}`;
+}
+
+export function isGradeFingerprintMarkedReadInBaseline(
+  fingerprint: string,
+  baseline: Set<string>
+): boolean {
+  if (!fingerprint.startsWith("grade:")) return false;
+
+  const parts = fingerprint.split("|");
+  if (parts.length >= 3) {
+    const legacyKey = `${parts[0]}|${parts[1]}`;
+    if (baseline.has(legacyKey)) return true;
+  }
+
+  return false;
 }
 
 export function isUrgentTaskReminderFingerprint(fingerprint: string): boolean {

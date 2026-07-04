@@ -1,5 +1,8 @@
 import { getSession } from "@/lib/auth/session";
-import { normalizeStoredBaselineFingerprint } from "@/lib/notifications/notification-fingerprint";
+import {
+  isGradeFingerprintMarkedReadInBaseline,
+  normalizeStoredBaselineFingerprint,
+} from "@/lib/notifications/notification-fingerprint";
 
 const STORAGE_PREFIX = "planner:notifications:baseline:";
 
@@ -58,6 +61,14 @@ export function migrateLegacyNotificationBaseline(
 
   mergeNotificationBaseline(stableFingerprints);
   return true;
+}
+
+export function isNotificationMarkedReadInBaseline(
+  fingerprint: string,
+  baseline: Set<string>
+): boolean {
+  if (baseline.has(fingerprint)) return true;
+  return isGradeFingerprintMarkedReadInBaseline(fingerprint, baseline);
 }
 
 export function seedNotificationBaselineIfMissing(fingerprints: string[]): void {

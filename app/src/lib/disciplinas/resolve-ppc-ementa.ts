@@ -1,6 +1,6 @@
 /**
  * Ementas das disciplinas obrigatórias do PPC Eng. Computação (CEFET-MG Divinópolis).
- * Fonte: PPC vigente + conteúdos programáticos de referência.
+ * Fonte: PPC v3 (2026) — `docs/referencias/PPC_EngComp-Div-v3.pdf`.
  */
 
 export const EMENTAS_BY_CODIGO: Record<string, string> = {

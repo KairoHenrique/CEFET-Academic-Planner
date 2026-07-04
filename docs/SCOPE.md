@@ -234,9 +234,7 @@ Cada disciplina tem uma página própria com:
 | CH da Matéria | Máx. Faltas (horários) | Máx. Dias Reais |
 |:---:|:---:|:---:|
 | 30h | 7 | ~3 |
-| 45h | 11 | ~5 |
 | 60h | 15 | ~7 |
-| 75h | 18 | ~9 |
 | 90h | 22 | ~11 |
 | 120h | 30 | ~15 |
 

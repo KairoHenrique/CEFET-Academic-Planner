@@ -22,6 +22,15 @@ import type {
   PendingTaskReminderSource,
 } from "@/lib/types/notifications-api";
 
+/** Tarefas concluídas ou sem prazo não entram no sino. */
+export function isTaskEligibleForNotification(row: {
+  concluida: number;
+  data_fim: string | null;
+}): boolean {
+  if (row.concluida === 1) return false;
+  return Boolean(row.data_fim?.trim());
+}
+
 export function buildNotificationSnapshot(): {
   items: NotificationSnapshotItem[];
   pendingTasks: PendingTaskReminderSource[];
@@ -51,8 +60,7 @@ export function buildNotificationSnapshot(): {
 
   for (const row of getTarefas()) {
     if (!activeIds.has(row.disciplina_id.toLowerCase())) continue;
-    if (row.concluida === 1) continue;
-    if (!row.data_fim?.trim()) continue;
+    if (!isTaskEligibleForNotification(row)) continue;
 
     const disciplinaNome =
       nameByCode.get(row.disciplina_id) ?? row.disciplina_id;
