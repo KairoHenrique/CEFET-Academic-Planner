@@ -13,11 +13,14 @@
     "test:sync-b56-o3": "SIGAA_SCRAPER_MOCK=true tsx --test tests/sync-b56-o3.test.ts",
     "test:b39": "tsx --test tests/b39-postgres-schema.test.ts",
     "db:migrate": "tsx --env-file=.env.local scripts/pg-migrate.ts",
+    "db:seed-ppc": "tsx --env-file=.env.local scripts/pg-seed-ppc.ts",
+    "test:b41-b43": "tsx --test tests/b41-b43-postgres.test.ts",
     "worker:dev": "tsx worker/main.ts",
     "worker:start": "tsx worker/main.ts",
     "test:scraper:live": "tsx --test tests/scraper-live.test.ts"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.110.0",
     "@tanstack/react-query": "^5.101.1",
     "better-sqlite3": "^12.11.1",
     "crypto-js": "^4.2.0",
