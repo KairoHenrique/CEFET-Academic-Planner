@@ -16,6 +16,7 @@ function canAutoSyncNow(settings: PerfilSyncStatus): boolean {
   return Date.now() - lastMs >= intervalMs;
 }
 
+/** Agenda auto-sync no client; execução real via fila B55 (`startSync` → `POST /api/sync/queue`). */
 export function useAutoSync(
   syncSettings: PerfilSyncStatus | undefined,
   startSync: (

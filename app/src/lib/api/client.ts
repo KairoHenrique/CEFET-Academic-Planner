@@ -14,6 +14,12 @@ import type {
 } from "@/lib/types/disciplinas-api";
 import type { AcademicTask } from "@/lib/types/task";
 import type { SyncRequest, SyncSuccessResponse, SyncMode } from "@/lib/types/sync";
+import type {
+  EnqueueSyncQueueBody,
+  EnqueueSyncQueueResponse,
+  GetSyncQueueJobResponse,
+  SyncQueueJobView,
+} from "@/lib/types/sync-queue-api";
 import { getSession } from "@/lib/auth/session";
 
 export interface SyncReadinessResponse {
@@ -162,6 +168,31 @@ export async function postSync(
     },
     credentials.username
   );
+}
+
+export async function postSyncQueue(
+  body: EnqueueSyncQueueBody
+): Promise<EnqueueSyncQueueResponse> {
+  return requestJson<EnqueueSyncQueueResponse>(
+    "/api/sync/queue",
+    {
+      method: "POST",
+      body: JSON.stringify(body),
+    },
+    body.username
+  );
+}
+
+export async function getSyncQueueJob(
+  jobId: string,
+  sigaaUsername?: string
+): Promise<SyncQueueJobView> {
+  const response = await requestJson<GetSyncQueueJobResponse>(
+    `/api/sync/queue/${encodeURIComponent(jobId)}`,
+    undefined,
+    sigaaUsername ?? getSession()?.username
+  );
+  return response.job;
 }
 
 export interface CalendarioSyncResponse {

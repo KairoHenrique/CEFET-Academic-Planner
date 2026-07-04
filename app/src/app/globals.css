@@ -1070,6 +1070,11 @@ a:hover {
   line-height: 1.4;
 }
 
+.profile-sync-hint--live {
+  color: var(--gold-300);
+  font-weight: 600;
+}
+
 .site-tutorial-root {
   position: fixed;
   inset: 0;
