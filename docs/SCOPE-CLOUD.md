@@ -441,9 +441,15 @@ Login com senha errada
 | Mecanismo | Detalhe |
 |---|---|
 | **Rota** | `/dev` (Next.js route group `(dev)` ou middleware) |
-| **Segredo** | `PLANNER_DEV_SECRET` (header ou cookie httpOnly após login operador) |
-| **Allowlist** | Opcional: `PLANNER_DEV_CPFS` — CPF do operador autorizado |
-| **Produção** | Painel **desligado** se env ausente; 404 para não vazar existência |
+| **Login** | Formulário **email + senha** — obrigatório **sempre** que não houver sessão operador |
+| **Validação** | Server-side: comparar com **todos** os pares definidos no env (nunca no client, nunca em DB) |
+| **1º operador (dev)** | `EMAIL_DEV` + `PASSWORD_DEV` em `.env.local` |
+| **Operadores adicionais** | `PLANNER_DEV_2_EMAIL` + `PLANNER_DEV_2_PASSWORD`, … — **cadastro manual** no env (comentado até autorizar) |
+| **Sessão** | Cookie **httpOnly** após `POST /api/dev/auth/login` OK |
+| **Produção** | Pares só em **secrets** do deploy; painel **desligado** se nenhum par configurado; 404 para não vazar existência |
+| **Fora de escopo** | UI ou API para cadastrar operadores — **só env manual** (LGPD / PoLP) |
+
+> **Substitui** `PLANNER_DEV_SECRET` e `PLANNER_DEV_CPFS`.
 
 Alunos **nunca** veem link para `/dev`.
 
@@ -453,18 +459,29 @@ Alunos **nunca** veem link para `/dev`.
 
 ### 8.2 APIs operador (service role)
 
-Prefixo sugerido: `/api/dev/*` — middleware valida segredo antes de handler.
+Prefixo: `/api/dev/*` — middleware exige **sessão operador** (cookie httpOnly) antes do handler.
 
 | Endpoint | Função |
 |---|---|
-| `GET /api/dev/accounts` | Lista contas + assinatura + último sync + **senha SIGAA (fase testes)** |
+| `POST /api/dev/auth/login` | `{ email, password }` → sessão httpOnly se par válido no env |
+| `POST /api/dev/auth/logout` | Invalida sessão operador |
+| `GET /api/dev/accounts` | Lista contas + assinatura + último sync + **senha SIGAA (fase testes)**; query `?q=` nome/CPF |
+| `POST /api/dev/robots/run` | Disparo manual **R1/R2/R3** — `{ scope: individual\|global, cpf?, robots: { r1, r2, r3 } }`; **sem cooldown** |
 | `GET /api/dev/gift-keys` | Lista chaves gift |
 | `POST /api/dev/gift-keys` | Cria N chaves com pacote |
 | `PATCH /api/dev/gift-keys/[code]` | Revogar chave disponível |
 | `PATCH /api/dev/accounts/[cpf]/subscription` | Simular expirar/estender |
-| `POST /api/dev/accounts/[cpf]/sync` | Enfileirar sync (worker) |
+| `POST /api/dev/accounts/[cpf]/sync` | Enfileirar sync (worker) — legado; preferir `robots/run` |
 | `PATCH /api/dev/config/promotions` | Toggle promoções globais |
 | `GET /api/dev/audit-log` | Ações sensíveis recentes |
+
+**Robôs (ops manual):**
+
+| ID | Endpoint | Escopo |
+|---|---|---|
+| **R1** | `POST /api/sync` / pipeline live | Por CPF — portal, turma virtual, histórico |
+| **R2** | `POST /api/sync/calendario` | Global — calendário acadêmico |
+| **R3** | `POST /api/sync/turmas` | Global — turmas ofertadas |
 
 Todas as rotas usam **`SUPABASE_SERVICE_ROLE_KEY`** (bypass RLS) com validação explícita de operador.
 
@@ -493,8 +510,8 @@ Persistência por `user_id`:
 - `SUPABASE_SERVICE_ROLE_KEY` (só server)
 - `PIX_GATEWAY_*` (TBD)
 - `SIGAA_WORKER_URL` / fila
-- `PLANNER_DEV_SECRET` (painel operador — §8)
-- `PLANNER_DEV_CPFS` (opcional)
+- `EMAIL_DEV` + `PASSWORD_DEV` (1º operador painel `/dev` — dev local)
+- `PLANNER_DEV_2_EMAIL` + `PLANNER_DEV_2_PASSWORD` (operadores extras — **manual** no env)
 
 ---
 
@@ -506,7 +523,7 @@ Persistência por `user_id`:
 4. **Logs:** sem senhas, CPF ou e-mail em texto claro.
 5. **Retenção:** Dados acadêmicos são apagados automaticamente 7 dias após a expiração do plano ou trial sem pagamento. O registro de CPF permanece para controle anti-abuso. Exclusão antecipada sob demanda (direito do titular).
 6. **Termos de uso + política de privacidade** antes do go-live com pagamento.
-7. **Painel dev:** audit log obrigatório; **fase testes** pode exibir senha ao operador; **B71** remove exibição antes do go-live.
+7. **Painel dev:** login operador email+senha (pares **manuais no env**); audit log obrigatório; **fase testes** pode exibir senha SIGAA ao operador; **B71** remove exibição antes do go-live.
 
 ---
 
@@ -561,7 +578,7 @@ Durante beta/testes com URL pública:
 - [x] **Materiais SIGAA:** download automático **fora de escopo** (cancelado jun/2026); histórico escolar PDF (**B30**) permanece
 - [x] **Chaves de plano (gift):** 8 chars, uso único, emissão só operador (`SCOPE.md` §2.1.1)
 - [x] **Simulação de mapa:** overlay local; não altera histórico sync (`SCOPE.md` §6.1.1)
-- [x] **Painel dev:** `/dev` + `PLANNER_DEV_SECRET`; **fase testes** exibe senhas ao operador; **B71** endurece antes da produção
+- [x] **Painel dev:** `/dev` + login **email+senha** (pares env manuais); chavinhas robôs R1/R2/R3; **fase testes** exibe senhas SIGAA ao operador; **B71** endurece antes da produção
 - [x] **Hosting Web:** Cloudflare Pages (Frontend) + Supabase (Backend/Auth) + Ping script/cron (Anti-inatividade do DB free)
 
 ---

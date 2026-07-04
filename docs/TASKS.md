@@ -159,7 +159,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 - [ ] **BACK:** B54 *(worker Playwright — 1 browser por vez; container/VPS free tier)*
 - [ ] **BACK:** B55 *(API fila sync — filas prioritária + normal; enqueue; status/posição/ETA)*
 - [ ] **BACK:** B56 *(pipeline B24–B31 no worker — credenciais cifradas no servidor)*
-- [ ] **OPS:** O3 *(cooldowns produção — auto ≥3h/usuário; manual 5 min; manual → fim da fila)*
+- [ ] **OPS:** O3 *(cooldowns produção — auto ≥3h/usuário; manual 5 min; manual → fim da fila; **exceção:** painel `/dev` **B70/F41** dispara robôs **sem cooldown**)*
 - [ ] **FRONT:** F19 *(status fila na UI — substituir `useAutoSync`; alinhar **F37**; `/simulador` real **B67**)*
 
 **Ordem 2b:** `B54 → B55 → B56` → `O3` → `F19`
@@ -239,13 +239,13 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 - [ ] **BACK:** B52 *(gate middleware — bloqueia trial_expired/pending/expired → PIX)*
 - [ ] **BACK:** B53 *(renovação — novo PIX + grace period TBD)*
 - [ ] **BACK:** B69 *(chaves gift — gerar 8 chars + resgate único + `POST /api/billing/redeem-key`)*
-- [ ] **BACK:** B70 *(painel dev API — `/api/dev/*` contas, chaves, promoções)*
+- [ ] **BACK:** B70 *(painel dev API — `/api/dev/*`; **login operador email+senha** vs env; contas, chaves, promoções; **disparo manual de robôs** individual/global **sem cooldown**)*
 - [ ] **FRONT:** F31 *(cadastro + plano — após trial ou CPF já usado)*
 - [ ] **FRONT:** F32 *(tela PIX — QR + copia-e-cola + aguardando)*
 - [ ] **FRONT:** F33 *(renovação — assinatura expirada)*
 - [ ] **FRONT:** F34 *(minha assinatura — plano, validade, histórico)*
 - [ ] **FRONT:** F40 *(resgate chave plano — 8 chars em login/cadastro/`/planos`)*
-- [ ] **FRONT:** F41 *(painel dev `/dev` — contas, chaves, simular tempo)*
+- [ ] **FRONT:** F41 *(painel dev `/dev` — **tela login email+senha** sempre que sem sessão; contas, chaves, simular tempo; **lista nome/CPF com busca**; **menu chavinhas** R1/R2/R3; rodar **individual** ou **global**)*
 - [ ] **LEGAL:** L1 *(termos + LGPD — política de privacidade)*
 - [ ] **BACK:** B71 *(endurecimento credenciais — **última pré-go-live**; ocultar senhas no `/dev`)*
 
@@ -576,7 +576,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [ ] **BACK:**  B54 — worker Playwright (1 browser por vez; container/VPS free tier)
 - [ ] **BACK:**  B55 — API fila sync (prioritária + normal; posição/ETA; polling ou Realtime)
 - [ ] **BACK:**  B56 — pipeline B24–B31 no worker (credenciais cifradas)
-- [ ] **OPS:**   O3 — cooldowns produção (auto 3h · manual 5 min · reinicia timer pós-sync)
+- [ ] **OPS:**   O3 — cooldowns produção (auto 3h · manual 5 min · reinicia timer pós-sync); **exceção** painel `/dev` **B70/F41**
 - [ ] **FRONT:** F19 — status fila na UI (substituir `useAutoSync` client; alinhar **F37**)
 
 **Ordem 2b:** `B54 → B55 → B56` → `O3` → `F19` *(UI fila antes ou junto de F37 produção)*
@@ -926,7 +926,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | B54 | Back | Worker Playwright | 1 job ativo; container/VPS; abre/fecha browser por sync | [ ] |
 | B55 | Back | API fila sync | Filas prioritária + normal; enqueue; status/posição | [ ] |
 | B56 | Back | Pipeline no worker | B24–B31 no servidor; credenciais cifradas | [ ] |
-| O3 | Ops | Cooldowns sync | Auto ≥3h/usuário; manual 5 min; manual → fim da fila | [ ] |
+| O3 | Ops | Cooldowns sync | Auto ≥3h/usuário; manual 5 min; manual → fim da fila; **exceção** painel dev **B70** (sem cooldown) | [ ] |
 | F19 | Front | UI fila + simulador | Status sync/fila (**F37**); `/simulador` real (**B67**) | [ ] |
 
 **Ordem 2b (#3):** `B54 → B55 → B56` → `O3` → `F19`
@@ -1004,14 +1004,14 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | B52 | Back | Gate middleware | Bloqueia `trial_expired` / `pending_payment` / `expired` → PIX | [ ] |
 | B53 | Back | Renovação | Novo PIX + grace period (TBD) | [ ] |
 | B69 | Back | Chaves gift | Tabela + gerar 8 chars + resgate único + `POST /api/billing/redeem-key` | [ ] |
-| B70 | Back | Painel dev API | `/api/dev/*` — contas (+ senha visível fase testes), chaves, promoções | [ ] |
+| B70 | Back | Painel dev API | **Login operador** (email+senha vs env); `/api/dev/*`; robôs **`POST /api/dev/robots/run`** sem cooldown (R1/R2/R3) | [ ] |
 | B71 | Back | **Endurecimento credenciais** | **Última task pré-go-live:** ocultar senhas no `/dev`, cifragem plena, zero leak API/logs | [ ] |
 | F31 | Front | Cadastro + plano | Após trial ou CPF já usado: escolha semestre/ano + PIX | [ ] |
 | F32 | Front | Tela PIX | QR + copia-e-cola + aguardando | [ ] |
 | F33 | Front | Renovação | Assinatura expirada | [ ] |
 | F34 | Front | Minha assinatura | Plano, validade, histórico | [ ] |
 | F40 | Front | Resgate chave plano | Campo 8 chars em login/cadastro/`/planos`; feedback uso único | [ ] |
-| F41 | Front | Painel dev `/dev` | Listar contas **com senha SIGAA**, criar chaves, promoções, simular tempo | [ ] |
+| F41 | Front | Painel dev `/dev` | **Login email+senha** (sessão operador); lista **nome/CPF** + busca; **chavinhas** R1/R2/R3; individual/global; chaves gift | [ ] |
 | L1 | Legal | Termos + LGPD | Política de privacidade | [ ] |
 
 **Ordem:** `B47 → B48` → `B49 → B50 → B51 → B52 → B53` → `B69` → `B70` → `F31 → F32 → F33 → F34` → `F40` → `F41` → `L1` → **`B71`** *(última — imediatamente antes do go-live público)*
@@ -1495,24 +1495,81 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 ### Painel dev (operador)
 
-Rota **`/dev`** — invisível ao aluno. Autenticação: `PLANNER_DEV_SECRET` (+ allowlist CPF opcional).
+Rota **`/dev`** — invisível ao aluno.
+
+#### Autenticação operador (obrigatória)
+
+| Regra | Detalhe |
+|---|---|
+| **Sempre pedir** | Tela **email + senha** antes de qualquer área do painel (sem sessão válida = bloqueado) |
+| **Onde validar** | **Somente server-side** — comparar com pares cadastrados no **env** (`.env.local` dev · secrets prod) |
+| **Cadastro de devs** | **Manual no env** — **nunca** UI, **nunca** banco; novo operador = adicionar par `EMAIL`/`PASSWORD` comentado ou ativo no env |
+| **Dev local** | `EMAIL_DEV` + `PASSWORD_DEV` (1º operador) · `PLANNER_DEV_2_EMAIL` + `PLANNER_DEV_2_PASSWORD` (2º, comentado até precisar) · … |
+| **Produção** | Mesmo modelo — pares só em **secrets** do deploy (VPS/Supabase/etc.); rotação = editar env + redeploy |
+| **Sessão** | Cookie **httpOnly** após login OK; expira → pede email+senha de novo |
+| **Segurança** | Zero credencial de operador no client bundle, logs ou resposta JSON |
+
+> **Substitui** o desenho antigo `PLANNER_DEV_SECRET` / allowlist CPF — operador = quem conhece **email+senha** definidos **manualmente** no env.
 
 | Área | Capacidades |
 |---|---|
 | Contas | Listar CPF, matrícula, curso, assinatura, trial, último sync |
+| **Robôs (ops manual)** | Lista **nome + CPF** com busca; **chavinhas** (toggle dourado) por robô — **R1** sync principal · **R2** calendário (**B66**) · **R3** turmas (**B67**); disparo **individual** (1 conta) ou **global** (todas/filtradas); usa **CPF + senha já persistidos**; **sem cooldown** B65/O3 |
 | Credenciais | **Fase testes:** senha SIGAA **visível** (copiar / abrir SIGAA manual). **Pós-B71:** só “salva / não salva” |
 | Chaves | Criar (lote), listar, revogar, ver quem resgatou |
 | Promoções | Toggle global + banners `/planos` |
 | Simulação | Forçar expiração/renovação de plano; sync forçado; reset dados (confirmação dupla) |
 | Auditoria | Log de ações sensíveis |
 
-**Tasks:** **B70** (API + middleware) · **F41** (UI) · **B71** (endurecimento — **última antes de produção**)
+**Tasks:** **B70** (API + middleware + robôs ops) · **F41** (UI + chavinhas + lista) · **B71** (endurecimento — **última antes de produção**)
+
+### Painel robôs — ops manual (escopo fechado p/ **B70** + **F41**)
+
+> **Objetivo:** operador dispara scrapers **por fora** do fluxo do aluno — sem fila, sem cooldown dev (**B65**) / produção (**O3**). Credenciais vêm do que já está salvo no SQLite (dev) / Postgres (prod).
+
+| Robô | Endpoint / pipeline | Persiste |
+|---|---|---|
+| **R1** | `POST /api/sync` · `runSync` / pipeline live | Portal, turma virtual, histórico (por CPF) |
+| **R2** | `POST /api/sync/calendario` (**B66**) | `calendario_academico` global |
+| **R3** | `POST /api/sync/turmas` (**B67**) | `turmas_ofertadas` global |
+
+#### Back (**B70**)
+
+- [ ] **`POST /api/dev/auth/login`** — body `{ email, password }`; valida contra **todos** os pares `EMAIL_DEV`/`PASSWORD_DEV`, `PLANNER_DEV_2_*`, … lidos do env
+- [ ] Middleware **`/api/dev/*`** — exige sessão operador (cookie httpOnly); **401** sem login
+- [ ] **Nunca** expor lista de emails autorizados ao client; mensagem genérica em falha de login
+- [ ] `GET /api/dev/accounts` — lista contas com **nome**, CPF (mascarado), curso, último sync, flags de credencial salva
+- [ ] Query **`?q=`** — busca por nome ou CPF (parcial)
+- [ ] `POST /api/dev/robots/run` — body: `{ scope: "individual" | "global", cpf?: string, robots: { r1: boolean, r2: boolean, r3: boolean } }`
+- [ ] Resolver senha SIGAA **server-side** (B25 decrypt dev / B45 prod) — **nunca** reenviar ao browser do operador após **B71**
+- [ ] **Bypass cooldown** — não aplicar `sync-preferences` / TTL / fila ao disparo manual do `/dev`
+- [ ] **Global:** iterar contas com credencial válida (ou subset da busca); log por CPF + robô + outcome
+- [ ] **Auditoria** — toda execução manual registrada (operador, escopo, robôs, alvos, timestamp)
+
+#### Front (**F41**)
+
+- [ ] **`/dev/login`** (ou gate na rota `/dev`) — formulário **email + senha**; obrigatório **sempre** que não houver sessão operador
+- [ ] Após login → painel; logout limpa cookie e volta ao formulário
+- [ ] Rota **`/dev`** — seção **Robôs** (ou aba dedicada)
+- [ ] **Menu chavinhas** — um toggle por linha (**R1**, **R2**, **R3**); estilo pill dourado ON / cinza OFF (igual selects do app)
+- [ ] **Lista contas** — colunas nome + CPF; campo busca; seleção de linha para disparo individual
+- [ ] Botões **Rodar selecionado** (individual) e **Rodar todos** (global) — só robôs com chave ON
+- [ ] Feedback inline — progresso / erro por robô (sem bloquear navbar do aluno)
+- [ ] Reutilizar demais áreas do painel: chaves gift, promoções, simular tempo (escopo §10 `SCOPE.md`)
+
+#### Fora de escopo (v1 painel dev)
+
+- Cadastro de operadores pelo painel — **só env manual** (segurança de dados)
+- Orquestrador cron / fila worker (**B68e**, **B54–B56**) — painel ops é **manual** até Bloco 2b
+- Impersonate write no app do aluno — só **disparo de sync** + leitura de contas
+
+**Tasks:** **B70** (API) · **F41** (UI) · endurecimento senha = **B71**
 
 ### Endurecimento credenciais (B71)
 
 | Entrega | Detalhe |
 |---|---|
-| Painel `/dev` | Remove coluna/campo de senha em claro |
+| Painel `/dev` | Remove coluna/campo de senha **SIGAA** em claro; **operadores** continuam só no env |
 | Storage | Senha sempre cifrada; rotação de chave documentada |
 | API | Nenhum endpoint aluno devolve credencial |
 | Logs | Sem senha/CPF completo |
@@ -1524,7 +1581,7 @@ Rota **`/dev`** — invisível ao aluno. Autenticação: `PLANNER_DEV_SECRET` (+
 
 ```
 B49 (billing tables) → B69 (gift keys) → F40 (resgate)
-B70 (dev API + senhas visíveis) → F41 (painel dev)
+B70 (dev API + senhas visíveis + robôs ops sem cooldown) → F41 (painel dev + chavinhas R1/R2/R3)
 B68 + F39 (simulação mapa — pode paralelizar ao Bloco 1 pós-F12)
 … PIX, mobile, etc. …
 B71 (ÚLTIMA — endurecer credenciais antes do go-live)
@@ -1533,7 +1590,7 @@ B71 (ÚLTIMA — endurecer credenciais antes do go-live)
 ### Dev local (antes da cloud)
 
 - Stub em `build-subscription-dev.ts` / `/planos` placeholder → evoluir para resgate real quando **B69** existir.
-- Painel dev SQLite: scripts ou rota `/dev` protegida por env desde o MVP local.
+- Painel dev SQLite: rota `/dev` com **login email+senha** (`EMAIL_DEV`/`PASSWORD_DEV` no `.env.local`; devs extras **`PLANNER_DEV_N_*` manual**) — layout com lista nome/CPF, chavinhas R1/R2/R3 (**F41** stub OK antes do Bloco 7).
 
 ---
 
@@ -1600,7 +1657,7 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 10. **Modo testes global (6a):** deploy **após** sync validado; RLS **só na 6c** (antes do PIX).
 11. **Próximo passo:** polish **F19** `[@]` (2 itens front amanhã) · **Bloco 2b** (B54–B56). **B67** `[x]`. **#6d (B68-orq):** aberto. Gift/dev: [Apêndice gift/dev](#apêndice--chaves-gift-e-painel-dev-jun2026). **B71** = última pré-go-live.
 12. **Integralização:** CH concluída = `historico` + PPC (`computeChDoneFromDisciplinas`); portal SIGAA só % / total currículo; matérias já passadas = **B30** ✅.
-13. **Gift + painel dev + simulação mapa:** escopo em `SCOPE.md` §2.1.1, §6.1.1, §10 — tasks **B68–B71**, **F39–F41**, **F40** — [Apêndice gift/dev](#apêndice--chaves-gift-e-painel-dev-jun2026). **B71** = última task (cifragem plena / ocultar senhas no painel).
+13. **Gift + painel dev + simulação mapa:** escopo em `SCOPE.md` §2.1.1, §6.1.1, §10 — tasks **B68–B71**, **F39–F41**, **F40** — [Apêndice gift/dev](#apêndice--chaves-gift-e-painel-dev-jun2026). **Login operador:** email+senha **sempre** (pares **manuais no env**). **Painel robôs ops:** chavinhas R1/R2/R3, lista nome/CPF, individual/global sem cooldown. **B71** = última task (ocultar senhas SIGAA no painel).
 14. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial. **Polish em task `[x]`** (ex.: F38, dashboard) também exige nota no TASKS no mesmo ciclo do push.
 15. **Credenciais SIGAA:** sync **sem** o aluno no site exige senha **cifrada no servidor** (dev: B25 opcional + `useAutoSync` no client; produção: **B45** + worker **B56**). Ver `SCOPE.md` §2 · `SCOPE-CLOUD.md` §4–§6.
 16. **Código frontend** está em `app/src/` (não na raiz `src/`). Mock data em `app/src/config/mock/`.

@@ -403,9 +403,20 @@ Ver **`docs/SCOPE-CLOUD.md` §7** — app **Expo Go**, backend Supabase, sem scr
 
 ## 10. Painel Dev (operador)
 
-> **Acesso:** rota protegida **`/dev`** (ou subdomínio admin). **Somente o operador** (fundador do produto) — não é visível na navbar do aluno.  
-> **Autenticação:** credencial de operador via variável de ambiente (`PLANNER_DEV_SECRET` / allowlist de CPF) — **nunca** exposta no client.  
-> Detalhes técnicos e LGPD: `SCOPE-CLOUD.md` §8.
+> **Acesso:** rota protegida **`/dev`** (ou subdomínio admin). **Somente operadores autorizados** — não é visível na navbar do aluno.  
+> **Autenticação:** o painel **sempre pede email + senha** (formulário de login). Validação **somente server-side** contra pares cadastrados no **env** (`.env.local` em dev · secrets em produção). **Nunca** exposta no client.  
+> **Cadastro de operadores:** **manual no env** — cada dev = par `EMAIL` + `PASSWORD`; novos operadores no futuro = adicionar par comentado/ativo no env (**sem UI**, **sem banco** — segurança de dados).  
+> Detalhes técnicos e LGPD: `SCOPE-CLOUD.md` §8 · tasks **B70**, **F41**, **B71** em `TASKS.md` (Apêndice gift/dev).
+
+### 10.0 Login operador
+
+| Regra | Detalhe |
+|---|---|
+| **Gate** | Sem sessão válida → só tela **email + senha**; nenhuma área do painel acessível |
+| **1º operador (local)** | `EMAIL_DEV` + `PASSWORD_DEV` no `.env.local` |
+| **Operadores extras** | `PLANNER_DEV_2_EMAIL` + `PLANNER_DEV_2_PASSWORD`, … — cadastro **manual** no env |
+| **Sessão** | Cookie **httpOnly** após login OK; expirou → pede credenciais de novo |
+| **Substitui** | Modelo antigo `PLANNER_DEV_SECRET` / allowlist CPF |
 
 ### 10.1 Visão geral de contas
 
@@ -445,6 +456,7 @@ Para **suporte e testes** — ações que **não** existem para o aluno comum:
 | Simular expiração de trial/assinatura | Força gate de billing na conta escolhida |
 | Simular renovação / estender validade | +N dias sem PIX |
 | Disparar sync forçado | Enfileira job (worker) ou stub dev |
+| **Robôs ops manual** | Chavinhas ON/OFF por robô (**R1** sync principal · **R2** calendário · **R3** turmas); lista **nome/CPF** com busca; rodar **individual** (1 conta) ou **global**; usa CPF+senha SIGAA já persistidos; **sem cooldown** (exceção a **O3** / fila aluno) |
 | Ver mapa/integralização da conta | Abrir como “impersonate read-only” (sem editar dados do aluno) |
 | Reset dados acadêmicos | Apaga SQLite/Postgres do usuário (confirmação dupla) |
 
@@ -458,7 +470,7 @@ Toda ação sensível no painel dev gera **log interno** (quem, o quê, quando, 
 
 | Entrega B71 | Detalhe |
 |---|---|
-| Painel dev | Deixa de exibir senha em claro; operador usa apenas “re-sync” / logs de erro |
+| Painel dev | Deixa de exibir senha **SIGAA** em claro; operadores continuam só no env; re-sync / logs de erro |
 | Armazenamento | Senha SIGAA **sempre** cifrada em repouso (AES-256 + `CREDENTIALS_ENCRYPTION_KEY` rotacionável) |
 | API aluno | Nenhum endpoint devolve senha ou ciphertext ao browser |
 | Logs | Zero senha/CPF completo em texto claro |
