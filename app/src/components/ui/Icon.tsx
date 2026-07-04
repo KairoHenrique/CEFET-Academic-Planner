@@ -38,7 +38,8 @@ export type IconName =
   | "edit"
   | "logout"
   | "users"
-  | "bell";
+  | "bell"
+  | "download";
 
 interface IconProps extends SVGProps<SVGSVGElement> {
   name: IconName;
@@ -257,6 +258,13 @@ const paths: Record<IconName, React.ReactNode> = {
     <>
       <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
       <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+    </>
+  ),
+  download: (
+    <>
+      <path d="M12 3v12" />
+      <path d="m7 10 5 5 5-5" />
+      <path d="M5 21h14" />
     </>
   ),
 };

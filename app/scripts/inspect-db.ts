@@ -13,6 +13,7 @@ const tables = [
   "grupo_membros",
   "integralizacao",
   "calendario_academico",
+  "turmas_ofertadas",
   "eventos_calendario",
   "configuracoes",
 ] as const;

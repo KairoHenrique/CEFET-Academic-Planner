@@ -1,4 +1,6 @@
 import { pickStablePaletteColor } from "@/lib/colors/palette";
+import { attachUniqueShortLabels } from "@/lib/disciplinas/attach-unique-short-labels";
+import { buildExtraNicknameWordsByCode } from "@/lib/disciplinas/subject-nickname-enrichment";
 import { suggestSubjectNickname } from "@/lib/disciplinas/subject-display-name";
 import {
   SUBJECT_DISPLAY_GRADE_MAX,
@@ -19,6 +21,7 @@ import {
   upsertSyncedSemestreAtual,
   upsertSyncedTarefa,
 } from "@/lib/db/queries";
+import { normalizeDisciplinaCode } from "@/lib/mapa/course-status";
 import { persistSigaaIntegralizacaoResumo } from "@/lib/integralizacao/sigaa-ch-config";
 import { seedPpcIfEmpty } from "@/lib/db/seed-ppc";
 import { isAtividadePrazoVencido } from "@/lib/tasks/dates";
@@ -94,9 +97,9 @@ function buildSemestreCodigoByNome(
   return map;
 }
 
-export function persistPortalSnapshot(
+export async function persistPortalSnapshot(
   snapshot: PortalDiscenteSnapshot
-): PersistPortalResult {
+): Promise<PersistPortalResult> {
   if (!isPortalSnapshotPersistable(snapshot)) {
     return {
       persisted: false,
@@ -136,6 +139,17 @@ export function persistPortalSnapshot(
 
   const activeDisciplinaIds = new Set<string>();
   const semestreByNome = buildSemestreCodigoByNome(snapshot);
+  const apelidoEntries = snapshot.semestreAtual.map((disciplina) => ({
+    code: resolveDisciplinaCodigoForPortal(disciplina.codigo, disciplina.nome),
+    name: disciplina.nome,
+  }));
+  const extraWordsByCode = await buildExtraNicknameWordsByCode(apelidoEntries);
+  const apelidoRegistry = new Map(
+    attachUniqueShortLabels(apelidoEntries, extraWordsByCode).map((entry) => [
+      normalizeDisciplinaCode(entry.code),
+      entry.shortLabel,
+    ])
+  );
 
   for (const disciplina of snapshot.semestreAtual) {
     const codigo = resolveDisciplinaCodigoForPortal(
@@ -162,7 +176,9 @@ export function persistPortalSnapshot(
       turma_data_inicio: disciplina.turmaDataInicio ?? null,
       turma_data_fim: disciplina.turmaDataFim ?? null,
       cor: pickStablePaletteColor(codigo),
-      apelido: suggestSubjectNickname(disciplina.nome, codigo),
+      apelido:
+        apelidoRegistry.get(normalizeDisciplinaCode(codigo)) ??
+        suggestSubjectNickname(disciplina.nome, codigo),
       nome_exibicao: null,
       professor: null,
       max_faltas: null,

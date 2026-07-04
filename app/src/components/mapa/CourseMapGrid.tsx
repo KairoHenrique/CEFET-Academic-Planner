@@ -71,7 +71,7 @@ export function CourseMapGrid({ periods, statusLabels }: CourseMapGridProps) {
   );
 
   return (
-    <div className="card">
+    <div className="card" data-tutorial-id="tutorial-mapa-grid">
       <SectionHeader title="Grade Curricular" icon="map" />
 
       <div

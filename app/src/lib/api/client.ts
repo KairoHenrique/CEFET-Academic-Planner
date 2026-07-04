@@ -38,6 +38,10 @@ import type { MapaResponse } from "@/lib/types/mapa-api";
 import type { NotificationsSnapshotResponse } from "@/lib/types/notifications-api";
 import type { PerfilResponse, PatchPerfilBody } from "@/lib/types/perfil-api";
 import type { ScheduleApiResponse } from "@/lib/types/schedule-api";
+import type {
+  TurmasOfertadasResponse,
+  TurmasOfertadasSyncResponse,
+} from "@/lib/types/turmas-ofertadas-api";
 
 export type ClientErrorCode =
   | "VALIDATION_ERROR"
@@ -180,6 +184,24 @@ export async function postCalendarioSync(
     },
     credentials.username
   );
+}
+
+export async function postTurmasOfertadasSync(
+  credentials: SyncRequest,
+  options?: { force?: boolean }
+): Promise<TurmasOfertadasSyncResponse> {
+  return requestJson<TurmasOfertadasSyncResponse>(
+    "/api/sync/turmas",
+    {
+      method: "POST",
+      body: JSON.stringify({ ...credentials, force: options?.force === true }),
+    },
+    credentials.username
+  );
+}
+
+export async function getTurmasOfertadas(): Promise<TurmasOfertadasResponse> {
+  return requestJson<TurmasOfertadasResponse>("/api/turmas-ofertadas");
 }
 
 export async function getDashboard(): Promise<DashboardResponse> {

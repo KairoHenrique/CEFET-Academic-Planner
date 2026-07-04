@@ -1,13 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { useRouter } from "next/navigation";
 import { Icon } from "@/components/ui/Icon";
 import {
-  resolveTutorialRoute,
-  SITE_TUTORIAL_STEPS,
-} from "@/components/tutorial/site-tutorial-steps";
+  getPageTutorialSteps,
+  type PageTutorialId,
+} from "@/components/tutorial/page-tutorial-steps";
 
 interface SpotlightRect {
   top: number;
@@ -16,7 +15,8 @@ interface SpotlightRect {
   height: number;
 }
 
-interface SiteTutorialProps {
+interface PageTutorialProps {
+  tutorialId: PageTutorialId;
   open: boolean;
   onClose: () => void;
 }
@@ -39,17 +39,15 @@ function findTargetRect(targetId: string | null): SpotlightRect | null {
   };
 }
 
-export function SiteTutorial({ open, onClose }: SiteTutorialProps) {
-  const router = useRouter();
-  const cachedDisciplineCode = useRef<string | null>(null);
+export function PageTutorial({ tutorialId, open, onClose }: PageTutorialProps) {
+  const steps = getPageTutorialSteps(tutorialId);
   const [stepIndex, setStepIndex] = useState(0);
   const [spotlight, setSpotlight] = useState<SpotlightRect | null>(null);
   const [mounted, setMounted] = useState(false);
-  const [routeReady, setRouteReady] = useState(true);
 
-  const step = SITE_TUTORIAL_STEPS[stepIndex];
+  const step = steps[stepIndex];
   const isFirst = stepIndex === 0;
-  const isLast = stepIndex === SITE_TUTORIAL_STEPS.length - 1;
+  const isLast = stepIndex === steps.length - 1;
 
   const refreshSpotlight = useCallback(() => {
     if (!open || !step) {
@@ -74,41 +72,11 @@ export function SiteTutorial({ open, onClose }: SiteTutorialProps) {
   }, []);
 
   useEffect(() => {
-    if (!open || !step) return;
-
-    const row = document.querySelector<HTMLElement>(
-      '[data-tutorial-id="tutorial-discipline-row"]'
-    );
-    if (row?.dataset.disciplineCode?.trim()) {
-      cachedDisciplineCode.current = row.dataset.disciplineCode.trim();
-    }
-
-    const path = resolveTutorialRoute(step.route, cachedDisciplineCode.current);
-    if (!path) {
-      setRouteReady(true);
-      return;
-    }
-
-    setRouteReady(false);
-    router.push(path);
-
-    const timer = window.setTimeout(() => {
-      setRouteReady(true);
-    }, 550);
-
-    return () => window.clearTimeout(timer);
-  }, [open, stepIndex, step, router]);
-
-  useEffect(() => {
     if (!open) {
       setStepIndex(0);
       setSpotlight(null);
-      setRouteReady(true);
-      cachedDisciplineCode.current = null;
       return;
     }
-
-    if (!routeReady) return;
 
     refreshSpotlight();
     const onLayoutChange = () => refreshSpotlight();
@@ -118,7 +86,7 @@ export function SiteTutorial({ open, onClose }: SiteTutorialProps) {
       window.removeEventListener("resize", onLayoutChange);
       window.removeEventListener("scroll", onLayoutChange, true);
     };
-  }, [open, stepIndex, routeReady, refreshSpotlight]);
+  }, [open, stepIndex, refreshSpotlight]);
 
   useEffect(() => {
     if (!open) return;
@@ -142,11 +110,11 @@ export function SiteTutorial({ open, onClose }: SiteTutorialProps) {
       className="site-tutorial-root"
       role="dialog"
       aria-modal="true"
-      aria-label="Tutorial do site"
+      aria-label="Tutorial da página"
     >
       <div className="site-tutorial-backdrop" onClick={onClose} aria-hidden="true" />
 
-      {spotlight && routeReady && (
+      {spotlight && (
         <div
           className="site-tutorial-spotlight"
           style={{
@@ -160,28 +128,21 @@ export function SiteTutorial({ open, onClose }: SiteTutorialProps) {
       )}
 
       <div className={tooltipClass}>
-        {!routeReady ? (
-          <p className="site-tutorial-body">Carregando página…</p>
-        ) : (
-          <>
-            <p className="site-tutorial-step-count">
-              {stepIndex + 1} / {SITE_TUTORIAL_STEPS.length}
-            </p>
-            <h2 className="site-tutorial-title">{step.title}</h2>
-            <p className="site-tutorial-body">{step.body}</p>
-          </>
-        )}
+        <p className="site-tutorial-step-count">
+          {stepIndex + 1} / {steps.length}
+        </p>
+        <h2 className="site-tutorial-title">{step.title}</h2>
+        <p className="site-tutorial-body">{step.body}</p>
 
         <div className="site-tutorial-actions">
           <button type="button" className="btn-outline btn-sm" onClick={onClose}>
-            Pular
+            Fechar
           </button>
           <div className="site-tutorial-nav">
             {!isFirst && (
               <button
                 type="button"
                 className="btn-outline btn-sm"
-                disabled={!routeReady}
                 onClick={() => setStepIndex((value) => value - 1)}
               >
                 <Icon name="chevron-left" size={14} />
@@ -192,19 +153,13 @@ export function SiteTutorial({ open, onClose }: SiteTutorialProps) {
               <button
                 type="button"
                 className="btn-gold btn-sm"
-                disabled={!routeReady}
                 onClick={() => setStepIndex((value) => value + 1)}
               >
                 Próximo
                 <Icon name="chevron-right" size={14} />
               </button>
             ) : (
-              <button
-                type="button"
-                className="btn-gold btn-sm"
-                disabled={!routeReady}
-                onClick={onClose}
-              >
+              <button type="button" className="btn-gold btn-sm" onClick={onClose}>
                 Concluir
               </button>
             )}

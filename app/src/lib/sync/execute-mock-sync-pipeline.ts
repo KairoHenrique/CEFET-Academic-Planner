@@ -21,10 +21,10 @@ function pushStage(
   stages.push({ stage, outcome });
 }
 
-export function executeMockSyncPipeline(
+export async function executeMockSyncPipeline(
   credentials: ResolvedSyncCredentials,
   mode: SyncMode
-): SyncPipelineResult & { session: SigaaSession } {
+): Promise<SyncPipelineResult & { session: SigaaSession }> {
   const steps: SyncStep[] = [
     { label: "Autenticando no SIGAA (Mock)…", progress: 15 },
   ];
@@ -33,7 +33,7 @@ export function executeMockSyncPipeline(
   const session = createMockSession(credentials);
 
   steps.push({ label: "Carregando portal do discente…", progress: 35 });
-  persistPortalSnapshot(scrapePortalDiscenteMock(credentials.username));
+  await persistPortalSnapshot(scrapePortalDiscenteMock(credentials.username));
   pushStage(stages, "portal", "ok");
 
   if (shouldRunHistoricoStage(mode)) {

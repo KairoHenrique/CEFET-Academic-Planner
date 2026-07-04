@@ -17,7 +17,7 @@ export async function submitDiscenteMenuAction(
     .waitForResponse(
       (resp) =>
         resp.request().method() === "POST" &&
-        /discente\.jsf|historico|relatorio|documento|calendario|buscaCalendario/i.test(
+        /discente\.jsf|historico|relatorio|documento|calendario|buscaCalendario|solicitacao|turma/i.test(
           resp.url()
         ),
       { timeout: SIGAA_NAVIGATION_TIMEOUT_MS }

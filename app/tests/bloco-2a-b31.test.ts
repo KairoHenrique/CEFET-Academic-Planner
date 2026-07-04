@@ -61,7 +61,7 @@ describe("B31 — sync readiness", () => {
 
     runWithUserDb("12345678901", () => {
       ensureDbReady();
-      persistPortalSnapshot(buildMockPortalSnapshot("12345678901"));
+      await persistPortalSnapshot(buildMockPortalSnapshot("12345678901"));
       recordSyncCompletedAt();
       recordSyncedUsername("12345678901");
 
@@ -157,13 +157,13 @@ describe("B31 — snapshot policies", () => {
     );
     const { getSemestreAtual } = await import("../src/lib/db/queries");
 
-    persistPortalSnapshot(buildMockPortalSnapshot("12345678901"));
+    await persistPortalSnapshot(buildMockPortalSnapshot("12345678901"));
     const before = getSemestreAtual().length;
     assert.ok(before > 0);
 
     const empty = buildMockPortalSnapshot("12345678901");
     empty.semestreAtual = [];
-    const result = persistPortalSnapshot(empty);
+    const result = await persistPortalSnapshot(empty);
     assert.equal(result.persisted, false);
     assert.equal(getSemestreAtual().length, before);
   });
@@ -175,7 +175,7 @@ describe("B31 — runSync modos", () => {
       "../src/lib/sync/execute-mock-sync-pipeline"
     );
 
-    const result = executeMockSyncPipeline(
+    const result = await executeMockSyncPipeline(
       { username: "12345678901", password: "senha", savePassword: false },
       "full"
     );
@@ -196,13 +196,13 @@ describe("B31 — runSync modos", () => {
       "../src/lib/sync/sync-preferences"
     );
 
-    executeMockSyncPipeline(
+    await executeMockSyncPipeline(
       { username: "12345678901", password: "senha", savePassword: false },
       "full"
     );
     recordHistoricoSyncedAt();
 
-    const incremental = executeMockSyncPipeline(
+    const incremental = await executeMockSyncPipeline(
       { username: "12345678901", password: "senha", savePassword: false },
       "incremental"
     );

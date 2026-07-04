@@ -12,7 +12,7 @@ export function IntegrationTotalCard({
   percent,
 }: IntegrationTotalCardProps) {
   return (
-    <div className="card stat-card integration-total-card">
+    <div className="card stat-card integration-total-card" data-tutorial-id="tutorial-integralizacao-summary">
       <header className="integration-total-header">
         <p className="section-header-title">Total Integralizado</p>
         <p className="integration-total-subtitle">Progresso da formação</p>

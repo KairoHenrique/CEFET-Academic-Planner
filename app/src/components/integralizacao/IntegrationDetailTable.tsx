@@ -14,7 +14,7 @@ export function IntegrationDetailTable({
   onRegisterClick,
 }: IntegrationDetailTableProps) {
   return (
-    <div className="data-table-wrap card integration-detail-card">
+    <div className="data-table-wrap card integration-detail-card" data-tutorial-id="tutorial-integralizacao-table">
       <div className="table-toolbar">
         <div className="integration-table-header">
           <span className="section-header-icon" aria-hidden="true">

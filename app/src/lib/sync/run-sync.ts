@@ -57,7 +57,7 @@ async function runMockSync(
   mode: SyncMode
 ): Promise<SyncResult> {
   persistCredentialsPreference(credentials);
-  const pipeline = executeMockSyncPipeline(credentials, mode);
+  const pipeline = await executeMockSyncPipeline(credentials, mode);
   finalizeSuccessfulSync(credentials, pipeline);
   return pipeline;
 }

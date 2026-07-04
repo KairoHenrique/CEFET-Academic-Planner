@@ -30,6 +30,11 @@ export interface ScheduleSlotData {
   ch?: number;
   /** Nome completo ou personalizado (tooltip / modal). */
   displayName?: string;
+  /** Identificador da turma ofertada — usado no simulador de matrícula. */
+  turmaSigaaId?: string;
+  /** Metadados para exclusividade entre variantes da mesma disciplina. */
+  courseName?: string;
+  semestre?: string;
 }
 
 export type ScheduleSlot = ScheduleSlotData | null;

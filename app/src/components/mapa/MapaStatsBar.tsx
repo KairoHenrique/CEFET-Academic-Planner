@@ -18,7 +18,7 @@ const STAT_ITEMS: {
 
 export function MapaStatsBar({ stats }: MapaStatsBarProps) {
   return (
-    <section className="mapa-stats-bar" aria-label="Resumo do progresso curricular">
+    <section className="mapa-stats-bar" aria-label="Resumo do progresso curricular" data-tutorial-id="tutorial-mapa-stats">
       {STAT_ITEMS.map(({ key, label, className }) => (
         <div key={key} className={`mapa-stat-card ${className}`}>
           <span className="mapa-stat-value">{stats[key]}</span>
