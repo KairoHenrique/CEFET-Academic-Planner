@@ -6,7 +6,10 @@ export const CONFIG_SYNC_HISTORICO_AT = "sync.historico_at";
 export const CONFIG_SYNC_CALENDARIO_AT = "sync.calendario_at";
 export const CONFIG_SYNC_TURMAS_AT = "sync.turmas_at";
 
-/** Intervalo entre syncs automáticos da plataforma (fixo — não configurável pelo aluno). */
+/** Intervalo entre syncs automáticos — ver sync-cooldown-policy (O3). */
+export { getSyncAutoIntervalMinutes } from "@/lib/sync/sync-cooldown-policy";
+
+/** Dev legado — preferir getSyncAutoIntervalMinutes() (O3). */
 export const SYNC_AUTO_INTERVAL_MINUTES = 30;
 
 /** Histórico PDF muda pouco — no incremental, re-raspa após este intervalo. */
@@ -17,10 +20,6 @@ export const SYNC_CALENDARIO_REFRESH_MS = 7 * 24 * 60 * 60 * 1000;
 
 /** Turmas ofertadas — oferta institucional muda com menos frequência intra-dia. */
 export const SYNC_TURMAS_OFERTADAS_REFRESH_MS = 24 * 60 * 60 * 1000;
-
-export function getSyncAutoIntervalMinutes(): number {
-  return SYNC_AUTO_INTERVAL_MINUTES;
-}
 
 export function getSyncLastAt(): string | null {
   const value = getConfig(CONFIG_SYNC_LAST_AT);
