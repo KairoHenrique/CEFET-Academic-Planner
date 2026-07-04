@@ -220,7 +220,7 @@ Recuperação de acesso: por **e-mail** ou **telefone** cadastrados (não usa e-
 
 ### 5.4 Catálogo global vs dados do aluno
 
-> **Rascunho / sugestão** — **não decidido**. Objetivo provável: não abrir Playwright por CPF para dados **idênticos entre alunos**. Implementação e lista final de tabelas = **task #6d (B68-orq)**, antes do mobile; schema Postgres (**B39**) deve considerar isso na migração.
+> **Rascunho / referência** — catálogo global confirmado; policy operacional em **[§6.6](#66-política-de-sync--decisão-de-produto-jul2026)** · implementação **B68d–f**.
 
 #### Tabelas globais (sem `user_id` · read-only para alunos)
 
@@ -312,7 +312,7 @@ Recuperação de acesso: por **e-mail** ou **telefone** cadastrados (não usa e-
 
 ### 6.5 Orquestração de robôs — timing e gatilhos (pré-mobile)
 
-> **Status: rascunho / sugestão — não decidido.** Fica documentado para consulta; **o stakeholder escolhe na task #6d (B68-orq)** quando chegar antes do mobile. Referência dev atual: `run-sync.ts`, `execute-live-sync-pipeline.ts`, `calendario-sync-plan.ts`, `useAutoSync`, `LoginForm`.
+> **Decisões de produto (jul/2026):** **[§6.6](#66-política-de-sync--decisão-de-produto-jul2026)** · abaixo = referência histórica / mapa de robôs.
 
 #### Mapa de robôs
 
@@ -338,23 +338,17 @@ R1a+b+c = **job único por aluno** (1 login SIGAA por sync) — não fragmentar 
 | **Abrir `/simulador`** | — | — | — | ✅ se TTL > 24h |
 | **Cron operador** | — | — | ✅ 1×/semana ou virada semestre | ✅ 1×/dia na pré-matrícula |
 
-#### Modos R1 — sugestão do que entraria em cada sync
+#### Modos R1 — referência rápida
 
-| Etapa | `full` (1º login) | `incremental` (login rápido / botão / auto) |
-|---|---|---|
-| Portal discente | sempre | sempre |
-| Histórico PDF | sempre | só se `historico` vazio/incompleto **ou** `sync.historico_at + 7d` |
-| Turma virtual | sempre (se portal OK) | sempre (se portal OK) |
+> **Decisão de produto (jul/2026):** escopos **`full` · `lite` · `deep`** — ver **[§6.6](#66-política-de-sync--decisão-de-produto-jul2026)**.
 
-TTL dev local hoje: histórico **24h** (`SYNC_HISTORICO_REFRESH_MS`); calendário **7d** (`SYNC_CALENDARIO_REFRESH_MS`); auto **30 min** (B65 — **substituir** por 3h na produção).
+| Etapa | `full` (1º login) | `lite` (botão / auto diurno) | `deep` (batch noturno) |
+|---|---|---|---|
+| Portal discente | sempre | sempre (matérias do semestre) | sempre |
+| Histórico PDF | sempre | só se TTL | se TTL |
+| Turma virtual | completa | **só notas + tarefas** | completa (notas, faltas, grupo, tarefas) |
 
-#### Botão “Sincronizar” — sugestão de escopo
-
-**Sincroniza (R1 incremental):** matrículas do semestre, RG, tarefas portal, notas, faltas, grupo, tarefas turma.
-
-**Não sincroniza no clique:** histórico (salvo TTL), calendário acadêmico (cache global), turmas ofertadas (salvo `/simulador`), PPC (seed estático).
-
-**Não é “sync tudo”:** evita 3–5 min toda vez; histórico e calendário têm cadência própria.
+TTL **padrão** (override no painel `/dev` — §6.6 · **B70/F41**): histórico **7d** · calendário **7d** · turmas **24h** · auto **3h** · notas/tarefas **6h** · grupo **48h**. Dev local hoje ainda lê constantes em `sync-preferences.ts` até **B68f**.
 
 #### Login — sugestão de escopo
 
@@ -381,13 +375,109 @@ Login com senha errada
 3. Todas as contas leem via API read-only; `shouldRunCalendarioSync` vira checagem **no servidor** contra `calendario_sync_meta.updated_at`.
 4. Remover `postCalendarioSync({ force: true })` após **cada** sync pessoal (`useSync`) — hoje isso multiplica raspagens.
 
-#### Pontos para decidir na #6d (B68-orq)
+#### Pontos ainda abertos na #6d (B68-orq)
 
 - [ ] Conta SIGAA “sistema” para R2/R3 vs. piggyback no primeiro aluno do dia
-- [ ] TTL histórico incremental: **7 dias** *(sugestão)* vs. 24h (dev)
-- [ ] Botão sync: **incremental only** *(sugestão)* vs. opção “Sync completo” no perfil
 - [ ] R3 turmas: só simulador vs. também auto na pré-matrícula
 - [ ] Onde persistir `sync_meta` global (`calendario_sync_meta`, `turmas_sync_meta`)
+
+> **Fechado (jul/2026):** matriz robô × gatilho · TTLs por camada · botão **lite** · batch noturno · paralelismo por CPF · policy editável no painel dev — **[§6.6](#66-política-de-sync--decisão-de-produto-jul2026)** · tasks **B68a–c** `[x]`.
+
+### 6.6 Política de sync — decisão de produto (jul/2026)
+
+> **Status:** decisão documentada pelo stakeholder · implementação **B68d–f** + leitura da policy em **B54–B56** · cadência editável no painel **`/dev`** (**B70** · **F41**) sem alterar código.
+
+#### Princípios
+
+1. **Dados globais** (`calendario_academico`, `turmas_ofertadas`, PPC) — **1 job por escopo** (campus/semestre ou `curso_id`); todos leem cache; **não** repetir por CPF no sync pessoal.
+2. **Dados do aluno** (R1) — por CPF; **1 sessão SIGAA por job** (R1a+b+c na mesma sessão — não fragmentar em browsers paralelos **do mesmo CPF**).
+3. **Paralelismo worker** — até **`max_concurrent` CPFs diferentes** ao mesmo tempo (ex.: 2–3 slots); **nunca** 2 browsers com o **mesmo** CPF.
+4. **Botão “Sincronizar” (navbar)** — **`R1-lite` apenas** (portal + turma **notas + tarefas**); **não** é sync geral.
+5. **Sync completo** — **`R1-full`** no 1º login (bloqueante) · **`R1-deep`** no batch noturno ou opção “Sync completo” no perfil (futuro **B68f**).
+
+#### Escopos R1
+
+| Modo | Quando | Portal | Histórico | Turma virtual |
+|---|---|---|---|---|
+| **`full`** | 1º login / conta sem snapshot | ✅ | ✅ | ✅ completa |
+| **`lite`** | Botão Sync · auto-sync diurno · login rápido (background) | ✅ | ❌ (salvo TTL) | ✅ **notas + tarefas** |
+| **`deep`** | Batch noturno · “Sync completo” perfil | ✅ | se TTL | ✅ completa (notas, faltas, grupo, tarefas) |
+
+**Fora do clique do aluno:** R2 calendário · R3 turmas ofertadas · PPC (seed) — cache global com TTL próprio.
+
+#### Cadência por camada (padrões · override no `/dev`)
+
+| Camada | Robô | Padrão | Modo no painel |
+|---|---|---|---|
+| Auto-sync R1-lite | R1 | **3 h** / usuário | intervalo (horas) |
+| Notas + tarefas | R1c parcial | **6 h** | intervalo |
+| Faltas | R1c | **12 h** | intervalo |
+| Grupo | R1c | **48 h** | intervalo |
+| Histórico PDF | R1b | **7 dias** | intervalo |
+| Calendário | R2 global | **7 dias** | intervalo **ou** data/hora fixa |
+| Turmas ofertadas | R3 por `curso_id` | **24 h** | intervalo **ou** data/hora fixa |
+| Cooldown manual (botão) | O3 | **5 min** | intervalo (dev/prod) |
+
+**Data fixa:** operador define “próximo refresh em `2026-08-01 03:00`”; após executar, volta ao intervalo. Útil para virada de semestre e pré-matrícula.
+
+#### Batch noturno (sugestão **B68e**)
+
+Janela padrão **03:00–06:00** (configurável no `/dev`):
+
+1. R2 calendário (1× global)
+2. R3 turmas (1× por `curso_id` ativo)
+3. Fila **R1-deep** por usuário com credencial válida (serial ou até `max_concurrent` CPFs em paralelo)
+
+De dia o aluno abre o app com dados já frescos; o botão dispara só **lite** se a camada quente expirou.
+
+#### Matriz gatilho × robô (fechada)
+
+| Gatilho | R1 full | R1 lite | R1 deep | R2 | R3 |
+|---|---|---|---|---|---|
+| 1º login | ✅ prioritário | — | — | se cache vazio | — |
+| Login rápido | — | ✅ background | — | ❌ ler cache | ❌ |
+| Botão Sync | — | ✅ | — | ❌ | ❌ |
+| Auto-sync (TTL) | — | ✅ se elegível | — | ❌ | ❌ |
+| Batch noturno | — | — | ✅ | ✅ antes | ✅ antes |
+| Abrir `/simulador` | — | — | — | ❌ | ✅ se TTL |
+| Painel `/dev` manual | ✅ | ✅ | ✅ | ✅ | ✅ (sem cooldown) |
+
+#### Policy operacional — storage (`app_config` global)
+
+Chaves (prefixo `sync.policy.*`) — lidas pelo worker/orquestrador; **fallback** = constantes atuais em código:
+
+| Chave | Tipo | Exemplo |
+|---|---|---|
+| `sync.policy.button_scope` | `lite` \| `full` | `lite` |
+| `sync.policy.auto_interval_hours` | number | `3` |
+| `sync.policy.layer.notas_tarefas_hours` | number | `6` |
+| `sync.policy.layer.faltas_hours` | number | `12` |
+| `sync.policy.layer.grupo_hours` | number | `48` |
+| `sync.policy.layer.historico_days` | number | `7` |
+| `sync.policy.global.calendario` | `{ mode, days?, at? }` | intervalo ou data fixa |
+| `sync.policy.global.turmas.{curso_id}` | idem | por curso |
+| `sync.policy.nightly.enabled` | boolean | `true` |
+| `sync.policy.nightly.window` | `"HH:MM-HH:MM"` | `"03:00-06:00"` |
+| `sync.policy.worker.max_concurrent` | 1–5 | `2` |
+
+**Dev local:** `.data/ops-sync-policy.json` ou tabela `app_config` fora do `.db` por CPF. **Produção:** Postgres global (sem `user_id`).
+
+#### APIs painel dev (**B70**)
+
+| Endpoint | Função |
+|---|---|
+| `GET /api/dev/sync-policy` | Lê policy efetiva (merge defaults + overrides) |
+| `PATCH /api/dev/sync-policy` | Grava overrides; auditoria obrigatória |
+| `POST /api/dev/sync-policy/reset` | Restaura padrões de §6.6 |
+
+UI (**F41**): seção **Orquestração sync** — formulário da tabela acima + **Restaurar padrões** + preview “próximo run estimado”. Disparo manual (**robots/run**) **ignora TTL** (já previsto).
+
+#### Anti-padrões (remover na implementação)
+
+- `postCalendarioSync({ force: true })` após **cada** sync pessoal (`useSync`)
+- Botão navbar com `mode: "full"`
+- Raspar calendário/turmas **por CPF** quando cache global válido
+- Paralelizar **mesmo CPF** em múltiplos browsers
 
 ### 6.4 Limites e segurança
 
@@ -473,6 +563,9 @@ Prefixo: `/api/dev/*` — middleware exige **sessão operador** (cookie httpOnly
 | `PATCH /api/dev/accounts/[cpf]/subscription` | Simular expirar/estender |
 | `POST /api/dev/accounts/[cpf]/sync` | Enfileirar sync (worker) — legado; preferir `robots/run` |
 | `PATCH /api/dev/config/promotions` | Toggle promoções globais |
+| `GET /api/dev/sync-policy` | Policy de orquestração sync (§6.6) — merge defaults + overrides |
+| `PATCH /api/dev/sync-policy` | Grava cadências/TTL/janela noturna/`max_concurrent` |
+| `POST /api/dev/sync-policy/reset` | Restaura padrões §6.6 |
 | `GET /api/dev/audit-log` | Ações sensíveis recentes |
 
 **Robôs (ops manual):**
@@ -561,7 +654,7 @@ Durante beta/testes com URL pública:
 - [ ] Preços dos planos (semestre / ano)
 - [ ] Gateway PIX definitivo
 
-- [ ] **Orquestração sync + catálogo global** — sugestão em **§5.4 · §6.5 · #6d (B68-orq)**; **decidir na hora**, antes do mobile #8
+- [ ] **Orquestração sync + catálogo global** — policy **§6.6** (jul/2026); implementar **B68d–f** + worker **B54–B56**; painel policy **B70/F41**
 - [ ] Onde hospedar worker Playwright (Railway / Fly.io / VPS — ver §6.3 fila 1×)
 - [x] Política de fila: 1 job global, auto 3h/usuário, manual fim da fila + cooldown 5 min, prioridade 1º login (§6.3)
 - [ ] Mobile: Supabase client direto vs. API Next.js
