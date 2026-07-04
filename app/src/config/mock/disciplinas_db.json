@@ -4,9 +4,9 @@
       "codigo": "01/1",
       "nome": "Cálculo com Funções de uma Variável Real",
       "tipo": "Obrigatória",
-      "carga_horaria": 75,
+      "carga_horaria": 90,
       "periodo": 1,
-      "ementa": "Limites, continuidade, derivadas e integrais de funções reais de uma variável. Regras de derivação, teoremas fundamentais do cálculo e aplicações em problemas de taxas de variação e áreas.\n\n(Carga horária: 75h · 1º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": []
   },
@@ -17,7 +17,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 60,
       "periodo": 1,
-      "ementa": "Vetores no plano e no espaço, retas e planos, matrizes, determinantes, sistemas lineares e transformações lineares. Espaços vetoriais, autovalores e autovetores com aplicações em computação.\n\n(Carga horária: 60h · 1º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": []
   },
@@ -28,7 +28,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 60,
       "periodo": 1,
-      "ementa": "Lógica proposicional e de predicados, teoria dos conjuntos, relações, funções, indução, combinatória, grafos e árvores. Fundamentos matemáticos para ciência da computação.\n\n(Carga horária: 60h · 1º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": []
   },
@@ -39,7 +39,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 60,
       "periodo": 1,
-      "ementa": "Conceitos de algoritmos, tipos de dados, variáveis, operadores, estruturas de controle, funções, arrays e introdução à modularização. Resolução de problemas com linguagem de programação.\n\n(Carga horária: 60h · 1º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": [
       {
@@ -56,7 +56,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 30,
       "periodo": 1,
-      "ementa": "Práticas de laboratório complementares à Introdução à Programação: implementação de algoritmos, depuração, entrada/saída, estruturas de controle e funções em ambiente de desenvolvimento integrado.\n\n(Carga horária: 30h · 1º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": [
       {
@@ -73,7 +73,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 30,
       "periodo": 1,
-      "ementa": "Contexto histórico, social e ético da engenharia de computação. Impactos da tecnologia na sociedade, propriedade intelectual, legislação profissional e responsabilidade do engenheiro.\n\n(Carga horária: 30h · 1º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": []
   },
@@ -84,7 +84,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 30,
       "periodo": 1,
-      "ementa": "Relação entre filosofia, tecnologia e sociedade. Ética, epistemologia aplicada e reflexão crítica sobre o papel da tecnologia na contemporaneidade.\n\n(Carga horária: 30h · 1º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": []
   },
@@ -95,7 +95,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 60,
       "periodo": 2,
-      "ementa": "Sucessões e séries numéricas, séries de potências, convergência e aplicações. Complemento ao cálculo integral para modelagem e análise numérica.\n\n(Carga horária: 60h · 2º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": [
       {
@@ -112,7 +112,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 60,
       "periodo": 2,
-      "ementa": "Funções de várias variáveis, limites, continuidade, derivadas parciais, gradiente, regra da cadeia e otimização. Aplicações em superfícies e campos escalares.\n\n(Carga horária: 60h · 2º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": [
       {
@@ -134,7 +134,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 60,
       "periodo": 2,
-      "ementa": "Cinemática, dinâmica da partícula, trabalho e energia, momentum, rotação e equilíbrio. Base mecânica para disciplinas de física aplicada e engenharia.\n\n(Carga horária: 60h · 2º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": [
       {
@@ -156,7 +156,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 30,
       "periodo": 2,
-      "ementa": "Paradigmas de programação orientada a objetos: classes, objetos, encapsulamento, herança, polimorfismo e interfaces. Projeto e implementação de sistemas modulares.\n\n(Carga horária: 30h · 2º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": [
       {
@@ -183,7 +183,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 30,
       "periodo": 2,
-      "ementa": "Laboratório de POO: implementação de classes, herança, coleções, tratamento de exceções e pequenos projetos orientados a objetos.\n\n(Carga horária: 30h · 2º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": [
       {
@@ -210,7 +210,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 30,
       "periodo": 2,
-      "ementa": "Sistemas de numeração, álgebra booleana, circuitos combinacionais e sequenciais, flip-flops, registradores e introdução à arquitetura digital.\n\n(Carga horária: 30h · 2º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": [
       {
@@ -237,7 +237,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 30,
       "periodo": 2,
-      "ementa": "Laboratório de sistemas digitais: montagem e simulação de circuitos lógicos, ULA, contadores e projetos em FPGA ou ferramentas equivalentes.\n\n(Carga horária: 30h · 2º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": [
       {
@@ -264,7 +264,18 @@
       "tipo": "Obrigatória",
       "carga_horaria": 30,
       "periodo": 2,
-      "ementa": "Método científico, elaboração de trabalhos acadêmicos, normas ABNT, pesquisa bibliográfica e comunicação científica na área de computação.\n\n(Carga horária: 30h · 2º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "04/7",
+      "nome": "Introdução à Sociologia",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 2,
+      "ementa": "A definir"
     },
     "requisitos": []
   },
@@ -275,7 +286,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 60,
       "periodo": 3,
-      "ementa": "Equações diferenciais ordinárias de 1ª e 2ª ordem, sistemas lineares, transformada de Laplace e aplicações em modelagem de sistemas dinâmicos.\n\n(Carga horária: 60h · 3º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": [
       {
@@ -302,7 +313,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 60,
       "periodo": 3,
-      "ementa": "Integrais múltiplas, campos vetoriais, teoremas de Green, Stokes e Gauss. Aplicações em fluxo, trabalho e volume.\n\n(Carga horária: 60h · 3º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": [
       {
@@ -324,7 +335,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 60,
       "periodo": 3,
-      "ementa": "Oscilações, ondas, fluidos, termodinâmica e transferência de calor. Fundamentos para sistemas físicos e eletromecânicos.\n\n(Carga horária: 60h · 3º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": [
       {
@@ -351,7 +362,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 30,
       "periodo": 3,
-      "ementa": "Experimentos de laboratório em mecânica, oscilações, fluidos e termodinâmica com tratamento de dados, incertezas e relatórios técnicos.\n\n(Carga horária: 30h · 3º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": [
       {
@@ -373,7 +384,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 60,
       "periodo": 3,
-      "ementa": "Complexidade de algoritmos, listas, pilhas, filas, árvores binárias, tabelas hash, heaps e grafos. Análise assintótica e estruturas fundamentais.\n\n(Carga horária: 60h · 3º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": [
       {
@@ -400,7 +411,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 30,
       "periodo": 3,
-      "ementa": "Laboratório de AED I: implementação de listas, pilhas, filas, árvores e algoritmos de busca e ordenação estudados na disciplina teórica.\n\n(Carga horária: 30h · 3º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": [
       {
@@ -427,7 +438,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 30,
       "periodo": 3,
-      "ementa": "Organização de computadores, conjunto de instruções, pipeline, memória cache, hierarquia de memória e barramentos.\n\n(Carga horária: 30h · 3º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": [
       {
@@ -454,7 +465,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 30,
       "periodo": 3,
-      "ementa": "Laboratório de AOC I: programação em linguagem de montagem, simulação de ULA, sub-rotinas e interface com hardware.\n\n(Carga horária: 30h · 3º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": [
       {
@@ -481,7 +492,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 60,
       "periodo": 4,
-      "ementa": "Erros numéricos, zeros de funções, integração e derivação numérica, sistemas lineares e interpolação. Implementação computacional de métodos numéricos.\n\n(Carga horária: 60h · 4º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": [
       {
@@ -503,7 +514,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 60,
       "periodo": 4,
-      "ementa": "Eletrostática, magnetostática, indução eletromagnética, equações de Maxwell e ondas eletromagnéticas. Base para eletrônica e telecomunicações.\n\n(Carga horária: 60h · 4º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": [
       {
@@ -530,7 +541,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 30,
       "periodo": 4,
-      "ementa": "Laboratório de eletromagnetismo: experimentos de campos elétricos e magnéticos, indução e circuitos RLC.\n\n(Carga horária: 30h · 4º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": [
       {
@@ -557,7 +568,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 60,
       "periodo": 4,
-      "ementa": "Algoritmos em grafos, programação dinâmica, algoritmos gulosos, backtracking e estruturas avançadas. Análise de complexidade.\n\n(Carga horária: 60h · 4º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": [
       {
@@ -579,7 +590,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 60,
       "periodo": 4,
-      "ementa": "Paradigmas de linguagens, sintaxe e semântica, tipos, escopo, recursão, programação funcional e lógica. Comparativo entre linguagens.\n\n(Carga horária: 60h · 4º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": [
       {
@@ -601,7 +612,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 60,
       "periodo": 4,
-      "ementa": "Análise de circuitos elétricos CC e CA, leis de Kirchhoff, Thevenin/Norton, transientes e resposta em frequência.\n\n(Carga horária: 60h · 4º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": [
       {
@@ -618,7 +629,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 30,
       "periodo": 4,
-      "ementa": "Pipeline avançado, paralelismo, memória virtual, multiprocessadores e arquiteturas RISC/CISC. Desempenho de sistemas computacionais.\n\n(Carga horária: 30h · 4º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": [
       {
@@ -640,7 +651,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 30,
       "periodo": 4,
-      "ementa": "Laboratório de AOC II: cache, pipeline, paralelismo em nível de instrução e métricas de desempenho.\n\n(Carga horária: 30h · 4º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": [
       {
@@ -662,7 +673,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 60,
       "periodo": 5,
-      "ementa": "Estatística descritiva, probabilidade, variáveis aleatórias, distribuições, estimação, testes de hipóteses e regressão linear.\n\n(Carga horária: 60h · 5º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": [
       {
@@ -679,7 +690,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 60,
       "periodo": 5,
-      "ementa": "Modelo relacional, álgebra e cálculo relacional, SQL, normalização, integridade referencial, transações e projeto de banco de dados.\n\n(Carga horária: 60h · 5º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": [
       {
@@ -696,7 +707,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 60,
       "periodo": 5,
-      "ementa": "Processos de software, engenharia de requisitos, UML, arquitetura, testes, integração contínua e gestão de projetos. Desenvolvimento em equipe.\n\n(Carga horária: 60h · 5º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": [
       {
@@ -718,7 +729,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 60,
       "periodo": 5,
-      "ementa": "Sinais contínuos e discretos, convolução, transformada de Fourier, amostragem e sistemas lineares invariantes no tempo.\n\n(Carga horária: 60h · 5º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": [
       {
@@ -735,7 +746,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 60,
       "periodo": 5,
-      "ementa": "Dispositivos semicondutores, diodos, transistores, amplificadores operacionais e circuitos analógicos fundamentais.\n\n(Carga horária: 60h · 5º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": [
       {
@@ -757,7 +768,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 30,
       "periodo": 5,
-      "ementa": "Laboratório de eletrônica: montagem e análise de circuitos com diodos, transistores e op-amps.\n\n(Carga horária: 30h · 5º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": [
       {
@@ -779,7 +790,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 60,
       "periodo": 6,
-      "ementa": "Autômatos finitos, expressões regulares, gramáticas, linguagens livres de contexto, máquinas de Turing e decidibilidade.\n\n(Carga horária: 60h · 6º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": [
       {
@@ -801,7 +812,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 60,
       "periodo": 6,
-      "ementa": "Modelagem de sistemas dinâmicos, função de transferência, estabilidade, resposta temporal e frequencial, controle PID.\n\n(Carga horária: 60h · 6º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": [
       {
@@ -823,7 +834,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 30,
       "periodo": 6,
-      "ementa": "Laboratório de teoria de controle: identificação de sistemas, simulação e implementação de controladores.\n\n(Carga horária: 30h · 6º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": [
       {
@@ -845,7 +856,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 60,
       "periodo": 6,
-      "ementa": "Processos, threads, escalonamento, deadlocks, gerenciamento de memória, sistemas de arquivos e virtualização.\n\n(Carga horária: 60h · 6º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": [
       {
@@ -867,7 +878,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 60,
       "periodo": 6,
-      "ementa": "Modelo OSI/TCP-IP, protocolos de enlace e rede, roteamento, transporte confiável e aplicações de rede.\n\n(Carga horária: 60h · 6º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": [
       {
@@ -894,7 +905,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 30,
       "periodo": 6,
-      "ementa": "Laboratório de redes I: configuração de redes locais, sockets, protocolos e ferramentas de diagnóstico.\n\n(Carga horária: 30h · 6º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": [
       {
@@ -911,7 +922,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 60,
       "periodo": 6,
-      "ementa": "Busca heurística, representação de conhecimento, lógica, aprendizado de máquina introdutório, redes neurais e agentes inteligentes.\n\n(Carga horária: 60h · 6º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": [
       {
@@ -938,7 +949,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 60,
       "periodo": 7,
-      "ementa": "Análise léxica, sintática e semântica, geração de código, otimização e construção de compiladores.\n\n(Carga horária: 60h · 7º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": [
       {
@@ -960,7 +971,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 30,
       "periodo": 7,
-      "ementa": "Arquitetura de microprocessadores e microcontroladores, conjunto de instruções, interrupções, temporizadores e periféricos.\n\n(Carga horária: 30h · 7º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": [
       {
@@ -987,7 +998,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 30,
       "periodo": 7,
-      "ementa": "Laboratório de microprocessadores: programação em baixo nível, GPIO, timers e interfaces seriais.\n\n(Carga horária: 30h · 7º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": [
       {
@@ -1014,7 +1025,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 60,
       "periodo": 7,
-      "ementa": "Redes neurais, algoritmos evolutivos, sistemas fuzzy e técnicas bio-inspiradas para problemas de otimização e classificação.\n\n(Carga horária: 60h · 7º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": [
       {
@@ -1031,7 +1042,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 60,
       "periodo": 7,
-      "ementa": "Programação linear, transporte, estoques, filas, simulação e modelos de decisão para problemas de engenharia.\n\n(Carga horária: 60h · 7º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": [
       {
@@ -1058,7 +1069,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 60,
       "periodo": 8,
-      "ementa": "Pipeline gráfico, transformações 2D/3D, iluminação, texturização, curvas e superfícies. APIs gráficas.\n\n(Carga horária: 60h · 8º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": [
       {
@@ -1080,7 +1091,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 60,
       "periodo": 8,
-      "ementa": "Usabilidade, design de interfaces, ergonomia cognitiva, acessibilidade, prototipação e avaliação de sistemas interativos.\n\n(Carga horária: 60h · 8º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": [
       {
@@ -1097,7 +1108,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 60,
       "periodo": 8,
-      "ementa": "Comunicação entre processos, RPC, objetos distribuídos, consistência, replicação, tolerância a falhas e sistemas peer-to-peer.\n\n(Carga horária: 60h · 8º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": [
       {
@@ -1114,7 +1125,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 30,
       "periodo": 8,
-      "ementa": "Fundamentos de administração, estruturas organizacionais, gestão de pessoas e processos em contexto tecnológico.\n\n(Carga horária: 30h · 8º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": []
   },
@@ -1125,7 +1136,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 60,
       "periodo": 8,
-      "ementa": "Coleta, limpeza e visualização de dados, estatística aplicada, aprendizado supervisionado e pipelines de dados.\n\n(Carga horária: 60h · 8º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": [
       {
@@ -1142,7 +1153,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 30,
       "periodo": 9,
-      "ementa": "Empreendedorismo, inovação, modelagem de negócios, canvas, pitch e elaboração de plano de negócios.\n\n(Carga horária: 30h · 9º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": []
   },
@@ -1153,7 +1164,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 30,
       "periodo": 9,
-      "ementa": "Projeto de pesquisa, revisão bibliográfica, metodologia quali-quantitativa e elaboração de proposta para TCC/PFC.\n\n(Carga horária: 30h · 9º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": []
   },
@@ -1164,18 +1175,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 30,
       "periodo": 9,
-      "ementa": "Comportamento organizacional, motivação, liderança e dinâmica de grupos no ambiente de trabalho.\n\n(Carga horária: 30h · 9º período · PPC Eng. Computação CEFET-MG)"
-    },
-    "requisitos": []
-  },
-  {
-    "disciplina": {
-      "codigo": "04/7",
-      "nome": "Introdução à Sociologia",
-      "tipo": "Obrigatória",
-      "carga_horaria": 30,
-      "periodo": 9,
-      "ementa": "Conceitos sociológicos, trabalho, tecnologia, desigualdade e transformações sociais contemporâneas.\n\n(Carga horária: 30h · 9º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": []
   },
@@ -1186,7 +1186,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 30,
       "periodo": 9,
-      "ementa": "Primeira etapa do Projeto Final de Curso: definição do problema, revisão bibliográfica, cronograma e entrega parcial sob orientação.\n\n(Carga horária: 30h · 9º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": []
   },
@@ -1197,7 +1197,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 30,
       "periodo": 10,
-      "ementa": "Segunda etapa do PFC: desenvolvimento, implementação, validação, documentação final e apresentação do trabalho de conclusão de curso.\n\n(Carga horária: 30h · 10º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": []
   },
@@ -1208,7 +1208,7 @@
       "tipo": "Obrigatória",
       "carga_horaria": 30,
       "periodo": 10,
-      "ementa": "Estágio supervisionado obrigatório: vivência profissional em empresa ou laboratório, relatório de atividades e avaliação do supervisor.\n\n(Carga horária: 30h · 10º período · PPC Eng. Computação CEFET-MG)"
+      "ementa": "A definir"
     },
     "requisitos": []
   }

@@ -21,7 +21,7 @@ const PPC_MUTUAL_COREQUISITE_PAIRS: Array<[string, string]> = [
   ["09/5", "10/5"],
 ];
 
-function loadRequisitosFromPpcJson() {
+function loadPpcJsonItems() {
   const dataPath = path.join(
     process.cwd(),
     "src",
@@ -30,15 +30,18 @@ function loadRequisitosFromPpcJson() {
     "disciplinas_db.json"
   );
   const raw = fs.readFileSync(dataPath, "utf-8");
-  const items = JSON.parse(raw) as Array<{
+  return JSON.parse(raw) as Array<{
+    disciplina: { codigo: string; carga_horaria: number };
     requisitos: Array<{
       disciplina_id: string;
       requisito_id: string;
       tipo: "pre" | "co";
     }>;
   }>;
+}
 
-  return items.flatMap((item) => item.requisitos);
+function loadRequisitosFromPpcJson() {
+  return loadPpcJsonItems().flatMap((item) => item.requisitos);
 }
 
 function pairKey(a: string, b: string): string {
@@ -46,6 +49,24 @@ function pairKey(a: string, b: string): string {
 }
 
 describe("ppc-corequisito-audit", () => {
+  test("Cálculo I usa CH horas do PPC (90h), não hora-aula (75 h/a)", () => {
+    const calculo = loadPpcJsonItems().find(
+      (item) => item.disciplina.codigo === "01/1"
+    );
+    assert.ok(calculo);
+    assert.equal(calculo!.disciplina.carga_horaria, 90);
+  });
+
+  test("todas as disciplinas PPC usam CH canônica (30/60/90/120)", () => {
+    const allowed = new Set([30, 60, 90, 120]);
+    for (const item of loadPpcJsonItems()) {
+      assert.ok(
+        allowed.has(item.disciplina.carga_horaria),
+        `${item.disciplina.codigo} com CH ${item.disciplina.carga_horaria}`
+      );
+    }
+  });
+
   test("JSON contém exatamente os corequisitos mútuos do grafo PPC", () => {
     const coMap = buildCoRequisitoMap(loadRequisitosFromPpcJson());
     const expected = new Set<string>();

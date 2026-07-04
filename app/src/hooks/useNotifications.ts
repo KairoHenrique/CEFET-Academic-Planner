@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getNotifications, SYNC_COMPLETE_EVENT } from "@/lib/api/client";
 import {
   initializeNotificationBaselineFromPreSync,
+  isNotificationMarkedReadInBaseline,
   mergeNotificationBaseline,
   migrateLegacyNotificationBaseline,
   readNotificationBaseline,
@@ -44,7 +45,9 @@ function filterUnread(
   baseline: Set<string> | null
 ): NotificationSnapshotItem[] {
   if (!baseline) return [];
-  return items.filter((item) => !baseline.has(item.fingerprint));
+  return items.filter(
+    (item) => !isNotificationMarkedReadInBaseline(item.fingerprint, baseline)
+  );
 }
 
 function filterByPreferences(
@@ -124,7 +127,9 @@ export function useNotifications() {
     }
 
     const stableFingerprints = [
-      ...query.data.items.map((item) => item.fingerprint),
+      ...query.data.items
+        .filter((item) => item.kind !== "grade")
+        .map((item) => item.fingerprint),
       ...(query.data.pendingTasks ?? []).flatMap((task) =>
         (["24h", "1h"] as const).map((slot) =>
           buildTaskReminderNotificationFingerprint(

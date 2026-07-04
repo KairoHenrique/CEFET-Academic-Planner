@@ -48,21 +48,10 @@ function withResolvedEmenta(item: PpcSeedItem): PpcSeedItem["disciplina"] {
 
 export function syncPpcEmentasToDb(): void {
   const data = loadPpcSeedData();
-  const update = db.prepare(
-    `
-    UPDATE disciplinas
-    SET
-      ementa = @ementa,
-      carga_horaria = @carga_horaria,
-      periodo = COALESCE(periodo, @periodo)
-    WHERE codigo = @codigo
-  `
-  );
 
   const syncAll = db.transaction(() => {
     for (const item of data) {
-      const disciplina = withResolvedEmenta(item);
-      update.run(disciplina);
+      saveDisciplina(withResolvedEmenta(item));
     }
   });
 

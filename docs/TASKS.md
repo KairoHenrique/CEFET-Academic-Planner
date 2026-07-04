@@ -43,7 +43,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ## Roadmap detalhado — ordem de execução (#0 → #11)
 
-> **Próximo oficial:** **Bloco 2b** (B54) · **Emergência:** reindexar PPC Eng. Computação v3 (`docs/referencias/PPC_EngComp-Div-v3.pdf`). Back **B67** `[x]` · **F19** `[x]`.
+> **Próximo oficial:** **Bloco 2b** (B54). Back **B67** `[x]` · **F19** `[x]` · PPC EngComp **v3** reindexado (jul/2026).
 > **Regra:** siga **#0 → #11** · dentro de cada bloco → **BACK (B) antes de FRONT (F)**. Checklist espelho: [Checklist mestre](#checklist-mestre-ordem-de-execução).
 
 ### #0 — Planejamento `✅`
@@ -52,7 +52,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 - [x] Análise do portal SIGAA (estrutura, URLs, dados disponíveis)
 - [x] Definição da stack (Next.js + Supabase + Playwright worker + PIX + Expo) — `SCOPE-CLOUD.md`
 - [x] README.md · SCOPE.md · TASKS.md
-- [x] PPC Eng. Computação indexado (PDF → dados estruturados)
+- [x] PPC Eng. Computação indexado — **v3 (2026)** · `docs/referencias/PPC_EngComp-Div-v3.pdf`
 - [x] Sequência multi-PPC (Mecatrônica/Moda **só pós-mobile**) + glossário CH (`SCOPE.md` §6.2, §6.4)
 
 ---
@@ -384,7 +384,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 ### 1.4 API e Integração UI ↔ SQLite
 
 > **Progresso:** Bloco 1 ✅ (`49/49`) · **Bloco 2a** — ordem linear: `B24→B26` → `B27` → `B65` → `B28` → `B30` → `B31` → `F18` → `F37` → `F38` → `B66` `[x]` → **B67** `[x]` → **F19** `[x]` · **8/8 oficiais** até `F37`.
-> **Próximo:** **Bloco 2b** (B54) · **Emergência:** reindexar PPC EngComp v3.
+> **Próximo:** **Bloco 2b** (B54).
 
 Roadmap detalhado: ver **[Roadmap #0→#11 no topo](#roadmap-detalhado--ordem-de-execução-0--11)** · [Ordem oficial v3](#ordem-oficial-de-execução-v3). **F19** `[x]` · **B67** `[x]`.
 
@@ -565,7 +565,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 **Contagem 8/8:** só os 8 primeiros grupos até **`F37`** · **`F38` · `B66` · `B67` · `F19`** = extras (fora do 8/8) · polish `04887c9`/`5923e9c` · modulação dashboard · fix mapa/histórico/notificações (jun/2026)
 
-**Próximo:** **Bloco 2b** (B54) · **Emergência:** PPC EngComp v3 · **#6d:** `B68-orq` fora desta fila — ver [#6d](#6d--orquestração-sync--catálogo-global-pré-mobile)
+**Próximo:** **Bloco 2b** (B54) · **#6d:** `B68-orq` fora desta fila — ver [#6d](#6d--orquestração-sync--catálogo-global-pré-mobile)
 
 ---
 
@@ -1177,6 +1177,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Badge + painel 24h (`NotificationBell`, `useNotifications`)
 - [x] Fingerprints estáveis para tarefas e notas; lembretes 24h/1h
 - [x] **Polish `04887c9`:** baseline pré-sync (`notification-pre-sync-baseline`) — nota nova não some após sync; fingerprint de nota sem valor; subtítulo com nota obtida/máxima
+- [x] **Jul/2026:** fingerprint de nota **com valor** (alerta em mudança pós-sync); seed inicial não marca notas como lidas; **tarefas concluídas** excluídas do sino/lembretes
 - [x] **Polish dashboard `5923e9c`:** nome da disciplina no `SubjectCard` navega para `/disciplinas/[código]`
 
 ### 2.3 Scraper: Turma Virtual (por disciplina)
@@ -1655,7 +1656,7 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 8. **Próximo passo do roadmap:** informe **depois do push** (tasks em `[@]` ou `[x]`). Com commits locais só `[%]`, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v3](#ordem-oficial-de-execução-v3) — **Bloco 2 (sync) antes do Bloco 6 (Supabase)**. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy **após** sync validado; RLS **só na 6c** (antes do PIX).
-11. **Próximo passo:** **Bloco 2b** (B54–B56) · **Emergência:** reindexar PPC Eng. Computação v3 (`docs/referencias/PPC_EngComp-Div-v3.pdf`; PDFs Meca/Moda em `docs/referencias/` para Bloco #11). **F19** `[x]` · **B67** `[x]`. **#6d (B68-orq):** aberto. Gift/dev: [Apêndice gift/dev](#apêndice--chaves-gift-e-painel-dev-jun2026). **B71** = última pré-go-live.
+11. **Próximo passo:** **Bloco 2b** (B54–B56). PPC EngComp **v3** reindexado (`docs/referencias/PPC_EngComp-Div-v3.pdf`; PDFs Meca/Moda em `docs/referencias/` para Bloco #11). **F19** `[x]` · **B67** `[x]`. **#6d (B68-orq):** aberto. Gift/dev: [Apêndice gift/dev](#apêndice--chaves-gift-e-painel-dev-jun2026). **B71** = última pré-go-live.
 12. **Integralização:** CH concluída = `historico` + PPC (`computeChDoneFromDisciplinas`); portal SIGAA só % / total currículo; matérias já passadas = **B30** ✅.
 13. **Gift + painel dev + simulação mapa:** escopo em `SCOPE.md` §2.1.1, §6.1.1, §10 — tasks **B68–B71**, **F39–F41**, **F40** — [Apêndice gift/dev](#apêndice--chaves-gift-e-painel-dev-jun2026). **Login operador:** email+senha **sempre** (pares **manuais no env**). **Painel robôs ops:** chavinhas R1/R2/R3, lista nome/CPF, individual/global sem cooldown. **B71** = última task (ocultar senhas SIGAA no painel).
 14. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial. **Polish em task `[x]`** (ex.: F38, dashboard) também exige nota no TASKS no mesmo ciclo do push.

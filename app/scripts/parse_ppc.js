@@ -1,10 +1,13 @@
 const fs = require('fs');
 const path = require('path');
+const { normalizeCefetCh } = require('./cefet-ch-normalize');
 
 const dataPath = path.join(__dirname, 'ppc_data.txt');
 const outPath = path.join(__dirname, '..', 'src', 'config', 'mock', 'disciplinas_db.json');
 
-const lines = fs.readFileSync(dataPath, 'utf-8').split('\n').filter(l => l.trim() !== '');
+const lines = fs.readFileSync(dataPath, 'utf-8')
+  .split('\n')
+  .filter((l) => l.trim() !== '' && !l.trim().startsWith('#'));
 
 const disciplinas = [];
 
@@ -15,7 +18,7 @@ for (const line of lines) {
   const periodoRaw = parts[0].trim();
   const codigoRaw = parts[1].trim();
   const nome = parts[2].trim();
-  const horasRaw = parts[6].trim();
+  const chHorasRaw = parts[5].trim();
   const preReqRaw = parts[7].trim();
   const coReqRaw = parts[8].trim();
 
@@ -28,7 +31,7 @@ for (const line of lines) {
     else if (nome.includes('Estágio')) codigo = 'ESTAGIO';
   }
 
-  const carga_horaria = parseFloat(horasRaw);
+  const carga_horaria = normalizeCefetCh(parseFloat(chHorasRaw));
 
   const disciplina = {
     codigo,
