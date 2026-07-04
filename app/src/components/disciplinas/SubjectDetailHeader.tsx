@@ -6,6 +6,7 @@ import type { DisciplinaGrupoDto } from "@/lib/types/disciplinas-api";
 import { Icon } from "@/components/ui/Icon";
 import { PrioritySelect } from "@/components/ui/PrioritySelect";
 import { ColorDotPicker } from "@/components/ui/ColorDotPicker";
+import { PageTutorialHelpButton } from "@/components/tutorial/PageTutorialHelpButton";
 import { SubjectDetailEditModal } from "@/components/disciplinas/SubjectDetailEditModal";
 import { SubjectGroupModal } from "@/components/disciplinas/SubjectGroupModal";
 import { useSubjectPriorities } from "@/hooks/useStoredPriorities";
@@ -47,8 +48,8 @@ export function SubjectDetailHeader({ subject, grupo }: SubjectDetailHeaderProps
           <p className="page-header-eyebrow">{subject.shortLabel}</p>
           <h2 className="subject-detail-title">{subject.name}</h2>
         </div>
-        {hasGrupo ? (
-          <div className="subject-detail-top-aside">
+        <div className="subject-detail-top-aside">
+          {hasGrupo ? (
             <button
               type="button"
               className="btn-outline subject-group-trigger"
@@ -61,8 +62,12 @@ export function SubjectDetailHeader({ subject, grupo }: SubjectDetailHeaderProps
                 {members.length}
               </span>
             </button>
-          </div>
-        ) : null}
+          ) : null}
+          <PageTutorialHelpButton
+            tutorialId="disciplina-detail"
+            label="Como usar esta disciplina"
+          />
+        </div>
         <div
           className="subject-detail-actions"
           data-tutorial-id="tutorial-discipline-properties"

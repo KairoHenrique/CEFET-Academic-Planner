@@ -26,6 +26,10 @@ interface WeeklyScheduleTableProps {
   }) => void;
   onEmptyClick?: (dayIdx: number, slotIdx: number) => void;
   highlightEmpty?: boolean;
+  /** Células vazias onde a turma selecionada pode ser alocada (`dayIdx:slotIdx`). */
+  allowedEmptyCells?: ReadonlySet<string> | null;
+  /** Células ocupadas que bloqueiam turmas (contorno vermelho). */
+  blockingCellKeys?: ReadonlySet<string> | null;
   selectedDay?: number | null;
   selectedSlot?: number | null;
 }
@@ -38,6 +42,8 @@ export function WeeklyScheduleTable({
   onSlotClick,
   onEmptyClick,
   highlightEmpty = false,
+  allowedEmptyCells = null,
+  blockingCellKeys = null,
   selectedDay,
   selectedSlot,
 }: WeeklyScheduleTableProps) {
@@ -92,22 +98,41 @@ export function WeeklyScheduleTable({
                 <td className="day-label schedule-day-col">{compact ? day.slice(0, 3) : day}</td>
                 {timeSlots.map((time, slotIdx) => {
                   const slot = schedule[dayIdx]?.[slotIdx];
+                  const cellKey = `${dayIdx}:${slotIdx}`;
+                  const isAllowedEmpty =
+                    Boolean(allowedEmptyCells?.has(cellKey)) && !slot;
+                  const isForbiddenEmpty =
+                    highlightEmpty &&
+                    Boolean(allowedEmptyCells) &&
+                    !slot &&
+                    !allowedEmptyCells?.has(cellKey);
                   const isTarget =
                     highlightEmpty &&
                     selectedDay === dayIdx &&
                     selectedSlot === slotIdx;
+                  const isBlocking =
+                    Boolean(slot) && Boolean(blockingCellKeys?.has(cellKey));
 
                   return (
                     <td key={slotIdx} className="schedule-cell">
                       {slot ? (
                         <button
                           type="button"
-                          className="schedule-slot schedule-slot-btn"
-                          style={{ "--slot-color": slot.color } as React.CSSProperties}
+                          className={[
+                            "schedule-slot",
+                            "schedule-slot-btn",
+                            isBlocking ? "schedule-slot-blocking" : "",
+                          ]
+                            .filter(Boolean)
+                            .join(" ")}
+                          style={
+                            { "--slot-color": slot.color } as React.CSSProperties
+                          }
                           onClick={() =>
                             interactive &&
                             handleSlotClick(slot, day, time, dayIdx, slotIdx)
                           }
+                          tabIndex={interactive ? undefined : -1}
                         >
                           <div className="schedule-slot-name">{slot.name}</div>
                           <div className="schedule-slot-room">{slot.room}</div>
@@ -115,12 +140,20 @@ export function WeeklyScheduleTable({
                       ) : (
                         <button
                           type="button"
-                          className={`schedule-slot-empty schedule-slot-empty-btn ${
-                            isTarget ? "schedule-slot-target" : ""
-                          }`}
-                          onClick={() =>
-                            interactive && onEmptyClick?.(dayIdx, slotIdx)
-                          }
+                          className={[
+                            "schedule-slot-empty",
+                            "schedule-slot-empty-btn",
+                            isTarget ? "schedule-slot-target" : "",
+                            isAllowedEmpty ? "schedule-slot-allowed" : "",
+                            isForbiddenEmpty ? "schedule-slot-forbidden" : "",
+                          ]
+                            .filter(Boolean)
+                            .join(" ")}
+                          disabled={isForbiddenEmpty}
+                          onClick={() => {
+                            if (!interactive || isForbiddenEmpty) return;
+                            onEmptyClick?.(dayIdx, slotIdx);
+                          }}
                           aria-label={`Horário vazio ${day} ${time}`}
                         />
                       )}

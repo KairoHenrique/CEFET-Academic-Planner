@@ -40,7 +40,7 @@ async function runPortalStage(
 
   try {
     const portalSnapshot = await scrapePortalDiscente(page);
-    const portalResult = persistPortalSnapshot(portalSnapshot);
+    const portalResult = await persistPortalSnapshot(portalSnapshot);
 
     if (!portalResult.persisted) {
       pushStage(stages, "portal", "warning", portalResult.reason);

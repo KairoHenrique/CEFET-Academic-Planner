@@ -1,36 +1,76 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SectionHeader } from "@/components/ui/SectionHeader";
-import { Icon } from "@/components/ui/Icon";
 import { Modal } from "@/components/ui/Modal";
-import { WeeklyScheduleTable } from "@/components/schedule/WeeklyScheduleTable";
 import { ScheduleDetailContent } from "@/components/ui/ActivityDetail";
+import { EnrollmentConflictNotice } from "@/components/simulador/EnrollmentConflictNotice";
+import { EnrollmentSelectionFloat } from "@/components/simulador/EnrollmentSelectionFloat";
+import { EnrollmentSchedulePanel } from "@/components/simulador/EnrollmentSchedulePanel";
+import { EnrollmentSidebar } from "@/components/simulador/EnrollmentSidebar";
 import {
-  cloneSchedule,
-  timeSlots,
-  weekDays,
-  weeklySchedule,
+  filterSimuladorTurmas,
+  formatTurmaHorarioDisplay,
+  formatTurmaShortLabel,
+  isTurmaSelectable,
+} from "@/lib/simulador/turma-course-utils";
+import { buildSimuladorPlacementContext } from "@/lib/simulador/corequisito-schedule-policy";
+import {
+  isCorequisitoPartnerSelection,
+  resolveActiveCorequisitoObligation,
+  resolvePendingCorequisitoPartner,
+} from "@/lib/simulador/corequisito-cluster-viability";
+import { summarizePlacedSchedule } from "@/lib/simulador/enrollment-schedule-stats";
+import {
+  ENROLLMENT_BLOCKING_FLASH_MS,
+  resolveSelectedLockedCourseBlockingCellKeys,
+} from "@/lib/simulador/enrollment-schedule-highlights";
+import { resolveEnrollmentCourseSelectability } from "@/lib/simulador/enrollment-course-selectability";
+import {
+  resolveEnrollmentScheduleConflictNotice,
+  type EnrollmentScheduleConflictNotice,
+} from "@/lib/simulador/enrollment-schedule-conflict-notice";
+import { scrollEnrollmentScheduleIntoView } from "@/lib/simulador/scroll-enrollment-schedule-into-view";
+import {
+  buildAllowedEmptyCellKeys,
+  canPlaceTurmaOnSchedule,
+  filterTurmasNotOnSchedule,
+  isAllowedPlacementCell,
+  placeTurmaOnSchedule,
+  removeTurmaFromSchedule,
+} from "@/lib/simulador/turma-schedule-placement";
+import {
+  createEmptySchedule,
   type ScheduleSlot,
   type ScheduleSlotData,
 } from "@/config/mock/schedule";
-import {
-  courseToSlotData,
-  offeredCourses,
-  type OfferedCourse,
-} from "@/config/mock/enrollment";
+import type { TurmaOfertadaCourse, TurmasOfertadasResponse } from "@/lib/types/turmas-ofertadas-api";
 
-export function EnrollmentSimulator() {
-  const [schedule, setSchedule] = useState<ScheduleSlot[][]>(() =>
-    cloneSchedule(weeklySchedule)
+interface EnrollmentSimulatorProps {
+  data: TurmasOfertadasResponse;
+}
+
+export function EnrollmentSimulator({ data }: EnrollmentSimulatorProps) {
+  const visible = useMemo(() => filterSimuladorTurmas(data), [data]);
+  const placementContext = useMemo(
+    () => buildSimuladorPlacementContext(data.enrollmentContext),
+    [data.enrollmentContext]
   );
-  const [selectedCourse, setSelectedCourse] = useState<OfferedCourse | null>(
+
+  const [schedule, setSchedule] = useState<ScheduleSlot[][]>(() =>
+    createEmptySchedule()
+  );
+  const [selectedCourse, setSelectedCourse] = useState<TurmaOfertadaCourse | null>(
     null
   );
-  const [pendingPlacement, setPendingPlacement] = useState<{
-    dayIdx: number;
-    slotIdx: number;
-  } | null>(null);
+  const [conflictNotice, setConflictNotice] =
+    useState<EnrollmentScheduleConflictNotice | null>(null);
+  const [conflictNoticeEpoch, setConflictNoticeEpoch] = useState(0);
+  const [blockingFlashCellKeys, setBlockingFlashCellKeys] =
+    useState<ReadonlySet<string> | null>(null);
+  const blockingFlashTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  );
   const [detail, setDetail] = useState<{
     slot: ScheduleSlotData;
     day: string;
@@ -39,31 +79,129 @@ export function EnrollmentSimulator() {
     slotIdx: number;
   } | null>(null);
 
-  const placeCourse = (dayIdx: number, slotIdx: number, course: OfferedCourse) => {
-    setSchedule((prev) => {
-      const next = prev.map((row) => [...row]);
-      next[dayIdx][slotIdx] = courseToSlotData(course);
-      return next;
-    });
-    setSelectedCourse(null);
-    setPendingPlacement(null);
-  };
+  const corequisitoObligation = useMemo(
+    () => resolveActiveCorequisitoObligation(schedule, placementContext),
+    [schedule, placementContext]
+  );
 
-  const removeSlot = (dayIdx: number, slotIdx: number) => {
-    setSchedule((prev) => {
-      const next = prev.map((row) => [...row]);
-      next[dayIdx][slotIdx] = null;
-      return next;
-    });
+  const selectedCourseState = useMemo(() => {
+    if (!selectedCourse) return null;
+    return resolveEnrollmentCourseSelectability(
+      selectedCourse,
+      visible.courses,
+      schedule,
+      placementContext,
+      corequisitoObligation
+    );
+  }, [
+    selectedCourse,
+    visible.courses,
+    schedule,
+    placementContext,
+    corequisitoObligation,
+  ]);
+
+  const canPlaceSelectedCourse =
+    Boolean(selectedCourse) &&
+    Boolean(selectedCourseState) &&
+    !selectedCourseState!.timeLocked &&
+    !selectedCourseState!.blockedByObligation;
+
+  const allowedEmptyCells = useMemo(() => {
+    if (!selectedCourse || !canPlaceSelectedCourse) return null;
+    return buildAllowedEmptyCellKeys(selectedCourse);
+  }, [selectedCourse, canPlaceSelectedCourse]);
+
+  const scheduleStats = useMemo(
+    () => summarizePlacedSchedule(schedule),
+    [schedule]
+  );
+
+  const clearBlockingFlash = useCallback(() => {
+    if (blockingFlashTimerRef.current) {
+      clearTimeout(blockingFlashTimerRef.current);
+      blockingFlashTimerRef.current = null;
+    }
+    setBlockingFlashCellKeys(null);
+  }, []);
+
+  const triggerBlockingFlash = useCallback(
+    (course: TurmaOfertadaCourse) => {
+      const keys = resolveSelectedLockedCourseBlockingCellKeys(
+        course,
+        visible.courses,
+        schedule,
+        placementContext
+      );
+      if (keys.size === 0) return;
+
+      if (blockingFlashTimerRef.current) {
+        clearTimeout(blockingFlashTimerRef.current);
+        blockingFlashTimerRef.current = null;
+      }
+
+      setBlockingFlashCellKeys(null);
+      requestAnimationFrame(() => {
+        setBlockingFlashCellKeys(new Set(keys));
+        blockingFlashTimerRef.current = setTimeout(() => {
+          setBlockingFlashCellKeys(null);
+          blockingFlashTimerRef.current = null;
+        }, ENROLLMENT_BLOCKING_FLASH_MS);
+      });
+    },
+    [visible.courses, schedule, placementContext]
+  );
+
+  useEffect(() => () => clearBlockingFlash(), [clearBlockingFlash]);
+
+  const availableCurso = useMemo(
+    () => filterTurmasNotOnSchedule(visible.curso, schedule),
+    [visible.curso, schedule]
+  );
+
+  const availableOptativas = useMemo(
+    () => filterTurmasNotOnSchedule(visible.optativas, schedule),
+    [visible.optativas, schedule]
+  );
+
+  const selectedShortLabel = selectedCourse
+    ? formatTurmaShortLabel(selectedCourse, visible.courses)
+    : null;
+
+  const selectedHorario = selectedCourse
+    ? formatTurmaHorarioDisplay(selectedCourse)
+    : null;
+
+  const removeTurma = (turmaSigaaId: string | undefined) => {
+    if (!turmaSigaaId) return;
+    setSchedule((prev) =>
+      removeTurmaFromSchedule(turmaSigaaId, prev, placementContext)
+    );
     setDetail(null);
+    setSelectedCourse((prev) =>
+      prev?.turmaSigaaId === turmaSigaaId ? null : prev
+    );
   };
 
   const handleEmptyClick = (dayIdx: number, slotIdx: number) => {
-    if (selectedCourse) {
-      placeCourse(dayIdx, slotIdx, selectedCourse);
-      return;
-    }
-    setPendingPlacement({ dayIdx, slotIdx });
+    if (!selectedCourse) return;
+    if (!isAllowedPlacementCell(selectedCourse, dayIdx, slotIdx)) return;
+    if (!canPlaceTurmaOnSchedule(selectedCourse, schedule, placementContext)) return;
+
+    const next = placeTurmaOnSchedule(
+      selectedCourse,
+      schedule,
+      placementContext
+    );
+    setSchedule(next);
+
+    const partner = resolvePendingCorequisitoPartner(
+      selectedCourse,
+      next,
+      placementContext,
+      visible.courses
+    );
+    setSelectedCourse(partner);
   };
 
   const handleSlotClick = (payload: {
@@ -76,92 +214,128 @@ export function EnrollmentSimulator() {
     setDetail(payload);
   };
 
-  const handleCourseClick = (course: OfferedCourse) => {
-    if (course.status === "locked") return;
+  const handleCourseClick = (course: TurmaOfertadaCourse) => {
+    if (!isTurmaSelectable(course)) return;
 
-    if (course.slots.length === 1) {
-      const { day, slot } = course.slots[0];
-      if (!schedule[day]?.[slot]) {
-        placeCourse(day, slot, course);
-        return;
-      }
+    const state = resolveEnrollmentCourseSelectability(
+      course,
+      visible.courses,
+      schedule,
+      placementContext,
+      corequisitoObligation
+    );
+
+    if (state.timeLocked) {
+      const notice = resolveEnrollmentScheduleConflictNotice(
+        course,
+        visible.courses,
+        schedule,
+        placementContext
+      );
+
+      setSelectedCourse(course);
+      setConflictNotice(notice);
+      setConflictNoticeEpoch((value) => value + 1);
+      triggerBlockingFlash(course);
+      scrollEnrollmentScheduleIntoView();
+      return;
     }
 
-    setSelectedCourse((prev) => (prev?.code === course.code ? null : course));
-    setPendingPlacement(null);
+    if (!isCorequisitoPartnerSelection(course, corequisitoObligation)) return;
+
+    const isDeselect = selectedCourse?.turmaSigaaId === course.turmaSigaaId;
+
+    if (isDeselect) {
+      setSelectedCourse(null);
+      setConflictNotice(null);
+      clearBlockingFlash();
+      return;
+    }
+
+    setSelectedCourse(course);
+    setConflictNotice(null);
+    clearBlockingFlash();
+    scrollEnrollmentScheduleIntoView();
+  };
+
+  const handleClearSchedule = () => {
+    setSchedule(createEmptySchedule());
+    setSelectedCourse(null);
+    setConflictNotice(null);
+    clearBlockingFlash();
+    setDetail(null);
   };
 
   return (
     <>
-      <div className="card enrollment-card">
-        <SectionHeader title="Simulador de Matrícula" icon="map" />
+      <SectionHeader title="Simulador de Matrícula" icon="map" />
 
-        <p className="enrollment-hint">
-          {selectedCourse
-            ? `Selecionado: ${selectedCourse.code} — clique em um horário vazio para alocar`
-            : "Clique em uma turma desbloqueada e depois em um horário vazio, ou clique em uma aula para ver detalhes"}
-        </p>
-
-        <div className="enrollment-layout">
-          <div className="enrollment-sidebar">
-            <h4 className="enrollment-subtitle">Turmas elegíveis</h4>
-            <ul className="enrollment-course-list">
-              {offeredCourses.map((course) => (
-                <li key={course.code}>
-                  <button
-                    type="button"
-                    disabled={course.status === "locked"}
-                    className={`enrollment-course enrollment-course-btn ${
-                      course.status
-                    } ${selectedCourse?.code === course.code ? "selected" : ""}`}
-                    onClick={() => handleCourseClick(course)}
-                  >
-                    <Icon
-                      name={course.status === "unlocked" ? "unlock" : "lock"}
-                      size={14}
-                    />
-                    <div>
-                      <p className="course-node-code">{course.code}</p>
-                      <p className="course-node-name">{course.name}</p>
-                    </div>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="enrollment-schedule">
-            <h4 className="enrollment-subtitle">Grade simulada</h4>
-            <WeeklyScheduleTable
-              schedule={schedule}
-              compact
-              simulated
-              interactive
-              highlightEmpty={Boolean(selectedCourse)}
-              selectedDay={pendingPlacement?.dayIdx ?? null}
-              selectedSlot={pendingPlacement?.slotIdx ?? null}
-              onSlotClick={handleSlotClick}
-              onEmptyClick={handleEmptyClick}
+      <div className="enrollment-layout">
+        <div className="enrollment-schedule-stack">
+          {selectedCourse && selectedShortLabel && canPlaceSelectedCourse ? (
+            <EnrollmentSelectionFloat
+              selectedCourse={selectedCourse}
+              selectedShortLabel={selectedShortLabel}
+              selectedHorario={selectedHorario}
+              onDismiss={() => setSelectedCourse(null)}
             />
-          </div>
+          ) : null}
+
+          <EnrollmentSchedulePanel
+            schedule={schedule}
+            catalog={visible.courses}
+            placedCount={scheduleStats.placedCount}
+            totalCh={scheduleStats.totalCh}
+            semestreLabel={data.semestre}
+            highlightEmpty={canPlaceSelectedCourse}
+            allowedEmptyCells={allowedEmptyCells}
+            blockingCellKeys={blockingFlashCellKeys}
+            onSlotClick={handleSlotClick}
+            onEmptyClick={handleEmptyClick}
+            onClearSchedule={handleClearSchedule}
+          />
         </div>
+
+        <EnrollmentSidebar
+          curso={availableCurso}
+          optativas={availableOptativas}
+          catalog={visible.courses}
+          schedule={schedule}
+          placementContext={placementContext}
+          corequisitoObligation={corequisitoObligation}
+          selectedTurmaId={selectedCourse?.turmaSigaaId ?? null}
+          onSelect={handleCourseClick}
+        />
       </div>
+
+      {conflictNotice ? (
+        <EnrollmentConflictNotice
+          key={conflictNoticeEpoch}
+          notice={conflictNotice}
+          onDismiss={() => setConflictNotice(null)}
+        />
+      ) : null}
 
       <Modal
         open={Boolean(detail)}
         onClose={() => setDetail(null)}
-        title={detail?.slot.name ?? "Atividade"}
+        title={
+          detail?.slot.displayName ??
+          detail?.slot.courseName ??
+          detail?.slot.name ??
+          "Atividade"
+        }
       >
-        {detail && (
+        {detail ? (
           <ScheduleDetailContent
             slot={detail.slot}
             day={detail.day}
             time={detail.time}
             simulated
             onClose={() => setDetail(null)}
-            onRemove={() => removeSlot(detail.dayIdx, detail.slotIdx)}
+            onRemove={() => removeTurma(detail.slot.turmaSigaaId)}
           />
-        )}
+        ) : null}
       </Modal>
     </>
   );

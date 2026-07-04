@@ -3,6 +3,8 @@
  */
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
+import { buildDisciplineShortLabelRegistry } from "../src/lib/disciplinas/subject-display-name";
+import { extractNicknameSourceName } from "../src/lib/disciplinas/subject-nickname-core";
 import {
   suggestSubjectNickname,
   suggestDisciplineShortLabel,
@@ -88,5 +90,40 @@ describe("subject-display-name — apelidos SIGAA", () => {
       ),
       "CALCUL"
     );
+  });
+
+  test("tópicos especiais usam só o trecho após dois-pontos", () => {
+    const nome =
+      "Tópicos Especiais em Sistemas Inteligentes: Visão Computacional";
+
+    assert.equal(
+      extractNicknameSourceName(nome),
+      "Visão Computacional"
+    );
+    assert.equal(suggestDisciplineShortLabel(nome), "VISCOMP");
+    assert.notEqual(suggestDisciplineShortLabel(nome), "TESI");
+  });
+
+  test("registry evita apelidos duplicados entre tópicos parecidos", () => {
+    const registry = buildDisciplineShortLabelRegistry([
+      {
+        code: "GT01",
+        name:
+          "Tópicos Especiais em Sistemas Inteligentes: Visão Computacional",
+      },
+      {
+        code: "GT02",
+        name: "Tópicos Especiais em Sistemas Inteligentes: Deep Learning",
+      },
+    ]);
+
+    const first = registry.get("GT01");
+    const second = registry.get("GT02");
+
+    assert.ok(first);
+    assert.ok(second);
+    assert.notEqual(first, second);
+    assert.equal(first, "VISCOMP");
+    assert.equal(second, "DEELEAR");
   });
 });

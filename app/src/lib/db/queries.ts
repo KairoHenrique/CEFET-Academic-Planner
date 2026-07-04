@@ -19,6 +19,7 @@ import type {
   SemestreAtualWithDisciplina,
   TarefaCalendarRow,
   TarefaRow,
+  TurmaOfertadaRow,
 } from "@/lib/types/db";
 import {
   hasUserSemestrePreferences,
@@ -1058,6 +1059,67 @@ export function purgeInvalidCalendarioAcademico(): number {
   }
 
   return removed;
+}
+
+// --- TURMAS OFERTADAS (B67) ---
+export function getTurmasOfertadas(semestre?: string): TurmaOfertadaRow[] {
+  if (semestre?.trim()) {
+    return db
+      .prepare(
+        "SELECT * FROM turmas_ofertadas WHERE semestre = ? ORDER BY nome, turma_codigo"
+      )
+      .all(semestre.trim()) as TurmaOfertadaRow[];
+  }
+
+  return db
+    .prepare("SELECT * FROM turmas_ofertadas ORDER BY semestre DESC, nome, turma_codigo")
+    .all() as TurmaOfertadaRow[];
+}
+
+export function saveTurmaOfertada(
+  row: Omit<TurmaOfertadaRow, "id">
+): void {
+  db.prepare(
+    `
+    INSERT INTO turmas_ofertadas (
+      turma_sigaa_id, sigaa_componente, codigo_disciplina, nome, turma_codigo, semestre,
+      codigo_horario, horario_exibicao, local, professor,
+      vagas, vagas_ocupadas, carga_horaria,
+      situacao, tipo_turma, departamento, horario_indefinido, categoria,
+      curso_id, synced_at
+    ) VALUES (
+      @turma_sigaa_id, @sigaa_componente, @codigo_disciplina, @nome, @turma_codigo, @semestre,
+      @codigo_horario, @horario_exibicao, @local, @professor,
+      @vagas, @vagas_ocupadas, @carga_horaria,
+      @situacao, @tipo_turma, @departamento, @horario_indefinido, @categoria,
+      @curso_id, @synced_at
+    )
+    ON CONFLICT(turma_sigaa_id) DO UPDATE SET
+      sigaa_componente = excluded.sigaa_componente,
+      codigo_disciplina = excluded.codigo_disciplina,
+      nome = excluded.nome,
+      turma_codigo = excluded.turma_codigo,
+      semestre = excluded.semestre,
+      codigo_horario = excluded.codigo_horario,
+      horario_exibicao = excluded.horario_exibicao,
+      local = excluded.local,
+      professor = excluded.professor,
+      vagas = excluded.vagas,
+      vagas_ocupadas = excluded.vagas_ocupadas,
+      carga_horaria = excluded.carga_horaria,
+      situacao = excluded.situacao,
+      tipo_turma = excluded.tipo_turma,
+      departamento = excluded.departamento,
+      horario_indefinido = excluded.horario_indefinido,
+      categoria = excluded.categoria,
+      curso_id = excluded.curso_id,
+      synced_at = excluded.synced_at
+  `
+  ).run(row);
+}
+
+export function clearTurmasOfertadasForSemestre(semestre: string): void {
+  db.prepare("DELETE FROM turmas_ofertadas WHERE semestre = ?").run(semestre);
 }
 
 // --- CALENDÁRIO (leitura) ---

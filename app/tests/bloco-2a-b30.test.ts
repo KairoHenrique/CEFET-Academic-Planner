@@ -123,7 +123,7 @@ describe("B30 — persist histórico", () => {
       "../src/lib/scraper/portal-discente/mock-portal-snapshot"
     );
 
-    persistPortalSnapshot(buildMockPortalSnapshot("12345678901"));
+    await persistPortalSnapshot(buildMockPortalSnapshot("12345678901"));
 
     const snapshot = await parseHistoricoPdfBuffer(fs.readFileSync(fixturePdf));
     const result = persistHistoricoSnapshot(snapshot);
@@ -183,7 +183,7 @@ describe("B30 — resiliência do sync", () => {
       "../src/lib/sync/persist-turma-virtual-snapshot"
     );
 
-    persistPortalSnapshot(buildMockPortalSnapshot("12345678901"));
+    await persistPortalSnapshot(buildMockPortalSnapshot("12345678901"));
     persistTurmaVirtualSnapshot(scrapeTurmaVirtualMock());
   });
 

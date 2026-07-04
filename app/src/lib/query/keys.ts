@@ -11,5 +11,6 @@ export const queryKeys = {
   integralizacao: () => [...queryKeys.all, "integralizacao"] as const,
   mapa: () => [...queryKeys.all, "mapa"] as const,
   schedule: () => [...queryKeys.all, "schedule"] as const,
+  turmasOfertadas: () => [...queryKeys.all, "turmas-ofertadas"] as const,
   notifications: () => [...queryKeys.all, "notifications"] as const,
 };

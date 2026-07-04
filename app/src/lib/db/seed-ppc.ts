@@ -69,6 +69,27 @@ export function syncPpcEmentasToDb(): void {
   syncAll();
 }
 
+export function syncPpcRequisitosToDb(): void {
+  const data = loadPpcSeedData();
+
+  const syncAll = db.transaction(() => {
+    db.prepare("DELETE FROM requisitos").run();
+
+    for (const item of data) {
+      for (const req of item.requisitos) {
+        if (req.requisito_id === "-") continue;
+        try {
+          saveRequisito(req);
+        } catch {
+          // Requisito órfão no JSON — ignorado no sync.
+        }
+      }
+    }
+  });
+
+  syncAll();
+}
+
 export function seedPpcIfEmpty(): number {
   const data = loadPpcSeedData();
 
@@ -92,6 +113,7 @@ export function seedPpcIfEmpty(): number {
     insertAll();
   } else {
     syncPpcEmentasToDb();
+    syncPpcRequisitosToDb();
   }
 
   return countDisciplinas();

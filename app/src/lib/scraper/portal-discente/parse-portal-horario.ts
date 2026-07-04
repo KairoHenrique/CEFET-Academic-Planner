@@ -1,7 +1,10 @@
 import { parseBrDateToIso, stripHtmlTags } from "@/lib/scraper/turma-virtual/html-utils";
 import type { PortalDisciplinaSemestre } from "@/lib/scraper/types/portal-discente";
 
-const SIGAA_HORARIO_PATTERN = /\b[2-6][MTN](?:12|34|56)\b/gi;
+import {
+  extractHorarioCodigoFromText,
+} from "@/lib/schedule/parse-sigaa-codigo";
+
 const SEMESTRE_HEADER_PATTERN = /(\d{4}\.\d)/;
 
 function normalizeNomeKey(nome: string): string {
@@ -14,10 +17,8 @@ function normalizeNomeKey(nome: string): string {
     .trim();
 }
 
-function extractHorarioCodigo(value: string): string | null {
-  const matches = value.match(SIGAA_HORARIO_PATTERN);
-  if (!matches?.length) return null;
-  return matches.join(" ").toUpperCase();
+export function extractHorarioCodigo(value: string): string | null {
+  return extractHorarioCodigoFromText(value);
 }
 
 export function extractTurmaPeriodFromHorarioText(

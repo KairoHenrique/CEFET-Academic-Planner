@@ -1,3 +1,4 @@
+import { extractHorarioCodigoFromText } from "@/lib/schedule/parse-sigaa-codigo";
 import type {
   PortalAlunoSnapshot,
   PortalAtividadePendente,
@@ -71,7 +72,6 @@ const BR_DATE_PATTERN = /(\d{2})\/(\d{2})\/(\d{4})/;
 const ATIVIDADE_PRAZO_KEY_PATTERN = /^\d{2}\/\d{2}\/\d{4}\s+\d{2}:\d{2}/;
 const ATIVIDADE_EXCLUDE_PATTERN =
   /nova\s+not[ií]cia|indica(?:ç|c)(?:ã|a)o\s+de\s+site|novo\s+t[oó]pico|últimas\s+atualiza|ultimas\s+atualiza|avalia(?:ç|c)(?:ã|a)o\s+marcada/i;
-const SIGAA_HORARIO_PATTERN = /\b[2-6][MTN](?:12|34|56)\b/gi;
 const DISCIPLINA_PAIR_SKIP = /^(ch\.|matricula|curso|data|titulo|rg|integraliz|ultimas|componente|nivel|status|e-?mail|entrada|ensino)/i;
 
 function normalizeLabel(label: string): string {
@@ -297,9 +297,7 @@ function parseIntegralizacao(raw: PortalPageRawData): PortalIntegralizacaoItem[]
 }
 
 function extractHorarioCodigo(text: string): string | null {
-  const matches = text.match(SIGAA_HORARIO_PATTERN);
-  if (!matches?.length) return null;
-  return matches.map((token) => token.toUpperCase()).join(" ");
+  return extractHorarioCodigoFromText(text);
 }
 
 function parseDisciplinaRow(row: string[]): PortalDisciplinaSemestre | null {
@@ -362,7 +360,7 @@ function parseDisciplinasFromPairs(
     const trimmedNome = nome.trim();
     if (trimmedNome.length < 4) continue;
     if (DISCIPLINA_PAIR_SKIP.test(normalizeLabel(trimmedNome))) continue;
-    if (!SIGAA_HORARIO_PATTERN.test(value)) continue;
+    if (!extractHorarioCodigoFromText(value)) continue;
 
     const codigoHorario = extractHorarioCodigo(value);
     disciplinas.set(normalizeNome(trimmedNome), {

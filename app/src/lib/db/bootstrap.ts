@@ -71,6 +71,50 @@ function runMigrations(database: ReturnType<typeof getActiveDatabase>): void {
   addColumnIfMissing(database, "eventos_calendario", "recorrencia_ate", "TEXT");
   addColumnIfMissing(database, "eventos_calendario", "recorrencia_dias", "TEXT");
   migrateEventosCalendarioTypes(database);
+  ensureTurmasOfertadasTable(database);
+}
+
+function ensureTurmasOfertadasTable(
+  database: ReturnType<typeof getActiveDatabase>
+): void {
+  database.exec(`
+    CREATE TABLE IF NOT EXISTS turmas_ofertadas (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      turma_sigaa_id TEXT NOT NULL,
+      sigaa_componente TEXT,
+      codigo_disciplina TEXT NOT NULL,
+      nome TEXT NOT NULL,
+      turma_codigo TEXT,
+      semestre TEXT NOT NULL,
+      codigo_horario TEXT,
+      horario_exibicao TEXT,
+      local TEXT,
+      professor TEXT,
+      vagas INTEGER,
+      vagas_ocupadas INTEGER,
+      carga_horaria INTEGER,
+      situacao TEXT NOT NULL DEFAULT 'atendida',
+      tipo_turma TEXT,
+      departamento TEXT,
+      horario_indefinido INTEGER NOT NULL DEFAULT 0,
+      categoria TEXT,
+      curso_id TEXT DEFAULT 'eng-computacao',
+      synced_at TEXT,
+      UNIQUE(turma_sigaa_id)
+    );
+  `);
+
+  addColumnIfMissing(database, "turmas_ofertadas", "sigaa_componente", "TEXT");
+  addColumnIfMissing(database, "turmas_ofertadas", "situacao", "TEXT DEFAULT 'atendida'");
+  addColumnIfMissing(database, "turmas_ofertadas", "tipo_turma", "TEXT");
+  addColumnIfMissing(database, "turmas_ofertadas", "departamento", "TEXT");
+  addColumnIfMissing(
+    database,
+    "turmas_ofertadas",
+    "horario_indefinido",
+    "INTEGER NOT NULL DEFAULT 0"
+  );
+  addColumnIfMissing(database, "turmas_ofertadas", "categoria", "TEXT");
 }
 
 function migrateEventosCalendarioTypes(database: ReturnType<typeof getActiveDatabase>): void {
@@ -211,6 +255,31 @@ export function initDB(): void {
       data_inicio TEXT NOT NULL,
       data_fim TEXT,
       semestre TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS turmas_ofertadas (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      turma_sigaa_id TEXT NOT NULL,
+      sigaa_componente TEXT,
+      codigo_disciplina TEXT NOT NULL,
+      nome TEXT NOT NULL,
+      turma_codigo TEXT,
+      semestre TEXT NOT NULL,
+      codigo_horario TEXT,
+      horario_exibicao TEXT,
+      local TEXT,
+      professor TEXT,
+      vagas INTEGER,
+      vagas_ocupadas INTEGER,
+      carga_horaria INTEGER,
+      situacao TEXT NOT NULL DEFAULT 'atendida',
+      tipo_turma TEXT,
+      departamento TEXT,
+      horario_indefinido INTEGER NOT NULL DEFAULT 0,
+      categoria TEXT,
+      curso_id TEXT DEFAULT 'eng-computacao',
+      synced_at TEXT,
+      UNIQUE(turma_sigaa_id)
     );
 
     CREATE TABLE IF NOT EXISTS eventos_calendario (

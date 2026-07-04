@@ -392,7 +392,7 @@ describe("B27 — persistPortalSnapshot", () => {
     const queries = await import("../src/lib/db/queries");
 
     const snapshot = buildMockPortalSnapshot("12345678901");
-    persistPortalSnapshot(snapshot);
+    await persistPortalSnapshot(snapshot);
 
     const aluno = queries.getAluno();
     assert.ok(aluno);
@@ -443,7 +443,7 @@ describe("B27 — persistPortalSnapshot", () => {
       },
     ];
 
-    persistPortalSnapshot(snapshot);
+    await persistPortalSnapshot(snapshot);
 
     snapshot.atividades[0] = {
       ...snapshot.atividades[0],
@@ -452,7 +452,7 @@ describe("B27 — persistPortalSnapshot", () => {
       instrucoes: [],
       entregaveis: [],
     };
-    persistPortalSnapshot(snapshot);
+    await persistPortalSnapshot(snapshot);
 
     const tarefa = queries
       .getTarefas()
@@ -479,7 +479,7 @@ describe("B27 — persistPortalSnapshot", () => {
       .find((row) => row.tipo_ch === "Complementar" && row.manual === 1);
     assert.ok(manualBefore);
 
-    persistPortalSnapshot(buildMockPortalSnapshot("12345678901"));
+    await persistPortalSnapshot(buildMockPortalSnapshot("12345678901"));
 
     const manualAfter = queries
       .getIntegralizacao()
@@ -511,7 +511,7 @@ describe("B27 — persistPortalSnapshot", () => {
     runWithUserDb("11111111111", () => {
       ensureDbReady();
       seedPpcIfEmpty();
-      persistPortalSnapshot(buildMockPortalSnapshot("aluno-a"));
+      await persistPortalSnapshot(buildMockPortalSnapshot("aluno-a"));
     });
 
     runWithUserDb("22222222222", () => {
@@ -522,7 +522,7 @@ describe("B27 — persistPortalSnapshot", () => {
       outroAluno.semestreAtual = outroAluno.semestreAtual.filter(
         (disciplina) => disciplina.codigo === "AEDI"
       );
-      persistPortalSnapshot(outroAluno);
+      await persistPortalSnapshot(outroAluno);
       assert.equal(queries.getSemestreAtual().length, 1);
     });
 
@@ -569,7 +569,7 @@ describe("B27 — persistPortalSnapshot", () => {
       },
     ];
 
-    persistPortalSnapshot(snapshot);
+    await persistPortalSnapshot(snapshot);
 
     const titulos = queries.getTarefas().map((row) => row.titulo);
     assert.ok(!titulos.some((titulo) => titulo.includes("antiga")));

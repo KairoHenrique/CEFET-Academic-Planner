@@ -85,6 +85,11 @@ export const SIGAA_CALENDARIO_HTML_PATH =
   readStringFromEnvLocal("SIGAA_CALENDARIO_HTML_PATH") ??
   (process.env.SIGAA_CALENDARIO_HTML_PATH?.trim() || null);
 
+/** Caminho local para HTML de turmas ofertadas (dev/diagnóstico). */
+export const SIGAA_TURMAS_OFERTADAS_HTML_PATH =
+  readStringFromEnvLocal("SIGAA_TURMAS_OFERTADAS_HTML_PATH") ??
+  (process.env.SIGAA_TURMAS_OFERTADAS_HTML_PATH?.trim() || null);
+
 /** Calendário oficial DIRGRAD (fallback quando menu SIGAA não abre detalhe). */
 export const DIRGRAD_CALENDARIO_URL =
   readStringFromEnvLocal("DIRGRAD_CALENDARIO_URL") ??

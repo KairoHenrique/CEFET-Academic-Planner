@@ -11,8 +11,12 @@ const DONE_STATUS_KEYWORDS = [
   "aproveit",
 ] as const;
 
-function normalizeCode(code: string): string {
+export function normalizeDisciplinaCode(code: string): string {
   return code.trim().toUpperCase();
+}
+
+function normalizeCode(code: string): string {
+  return normalizeDisciplinaCode(code);
 }
 
 export function isHistoricoApproved(row: HistoricoRow): boolean {
@@ -35,6 +39,55 @@ export function isHistoricoCursando(row: HistoricoRow): boolean {
     status.includes("matriculado") ||
     status === "matr"
   );
+}
+
+export function isHistoricoFailed(row: HistoricoRow): boolean {
+  const status = row.status?.trim().toLowerCase() ?? "";
+  if (!status) return false;
+  return status.includes("reprov");
+}
+
+export function parseHistoricoSemestre(raw: string): [number, number] | null {
+  const match = raw.trim().match(/(\d{4})[./-](\d)/);
+  if (!match) return null;
+  return [Number(match[1]), Number(match[2])];
+}
+
+export function compareHistoricoSemestre(left: string, right: string): number {
+  const parsedLeft = parseHistoricoSemestre(left);
+  const parsedRight = parseHistoricoSemestre(right);
+  if (!parsedLeft && !parsedRight) return 0;
+  if (!parsedLeft) return -1;
+  if (!parsedRight) return 1;
+  if (parsedLeft[0] !== parsedRight[0]) return parsedLeft[0] - parsedRight[0];
+  return parsedLeft[1] - parsedRight[1];
+}
+
+/** Disciplinas cuja tentativa mais recente no histórico é reprovação. */
+export function buildFailedDisciplinaSet(
+  historico: HistoricoRow[]
+): Set<string> {
+  const latestByCode = new Map<string, HistoricoRow>();
+
+  for (const row of historico) {
+    const code = normalizeCode(row.disciplina_id);
+    const existing = latestByCode.get(code);
+    if (
+      !existing ||
+      compareHistoricoSemestre(row.semestre, existing.semestre) > 0
+    ) {
+      latestByCode.set(code, row);
+    }
+  }
+
+  const failed = new Set<string>();
+  for (const [code, row] of latestByCode) {
+    if (isHistoricoFailed(row) && !isHistoricoApproved(row)) {
+      failed.add(code);
+    }
+  }
+
+  return failed;
 }
 
 export function buildCompletedDisciplinaSet(
@@ -86,6 +139,23 @@ export function buildPreRequisitoMap(
 
   for (const row of requisitos) {
     if (row.tipo !== "pre") continue;
+
+    const disciplinaId = normalizeCode(row.disciplina_id);
+    const bucket = map.get(disciplinaId) ?? [];
+    bucket.push(normalizeCode(row.requisito_id));
+    map.set(disciplinaId, bucket);
+  }
+
+  return map;
+}
+
+export function buildCoRequisitoMap(
+  requisitos: RequisitoRow[]
+): Map<string, string[]> {
+  const map = new Map<string, string[]>();
+
+  for (const row of requisitos) {
+    if (row.tipo !== "co") continue;
 
     const disciplinaId = normalizeCode(row.disciplina_id);
     const bucket = map.get(disciplinaId) ?? [];

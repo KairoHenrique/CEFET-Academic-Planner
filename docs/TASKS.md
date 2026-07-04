@@ -11,7 +11,7 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
 > - **Modo testes:** deploy global após sync validado; RLS na fase 6c (antes do PIX)
 > - **Pré-mobile (#6d):** orquestração sync + tabelas globais — **sugestão documentada**; **você decide** na hora (**B68-orq** · `SCOPE-CLOUD` §5.4 · §6.5)
 
-**Navegação rápida:** [Sequência #0→#11](#sequência-completa--o-que-fazer-e-em-qual-ordem) · [Ordem oficial v3](#ordem-oficial-de-execução-v3) · [Checklist BACK→FRONT](#checklist-mestre-ordem-de-execução) · [Detalhe por bloco](#detalhe-dos-blocos) · [B68 orquestração sync](#6d--orquestração-sync--catálogo-global-pré-mobile) · [Escopo cloud](./SCOPE-CLOUD.md) · [Apêndice escopo futuro](#apêndice--escopo-futuro-fora-da-ordem-011) · [Apêndice B65 dev](#apêndice--b65-sync-automático-dev-remover-antes-de-produção) · [Apêndice gift + painel dev](#apêndice--chaves-gift-e-painel-dev-jun2026)
+**Navegação rápida:** [Roadmap detalhado (#0→#11)](#roadmap-detalhado--ordem-de-execução-0--11) · [Sequência #0→#11](#sequência-completa--o-que-fazer-e-em-qual-ordem) · [Ordem oficial v3](#ordem-oficial-de-execução-v3) · [Checklist BACK→FRONT](#checklist-mestre-ordem-de-execução) · [Detalhe por bloco](#detalhe-dos-blocos) · [B68 orquestração sync](#6d--orquestração-sync--catálogo-global-pré-mobile) · [Escopo cloud](./SCOPE-CLOUD.md) · [Apêndice escopo futuro](#apêndice--escopo-futuro-fora-da-ordem-011) · [Apêndice B65 dev](#apêndice--b65-sync-automático-dev-remover-antes-de-produção) · [Apêndice gift + painel dev](#apêndice--chaves-gift-e-painel-dev-jun2026)
 
 **Legenda:**
 - `[ ]` — Não iniciada
@@ -35,11 +35,285 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 **Regra:** o stakeholder **avisa explicitamente** quando a entrega **não** está 100% aprovada. Após push com ressalvas → **`[@]`**, nunca `[x]`.
 
-**Tasks em `[@]` agora (jun/2026):** *(nenhuma — F37 aprovada jun/2026)*.
-
-**Aprovadas `[x]` (jun/2026):** **B27** (portal) · **B28** (turma virtual + UI grupo + arredondamento nota final) · **B65** (sync automático + `last_run` dev) · **B30** (histórico escolar PDF → `historico` + integralização) · **F38** (sino in-app: tarefas/notas novas + lembretes 24h/1h; polish `04887c9`/`5923e9c`) · **B66** (calendário acadêmico SIGAA + painel dual-semestre; `75694c0`).
+**Tasks em `[@]` agora (jul/2026):** **F19** — `/simulador` no remoto; **2 polish UX pendentes** (amanhã); back **B67** aprovado `[x]`.
 
 **Polish pós-push (jun/2026, sem nova task):** `04887c9` — fix alerta nota nova pós-sync (baseline pré-sync) + nota obtida/máxima no sino · `5923e9c` — nome da disciplina no `SubjectCard` abre `/disciplinas/[código]`.
+
+---
+
+## Roadmap detalhado — ordem de execução (#0 → #11)
+
+> **Próximo oficial:** polish **F19** `[@]` (2 ajustes front amanhã) · depois **Bloco 2b** (B54). Back **B67** `[x]`.
+> **Regra:** siga **#0 → #11** · dentro de cada bloco → **BACK (B) antes de FRONT (F)**. Checklist espelho: [Checklist mestre](#checklist-mestre-ordem-de-execução).
+
+### #0 — Planejamento `✅`
+
+- [x] Levantamento de requisitos com o stakeholder
+- [x] Análise do portal SIGAA (estrutura, URLs, dados disponíveis)
+- [x] Definição da stack (Next.js + Supabase + Playwright worker + PIX + Expo) — `SCOPE-CLOUD.md`
+- [x] README.md · SCOPE.md · TASKS.md
+- [x] PPC Eng. Computação indexado (PDF → dados estruturados)
+- [x] Sequência multi-PPC (Mecatrônica/Moda **só pós-mobile**) + glossário CH (`SCOPE.md` §6.2, §6.4)
+
+---
+
+### #1 — Bloco 1 · API + UI ↔ SQLite `✅ 49/49`
+
+> Fatias verticais: **back → front** por etapa. `/simulador` (3F) consome **B67** `[x]` via API (**F19** `[@]`).
+
+#### Etapa 1 — Fundação ✅
+- [x] **BACK:** B1 *(bootstrap SQLite — abre/migra `.db` na inicialização)*
+- [x] **BACK:** B2 *(CRUD `queries.ts` — leitura/escrita de todas as tabelas)*
+- [x] **BACK:** B3 *(`seed-demo.ts` — popula aluno e semestre a partir dos mocks)*
+- [x] **BACK:** B4 *(camada `lib/api/` — errors, response, validate, withDb)*
+- [x] **BACK:** B5 *(tipos `lib/types/` — contratos back ↔ front)*
+
+#### Etapa 2 — Sync + Dashboard ✅
+- [x] **BACK:** B6 *(`run-sync.ts` — orquestra sync; scraper real no B31)*
+- [x] **BACK:** B7 *(`POST /api/sync` — dispara sincronização com credenciais)*
+- [x] **BACK:** B7b *(prioridade dados usuário — sync não apaga/sobrescreve dados do aluno)*
+- [x] **BACK:** B8 *(`GET /api/dashboard` — header, stats, tarefas, matérias)*
+- [x] **FRONT:** F1 *(`lib/api/client.ts` — fetch tipado + tratamento de erro)*
+- [x] **FRONT:** F2 *(`useSync` — loading/erro do sync)*
+- [x] **FRONT:** F3 *(`LoginForm` — credenciais reais para o sync)*
+- [x] **FRONT:** F4 *(dashboard via API — header, stats, cards)*
+- [x] **FRONT:** F5 *(loading/erro/vazio no dashboard)*
+- [x] **FRONT:** F5b *(`LogoutButton` — sair e limpar sessão)*
+- [x] **FRONT:** F5c *(credenciais salvas — re-sync rápido pela navbar)*
+- [x] **FRONT:** F5d *(invalidação cruzada tarefas — dashboard, disciplina, calendário)*
+
+#### Etapa 3A — Disciplinas ✅
+- [x] **BACK:** B9 *(`GET /api/disciplinas` — lista com busca/filtro)*
+- [x] **BACK:** B10 *(`GET /api/disciplinas/[code]` — ementa, notas, faltas, tarefas, grupo)*
+- [x] **BACK:** B11 *(`PATCH .../notas` — add/update/delete, nota extra, override)*
+- [x] **BACK:** B12 *(`PATCH /api/tarefas/[id]` — toggle, editar, excluir)*
+- [x] **BACK:** B12b *(`POST .../tarefas` — tarefa manual na disciplina)*
+- [x] **BACK:** B12c *(`PATCH .../faltas` — presença/falta por data)*
+- [x] **BACK:** B12d *(`PATCH .../appearance` — cor, apelido, sala, horário, professor, h/sem)*
+- [x] **FRONT:** F6 *(`/disciplinas` — `SubjectList` via API + TanStack Query)*
+- [x] **FRONT:** F7 *(`/disciplinas/[code]` — painéis notas, faltas, tarefas via API)*
+- [x] **FRONT:** F8 *(`useSubjectGrades` — CRUD notas, inline, nota extra)*
+- [x] **FRONT:** F6b *(`SubjectList` UX — filtros Risco/Crítico/Aprovados, colunas Sala/Horário)*
+- [x] **FRONT:** F8b *(`SubjectTasksPanel` — CRUD tarefas + filtro Concluídas)*
+- [x] **FRONT:** F8c *(`SubjectAbsencePanel` — faltas via API)*
+- [x] **FRONT:** F8d *(risco de nota + recuperação — `GradeRiskIndicator`, localStorage)*
+- [x] **FRONT:** F8e *(prioridade + selects — `PrioritySelect`, `TaskSortSelect`)*
+- [x] **FRONT:** F8f *(simulador local polish — menu overlay, pré-preenche notas reais)*
+- [x] **FRONT:** F8g *(aparência da matéria — cor, modal editar header, `useSubjectAppearance`)*
+- [x] **FRONT:** F8h *(validação de notas — clamp pontos, nota extra até 100)*
+- [x] **FRONT:** F8i *(TanStack Query dashboard — `useDashboard` + invalidação cruzada)*
+
+#### Etapa 3B — Calendário ✅
+- [x] **BACK:** B13 *(`GET /api/calendar` — tarefas, provas e datas do semestre)*
+- [x] **BACK:** B14 *(`POST /api/calendar/events` — inserir evento manual)*
+- [x] **BACK:** B15 *(`PATCH .../events/[id]` — editar ou marcar concluído)*
+- [x] **BACK:** B15b *(tipos de evento — monitoria, estágio, estudo, outro + migration DB)*
+- [x] **FRONT:** F9 *(`useCalendarEvents` — hook que alimenta o calendário)*
+- [x] **FRONT:** F10 *(`CalendarioView`, datas acadêmicas, form)*
+- [x] **FRONT:** F10b *(polish — checkbox concluída ao vivo, scroll painel eventos)*
+
+#### Etapa 3C — Integralização ✅
+- [x] **BACK:** B16 *(`GET /api/integralizacao` — totais por tipo de CH PPC + histórico local)*
+- [x] **BACK:** B17 *(`POST /api/integralizacao` — horas complementares manuais)*
+- [x] **BACK:** refino pós-B30 *(`build-integralizacao` + `resolveCategoryDoneHours` priorizam histórico PDF)*
+- [x] **FRONT:** F11 *(painéis integralização — donut + tabela via API + cadastro de horas)*
+- [x] **FRONT:** F11b *(glossário de CH — modal “Entenda suas horas” + ícone ?)*
+
+#### Etapa 3D — Mapa do curso ✅
+- [x] **BACK:** B18 *(`GET /api/mapa` — grade obrigatória PPC 1–10; status histórico + pré-requisitos)*
+- [x] **FRONT:** F12 *(`CourseMapGrid` — layout 1–5/6–10 + ementas PPC)*
+
+#### Etapa 3E — Grade semanal ✅
+- [x] **BACK:** B19 *(`GET /api/schedule` — slots Seg–Sex do SIGAA)*
+- [x] **FRONT:** F13 *(`WeeklyScheduleTable` + `useSchedule`; extras monitoria no localStorage)*
+
+**Ordem Bloco 1:** `B1–B5` → `B6–B8` → `F1–F5` · `F5b–F5d` → `B9–B12d` → `F6–F8i` → `B13–B15b` → `F9–F10b` → `B16–B17` → `F11–F11b` → `B18` → `F12` → `B19` → `F13`
+
+---
+
+### #2 — Bloco 2a · Scraper SIGAA — dev `✅ 8/8`
+
+> **⚠️ Prioridade pós-Bloco 1:** validar Playwright com **semestre ativo** antes do Supabase. Dev local + SQLite.
+
+- [x] **BACK:** B24 → B25 → B26 *(auth: login Playwright `verTelaLogin.do` + cookies · B25 AES-256 “lembrar senha” · B26 erros credencial/timeout/SIGAA offline)*
+- [x] **BACK:** B27 *(portal: semestre, RG, tarefas; CH portal auxiliar; apelidos auto)*
+- [x] **BACK:** B65 *(sync automático 30 min + `sync.last_at`; manual sem rate limit — **dev**, ver [Apêndice B65](#apêndice--b65-sync-automático-dev-remover-antes-de-produção))*
+- [x] **BACK:** B28 *(turma virtual: notas, faltas, grupo, tarefas; UI Ver grupo; nome do grupo; arredondamento nota final)*
+- [x] **BACK:** B30 *(histórico escolar PDF — captura no menu, parser, `historico` + CH na integralização)*
+- [x] **BACK:** B31 *(pipeline full/incremental, policies por etapa, login rápido, DB por CPF — commit `a7a02ac`, testes `bloco-2a-b31`)*
+- [x] **FRONT:** F18 *(erros reais no login — credenciais inválidas, SIGAA offline, timeout API; mock removido; hint “primeiro acesso demora” no 1º sync bloqueante)*
+- [x] **FRONT:** F37 *(modal perfil, tutorial, `/planos`, dados conta + assinatura dev; último sync via **B65**)*
+- [x] **FRONT:** F38 *(sino in-app: tarefas/notas novas + lembretes 24h/1h; polish `04887c9` baseline pré-sync + nota obtida/máxima)*
+- [x] **BACK:** B66 *(calendário acadêmico — robô isolado `POST /api/sync/calendario` + UI painel dual-semestre)*
+- [x] **BACK:** B67 *(turmas ofertadas — Ensino → Consultar Turmas do Próx. Semestre; Atendida/Pendente; `curso` vs `optativas` PPC; `scheduleBlocker` ⛔; `POST /api/sync/turmas` + `GET /api/turmas-ofertadas`)*
+- [@] **FRONT:** F19 *(`/simulador` via API — montar grade com turmas ofertadas reais; coreq/conflitos; export JPEG; popup trancado; **2 polish UX pendentes**)*
+
+**Ordem 2a:** `B24→B26` → `B27` → `B65` → `B28` → `B30` → `B31` → `F18` → `F37` → `F38` → `B66` → `B67` → `F19` · **8/8** até `F37`
+
+---
+
+### #3 — Bloco 2b · Worker sync (servidor) `⬜ 0/5`
+
+> Fila §6.3 `SCOPE-CLOUD` — 1 job global, auto **3h/usuário**, manual **fim da fila** + cooldown **5 min**.
+
+- [ ] **BACK:** B54 *(worker Playwright — 1 browser por vez; container/VPS free tier)*
+- [ ] **BACK:** B55 *(API fila sync — filas prioritária + normal; enqueue; status/posição/ETA)*
+- [ ] **BACK:** B56 *(pipeline B24–B31 no worker — credenciais cifradas no servidor)*
+- [ ] **OPS:** O3 *(cooldowns produção — auto ≥3h/usuário; manual 5 min; manual → fim da fila)*
+- [ ] **FRONT:** F19 *(status fila na UI — substituir `useAutoSync`; alinhar **F37**; `/simulador` real **B67**)*
+
+**Ordem 2b:** `B54 → B55 → B56` → `O3` → `F19`
+
+---
+
+### #4 — Bloco 6a · Supabase + deploy global `⬜ 0/8`
+
+> **Só após B31 validado.** RLS flexível nesta fase (testes globais).
+
+- [ ] **PLAN:** Projeto Supabase free + env dev/prod
+- [ ] **BACK:** B39 *(schema Postgres — tabelas + `user_id` nullable em teste)*
+- [ ] **BACK:** B41 *(seed PPC global — disciplinas/requisitos read-only)*
+- [ ] **BACK:** B42 *(client Supabase — adapter queries SQLite→PG)*
+- [ ] **BACK:** B43 *(migrar APIs — dashboard, disciplinas, sync stub)*
+- [ ] **OPS:** O1 *(deploy Cloudflare Pages + cron ping Supabase)*
+- [ ] **OPS:** O2 *(remover `.db` local em prod)*
+- [ ] **TEST:** T1 *(smoke deploy — URL abre, seed carrega)*
+
+**Ordem 6a:** `PLAN` → `B39 → B41 → B42 → B43` → `O1 → O2` → `T1`
+
+---
+
+### #5 — Bloco 6b · Auth (CPF login + cadastro) `⬜ 0/9`
+
+> Cadastro = e-mail + telefone + CPF + curso + senha SIGAA · **login só CPF + senha** · trial 7d 1×/CPF.
+
+- [ ] **BACK:** B44 *(conta do aluno — cadastro e-mail/tel/CPF/`curso_id`; login só CPF)*
+- [ ] **BACK:** B45 *(credenciais cifradas AES no servidor — obrigatório para worker **B56**)*
+- [ ] **BACK:** B58 *(trial por CPF — `trial_por_cpf` 7 dias uma vez; anti-abuso)*
+- [ ] **BACK:** B63 *(`curso_id` — Comp/Meca/Moda; mapa/integralização filtram PPC)*
+- [ ] **BACK:** B59 *(gate de acesso — middleware trial_active/active vs expirado → billing)*
+- [ ] **FRONT:** F29 *(cadastro + login produção — CPF explícito no login)*
+- [ ] **FRONT:** F36 *(menu Config no avatar — toggle notificações e-mail)*
+- [ ] **BACK:** B61 *(`notificacoes_email_ativas` + PATCH configurações)*
+- [ ] **BACK:** B62 *(e-mails transacionais — fila atividades + nota de prova; respeita toggle)*
+
+**Ordem 6b:** `B44 → B45 → B58 → B63` → `B59` → `F29 → F36` → `B61 → B62`
+
+---
+
+### #6 — Bloco 6c · RLS multi-tenant `⬜ 0/2`
+
+> **Obrigatório antes do Bloco 7 (PIX).**
+
+- [ ] **BACK:** B40 *(RLS policies Postgres — `user_id = auth.uid()`)*
+- [ ] **TEST:** T2 *(smoke isolamento — 2 contas não veem dados uma da outra)*
+
+**Ordem 6c:** `B40` → `T2`
+
+---
+
+### #6d — Orquestração sync + catálogo global (pré-mobile) `⬜ 0/6`
+
+> **Não decidido** — sugestão em `SCOPE-CLOUD` §5.4 · §6.5 · revisar **antes do #8**.
+
+- [ ] **PLAN:** B68a *(decidir matriz gatilho × robô — R1 full/incremental · R2 · R3)*
+- [ ] **PLAN:** B68b *(decidir TTLs — histórico 7d · calendário 7d · turmas 24h · auto 3h)*
+- [ ] **PLAN:** B68c *(decidir botão Sincronizar — incremental no clique; sync completo opcional no perfil)*
+- [ ] **BACK:** B68d *(schema global vs `user_id` — PPC, calendário, turmas_ofertadas; **B39** depende)*
+- [ ] **BACK:** B68e *(orquestrador — job global R2 cron; R3 no simulador; parar B66 pós-sync por CPF)*
+- [ ] **BACK:** B68f *(login rápido + botão sync incremental; histórico só se TTL)*
+
+**Ordem #6d:** `B68a → B68b → B68c` → `B68d` → `B68e → B68f`
+
+---
+
+### #7 — Bloco 7 · Assinatura PIX `⬜ 0/12`
+
+> **Só após 6c.** Preços TBD.
+
+- [ ] **PLAN:** B47 *(planos e preços — semestre/ano; trial 7d fechado 1×/CPF)*
+- [ ] **PLAN:** B48 *(gateway PIX — Mercado Pago, Asaas, etc.)*
+- [ ] **BACK:** B49 *(tabelas billing — `plans`, `subscriptions`, `payments`)*
+- [ ] **BACK:** B50 *(`POST /api/billing/checkout` — checkout PIX)*
+- [ ] **BACK:** B51 *(webhook — confirmação → `subscription.active`)*
+- [ ] **BACK:** B52 *(gate middleware — bloqueia trial_expired/pending/expired → PIX)*
+- [ ] **BACK:** B53 *(renovação — novo PIX + grace period TBD)*
+- [ ] **BACK:** B69 *(chaves gift — gerar 8 chars + resgate único + `POST /api/billing/redeem-key`)*
+- [ ] **BACK:** B70 *(painel dev API — `/api/dev/*` contas, chaves, promoções)*
+- [ ] **FRONT:** F31 *(cadastro + plano — após trial ou CPF já usado)*
+- [ ] **FRONT:** F32 *(tela PIX — QR + copia-e-cola + aguardando)*
+- [ ] **FRONT:** F33 *(renovação — assinatura expirada)*
+- [ ] **FRONT:** F34 *(minha assinatura — plano, validade, histórico)*
+- [ ] **FRONT:** F40 *(resgate chave plano — 8 chars em login/cadastro/`/planos`)*
+- [ ] **FRONT:** F41 *(painel dev `/dev` — contas, chaves, simular tempo)*
+- [ ] **LEGAL:** L1 *(termos + LGPD — política de privacidade)*
+- [ ] **BACK:** B71 *(endurecimento credenciais — **última pré-go-live**; ocultar senhas no `/dev`)*
+
+**Ordem Bloco 7:** `B47–B48` → `B49–B53` → `B69–B70` → `F31–F34` → `F40–F41` → `L1` → **`B71`**
+
+---
+
+### #8 — Bloco 8 · Mobile Expo Go `⬜ 0/10`
+
+> **Requer #6d + #7.** Mesmo backend Supabase.
+
+- [ ] **SETUP:** M1 *(projeto Expo TypeScript — pasta `mobile/`)*
+- [ ] **SETUP:** M2 *(Supabase client — env + auth no Expo)*
+- [ ] **FRONT:** M3 *(auth mobile — login + checagem assinatura)*
+- [ ] **FRONT:** M4 *(dashboard mobile — stats, entregas, cards)*
+- [ ] **FRONT:** M5 *(disciplinas — lista + detalhe)*
+- [ ] **FRONT:** M6 *(calendário — agenda mensal leitura)*
+- [ ] **FRONT:** M7 *(mapa PPC — grid estático)*
+- [ ] **SHARED:** M8 *(tipos compartilhados — `packages/` ou copy types)*
+- [ ] **TEST:** M9 *(Expo Go — fluxo Android/iOS)*
+- [ ] **FUTURE:** M10 *(EAS Build — lojas pós-MVP)*
+
+**Ordem Bloco 8:** `M1–M2` → `M3–M7` → `M8` → `M9` → `M10`
+
+---
+
+### #9 — Bloco 3 · Inteligência acadêmica `⬜ 0/11`
+
+> Depende de dados reais do Bloco 2.
+
+- [ ] **BACK:** B32 *(motor elegibilidade — histórico + pré-requisitos → pode cursar?)*
+- [ ] **BACK:** B33 *(choque de horários — API detecta sobreposição na grade)*
+- [ ] **BACK:** B34 *(persistir simulação — salvar/exportar grade montada)*
+- [ ] **FRONT:** F21 *(simulador elegível — filtro + drag-and-drop na grade)*
+- [ ] **FRONT:** F22 *(alerta choque — destaque visual de conflito)*
+- [ ] **FRONT:** F23 *(salvar simulação — botões salvar/exportar matrícula)*
+- [ ] **BACK:** B35 *(`GET /api/mapa/grafo` — nós e arestas para react-flow)*
+- [ ] **FRONT:** F20 *(grafo react-flow — zoom, pan, setas sólidas/pontilhadas)*
+- [ ] **BACK:** B36 *(alertas integralização — limiar por categoria de CH)*
+- [ ] **BACK:** B37 *(alertas calendário — datas acadêmicas próximas)*
+- [ ] **FRONT:** F24 *(alertas na UI — banners integralização + calendário)*
+
+**Ordem Bloco 3:** `B32–B34` → `F21–F23` → `B35` → `F20` → `B36–B37` → `F24`
+
+---
+
+### #10 — Bloco 4 · Polimento UX `⬜ 0/3`
+
+- [ ] **FRONT:** F25 *(loading skeletons — todas as telas)*
+- [ ] **FRONT:** F26 *(transições de página entre rotas)*
+- [ ] **FRONT:** F27 *(favicon + título na aba)*
+
+**Ordem Bloco 4:** `F25 → F26 → F27`
+
+---
+
+### #11 — Multi-PPC (Mecatrônica + Moda) `🔒 0/4`
+
+> **⛔ Só após #8** com Eng. Computação 100% funcional.
+
+- [ ] **PLAN:** PPC Eng. Mecatrônica (Divinópolis)
+- [ ] **PLAN:** PPC Design de Moda (Divinópolis)
+- [ ] **BACK:** indexar disciplinas + requisitos + metas CH (Meca + Moda)
+- [ ] **BACK/FRONT:** mapa/integralização por `curso_id` (cadastro grava curso no 6b)
+
+**Ordem #11:** `PLAN PPCs` → `indexar seeds` → `curso_id` → smoke por curso
+
+---
 
 ### Decisão — Integralização via histórico (jun/2026)
 
@@ -109,11 +383,10 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ### 1.4 API e Integração UI ↔ SQLite
 
-> **Progresso:** Bloco 1 ✅ (`49/49` — **B12d**/**F8g**/`refino pós-B30` alinhados jun/2026) · **Bloco 2a:** B27·B28·B65·B30·**B31·F18·F37·F38·B66** ✅ · **3F** fora do Bloco 1.  
-> **Polish jun/2026 (push `main`):** `04887c9` F38 · `5923e9c` dashboard · `75694c0` **B66** (robô calendário + painel dual-semestre).  
-> **Próximo:** **B67** turmas ofertadas.
+> **Progresso:** Bloco 1 ✅ (`49/49`) · **Bloco 2a** — ordem linear: `B24→B26` → `B27` → `B65` → `B28` → `B30` → `B31` → `F18` → `F37` → `F38` → `B66` `[x]` → **B67** `[x]` → **F19** `[@]` · **8/8 oficiais** até `F37`.
+> **Próximo:** polish **F19** `[@]` (2 itens front) · **Bloco 2b** (B54).
 
-Roadmap detalhado: ver **[Ordem oficial v3](#ordem-oficial-de-execução-v3)** e **[Checklist mestre](#checklist-mestre-ordem-de-execução)**. **Bloco 2a** — **8/8** ✅ · **B66** ✅. **Próximo:** **B67** turmas ofertadas. **#6d (B68-orq):** orquestração sync + global — **tasks abertas**, sugestão no escopo; decisão **só quando chegar lá**. **Bloco 2b** — fila worker.
+Roadmap detalhado: ver **[Roadmap #0→#11 no topo](#roadmap-detalhado--ordem-de-execução-0--11)** · [Ordem oficial v3](#ordem-oficial-de-execução-v3). **F19** `[@]` · **B67** `[x]`.
 
 ---
 
@@ -202,7 +475,7 @@ Estratégia: **fatias verticais** — backend primeiro, depois frontend.
 - Prioridade de matérias e tarefas (`useStoredPriorities`)
 - Ordenação de tarefas (`useTaskSortMode`)
 - Nota de recuperação por disciplina (`lib/recovery/storage.ts`)
-- `/simulador` (Montar Grade) — continua mock até Bloco 2.4
+- `/simulador` (Montar Grade) — **F19** `[@]` via API + sync **B67** `[x]`
 
 ---
 
@@ -219,7 +492,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 |-------|-------|------|----------------------|--------|
 | **#0** | 0 | Planejamento | — | ✅ |
 | **#1** | 1 | SQLite local (API + UI) | ✅ **Concluído** | 49/49 |
-| **#2** | 2a | Scraper dev (Playwright local) | ✅ **Concluído** | 8/8 |
+| **#2** | 2a | Scraper dev (Playwright local) | ✅ **8/8** · B67 `[x]` · **F19** `[@]` | 8/8 |
 | **#3** | 2b | Worker sync (servidor) | Depois de #2a · fila §6.3 `SCOPE-CLOUD` | 0/5 |
 | **#4** | 6a | Supabase + deploy global | Depois de #3 | 0/8 |
 | **#5** | 6b | Auth: CPF login, cadastro completo | Depois de #4 | 0/9 |
@@ -231,13 +504,13 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | **#10** | 4 | Polimento UX | Por último (antes de multi-PPC) | 0/3 |
 | **#11** | 9 | Multi-PPC (Mecatrônica, Moda) | **🔒 Só após #8** | 0/4 |
 
-> **Atalho:** [Checklist #1](#1--bloco-1--api--ui--sqlite-4949) · [#2–#3](#2-3--bloco-2--scraper-sigaa-detalhe) · [#6d](#6d--orquestração-sync--catálogo-global-pré-mobile) · [#4–#6](#4-6--bloco-6--cloud--supabase-detalhe) · [#7](#7--bloco-7--assinatura-pix-detalhe) · [#8](#8--bloco-8--mobile-expo-go-detalhe) · [#9](#9--bloco-3--inteligência-acadêmica-detalhe) · [#10](#10--bloco-4--polimento-ux-detalhe) · [#11](#11--expansão-multi-ppc-detalhe)
+> **Atalho:** [Roadmap detalhado topo](#roadmap-detalhado--ordem-de-execução-0--11) · [Checklist #1](#1--bloco-1--api--ui--sqlite-4949) · [#2–#3](#2-3--bloco-2--scraper-sigaa-detalhe) · [#6d](#6d--orquestração-sync--catálogo-global-pré-mobile) · [#4–#6](#4-6--bloco-6--cloud--supabase-detalhe) · [#7](#7--bloco-7--assinatura-pix-detalhe) · [#8](#8--bloco-8--mobile-expo-go-detalhe) · [#9](#9--bloco-3--inteligência-acadêmica-detalhe) · [#10](#10--bloco-4--polimento-ux-detalhe) · [#11](#11--expansão-multi-ppc-detalhe)
 
 ---
 
 ### #1 — Bloco 1 · API + UI ↔ SQLite `✅ 49/49`
 
-> Fatias verticais: **back → front** por etapa.
+> Fatias verticais: **back → front** por etapa. **Detalhes completos:** [Roadmap #1 no topo](#1--bloco-1--api--ui--sqlite-4949).
 
 #### Etapa 1 — Fundação ✅
 - [x] **BACK:**  B1 → B2 → B3 → B4 → B5
@@ -266,31 +539,33 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] **BACK:**  B19
 - [x] **FRONT:** F13 *(dashboard + `/calendario` via `useSchedule` + extras localStorage)*
 
-> **3F (Simulador de matrícula)** não faz parte do Bloco 1 — `/simulador` fica mock até **Bloco 2** (turmas ofertadas reais).
+> **3F (Simulador de matrícula)** — **F19** `[@]` via `GET /api/turmas-ofertadas` + **B67** `[x]` (`POST /api/sync/turmas`).
 
 ---
 
 ### #2 — Bloco 2a · Scraper SIGAA — dev `✅ 8/8`
 
-> **⚠️ Prioridade pós-Bloco 1:** validar Playwright com **semestre ativo** antes do Supabase. Dev local + SQLite.
+> **⚠️ Prioridade pós-Bloco 1:** validar Playwright com **semestre ativo** antes do Supabase. Dev local + SQLite.  
+> **Detalhes completos:** [Roadmap #2 no topo](#2--bloco-2a--scraper-sigaa--dev-88).
 
-- [x] **BACK:**  B24 → B25 → B26
-- [x] **BACK:**  B27 *(portal: semestre, RG, tarefas; CH portal auxiliar; apelidos auto)*
-- [x] **BACK:**  B65 *(sync automático 30 min + `sync.last_at`; manual sem rate limit — **dev**, ver [Apêndice B65](#apêndice--b65-sync-automático-dev-remover-antes-de-produção))*
-- [x] **BACK:**  B28 *(turma virtual: notas, faltas, grupo, tarefas; UI Ver grupo; nome do grupo; arredondamento nota final)*
-- [x] **BACK:**  B30 *(histórico escolar PDF — captura no menu, parser, `historico` + CH na integralização)*
-- [x] **BACK:**  B31 *(pipeline full/incremental, policies por etapa, login rápido, DB por CPF — commit `a7a02ac`, testes `bloco-2a-b31`)*
-- [x] **FRONT:** F18 *(erros reais no login; mock de falhas removido; hint 1º sync)*
-- [x] **FRONT:** F37 *(modal perfil, tutorial, /planos, dados conta + assinatura dev)*
+- [x] **BACK:** B24 → B25 → B26 *(auth: login Playwright `verTelaLogin.do` + cookies de sessão · B25 AES-256 “lembrar senha” no SQLite · B26 erros credencial inválida, timeout, SIGAA offline)*
+- [x] **BACK:** B27 *(portal: semestre, RG, tarefas; CH portal auxiliar; apelidos auto)*
+- [x] **BACK:** B65 *(sync automático 30 min + `sync.last_at`; manual sem rate limit — **dev**, ver [Apêndice B65](#apêndice--b65-sync-automático-dev-remover-antes-de-produção))*
+- [x] **BACK:** B28 *(turma virtual: notas, faltas, grupo, tarefas; UI Ver grupo; nome do grupo; arredondamento nota final)*
+- [x] **BACK:** B30 *(histórico escolar PDF — captura no menu, parser, `historico` + CH na integralização)*
+- [x] **BACK:** B31 *(pipeline full/incremental, policies por etapa, login rápido, DB por CPF — commit `a7a02ac`, testes `bloco-2a-b31`)*
+- [x] **FRONT:** F18 *(erros reais no login — credenciais inválidas, SIGAA offline, timeout API; mock de falhas removido; hint “primeiro acesso demora” no 1º sync bloqueante)*
+- [x] **FRONT:** F37 *(modal perfil, tutorial, `/planos`, dados conta + assinatura dev; último sync via **B65**)*
 - [x] **FRONT:** F38 *(sino in-app: tarefas/notas novas + lembretes 24h/1h; polish `04887c9` baseline pré-sync + nota obtida/máxima)*
-- [x] **BACK:**  B66 *(calendário acadêmico — robô isolado + UI painel dual-semestre)*
-- [ ] **BACK:**  B67 *(turmas ofertadas — pós-B66)*
+- [x] **BACK:** B66 *(calendário acadêmico — robô isolado `POST /api/sync/calendario` + UI painel dual-semestre)*
+- [x] **BACK:** B67 *(turmas ofertadas — Ensino → Consultar Turmas do Próx. Semestre; Atendida/Pendente; `curso` vs `optativas` PPC; `scheduleBlocker` ⛔; `POST /api/sync/turmas` + `GET /api/turmas-ofertadas`)*
+- [@] **FRONT:** F19 *(`/simulador` via API — montar grade com turmas ofertadas reais; coreq/conflitos; export JPEG; popup trancado; **2 polish UX pendentes**)*
 
-**Ordem 2a (8 itens oficiais):** `B24–B26` → `B27` · `B65` → `B28` → `B30` → `B31` → `F18` · `F37` `[x]`
+**Ordem 2a (execução linear):** `B24→B26` → `B27` → `B65` → `B28` → `B30` → `B31` → `F18` → `F37` → `F38` → `B66` → `B67` → `F19`
 
-**Extras 2a (não contam no 8/8):** `F38` `[x]` · modulação só no dashboard · fix mapa/histórico/notificações (jun/2026) · polish `04887c9`/`5923e9c` documentado
+**Contagem 8/8:** só os 8 primeiros grupos até **`F37`** · **`F38` · `B66` · `B67` · `F19`** = extras (fora do 8/8) · polish `04887c9`/`5923e9c` · modulação dashboard · fix mapa/histórico/notificações (jun/2026)
 
-**Ordem 2.4 extra (pós-B31):** `B66` → `B67` → `F19`
+**Próximo:** polish **F19** `[@]` (2 itens front) · **#6d:** `B68-orq` fora desta fila — ver [#6d](#6d--orquestração-sync--catálogo-global-pré-mobile)
 
 ---
 
@@ -432,7 +707,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 |---------|-------|--------|-----------|
 | #0 | 0 — Planejamento | ✅ | Concluído |
 | **#1** | **1 — SQLite** | ✅ **Concluído** | 49 / 49 |
-| **#2** | **2a — Scraper dev** | ✅ **Concluído** | 8 / 8 |
+| **#2** | **2a — Scraper dev** | ✅ **8/8** · B67 `[x]` · **F19** `[@]` | 8 / 8 |
 | **#3** | **2b — Worker sync** | ⬜ | 0 / 5 |
 | #4 | 6a — Cloud deploy | ⬜ *(após #3)* | 0 / 8 |
 | #5 | 6b — Cloud auth | ⬜ | 0 / 9 |
@@ -478,7 +753,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | **3C** | Integralização | CH por categoria + horas manuais ✅ |
 | **3D** | Mapa | Grade obrigatória PPC (1–10) + status via API (B18 · F12 ✅); optativas fora do mapa |
 | **3E** | Grade semanal | Horários do semestre via `GET /api/schedule` + UI (B19 · F13 ✅) |
-| **3F** | Simulador matrícula | **Não é Bloco 1** — `/simulador` permanece mock até Bloco 2 (turmas reais) |
+| **3F** | Simulador matrícula | **F19** `[@]` API real · **B67** `[x]` turmas ofertadas |
 
 #### Etapa 1 — Fundação (só backend) ✅
 
@@ -518,7 +793,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 #### Etapa 3 — Demais telas (back → front)
 
-> **3C Integralização:** ✅ · **3D Mapa:** ✅ · **3E Grade:** ✅ · **3F:** fora do Bloco 1 (mock)
+> **3C Integralização:** ✅ · **3D Mapa:** ✅ · **3E Grade:** ✅ · **3F Simulador:** F19 `[@]` · B67 `[x]`
 
 ##### 3A — Disciplinas
 
@@ -596,11 +871,12 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 ##### 3F — Simulador de matrícula
 
-> **Resumo:** `/simulador` (Montar Grade) **fica mock** até o Bloco 2.4 trazer turmas ofertadas reais.
+> **Resumo:** `/simulador` (Montar Grade) — **F19** `[@]` via `GET /api/turmas-ofertadas` + sync **B67** `[x]` (`POST /api/sync/turmas`).
 
 | # | Tipo | Task | Resumo | Status |
 |---|------|------|--------|--------|
-| — | — | Fora do Bloco 1 | Mock até scraper B67 + front F19 | — |
+| B67 | Back | Turmas ofertadas | Ensino → Consultar Turmas; Atendida/Pendente; curso/optativas PPC; `scheduleBlocker` | [x] |
+| F19 | Front | `/simulador` via API | Montar grade real; coreq/conflitos; export JPEG; **2 polish UX pendentes** | [@] |
 
 **Ordem sugerida Etapa 3:** `B9–B12 → F6–F8` → `B13–B15 → F9–F10` → `B16–B17 → F11` → `B18 → F12` → `B19 → F13`
 
@@ -631,17 +907,15 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | B28 | Back | Scraper turma virtual | Notas, faltas, tarefas, grupo e nome do grupo por matéria | 2.3 | [x] |
 | B30 | Back | Histórico escolar | Ensino → Emitir Histórico (PDF) → `historico` + CH resumo | 2.4 | [x] |
 | B31 | Back | Integrar no `runSync` | Pipeline full/incremental; policies; login rápido; DB/CPF | 2.x | [x] |
-| B66 | Back | Calendário acadêmico | Robô isolado + painel dual-semestre | 2.4 | [x] |
-| B67 | Back | Turmas ofertadas | Ensino → Consultar Turmas (próximo semestre) | 2.4 | [ ] |
-| B68-orq | Plan/Back | Orquestração sync + global | Sugestão §5.4/§6.5; decisão na #6d (**B68a–f**) | 2c | [ ] |
-| F18 | Front | Erros reais no login | Erros API/SIGAA; hint 1º sync bloqueante | 2.1 | [x] |
-| F37 | Front | Menu perfil (avatar) | Modal perfil, tutorial, /planos, conta + assinatura dev | 2.2 | [x] |
+| F18 | Front | Erros reais no login | Credenciais inválidas, SIGAA offline, timeout API; mock removido; hint 1º sync bloqueante | 2.1 | [x] |
+| F37 | Front | Menu perfil (avatar) | Modal perfil, tutorial, `/planos`, conta + assinatura dev; último sync (**B65**) | 2.2 | [x] |
 | F38 | Front | Sino notificações in-app | Tarefas/notas novas pós-sync; lembretes 24h/1h; baseline pré-sync; nota obtida/máxima | 2.x | [x] |
-| F19 | Front | `/simulador` via API | Montar grade com turmas ofertadas reais (**depende B67**) | 2.4 | [ ] |
+| B66 | Back | Calendário acadêmico | Robô isolado `POST /api/sync/calendario` + painel dual-semestre | 2.4 | [x] |
+| B67 | Back | Turmas ofertadas | Ensino → Consultar Turmas; Atendida/Pendente; curso/optativas PPC; `scheduleBlocker` | 2.4 | [x] |
+| F19 | Front | `/simulador` via API | Montar grade real; coreq/conflitos; export JPEG; **2 polish UX pendentes** | 2.4 | [@] |
+| B68-orq | Plan/Back | Orquestração sync + global | Sugestão §5.4/§6.5; decisão na #6d (**B68a–f**) — **fora da ordem #2** | 2c | [ ] |
 
-**Ordem 2a (#2):** `B24 → B25 → B26` → `B27` · `B65` → `B28` → `B30` → `B31` → `F18` · `F37` `[x]`
-
-**Ordem 2.4 extra:** `B66` → `B67` → **`B68-orq` (#6d, quando chegar)** → `F19` *(fora do caminho crítico B30→B31)*
+**Ordem 2a (#2, linear):** `B24→B26` → `B27` → `B65` → `B28` → `B30` → `B31` → `F18` → `F37` → `F38` → `B66` → `B67` → `F19` · **8/8** até `F37` · **`B68-orq`** = [#6d](#6d--orquestração-sync--catálogo-global-pré-mobile)
 
 > **Nota:** **B29/B57/F35** (materiais SIGAA → nuvem) **cancelados** jun/2026 — ver [Apêndice](#apêndice--escopo-futuro-fora-da-ordem-011).
 
@@ -657,7 +931,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 **Ordem 2b (#3):** `B54 → B55 → B56` → `O3` → `F19`
 
-> Checklist: **[#2](#2--bloco-2a--scraper-sigaa--dev-78)** e **[#3](#3--bloco-2b--scraper-sigaa--worker-05)** no [Checklist mestre](#checklist-mestre-ordem-de-execução).
+> Checklist: **[#2](#2--bloco-2a--scraper-sigaa--dev-88)** e **[#3](#3--bloco-2b--scraper-sigaa--worker-05)** no [Checklist mestre](#checklist-mestre-ordem-de-execução).
 
 ---
 
@@ -841,7 +1115,8 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
       ↓
 #1  Bloco 1   SQLite local (3E)               ✅
       ↓
-#2  Bloco 2a  Scraper dev + sync REAL          ✅ 8/8 — F37 aprovada jun/2026
+#2  Bloco 2a  Scraper dev + sync REAL          ✅ 8/8 · B67 [x] · F19 [@]
+      ordem: B24→B26→B27→B65→B28→B30→B31→F18→F37→F38→B66→B67→F19
 #3  Bloco 2b  Worker + fila (§6.3 SCOPE-CLOUD)
       ↓
 #4  Bloco 6a  Supabase + deploy global       (após sync validado)
@@ -876,7 +1151,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 ## Fase 2: Motor de Scraping (SIGAA)
 
-> **Resumo:** Playwright automatiza login e extração de dados do SIGAA (portal + turmas). Corresponde ao **Bloco 2** (B24–B31, F18–F19).
+> **Resumo:** Playwright automatiza login e extração de dados do SIGAA (portal + turmas). **Ordem 2a:** `B24→B26` → `B27` → `B65` → `B28` → `B30` → `B31` → `F18` → `F37` → `F38` → `B66` → `B67` → `F19` · **8/8** até `F37`.
 
 ### 2.1 Autenticação
 - [x] Implementar login no SIGAA via Playwright (POST para `verTelaLogin.do`) — B24
@@ -917,7 +1192,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 ### 2.4 Scraper: Funcionalidades Adicionais
 
-> **B30** = caminho crítico do sync (última etapa do robô). **B66** e **B67** = robôs **separados** (`POST /api/sync/calendario` / futuro turmas) — **não** entram em `execute-live-sync-pipeline` nem em `runSync`; o front dispara B66 em background após sync principal (`useSync`).
+> **B30** = caminho crítico do sync (última etapa do robô). **B66** e **B67** = robôs **separados** (`POST /api/sync/calendario` · `POST /api/sync/turmas`) — **não** entram em `execute-live-sync-pipeline` nem em `runSync`; o front dispara B66 em background após sync principal (`useSync`); **B67** sob demanda no `/simulador` (**F19**).
 
 #### B30 — Histórico escolar `[x]`
 - [x] Parser PDF → `HistoricoSnapshot` JSON (`pdf-parse` v2 / `PDFParse`)
@@ -934,7 +1209,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] SQLite isolado por CPF (`.data/users/{cpf}/`)
 - [x] Testes `bloco-2a-b31.test.ts` · commit `a7a02ac`
 
-**Ordem 2.4 extra (pós-B31):** `B66` → `B67` → **`B68-orq` (#6d)** → `F19`
+**Ordem linear 2a (continuação pós-B31):** `F18` → `F37` → `F38` → `B66` → `B67` → `F19` · **`B68-orq`** = [#6d](#6d--orquestração-sync--catálogo-global-pré-mobile) (fora do #2)
 
 #### B68-orq — Orquestração sync + catálogo global `[ ]`
 
@@ -957,9 +1232,12 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Grade semanal removida de `/calendario` (mantida no dashboard)
 - [x] Validação live no SIGAA
 
-#### B67 — Turmas ofertadas `[ ]`
-- [ ] Scraper Ensino → Consultar Turmas (próximo semestre)
-- [ ] Persistir ofertas para o simulador (**F19**)
+#### B67 — Turmas ofertadas `[x]`
+- [x] Scraper Ensino → **Consultar Turmas do Próx. Semestre** → página **Solicitação de Abertura de Turma** (lista CEFET)
+- [x] Filtrar situações **Atendida** e **Pendente** (ignora Cancelada/outras)
+- [x] **Pendente** ou horário vazio → `horarioIndefinido` + `scheduleBlocker` (⛔ no **F19**)
+- [x] Separar **`curso`** vs **`optativas`** via PPC (`classifyTurmaCategoria`)
+- [x] Persistir em `turmas_ofertadas` + `GET /api/turmas-ofertadas` (`curso` · `optativas` · `courses`)
 
 ---
 
@@ -1116,8 +1394,8 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 ### 5.3 Simulador de Matrícula (Pré-horário)
 - [x] Página dedicada apenas ao simulador de horários/matrícula (`/simulador` — Montar Grade)
-- [ ] Buscar turmas ofertadas do SIGAA (scraper)
-- [ ] Filtrar matérias elegíveis (cruza com histórico + pré-requisitos atendidos)
+- [x] Buscar turmas ofertadas do SIGAA (scraper **B67** `[x]`)
+- [@] Montar grade via API — **F19** `[@]` (`GET /api/turmas-ofertadas`, coreq, conflitos, export JPEG; **2 polish UX pendentes**)
 - [x] Lista de matérias com ícones: Desbloqueada / Trancada (template mock)
 - [x] Alocar matéria desbloqueada em horário vazio da grade (clique — template)
 - [x] Clique em aula da grade abre modal com detalhes e opção de remover
@@ -1320,7 +1598,7 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 8. **Próximo passo do roadmap:** informe **depois do push** (tasks em `[@]` ou `[x]`). Com commits locais só `[%]`, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v3](#ordem-oficial-de-execução-v3) — **Bloco 2 (sync) antes do Bloco 6 (Supabase)**. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy **após** sync validado; RLS **só na 6c** (antes do PIX).
-11. **Próximo passo:** **B67** turmas ofertadas → **Bloco 2b** (B54–B56). **#6d (B68-orq):** orquestração sync — **aberto**; sugestão no escopo; você decide ao chegar lá. Gift/dev/simulação mapa: [Apêndice gift/dev](#apêndice--chaves-gift-e-painel-dev-jun2026). **B71** = última pré-go-live.
+11. **Próximo passo:** polish **F19** `[@]` (2 itens front amanhã) · **Bloco 2b** (B54–B56). **B67** `[x]`. **#6d (B68-orq):** aberto. Gift/dev: [Apêndice gift/dev](#apêndice--chaves-gift-e-painel-dev-jun2026). **B71** = última pré-go-live.
 12. **Integralização:** CH concluída = `historico` + PPC (`computeChDoneFromDisciplinas`); portal SIGAA só % / total currículo; matérias já passadas = **B30** ✅.
 13. **Gift + painel dev + simulação mapa:** escopo em `SCOPE.md` §2.1.1, §6.1.1, §10 — tasks **B68–B71**, **F39–F41**, **F40** — [Apêndice gift/dev](#apêndice--chaves-gift-e-painel-dev-jun2026). **B71** = última task (cifragem plena / ocultar senhas no painel).
 14. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial. **Polish em task `[x]`** (ex.: F38, dashboard) também exige nota no TASKS no mesmo ciclo do push.

@@ -102,6 +102,7 @@ export function DashboardView() {
         title={greeting}
         highlight={data.aluno.nome}
         subtitle={`${data.aluno.curso} · CEFET-MG Divinópolis`}
+        tutorial="dashboard"
       />
 
       <ModuleGrid

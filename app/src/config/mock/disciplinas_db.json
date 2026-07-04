@@ -287,6 +287,11 @@
         "disciplina_id": "05/1",
         "requisito_id": "04/1",
         "tipo": "pre"
+      },
+      {
+        "disciplina_id": "05/1",
+        "requisito_id": "05/2",
+        "tipo": "co"
       }
     ]
   },
@@ -487,7 +492,7 @@
       {
         "disciplina_id": "07/1",
         "requisito_id": "05/1",
-        "tipo": "co"
+        "tipo": "pre"
       }
     ]
   },
@@ -602,7 +607,7 @@
       {
         "disciplina_id": "03/5",
         "requisito_id": "01/2",
-        "tipo": "co"
+        "tipo": "pre"
       }
     ]
   },
@@ -877,7 +882,7 @@
       },
       {
         "disciplina_id": "07/4",
-        "requisito_id": "08/4",
+        "requisito_id": "11/4",
         "tipo": "co"
       }
     ]

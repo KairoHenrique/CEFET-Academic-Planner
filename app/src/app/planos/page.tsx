@@ -9,6 +9,7 @@ export default function PlanosPage() {
         eyebrow="Assinatura"
         title="Planos"
         subtitle="Escolha o período de acesso. Pagamento via PIX em breve."
+        tutorial="planos"
       />
 
       <div className="planos-grid">

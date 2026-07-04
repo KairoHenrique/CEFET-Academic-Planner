@@ -553,7 +553,7 @@ describe("B28 — persistTurmaVirtualSnapshot", () => {
       "../src/lib/scraper/portal-discente/mock-portal-snapshot"
     );
 
-    persistPortalSnapshot(buildMockPortalSnapshot("12345678901"));
+    await persistPortalSnapshot(buildMockPortalSnapshot("12345678901"));
   });
 
   test("persiste notas, faltas e grupo da turma virtual", async () => {

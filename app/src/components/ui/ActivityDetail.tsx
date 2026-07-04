@@ -84,24 +84,28 @@ export function ScheduleDetailContent({
   onRemove,
   simulated,
 }: ScheduleDetailContentProps) {
+  const apelido = slot.name;
+  const officialName = slot.displayName ?? slot.courseName;
+  const subjectTitle =
+    officialName && officialName.trim() !== apelido.trim() ? officialName : apelido;
+
   return (
     <>
       <div className="detail-meta-row">
         <div className="detail-meta-badges">
-          <span className="badge gold">{slot.code}</span>
+          {simulated ? (
+            <span className="course-node-code detail-apelido">{apelido}</span>
+          ) : (
+            <span className="badge gold">{apelido}</span>
+          )}
           {simulated && <span className="badge info">Simulado</span>}
         </div>
       </div>
 
       <p className="detail-subject">
         <span className="subject-dot" style={{ background: slot.color }} />
-        {slot.displayName && slot.displayName !== slot.name
-          ? slot.displayName
-          : slot.name}
+        {subjectTitle}
       </p>
-      {slot.displayName && slot.displayName !== slot.name && (
-        <p className="detail-description">{slot.name}</p>
-      )}
 
       <ul className="detail-facts">
         <li><strong>Dia:</strong> {day}</li>

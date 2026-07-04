@@ -37,7 +37,7 @@ export function SubjectList() {
   };
 
   return (
-    <div className="subject-list">
+    <div className="subject-list" data-tutorial-id="tutorial-discipline-list">
       <div className="page-toolbar subject-list-toolbar">
         <div className="search-input-wrap">
           <Icon name="search" size={16} />

@@ -124,6 +124,30 @@ export interface CalendarioAcademicoRow {
   semestre: string | null;
 }
 
+export interface TurmaOfertadaRow {
+  id: number;
+  turma_sigaa_id: string;
+  sigaa_componente: string | null;
+  codigo_disciplina: string;
+  nome: string;
+  turma_codigo: string | null;
+  semestre: string;
+  codigo_horario: string | null;
+  horario_exibicao: string | null;
+  local: string | null;
+  professor: string | null;
+  vagas: number | null;
+  vagas_ocupadas: number | null;
+  carga_horaria: number | null;
+  situacao: string;
+  tipo_turma: string | null;
+  departamento: string | null;
+  horario_indefinido: number;
+  categoria: string | null;
+  curso_id: string | null;
+  synced_at: string | null;
+}
+
 export type EventoCalendarioRecorrencia = "none" | "daily" | "weekly";
 
 export interface EventoCalendarioRow {

@@ -14,10 +14,11 @@ import {
   buildPreRequisitoMap,
   countStatusTotals,
   mergeDisciplinaSets,
+  normalizeDisciplinaCode,
   resolveCourseMapStatusResult,
 } from "@/lib/mapa/course-status";
 import { normalizeCefetCh } from "@/lib/disciplinas/cefet-ch";
-import { suggestDisciplineShortLabel } from "@/lib/disciplinas/subject-display-name";
+import { buildDisciplineShortLabelRegistry } from "@/lib/disciplinas/subject-display-name";
 import { computeChDoneFromDisciplinas } from "@/lib/integralizacao/compute-ch-from-disciplinas";
 import { getChCatalog } from "@/lib/integralizacao/ch-catalog";
 import { mapDisciplineTipoToChType } from "@/lib/integralizacao/map-discipline-tipo-to-ch";
@@ -70,6 +71,12 @@ function buildPeriods(
   allDisciplinas: DisciplinaRow[]
 ): CourseMapPeriod[] {
   const periods = [...grouped.keys()].sort((a, b) => a - b);
+  const shortLabelRegistry = buildDisciplineShortLabelRegistry(
+    allDisciplinas.map((disciplina) => ({
+      code: disciplina.codigo,
+      name: disciplina.nome,
+    }))
+  );
 
   return periods.map((period) => ({
     period,
@@ -86,7 +93,10 @@ function buildPeriods(
 
       return {
         code: disciplina.codigo,
-        shortLabel: suggestDisciplineShortLabel(disciplina.nome),
+        shortLabel:
+          shortLabelRegistry.get(
+            normalizeDisciplinaCode(disciplina.codigo)
+          ) ?? disciplina.codigo,
         name: disciplina.nome,
         ch: normalizeCefetCh(disciplina.carga_horaria ?? 0),
         type: disciplina.tipo,
