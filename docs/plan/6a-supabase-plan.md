@@ -204,7 +204,7 @@ PLAN (este doc) ✅
   → B41  seed PPC global ✅
   → B42  client Supabase + adapter PG ✅
   → B43  migrar APIs principais ✅
-  → O1   deploy Cloudflare + cron ping
+  → O1   deploy Cloudflare + cron ping [%]
   → O2   prod sem .db local
   → T1   smoke: URL abre, seed carrega
 ```
@@ -220,6 +220,4 @@ Depois: **6b** (auth CPF) · **6c** (RLS) · **#6d** B68d–f (orquestração + 
 3. ~~Confirmar MVP **1 projeto**.~~ ✅
 4. ~~**B39** schema + `npm run db:migrate`.~~ ✅
 
-**Próximo:** **B41** — seed PPC global no Postgres.
-
-*SQLite local continua até **B43** migrar APIs.*
+**Próximo:** **O2** — prod sem `.db` local · runbook [`o1-cloudflare-deploy.md`](./o1-cloudflare-deploy.md).
