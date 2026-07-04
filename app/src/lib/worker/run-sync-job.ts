@@ -8,6 +8,7 @@ import type {
   WorkerJobRequest,
   WorkerJobResult,
 } from "@/lib/worker/job-types";
+import { resolveWorkerJobPassword } from "@/lib/worker/resolve-worker-password";
 import type { WorkerRuntimeState } from "@/lib/worker/worker-runtime-state";
 
 function mapJobError(error: unknown): WorkerJobFailure["error"] {
@@ -62,6 +63,7 @@ export async function runWorkerSyncJob(
   runtime.beginJob(request.jobId);
 
   try {
+    const password = resolveWorkerJobPassword(request);
     const pipeline = await slot.run(() =>
       withTimeout(
         runWithUserDb(request.username, () => {
@@ -69,7 +71,7 @@ export async function runWorkerSyncJob(
           return runSync(
             {
               username: request.username,
-              password: request.password,
+              password,
               savePassword: request.savePassword,
               mode: request.mode,
             },

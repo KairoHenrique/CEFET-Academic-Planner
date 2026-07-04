@@ -12,18 +12,32 @@ const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "planner-b55-"));
 
 process.env.PLANNER_DATA_ROOT = tmpDir;
 process.env.SYNC_QUEUE_DB_PATH = path.join(tmpDir, "sync-queue.db");
+process.env.DB_PATH = path.join(tmpDir, "user.db");
 process.env.CREDENTIALS_ENCRYPTION_KEY = TEST_KEY;
 process.env.SIGAA_SCRAPER_MOCK = "true";
 process.env.SYNC_QUEUE_DISPATCH = "inline";
 delete process.env.SIGAA_WORKER_URL;
 delete process.env.WORKER_SHARED_SECRET;
 
+async function withUserDb<T>(username: string, fn: () => T): Promise<T> {
+  const { ensureDbReady } = await import("../src/lib/db/bootstrap");
+  const { runWithUserDb } = await import("../src/lib/db/connection-manager");
+  return runWithUserDb(username, () => {
+    ensureDbReady();
+    return fn();
+  });
+}
+
 after(async () => {
   const { resetSyncQueueDatabaseForTests } = await import(
     "../src/lib/sync-queue/sync-queue-store"
   );
   resetSyncQueueDatabaseForTests();
-  fs.rmSync(tmpDir, { recursive: true, force: true });
+  try {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  } catch {
+    // ignore EPERM on Windows quando SQLite ainda está aberto
+  }
 });
 
 describe("B55 — validate enqueue", () => {
@@ -80,18 +94,22 @@ describe("B55 — sync queue store", () => {
 
     resetSyncQueueDatabaseForTests();
 
-    const normal = enqueueSyncJob({
-      username: "111",
-      password: "a",
-      lane: "normal",
-      trigger: "auto",
-    });
-    const priority = enqueueSyncJob({
-      username: "222",
-      password: "b",
-      lane: "priority",
-      trigger: "first_login",
-    });
+    const normal = await withUserDb("111", () =>
+      enqueueSyncJob({
+        username: "111",
+        password: "a",
+        lane: "normal",
+        trigger: "auto",
+      })
+    );
+    const priority = await withUserDb("222", () =>
+      enqueueSyncJob({
+        username: "222",
+        password: "b",
+        lane: "priority",
+        trigger: "first_login",
+      })
+    );
     const { getSyncQueueJobView } = await import(
       "../src/lib/sync-queue/to-sync-queue-job-view"
     );
@@ -197,18 +215,20 @@ describe("B55 — dispatcher", () => {
       steps: [{ label: "mock", progress: 100 }],
     }));
 
-    const { job } = enqueueSyncJob({
-      username: "55566677788",
-      password: "mock-pass",
-      lane: "normal",
-      trigger: "auto",
-      mode: "incremental",
-    });
+    const result = await withUserDb("55566677788", () =>
+      enqueueSyncJob({
+        username: "55566677788",
+        password: "mock-pass",
+        lane: "normal",
+        trigger: "auto",
+        mode: "incremental",
+      })
+    );
 
     kickSyncQueueDispatcher();
     await awaitSyncQueueDispatcherIdle();
 
-    const record = findSyncJobById(job.jobId);
+    const record = findSyncJobById(result.job.jobId);
     assert.ok(record);
     assert.equal(record.status, "completed");
     assert.equal(record.passwordEnc, "");
@@ -230,12 +250,14 @@ describe("B55 — job view", () => {
 
     resetSyncQueueDatabaseForTests();
 
-    const { job } = enqueueSyncJob({
-      username: "999",
-      password: "y",
-      lane: "normal",
-      trigger: "auto",
-    });
+    const { job } = await withUserDb("999", () =>
+      enqueueSyncJob({
+        username: "999",
+        password: "y",
+        lane: "normal",
+        trigger: "auto",
+      })
+    );
 
     const view = getSyncQueueJobView(job.jobId);
     assert.equal(view.jobId, job.jobId);

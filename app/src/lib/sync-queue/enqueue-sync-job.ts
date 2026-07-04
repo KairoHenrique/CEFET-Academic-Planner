@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { ApiError } from "@/lib/api/errors";
 import { sealQueuePassword } from "@/lib/sync-queue/queue-credential-seal";
+import { resolveSyncQueuePassword } from "@/lib/sync-queue/resolve-sync-queue-credentials";
 import {
   findActiveJobByIdempotencyKey,
   findSyncJobById,
@@ -11,25 +12,59 @@ import { toSyncQueueJobView } from "@/lib/sync-queue/to-sync-queue-job-view";
 import type {
   EnqueueSyncJobInput,
   EnqueueSyncJobResult,
+  SyncQueueLane,
 } from "@/lib/sync-queue/types";
-import { SYNC_QUEUE_MANUAL_COOLDOWN_MS } from "@/lib/sync-queue/types";
+import { getSyncLastAt } from "@/lib/sync/sync-preferences";
+import {
+  isAutoSyncEligible,
+  isManualSyncEligible,
+  msUntilAutoSyncEligible,
+  msUntilManualSyncEligible,
+} from "@/lib/sync/sync-cooldown-policy";
 
-function assertManualCooldown(username: string): void {
+function resolveLane(input: EnqueueSyncJobInput): SyncQueueLane {
+  if (input.lane) return input.lane;
+  return input.trigger === "first_login" ? "priority" : "normal";
+}
+
+function assertManualCooldown(username: string, skipCooldown?: boolean): void {
+  if (skipCooldown) return;
+
   const lastAt = getLatestManualEnqueueAt(username);
-  if (!lastAt) return;
+  const waitMs = msUntilManualSyncEligible(lastAt);
+  if (waitMs <= 0) return;
 
-  const elapsed = Date.now() - Date.parse(lastAt);
-  if (!Number.isFinite(elapsed)) return;
+  throw new ApiError(
+    "RATE_LIMITED",
+    `Aguarde ${Math.ceil(waitMs / 1000)}s antes de enfileirar outro sync manual.`,
+    429
+  );
+}
 
-  if (elapsed < SYNC_QUEUE_MANUAL_COOLDOWN_MS) {
-    const waitSeconds = Math.ceil(
-      (SYNC_QUEUE_MANUAL_COOLDOWN_MS - elapsed) / 1000
-    );
-    throw new ApiError(
-      "RATE_LIMITED",
-      `Aguarde ${waitSeconds}s antes de enfileirar outro sync manual.`,
-      429
-    );
+function assertAutoCooldown(skipCooldown?: boolean): void {
+  if (skipCooldown) return;
+
+  const lastAt = getSyncLastAt();
+  if (isAutoSyncEligible(lastAt)) return;
+
+  const waitMs = msUntilAutoSyncEligible(lastAt);
+  throw new ApiError(
+    "RATE_LIMITED",
+    `Auto-sync disponível em ${Math.ceil(waitMs / 1000)}s.`,
+    429
+  );
+}
+
+function assertTriggerCooldown(input: EnqueueSyncJobInput): void {
+  if (input.skipCooldown || input.trigger === "dev") return;
+
+  if (input.trigger === "manual") {
+    assertManualCooldown(input.username, input.skipCooldown);
+    return;
+  }
+
+  if (input.trigger === "auto") {
+    assertAutoCooldown(input.skipCooldown);
   }
 }
 
@@ -45,24 +80,28 @@ export function enqueueSyncJob(input: EnqueueSyncJobInput): EnqueueSyncJobResult
     }
   }
 
-  if (input.trigger === "manual") {
-    assertManualCooldown(input.username);
-  }
+  assertTriggerCooldown(input);
+
+  const password = resolveSyncQueuePassword({
+    username: input.username,
+    password: input.password,
+  });
 
   const now = new Date().toISOString();
   const jobId = randomUUID();
   const mode = input.mode ?? "full";
+  const lane = resolveLane(input);
 
   insertSyncJob({
     id: jobId,
-    username: input.username,
-    lane: input.lane,
-    trigger: input.trigger,
+    username: input.username.trim(),
+    lane,
+    trigger: input.trigger === "dev" ? "manual" : input.trigger,
     mode,
     status: "queued",
     savePassword: input.savePassword ? 1 : 0,
     idempotencyKey,
-    passwordEnc: sealQueuePassword(input.password),
+    passwordEnc: sealQueuePassword(password),
     createdAt: now,
     startedAt: null,
     finishedAt: null,

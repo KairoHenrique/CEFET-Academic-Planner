@@ -14,11 +14,15 @@ export function parseWorkerJobRequest(body: unknown): WorkerJobRequest {
   const username =
     typeof record.username === "string" ? record.username.trim() : "";
   const password =
-    typeof record.password === "string" ? record.password : "";
+    typeof record.password === "string" ? record.password : undefined;
+  const passwordEnc =
+    typeof record.passwordEnc === "string" ? record.passwordEnc.trim() : undefined;
 
   if (!jobId) throw validationError("Campo jobId é obrigatório.");
   if (!username) throw validationError("Campo username é obrigatório.");
-  if (!password) throw validationError("Campo password é obrigatório.");
+  if (!password?.length && !passwordEnc) {
+    throw validationError("Informe passwordEnc (preferido) ou password.");
+  }
 
   const robot = record.robot === "r1" ? "r1" : null;
   if (!robot) {
@@ -35,6 +39,7 @@ export function parseWorkerJobRequest(body: unknown): WorkerJobRequest {
     robot,
     username,
     password,
+    passwordEnc,
     mode,
     savePassword: record.savePassword === true,
   };
