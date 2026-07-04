@@ -11,6 +11,13 @@ function loadDatabaseUrl(): string {
       "DATABASE_URL ausente. Defina em app/.env.local ou exporte no shell."
     );
   }
+  if (!/^postgres(ql)?:\/\//i.test(url)) {
+    throw new Error(
+      "DATABASE_URL deve ser a URI PostgreSQL completa (postgresql://usuario:senha@host:5432/postgres). " +
+        "Supabase: Connect → Session pooler (Windows/IPv4) — copie host e user exatos (ex.: aws-1-REGION, postgres.REF). " +
+        "Não cole só a senha do banco."
+    );
+  }
   return url;
 }
 

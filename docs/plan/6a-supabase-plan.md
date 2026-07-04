@@ -118,6 +118,8 @@ Copiar `app/.env.example` → `app/.env.local`. Novas chaves Supabase (6a):
 | `SUPABASE_SERVICE_ROLE_KEY` | **Só** API Routes / worker admin | `.env.local` | **Production only** — nunca Preview público se possível |
 | `DATABASE_URL` | Migrations / scripts **B39** | `.env.local` | CI ou local only |
 
+**`DATABASE_URL` (Windows / free tier):** use **Connect → Session pooler** (porta **5432**, user `postgres.[project-ref]`). Direct (`db.[ref].supabase.co`) costuma ser **só IPv6** → `getaddrinfo ENOENT`. O host do pooler pode ser **`aws-1-`** (não assuma `aws-0-`) — copie do dashboard do projeto.
+
 **Manter do Bloco 2b (worker/fila):**
 
 | Variável | Notas 6a |
@@ -182,14 +184,15 @@ Enquanto isso: `SYNC_QUEUE_DISPATCH=inline` no preview **não** é ideal em serv
 
 ---
 
-## 9. Critérios — PLAN concluído → iniciar B39
+## 9. Critérios — PLAN concluído → B39
 
 - [x] Este documento revisado pelo stakeholder
 - [x] Projeto Supabase **Acme-Hub-dev** criado (região São Paulo)
 - [x] Chaves anotadas em local seguro + `app/.env.local`
 - [x] MVP **1 projeto** dev confirmado
+- [x] **B39** — schema aplicado (`npm run db:migrate` no Acme-Hub-dev)
 
-**Próxima task:** **B39** — schema Postgres *(aguardando início explícito)*.
+**Próxima task:** **B41** — seed PPC global (EngComp v3).
 
 ---
 
@@ -197,7 +200,7 @@ Enquanto isso: `SYNC_QUEUE_DISPATCH=inline` no preview **não** é ideal em serv
 
 ```
 PLAN (este doc) ✅
-  → B39  schema Postgres + migrations
+  → B39  schema Postgres + migrations ✅
   → B41  seed PPC global (EngComp v3)
   → B42  client Supabase + adapter SQLite→PG
   → B43  migrar APIs principais
@@ -212,9 +215,11 @@ Depois: **6b** (auth CPF) · **6c** (RLS) · **#6d** B68d–f (orquestração + 
 
 ## 11. Ações imediatas (stakeholder)
 
-1. Criar projeto Supabase (**§4**).
-2. Preencher `app/.env.local` com as chaves (**§5**).
-3. Confirmar: **1 projeto MVP** ok? (sim/não)
-4. Avisar quando pronto → agente inicia **B39** `[/]`.
+1. ~~Criar projeto Supabase (**§4**).~~ ✅ **Acme-Hub-dev**
+2. ~~Preencher `app/.env.local` (**§5**).~~ ✅
+3. ~~Confirmar MVP **1 projeto**.~~ ✅
+4. ~~**B39** schema + `npm run db:migrate`.~~ ✅
 
-*Não é necessário migrar dados ainda — B39/B41 cuidam do schema e seed.*
+**Próximo:** **B41** — seed PPC global no Postgres.
+
+*SQLite local continua até **B43** migrar APIs.*

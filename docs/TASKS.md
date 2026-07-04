@@ -990,7 +990,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | # | Tipo | Task | Resumo | Status |
 |---|------|------|--------|--------|
 | — | Plan | Projeto Supabase | **Acme-Hub-dev** · env dev/prod · [`6a-supabase-plan.md`](./plan/6a-supabase-plan.md) | [x] |
-| B39 | Back | Schema Postgres | Tabelas + `user_id` (nullable em teste) | [x] |
+| B39 | Back | Schema Postgres | Tabelas + `user_id` (nullable) · migration aplicada **Acme-Hub-dev** | [x] |
 | B41 | Back | Seed PPC global | Disciplinas/requisitos read-only | [ ] |
 | B42 | Back | Client Supabase | Adapter queries SQLite→PG | [ ] |
 | B43 | Back | Migrar APIs | dashboard, disciplinas, sync stub | [ ] |
@@ -1014,6 +1014,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Chave composta `(curso_id, codigo)` em `disciplinas`; `curso_id` nas FKs tenant
 - [x] Script `npm run db:migrate` (`app/scripts/pg-migrate.ts` + `planner_schema_migrations`)
 - [x] Teste estático `npm run test:b39`
+- [x] Migration aplicada no **Acme-Hub-dev** (`npm run db:migrate` · Session pooler `aws-1-sa-east-1`)
 
 > **Próximo:** **B41** — seed PPC global.
 
@@ -1723,7 +1724,7 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 8. **Próximo passo do roadmap:** informe **depois do push** (tasks em `[@]` ou `[x]`). Com commits locais só `[%]`, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v3](#ordem-oficial-de-execução-v3) — **Bloco 2 (sync) antes do Bloco 6 (Supabase)**. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy **após** sync validado; RLS **só na 6c** (antes do PIX).
-11. **Próximo passo:** **B41** (seed PPC global) — após **B39** ✅ e **PLAN** ✅.
+11. **Próximo passo:** **B41** (seed PPC global) — **PLAN** ✅ · **B39** ✅ (schema no Supabase).
 12. **Integralização:** CH concluída = `historico` + PPC (`computeChDoneFromDisciplinas`); portal SIGAA só % / total currículo; matérias já passadas = **B30** ✅.
 13. **Gift + painel dev + simulação mapa:** escopo em `SCOPE.md` §10.7, §6.1.1 · `SCOPE-CLOUD` §6.6 — tasks **B68–B71**, **F39–F41**. Painel: chavinhas R1/R2/R3 + **Orquestração sync** (TTLs/data fixa/batch). **B71** = ocultar senhas SIGAA.
 14. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial. **Polish em task `[x]`** (ex.: F38, dashboard) também exige nota no TASKS no mesmo ciclo do push.
