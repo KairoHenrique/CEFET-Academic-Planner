@@ -455,6 +455,7 @@ Para **suporte e testes** — ações que **não** existem para o aluno comum:
 | Simular renovação / estender validade | +N dias sem PIX |
 | Disparar sync forçado | Enfileira job (worker) ou stub dev |
 | **Robôs ops manual** | Chavinhas ON/OFF por robô (**R1** sync principal · **R2** calendário · **R3** turmas); lista **nome/CPF** com busca; rodar **individual** (1 conta) ou **global**; usa CPF+senha SIGAA já persistidos; **sem cooldown** (exceção a **O3** / fila aluno) |
+| **Orquestração sync (policy)** | Cadências/TTL por camada, escopo do botão aluno (**lite** = notas+tarefas), janela batch noturno, `max_concurrent` worker — **sem editar código**; ver `SCOPE-CLOUD.md` §6.6 · **B70/F41** |
 | Ver mapa/integralização da conta | Abrir como “impersonate read-only” (sem editar dados do aluno) |
 | Reset dados acadêmicos | Apaga SQLite/Postgres do usuário (confirmação dupla) |
 
@@ -475,3 +476,20 @@ Toda ação sensível no painel dev gera **log interno** (quem, o quê, quando, 
 | LGPD | Termos atualizados para produção; beta com testadores documentado como exceção encerrada |
 
 **Ordem:** **B71** roda **depois** de sync, billing e painel dev funcionarem — **immediately before** deploy público / PIX amplo.
+
+### 10.7 Orquestração sync — policy operacional (jul/2026)
+
+> **Decisão de produto:** `SCOPE-CLOUD.md` **[§6.6](./SCOPE-CLOUD.md#66-política-de-sync--decisão-de-produto-jul2026)** · tasks **B68a–c** ✅ · implementação **B68d–f** · UI **F41** · API **B70**.
+
+Seção no painel **`/dev`** (operador only):
+
+| Controle | Efeito |
+|---|---|
+| Escopo do **botão Sync** (aluno) | Padrão **`lite`** — portal + **notas + tarefas**; não sync geral |
+| Intervalos por camada | Notas/tarefas, faltas, grupo, histórico, auto-sync, cooldown manual |
+| Jobs **globais** R2/R3 | TTL por intervalo **ou** data/hora fixa (virada semestre, pré-matrícula) |
+| Batch noturno | ON/OFF + janela (ex. 03:00–06:00) · enfileira **R1-deep** + R2/R3 |
+| Workers paralelos | 1–5 slots — **CPFs diferentes**; nunca 2 sessões do mesmo CPF |
+| Restaurar padrões | Volta aos defaults de §6.6 |
+
+Alterações gravam em **`app_config` global** (dev: JSON/tabela ops); runtime e worker **leem policy** — constantes no código são só fallback.
