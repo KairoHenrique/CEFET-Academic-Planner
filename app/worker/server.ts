@@ -1,0 +1,219 @@
+import http from "node:http";
+import type { IncomingMessage, ServerResponse } from "node:http";
+import { ApiError } from "@/lib/api/errors";
+import { BrowserJobSlot } from "@/lib/worker/browser-job-slot";
+import { loadWorkerConfig, type WorkerConfig } from "@/lib/worker/config";
+import type { WorkerJobResult, WorkerStatusResponse } from "@/lib/worker/job-types";
+import { runWorkerSyncJob } from "@/lib/worker/run-sync-job";
+import { parseWorkerJobRequest } from "@/lib/worker/validate-job-request";
+import { WorkerRuntimeState } from "@/lib/worker/worker-runtime-state";
+
+function readJsonBody(request: IncomingMessage): Promise<unknown> {
+  return new Promise((resolve, reject) => {
+    const chunks: Buffer[] = [];
+
+    request.on("data", (chunk: Buffer | string) => {
+      chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
+    });
+
+    request.on("end", () => {
+      const raw = Buffer.concat(chunks).toString("utf8").trim();
+      if (!raw) {
+        resolve({});
+        return;
+      }
+
+      try {
+        resolve(JSON.parse(raw));
+      } catch {
+        reject(new ApiError("VALIDATION_ERROR", "JSON inválido.", 400));
+      }
+    });
+
+    request.on("error", reject);
+  });
+}
+
+function sendJson(
+  response: ServerResponse,
+  statusCode: number,
+  payload: unknown
+): void {
+  response.writeHead(statusCode, {
+    "Content-Type": "application/json; charset=utf-8",
+  });
+  response.end(JSON.stringify(payload));
+}
+
+function isAuthorized(
+  request: IncomingMessage,
+  config: WorkerConfig
+): boolean {
+  const header = request.headers.authorization?.trim() ?? "";
+  const expected = `Bearer ${config.sharedSecret}`;
+  return header.length === expected.length && header === expected;
+}
+
+function buildStatus(
+  runtime: WorkerRuntimeState,
+  slot: BrowserJobSlot
+): WorkerStatusResponse {
+  const snapshot = slot.snapshot();
+  return {
+    ok: true,
+    busy: runtime.isBusy(),
+    uptimeMs: runtime.getUptimeMs(),
+    acceptingJobs: runtime.canAcceptJobs(),
+    currentJobId: runtime.getCurrentJobId(),
+    slot: {
+      maxConcurrent: snapshot.maxConcurrent,
+      activeSlots: snapshot.activeSlots,
+      queued: snapshot.queued,
+    },
+  };
+}
+
+export function createWorkerServer(options?: {
+  config?: WorkerConfig;
+  slot?: BrowserJobSlot;
+  runtime?: WorkerRuntimeState;
+}): {
+  server: http.Server;
+  config: WorkerConfig;
+  slot: BrowserJobSlot;
+  runtime: WorkerRuntimeState;
+} {
+  const config = options?.config ?? loadWorkerConfig();
+  const slot =
+    options?.slot ?? new BrowserJobSlot(config.maxConcurrent);
+  const runtime = options?.runtime ?? new WorkerRuntimeState();
+
+  const server = http.createServer(async (request, response) => {
+    const method = request.method ?? "GET";
+    const url = new URL(request.url ?? "/", "http://localhost");
+
+    try {
+      if (method === "GET" && url.pathname === "/health") {
+        sendJson(response, 200, { ok: true, service: "sigaa-worker" });
+        return;
+      }
+
+      if (method === "GET" && url.pathname === "/status") {
+        sendJson(response, 200, buildStatus(runtime, slot));
+        return;
+      }
+
+      if (method === "POST" && url.pathname === "/jobs") {
+        if (!runtime.canAcceptJobs()) {
+          sendJson(response, 503, {
+            ok: false,
+            code: "WORKER_SHUTTING_DOWN",
+            message: "Worker em graceful shutdown — não aceita novos jobs.",
+          });
+          return;
+        }
+
+        if (!isAuthorized(request, config)) {
+          sendJson(response, 401, {
+            ok: false,
+            code: "UNAUTHORIZED",
+            message: "Credencial do worker inválida.",
+          });
+          return;
+        }
+
+        const body = await readJsonBody(request);
+        const jobRequest = parseWorkerJobRequest(body);
+        const result: WorkerJobResult = await runWorkerSyncJob(
+          jobRequest,
+          slot,
+          runtime,
+          config.jobTimeoutMs
+        );
+
+        sendJson(response, result.status === "completed" ? 200 : 500, result);
+        return;
+      }
+
+      sendJson(response, 404, {
+        ok: false,
+        code: "NOT_FOUND",
+        message: "Rota não encontrada.",
+      });
+    } catch (error) {
+      if (error instanceof ApiError) {
+        sendJson(response, error.status, {
+          ok: false,
+          code: error.code,
+          message: error.message,
+        });
+        return;
+      }
+
+      sendJson(response, 500, {
+        ok: false,
+        code: "INTERNAL_ERROR",
+        message: "Erro interno do worker.",
+      });
+    }
+  });
+
+  return { server, config, slot, runtime };
+}
+
+export function registerGracefulShutdown(options: {
+  server: http.Server;
+  runtime: WorkerRuntimeState;
+  shutdownGraceMs: number;
+}): void {
+  let shuttingDown = false;
+
+  const shutdown = (signal: string) => {
+    if (shuttingDown) return;
+    shuttingDown = true;
+
+    console.info(`[worker] ${signal} — graceful shutdown iniciado.`);
+    options.runtime.stopAcceptingJobs();
+
+    const forceTimer = setTimeout(() => {
+      console.error("[worker] Timeout de shutdown — encerrando processo.");
+      process.exit(1);
+    }, options.shutdownGraceMs);
+
+    const waitForJob = (): void => {
+      if (!options.runtime.isBusy()) {
+        clearTimeout(forceTimer);
+        options.server.close(() => {
+          console.info("[worker] HTTP encerrado. Bye.");
+          process.exit(0);
+        });
+        return;
+      }
+
+      setTimeout(waitForJob, 500);
+    };
+
+    waitForJob();
+  };
+
+  process.on("SIGTERM", () => shutdown("SIGTERM"));
+  process.on("SIGINT", () => shutdown("SIGINT"));
+}
+
+export function startWorkerServer(): http.Server {
+  const { server, config, runtime } = createWorkerServer();
+
+  registerGracefulShutdown({
+    server,
+    runtime,
+    shutdownGraceMs: config.shutdownGraceMs,
+  });
+
+  server.listen(config.port, () => {
+    console.info(
+      `[worker] SIGAA Playwright worker ouvindo :${config.port} · maxConcurrent=${config.maxConcurrent}`
+    );
+  });
+
+  return server;
+}

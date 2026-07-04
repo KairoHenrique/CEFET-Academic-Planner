@@ -264,7 +264,7 @@ Recuperação de acesso: por **e-mail** ou **telefone** cadastrados (não usa e-
 
 ### 6.1 Onde roda
 
-- **Worker dedicado** (container/VPS ou serviço serverless com Playwright).
+- **Worker dedicado** (container/VPS ou serviço serverless com Playwright) — implementação **B54:** `app/worker/` · Docker · ver `app/worker/README.md`.
 - Supabase Edge Functions **não** são ideais para Playwright completo — avaliar Railway, Fly.io, ou VPS barato.
 
 ### 6.2 Fluxo
