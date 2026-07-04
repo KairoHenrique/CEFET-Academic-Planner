@@ -1,4 +1,6 @@
 import { ensureDbReady } from "@/lib/db/bootstrap";
+import { ensurePostgresReady } from "@/lib/db/bootstrap-postgres";
+import { isPostgresBackend } from "@/lib/db/backend/config";
 import { runWithUserDb } from "@/lib/db/connection-manager";
 import { apiErrorResponse } from "./response";
 
@@ -13,6 +15,14 @@ function resolveUsernameFromRequest(request: Request): string | undefined {
   return request.headers.get(SIGAA_USER_HEADER)?.trim() || undefined;
 }
 
+async function ensureDatabaseReady(): Promise<void> {
+  if (isPostgresBackend()) {
+    await ensurePostgresReady();
+    return;
+  }
+  ensureDbReady();
+}
+
 export function withDb<TContext = unknown>(
   handler: RouteHandler<TContext>
 ): RouteHandler<TContext> {
@@ -21,7 +31,7 @@ export function withDb<TContext = unknown>(
 
     return runWithUserDb(username, async () => {
       try {
-        ensureDbReady();
+        await ensureDatabaseReady();
         return await handler(request, context);
       } catch (error) {
         return apiErrorResponse(error);
