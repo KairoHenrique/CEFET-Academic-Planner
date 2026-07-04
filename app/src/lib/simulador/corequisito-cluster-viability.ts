@@ -2,6 +2,7 @@ import { normalizeDisciplinaCode } from "@/lib/mapa/course-status";
 import {
   collectScheduledDisciplinaCodes,
   isMutualCorequisite,
+  pruneInvalidCorequisitoPlacements,
   resolveCoRequisitosForDisciplina,
   resolveMissingCorequisitesOnSchedule,
   type SimuladorPlacementContext,
@@ -308,6 +309,89 @@ export function isCorequisitoPartnerSelection(
     normalizeDisciplinaCode(course.code) ===
     normalizeDisciplinaCode(obligation.partnerCode)
   );
+}
+
+/**
+ * Cancela seleção do parceiro corequisito pendente — remove da grade a metade
+ * já alocada (pares mútuos incompletos). Corequisito já aprovado não entra.
+ */
+export function wouldRollbackIncompleteCorequisitoPlacement(
+  obligation: CorequisitoObligation | null,
+  selectedCourse: TurmaOfertadaCourse | null
+): boolean {
+  if (!obligation || !selectedCourse) return false;
+  return isCorequisitoPartnerSelection(selectedCourse, obligation);
+}
+
+export function resolveIncompleteCorequisitoPlacedHalf(
+  schedule: ScheduleSlot[][],
+  context: SimuladorPlacementContext,
+  obligation: CorequisitoObligation
+): { turmaSigaaId: string; code: string } | null {
+  const partnerCode = normalizeDisciplinaCode(obligation.partnerCode);
+
+  for (const row of schedule) {
+    for (const slot of row) {
+      if (!slot?.turmaSigaaId) continue;
+
+      const missing = resolveMissingCorequisitesOnSchedule(
+        slot.code,
+        schedule,
+        context
+      );
+
+      if (
+        missing.some(
+          (coCode) => normalizeDisciplinaCode(coCode) === partnerCode
+        )
+      ) {
+        return { turmaSigaaId: slot.turmaSigaaId, code: slot.code };
+      }
+    }
+  }
+
+  return null;
+}
+
+export function resolveMutualCorequisitoPartnerOnSchedule(
+  turmaSigaaId: string,
+  schedule: ScheduleSlot[][],
+  context: SimuladorPlacementContext,
+  catalog: TurmaOfertadaCourse[]
+): TurmaOfertadaCourse | null {
+  const course = catalog.find((item) => item.turmaSigaaId === turmaSigaaId);
+  if (!course) return null;
+
+  const scheduled = collectScheduledDisciplinaCodes(schedule);
+  const selfCode = normalizeDisciplinaCode(course.code);
+
+  for (const coCode of activeCorequisitoCodes(course.code, context)) {
+    if (!isMutualCorequisite(course.code, coCode, context)) continue;
+    if (!scheduled.has(normalizeDisciplinaCode(coCode))) continue;
+    if (normalizeDisciplinaCode(coCode) === selfCode) continue;
+
+    const partner = catalog.find(
+      (item) =>
+        normalizeDisciplinaCode(item.code) === normalizeDisciplinaCode(coCode) &&
+        isTurmaPlacedOnSchedule(item, schedule)
+    );
+    if (partner) return partner;
+  }
+
+  return null;
+}
+
+export function rollbackIncompleteCorequisitoPlacement(
+  schedule: ScheduleSlot[][],
+  context: SimuladorPlacementContext,
+  obligation: CorequisitoObligation | null,
+  selectedCourse: TurmaOfertadaCourse | null
+): ScheduleSlot[][] {
+  if (!wouldRollbackIncompleteCorequisitoPlacement(obligation, selectedCourse)) {
+    return schedule;
+  }
+
+  return pruneInvalidCorequisitoPlacements(schedule, context);
 }
 
 export function buildCorequisitoClusterBlockMessage(

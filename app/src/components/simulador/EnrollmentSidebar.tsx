@@ -7,6 +7,7 @@ import { filterEnrollmentCoursesByQuery } from "@/lib/simulador/filter-enrollmen
 import type { CorequisitoObligation } from "@/lib/simulador/corequisito-cluster-viability";
 import type { SimuladorPlacementContext } from "@/lib/simulador/corequisito-schedule-policy";
 import type { ScheduleSlot } from "@/lib/types/schedule";
+import type { EnrollmentCourseGroup } from "@/lib/simulador/group-enrollment-courses";
 import type { TurmaOfertadaCourse } from "@/lib/types/turmas-ofertadas-api";
 
 interface EnrollmentSidebarProps {
@@ -17,7 +18,9 @@ interface EnrollmentSidebarProps {
   placementContext: SimuladorPlacementContext;
   corequisitoObligation: CorequisitoObligation | null;
   selectedTurmaId: string | null;
+  selectedGroupId?: string | null;
   onSelect: (course: TurmaOfertadaCourse) => void;
+  onSelectGroup?: (group: EnrollmentCourseGroup) => void;
 }
 
 export function EnrollmentSidebar({
@@ -28,7 +31,9 @@ export function EnrollmentSidebar({
   placementContext,
   corequisitoObligation,
   selectedTurmaId,
+  selectedGroupId = null,
   onSelect,
+  onSelectGroup,
 }: EnrollmentSidebarProps) {
   const [query, setQuery] = useState("");
 
@@ -95,7 +100,9 @@ export function EnrollmentSidebar({
               placementContext={placementContext}
               corequisitoObligation={corequisitoObligation}
               selectedTurmaId={selectedTurmaId}
+              selectedGroupId={selectedGroupId}
               onSelect={onSelect}
+              onSelectGroup={onSelectGroup}
             />
           </aside>
 
@@ -108,7 +115,9 @@ export function EnrollmentSidebar({
               placementContext={placementContext}
               corequisitoObligation={corequisitoObligation}
               selectedTurmaId={selectedTurmaId}
+              selectedGroupId={selectedGroupId}
               onSelect={onSelect}
+              onSelectGroup={onSelectGroup}
             />
           </aside>
         </div>

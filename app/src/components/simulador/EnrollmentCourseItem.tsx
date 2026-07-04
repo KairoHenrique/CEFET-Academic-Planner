@@ -10,6 +10,7 @@ import {
 import {
   formatDisciplinaCodeNames,
   formatTurmaHorarioDisplay,
+  formatTurmaHorarioLegivel,
   formatTurmaShortLabel,
 } from "@/lib/simulador/turma-course-utils";
 import type { CorequisitoObligation } from "@/lib/simulador/corequisito-cluster-viability";
@@ -56,6 +57,7 @@ export function EnrollmentCourseItem({
     ? `${ENROLLMENT_COREQUISITO_ACTIVE_PREFIX} ${formatDisciplinaCodeNames(activeCoreqs, catalog, placementContext.disciplinaNames)}.`
     : undefined;
   const horarioLabel = formatTurmaHorarioDisplay(course);
+  const horarioTooltip = formatTurmaHorarioLegivel(course);
   const shortLabel = formatTurmaShortLabel(course);
   const uncertainSchedule =
     Boolean(course.scheduleWarningMessage) && !course.scheduleBlocker;
@@ -86,7 +88,7 @@ export function EnrollmentCourseItem({
       onClick={() => onSelect(course)}
       aria-pressed={selected}
       aria-label={`${shortLabel}, ${course.name}`}
-      title={state.tooltip}
+      title={course.name}
     >
       <span
         className="enrollment-course-accent"
@@ -99,7 +101,10 @@ export function EnrollmentCourseItem({
             <div className="enrollment-course-head">
               <SubjectApelido label={shortLabel} className="enrollment-course-compact-code" />
             </div>
-            <p className="enrollment-course-card-foot">
+            <p
+              className="enrollment-course-card-foot"
+              title={horarioTooltip ?? undefined}
+            >
               {horarioLabel ?? "Sem horário"}
             </p>
           </>
@@ -130,7 +135,10 @@ export function EnrollmentCourseItem({
             <p className="enrollment-course-card-title" title={course.name}>
               {course.name}
             </p>
-            <p className="enrollment-course-card-foot">
+            <p
+              className="enrollment-course-card-foot"
+              title={horarioTooltip ?? undefined}
+            >
               {state.schedulePlaced
                 ? ENROLLMENT_SCHEDULE_PLACED_HINT
                 : horarioLabel ?? "\u00a0"}

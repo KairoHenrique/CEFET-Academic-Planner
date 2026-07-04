@@ -20,3 +20,15 @@ export const ENROLLMENT_COREQUISITO_AFTER_HINT_PREFIX =
   "Depois inclua na grade:";
 
 export const ENROLLMENT_COREQUISITO_ACTIVE_PREFIX = "Corequisito em par com:";
+
+export const ENROLLMENT_COREQUISITO_CANCEL_TITLE = "Cancelar corequisito?";
+
+export const ENROLLMENT_COREQUISITO_REMOVE_TITLE = "Remover corequisito?";
+
+export const ENROLLMENT_COREQUISITO_ROLLBACK_KICKER = "Corequisito em par";
+
+export const ENROLLMENT_COREQUISITO_ROLLBACK_CANCEL_HINT =
+  "Corequisitos em par precisam ficar juntos na grade. Cancelar remove a disciplina já alocada.";
+
+export const ENROLLMENT_COREQUISITO_ROLLBACK_REMOVE_HINT =
+  "Corequisitos em par precisam ficar juntos na grade. Esta ação remove o par inteiro da simulação.";

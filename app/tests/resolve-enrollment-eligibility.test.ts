@@ -135,6 +135,26 @@ describe("resolve-enrollment-eligibility", () => {
     assert.deepEqual(result.pendingPrereqCodes, [normalizeDisciplinaCode("02/2")]);
   });
 
+  test("oculta turma já matriculada no semestre atual", () => {
+    const sociologia: DisciplinaRow = {
+      codigo: "04/7",
+      nome: "INTRODUÇÃO À SOCIOLOGIA",
+      tipo: "Obrigatória",
+      carga_horaria: 30,
+      periodo: 2,
+      ementa: null,
+    };
+    const current = new Set([normalizeDisciplinaCode("04/7")]);
+
+    const result = resolveEnrollmentEligibility(
+      sociologia,
+      "04/7",
+      baseContext({ current, disciplinas: [...disciplinas, sociologia] })
+    );
+
+    assert.equal(result.eligibility, "hidden");
+  });
+
   test("oculta turma quando pré-requisito foi reprovado", () => {
     const preRequisitos = new Map([
       [normalizeDisciplinaCode("02/3"), [normalizeDisciplinaCode("02/2")]],

@@ -68,6 +68,10 @@ function resolvePrerequisiteEligibility(
     return { eligibility: "hidden", pendingPrereqCodes: [] };
   }
 
+  if (context.current.has(code)) {
+    return { eligibility: "hidden", pendingPrereqCodes: [] };
+  }
+
   if (!disciplina) {
     return { eligibility: "ready", pendingPrereqCodes: [] };
   }

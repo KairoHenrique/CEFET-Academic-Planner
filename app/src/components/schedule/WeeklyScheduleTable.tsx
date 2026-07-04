@@ -11,6 +11,7 @@ import {
 } from "@/config/mock/schedule";
 import { Modal } from "@/components/ui/Modal";
 import { ScheduleDetailContent } from "@/components/ui/ActivityDetail";
+import { EnrollmentPreviewEmptyCell } from "@/components/simulador/EnrollmentPreviewEmptyCell";
 
 interface WeeklyScheduleTableProps {
   schedule?: ScheduleSlot[][];
@@ -24,12 +25,16 @@ interface WeeklyScheduleTableProps {
     dayIdx: number;
     slotIdx: number;
   }) => void;
-  onEmptyClick?: (dayIdx: number, slotIdx: number) => void;
+  onEmptyClick?: (
+    dayIdx: number,
+    slotIdx: number,
+    clickMeta?: { clickOffsetX: number; elementWidth: number }
+  ) => void;
   highlightEmpty?: boolean;
   /** Células vazias onde a turma selecionada pode ser alocada (`dayIdx:slotIdx`). */
   allowedEmptyCells?: ReadonlySet<string> | null;
-  /** Células ocupadas que bloqueiam turmas (contorno vermelho). */
-  blockingCellKeys?: ReadonlySet<string> | null;
+  /** Cores de preview por célula (`dayIdx:slotIdx` → cores das opções). */
+  previewCellLayers?: ReadonlyMap<string, readonly string[]> | null;
   selectedDay?: number | null;
   selectedSlot?: number | null;
 }
@@ -43,7 +48,7 @@ export function WeeklyScheduleTable({
   onEmptyClick,
   highlightEmpty = false,
   allowedEmptyCells = null,
-  blockingCellKeys = null,
+  previewCellLayers = null,
   selectedDay,
   selectedSlot,
 }: WeeklyScheduleTableProps) {
@@ -99,30 +104,30 @@ export function WeeklyScheduleTable({
                 {timeSlots.map((time, slotIdx) => {
                   const slot = schedule[dayIdx]?.[slotIdx];
                   const cellKey = `${dayIdx}:${slotIdx}`;
+                  const previewColors = !slot
+                    ? previewCellLayers?.get(cellKey)
+                    : undefined;
+                  const hasPreviewLayers =
+                    Boolean(previewColors) && previewColors!.length > 0;
                   const isAllowedEmpty =
-                    Boolean(allowedEmptyCells?.has(cellKey)) && !slot;
+                    Boolean(hasPreviewLayers || allowedEmptyCells?.has(cellKey)) &&
+                    !slot;
                   const isForbiddenEmpty =
                     highlightEmpty &&
-                    Boolean(allowedEmptyCells) &&
+                    Boolean(allowedEmptyCells ?? previewCellLayers) &&
                     !slot &&
-                    !allowedEmptyCells?.has(cellKey);
+                    !isAllowedEmpty;
                   const isTarget =
                     highlightEmpty &&
                     selectedDay === dayIdx &&
                     selectedSlot === slotIdx;
-                  const isBlocking =
-                    Boolean(slot) && Boolean(blockingCellKeys?.has(cellKey));
 
                   return (
                     <td key={slotIdx} className="schedule-cell">
                       {slot ? (
                         <button
                           type="button"
-                          className={[
-                            "schedule-slot",
-                            "schedule-slot-btn",
-                            isBlocking ? "schedule-slot-blocking" : "",
-                          ]
+                          className={["schedule-slot", "schedule-slot-btn"]
                             .filter(Boolean)
                             .join(" ")}
                           style={
@@ -137,6 +142,22 @@ export function WeeklyScheduleTable({
                           <div className="schedule-slot-name">{slot.name}</div>
                           <div className="schedule-slot-room">{slot.room}</div>
                         </button>
+                      ) : hasPreviewLayers ? (
+                        <EnrollmentPreviewEmptyCell
+                          day={day}
+                          time={time}
+                          previewColors={previewColors!}
+                          isTarget={isTarget}
+                          isForbidden={isForbiddenEmpty}
+                          interactive={interactive}
+                          onActivate={(clickOffsetX, elementWidth) => {
+                            if (!interactive || isForbiddenEmpty) return;
+                            onEmptyClick?.(dayIdx, slotIdx, {
+                              clickOffsetX,
+                              elementWidth,
+                            });
+                          }}
+                        />
                       ) : (
                         <button
                           type="button"

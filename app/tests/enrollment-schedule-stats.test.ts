@@ -49,11 +49,38 @@ describe("enrollment-schedule-stats", () => {
     schedule[0][0] = slot;
     schedule[0][1] = slot;
 
-    const stats = summarizePlacedSchedule(schedule);
+    const stats = summarizePlacedSchedule(schedule, [sampleCourse()]);
     assert.equal(stats.placedCount, 1);
+    assert.equal(stats.obrigatoriasCh, 60);
+    assert.equal(stats.optativasCh, 0);
     assert.equal(stats.totalCh, 60);
     assert.deepEqual(stats.placedTurmaIds, ["t-1"]);
     assert.equal(isScheduleEmpty(schedule), false);
+  });
+
+  it("summarizePlacedSchedule splits CH by categoria", () => {
+    const schedule = createEmptySchedule();
+    const obrigatoria = sampleCourse({
+      turmaSigaaId: "t-obr",
+      ch: 60,
+      categoria: "curso",
+    });
+    const optativa = sampleCourse({
+      turmaSigaaId: "t-opt",
+      code: "GT001",
+      name: "Tópico Especial",
+      ch: 30,
+      categoria: "optativa",
+      slots: [{ day: 1, slot: 1 }],
+    });
+    schedule[0][0] = turmaToSlotData(obrigatoria);
+    schedule[1][1] = turmaToSlotData(optativa);
+
+    const stats = summarizePlacedSchedule(schedule, [obrigatoria, optativa]);
+    assert.equal(stats.placedCount, 2);
+    assert.equal(stats.obrigatoriasCh, 60);
+    assert.equal(stats.optativasCh, 30);
+    assert.equal(stats.totalCh, 90);
   });
 
   it("resolvePlacedTurmasFromSchedule deduplicates by turmaSigaaId", () => {

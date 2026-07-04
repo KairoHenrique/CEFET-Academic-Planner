@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { EnrollmentCourseGroupCard } from "@/components/simulador/EnrollmentCourseGroupCard";
-import { groupEnrollmentCourses } from "@/lib/simulador/group-enrollment-courses";
+import { groupEnrollmentCourses, type EnrollmentCourseGroup } from "@/lib/simulador/group-enrollment-courses";
 import type { ScheduleSlot } from "@/lib/types/schedule";
 import { type CorequisitoObligation } from "@/lib/simulador/corequisito-cluster-viability";
 import type { SimuladorPlacementContext } from "@/lib/simulador/corequisito-schedule-policy";
@@ -16,7 +16,9 @@ interface EnrollmentCourseListProps {
   placementContext: SimuladorPlacementContext;
   corequisitoObligation: CorequisitoObligation | null;
   selectedTurmaId: string | null;
+  selectedGroupId?: string | null;
   onSelect: (course: TurmaOfertadaCourse) => void;
+  onSelectGroup?: (group: EnrollmentCourseGroup) => void;
 }
 
 export function EnrollmentCourseList({
@@ -27,7 +29,9 @@ export function EnrollmentCourseList({
   placementContext,
   corequisitoObligation,
   selectedTurmaId,
+  selectedGroupId = null,
   onSelect,
+  onSelectGroup,
 }: EnrollmentCourseListProps) {
   const groups = useMemo(() => groupEnrollmentCourses(courses), [courses]);
 
@@ -52,7 +56,9 @@ export function EnrollmentCourseList({
               placementContext={placementContext}
               corequisitoObligation={corequisitoObligation}
               selectedTurmaId={selectedTurmaId}
+              selectedGroupId={selectedGroupId}
               onSelect={onSelect}
+              onSelectGroup={onSelectGroup}
             />
           ))}
         </ul>

@@ -1,6 +1,6 @@
 "use client";
 
-import { formatTurmaHorarioChip } from "@/lib/simulador/turma-course-utils";
+import { formatTurmaHorarioChip, formatTurmaHorarioLegivel } from "@/lib/simulador/turma-course-utils";
 import { resolveEnrollmentCourseSelectability } from "@/lib/simulador/enrollment-course-selectability";
 import type { CorequisitoObligation } from "@/lib/simulador/corequisito-cluster-viability";
 import type { SimuladorPlacementContext } from "@/lib/simulador/corequisito-schedule-policy";
@@ -34,6 +34,7 @@ export function EnrollmentCourseSlotChip({
     corequisitoObligation
   );
   const horarioLabel = formatTurmaHorarioChip(course) ?? "Sem horário";
+  const horarioTooltip = formatTurmaHorarioLegivel(course) ?? horarioLabel;
 
   return (
     <button
@@ -51,8 +52,8 @@ export function EnrollmentCourseSlotChip({
         .join(" ")}
       onClick={() => onSelect(course)}
       aria-pressed={selected}
-      aria-label={`${course.name}, ${horarioLabel}`}
-      title={state.tooltip}
+      aria-label={`${course.name}, ${horarioTooltip}`}
+      title={horarioTooltip}
     >
       <span className="enrollment-course-slot-chip-time">{horarioLabel}</span>
     </button>
