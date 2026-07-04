@@ -64,6 +64,7 @@ Configurar no dashboard **Workers & Pages → acme-hub → Settings → Variable
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` ou `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Sim | Chave pública |
 | `SUPABASE_SERVICE_ROLE_KEY` | Sim | **Secret** — só server |
 | `CRON_SECRET` | Recomendado | Secret forte (≥16 chars) — mesmo valor no worker cron |
+| `PLANNER_CLOUD` | Sim | `true` — **O2:** força Postgres, bloqueia `planner.db` / `better-sqlite3` |
 | `CREDENTIALS_ENCRYPTION_KEY` | Se sync | Mesma chave do dev (secret) |
 
 **Não configurar em produção (O2):** paths SQLite locais · `better-sqlite3` não roda no Workers.

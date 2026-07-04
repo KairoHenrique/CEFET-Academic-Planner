@@ -16,6 +16,7 @@
     "db:seed-ppc": "tsx --env-file=.env.local scripts/pg-seed-ppc.ts",
     "test:b41-b43": "tsx --test tests/b41-b43-postgres.test.ts",
     "test:o1": "tsx --test tests/o1-health.test.ts",
+    "test:o2": "tsx --test tests/o2-cloud-sqlite-guard.test.ts",
     "build:cf": "opennextjs-cloudflare build",
     "preview:cf": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "deploy:cf": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",

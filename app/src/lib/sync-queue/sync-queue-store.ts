@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import Database from "better-sqlite3";
+import { assertSqliteAllowed } from "@/lib/db/backend/sqlite-guard";
 import type { SyncQueueJobRecord } from "@/lib/sync-queue/types";
 
 let queueDb: Database.Database | null = null;
@@ -48,6 +49,7 @@ function bootstrapQueueSchema(database: Database.Database): void {
 }
 
 export function getSyncQueueDatabase(): Database.Database {
+  assertSqliteAllowed("sync-queue.db");
   if (queueDb) return queueDb;
 
   const dbPath = resolveQueueDbPath();
