@@ -78,7 +78,10 @@ export function LoginForm() {
     }
 
     setIsFirstLoginSync(true);
-    const ok = await sync.startSync(credentials, { mode: "full" });
+    const ok = await sync.startSync(credentials, {
+      mode: "full",
+      trigger: "first_login",
+    });
     if (!ok) {
       setIsFirstLoginSync(false);
       return;

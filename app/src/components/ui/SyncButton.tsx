@@ -19,7 +19,10 @@ export function SyncButton() {
     savePassword?: boolean;
   }) => {
     sync.resetError();
-    const ok = await sync.startSync(credentials, { mode: "full" });
+    const ok = await sync.startSync(credentials, {
+      mode: "full",
+      trigger: "manual",
+    });
     if (ok) {
       setPasswordPromptOpen(false);
       setPassword("");

@@ -24,6 +24,7 @@ export interface StartSyncOptions {
   mode?: SyncMode;
   /** Não bloqueia a UI com painel de progresso (sync em background). */
   background?: boolean;
+  trigger?: SyncRequest["trigger"];
 }
 
 function delay(ms: number) {
@@ -145,7 +146,16 @@ export function useSync() {
 
         try {
           await captureNotificationBaselineBeforeSync();
-          result = await postSync({ ...creds, mode }, mode);
+          result = await postSync(
+            {
+              ...creds,
+              mode,
+              trigger:
+                options.trigger ??
+                (options.background ? "auto" : undefined),
+            },
+            mode
+          );
         } finally {
           stopPending?.();
         }

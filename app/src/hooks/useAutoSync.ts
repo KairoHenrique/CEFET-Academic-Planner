@@ -20,7 +20,11 @@ export function useAutoSync(
   syncSettings: PerfilSyncStatus | undefined,
   startSync: (
     credentials?: undefined,
-    options?: { mode?: "full" | "incremental"; background?: boolean }
+    options?: {
+      mode?: "full" | "incremental";
+      background?: boolean;
+      trigger?: "auto" | "manual" | "first_login";
+    }
   ) => Promise<boolean>,
   syncing: boolean
 ): void {
@@ -44,6 +48,7 @@ export function useAutoSync(
       void startSyncRef.current(undefined, {
         mode: "incremental",
         background: true,
+        trigger: "auto",
       });
     }
   }, [syncSettings]);
@@ -64,6 +69,7 @@ export function useAutoSync(
       void startSyncRef.current(undefined, {
         mode: "incremental",
         background: true,
+        trigger: "auto",
       });
     };
 
