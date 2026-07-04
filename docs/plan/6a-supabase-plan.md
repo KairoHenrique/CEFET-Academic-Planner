@@ -201,9 +201,9 @@ Enquanto isso: `SYNC_QUEUE_DISPATCH=inline` no preview **não** é ideal em serv
 ```
 PLAN (este doc) ✅
   → B39  schema Postgres + migrations ✅
-  → B41  seed PPC global (EngComp v3)
-  → B42  client Supabase + adapter SQLite→PG
-  → B43  migrar APIs principais
+  → B41  seed PPC global ✅
+  → B42  client Supabase + adapter PG ✅
+  → B43  migrar APIs principais ✅
   → O1   deploy Cloudflare + cron ping
   → O2   prod sem .db local
   → T1   smoke: URL abre, seed carrega

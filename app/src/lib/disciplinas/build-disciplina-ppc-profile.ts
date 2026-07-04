@@ -11,8 +11,11 @@ import {
   SUBJECT_RECOVERY_GRADE,
 } from "./grade-display";
 
-export function buildDisciplinaPpcProfile(code: string): SubjectDetailResponse {
-  const disciplina = getDisciplinaByCodigo(code);
+export function buildDisciplinaPpcProfile(
+  code: string,
+  disciplinaOverride?: DisciplinaRow
+): SubjectDetailResponse {
+  const disciplina = disciplinaOverride ?? getDisciplinaByCodigo(code);
   if (!disciplina) {
     throw notFoundError("Disciplina não encontrada no PPC do curso.");
   }

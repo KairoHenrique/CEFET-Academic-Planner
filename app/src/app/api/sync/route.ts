@@ -3,11 +3,13 @@ export const dynamic = "force-dynamic";
 import { apiErrorResponse, apiSuccess } from "@/lib/api/response";
 import { parseSyncRequest } from "@/lib/api/validate";
 import { ApiError } from "@/lib/api/errors";
+import { isPostgresBackend } from "@/lib/db/backend/config";
 import { ensureDbReady } from "@/lib/db/bootstrap";
 import { runWithUserDb } from "@/lib/db/connection-manager";
 import { runQueuedSync } from "@/lib/sync-queue/run-queued-sync";
 import { evaluateSyncReadiness } from "@/lib/sync/sync-readiness";
 import { resolveSyncTrigger } from "@/lib/sync/resolve-sync-trigger";
+import { buildPostgresSyncStubResponse } from "@/lib/sync/postgres-sync-stub";
 
 export const runtime = "nodejs";
 /** Turma virtual live pode levar ~5 min (várias disciplinas × subpáginas). */
@@ -20,6 +22,10 @@ export const POST = async (request: Request) => {
     const mode = credentials.mode ?? "full";
 
     return await runWithUserDb(credentials.username, async () => {
+      if (isPostgresBackend()) {
+        return buildPostgresSyncStubResponse();
+      }
+
       ensureDbReady();
 
       const readiness = evaluateSyncReadiness(credentials.username);
