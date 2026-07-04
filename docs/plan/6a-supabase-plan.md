@@ -205,7 +205,7 @@ PLAN (este doc) ✅
   → B42  client Supabase + adapter PG ✅
   → B43  migrar APIs principais ✅
   → O1   deploy Cloudflare + cron ping [%]
-  → O2   prod sem .db local [%]
+  → O2   prod sem .db local [@]
   → T1   smoke: URL abre, seed carrega
 ```
 
@@ -220,4 +220,4 @@ Depois: **6b** (auth CPF) · **6c** (RLS) · **#6d** B68d–f (orquestração + 
 3. ~~Confirmar MVP **1 projeto**.~~ ✅
 4. ~~**B39** schema + `npm run db:migrate`.~~ ✅
 
-**Próximo:** **T1** — smoke deploy · runbook [`o2-prod-postgres.md`](./o2-prod-postgres.md).
+**Próximo:** **T1** — deploy + smoke · [`t1-smoke-deploy.md`](./plan/t1-smoke-deploy.md).
