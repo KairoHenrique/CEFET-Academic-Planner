@@ -14,12 +14,17 @@ function parseLane(value: unknown): SyncQueueLane {
 }
 
 function parseTrigger(value: unknown): SyncJobTrigger {
-  if (value === "first_login" || value === "manual" || value === "auto") {
+  if (
+    value === "first_login" ||
+    value === "manual" ||
+    value === "auto" ||
+    value === "dev"
+  ) {
     return value;
   }
 
   throw validationError(
-    'Campo trigger deve ser "first_login", "manual" ou "auto".'
+    'Campo trigger deve ser "first_login", "manual", "auto" ou "dev".'
   );
 }
 
@@ -32,14 +37,12 @@ export function parseEnqueueSyncQueueRequest(body: unknown): EnqueueSyncJobInput
   const username =
     typeof record.username === "string" ? record.username.trim() : "";
   const password =
-    typeof record.password === "string" ? record.password : "";
+    typeof record.password === "string" && record.password.length > 0
+      ? record.password
+      : undefined;
 
   if (!username) {
     throw validationError("Informe o usuário do SIGAA.");
-  }
-
-  if (!password) {
-    throw validationError("Informe a senha do SIGAA.");
   }
 
   return {
@@ -53,5 +56,6 @@ export function parseEnqueueSyncQueueRequest(body: unknown): EnqueueSyncJobInput
       typeof record.idempotencyKey === "string"
         ? record.idempotencyKey.trim()
         : undefined,
+    skipCooldown: record.skipCooldown === true,
   };
 }

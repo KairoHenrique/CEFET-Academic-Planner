@@ -25,7 +25,6 @@ export async function dispatchJobToWorker(
   config: WorkerDispatchConfig,
   job: SyncQueueJobRecord
 ): Promise<WorkerJobResult> {
-  const password = openQueuePassword(job.passwordEnc);
   const response = await fetch(`${config.workerUrl}/jobs`, {
     method: "POST",
     headers: {
@@ -36,7 +35,7 @@ export async function dispatchJobToWorker(
       jobId: job.id,
       robot: "r1",
       username: job.username,
-      password,
+      passwordEnc: job.passwordEnc,
       mode: job.mode,
       savePassword: job.savePassword === 1,
     }),

@@ -1,3 +1,5 @@
+import type { SyncJobTrigger } from "@/lib/sync-queue/types";
+
 export type SyncMode = "full" | "incremental";
 
 export interface SyncStep {
@@ -10,12 +12,15 @@ export interface SyncRequest {
   password: string;
   savePassword?: boolean;
   mode?: SyncMode;
+  /** Gatilho O3 — inferido no servidor se omitido. */
+  trigger?: SyncJobTrigger;
 }
 
 export interface SyncSuccessResponse {
   ok: true;
   steps: SyncStep[];
   partial?: boolean;
+  jobId?: string;
 }
 
 export type SyncErrorCode =

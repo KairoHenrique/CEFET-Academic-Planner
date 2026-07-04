@@ -1,5 +1,6 @@
 import { validationError } from "./errors";
 import type { SyncRequest } from "@/lib/types/sync";
+import type { SyncJobTrigger } from "@/lib/sync-queue/types";
 import type {
   CreateCalendarEventBody,
   PatchCalendarEventBody,
@@ -38,6 +39,13 @@ export function parseSyncRequest(body: unknown): SyncRequest {
   const username = record.username;
   const password = record.password;
   const savePassword = record.savePassword === true;
+  const triggerRaw = record.trigger;
+  const trigger =
+    triggerRaw === "auto" ||
+    triggerRaw === "manual" ||
+    triggerRaw === "first_login"
+      ? triggerRaw
+      : undefined;
 
   if (typeof username !== "string" || username.trim().length === 0) {
     throw validationError("Informe o usuário do SIGAA.");
@@ -52,6 +60,7 @@ export function parseSyncRequest(body: unknown): SyncRequest {
     password: typeof password === "string" ? password : "",
     savePassword,
     mode: record.mode === "incremental" ? "incremental" : "full",
+    trigger,
   };
 }
 

@@ -1,17 +1,20 @@
 import type { SyncMode } from "@/lib/types/sync-pipeline";
+import { SYNC_QUEUE_MANUAL_COOLDOWN_MS } from "@/lib/sync/sync-cooldown-policy";
 
 export type SyncQueueLane = "priority" | "normal";
 export type SyncJobStatus = "queued" | "running" | "completed" | "failed";
-export type SyncJobTrigger = "first_login" | "manual" | "auto";
+export type SyncJobTrigger = "first_login" | "manual" | "auto" | "dev";
 
 export interface EnqueueSyncJobInput {
   username: string;
-  password: string;
+  password?: string;
   mode?: SyncMode;
-  lane: SyncQueueLane;
+  lane?: SyncQueueLane;
   trigger: SyncJobTrigger;
   savePassword?: boolean;
   idempotencyKey?: string;
+  /** Painel `/dev` B70 — ignora cooldowns O3. */
+  skipCooldown?: boolean;
 }
 
 export interface SyncQueueJobRecord {
@@ -59,5 +62,5 @@ export interface EnqueueSyncJobResult {
   reused: boolean;
 }
 
-export const SYNC_QUEUE_MANUAL_COOLDOWN_MS = 5 * 60 * 1000;
+export { SYNC_QUEUE_MANUAL_COOLDOWN_MS };
 export const SYNC_QUEUE_DEFAULT_ETA_SECONDS = 4 * 60;

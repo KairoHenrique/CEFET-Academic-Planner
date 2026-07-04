@@ -6,7 +6,10 @@ export interface WorkerJobRequest {
   jobId: string;
   robot: WorkerRobotId;
   username: string;
-  password: string;
+  /** Legado/testes — preferir passwordEnc na rede interna. */
+  password?: string;
+  /** Senha AES-GCM selada (B56) — tráfego API → worker sem plaintext. */
+  passwordEnc?: string;
   mode?: SyncMode;
   savePassword?: boolean;
 }
