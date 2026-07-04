@@ -15,6 +15,13 @@
     "db:migrate": "tsx --env-file=.env.local scripts/pg-migrate.ts",
     "db:seed-ppc": "tsx --env-file=.env.local scripts/pg-seed-ppc.ts",
     "test:b41-b43": "tsx --test tests/b41-b43-postgres.test.ts",
+    "test:o1": "tsx --test tests/o1-health.test.ts",
+    "build:cf": "opennextjs-cloudflare build",
+    "preview:cf": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "deploy:cf": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "upload:cf": "opennextjs-cloudflare build && opennextjs-cloudflare upload",
+    "deploy:cron-ping": "wrangler deploy --config workers/cron-ping/wrangler.jsonc",
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
     "worker:dev": "tsx worker/main.ts",
     "worker:start": "tsx worker/main.ts",
     "test:scraper:live": "tsx --test tests/scraper-live.test.ts"
@@ -32,6 +39,7 @@
     "react-dom": "19.2.4"
   },
   "devDependencies": {
+    "@opennextjs/cloudflare": "^1.14.4",
     "@types/better-sqlite3": "^7.6.13",
     "@types/crypto-js": "^4.2.2",
     "@types/node": "^20",
@@ -42,6 +50,7 @@
     "eslint-config-next": "16.2.9",
     "pg": "^8.22.0",
     "tsx": "^4.21.0",
-    "typescript": "^5"
+    "typescript": "^5",
+    "wrangler": "^4.54.0"
   }
 }
