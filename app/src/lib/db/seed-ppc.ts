@@ -1,37 +1,8 @@
 import db from "./index";
-import path from "path";
-import fs from "fs";
 import { countDisciplinas, saveDisciplina, saveRequisito } from "./queries";
-import { normalizeCefetCh, maxAbsencesFromCefetCh } from "@/lib/disciplinas/cefet-ch";
+import { normalizeCefetCh } from "@/lib/disciplinas/cefet-ch";
 import { resolvePpcEmenta } from "@/lib/disciplinas/resolve-ppc-ementa";
-
-interface PpcSeedItem {
-  disciplina: {
-    codigo: string;
-    nome: string;
-    tipo: string;
-    carga_horaria: number;
-    periodo: number;
-    ementa: string;
-  };
-  requisitos: Array<{
-    disciplina_id: string;
-    requisito_id: string;
-    tipo: "pre" | "co";
-  }>;
-}
-
-function loadPpcSeedData(): PpcSeedItem[] {
-  const dataPath = path.join(
-    process.cwd(),
-    "src",
-    "config",
-    "mock",
-    "disciplinas_db.json"
-  );
-  const rawData = fs.readFileSync(dataPath, "utf-8");
-  return JSON.parse(rawData) as PpcSeedItem[];
-}
+import { loadPpcSeedData, type PpcSeedItem } from "@/lib/db/ppc-seed-loader";
 
 function withResolvedEmenta(item: PpcSeedItem): PpcSeedItem["disciplina"] {
   const { codigo, nome, periodo, tipo } = item.disciplina;
