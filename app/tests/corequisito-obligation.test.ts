@@ -4,9 +4,16 @@ import { createEmptySchedule } from "../src/config/mock/schedule";
 import {
   isCorequisitoPartnerSelection,
   resolveActiveCorequisitoObligation,
+  resolveMutualCorequisitoPartnerOnSchedule,
+  rollbackIncompleteCorequisitoPlacement,
+  wouldRollbackIncompleteCorequisitoPlacement,
 } from "../src/lib/simulador/corequisito-cluster-viability";
 import { buildSimuladorPlacementContext } from "../src/lib/simulador/corequisito-schedule-policy";
-import { placeTurmaOnSchedule } from "../src/lib/simulador/turma-schedule-placement";
+import {
+  isTurmaPlacedOnSchedule,
+  placeTurmaOnSchedule,
+  removeTurmaFromSchedule,
+} from "../src/lib/simulador/turma-schedule-placement";
 import type { TurmaOfertadaCourse } from "../src/lib/types/turmas-ofertadas-api";
 
 function sampleCourse(
@@ -107,5 +114,66 @@ describe("corequisito-obligation", () => {
     assert.deepEqual(obligation, { partnerCode: "11/4" });
     assert.equal(isCorequisitoPartnerSelection(labRedes, obligation), true);
     assert.equal(isCorequisitoPartnerSelection(redes, obligation), false);
+  });
+
+  test("cancelar parceiro pendente remove metade já alocada na grade", () => {
+    const schedule = placeTurmaOnSchedule(lab, createEmptySchedule(), context);
+    const obligation = resolveActiveCorequisitoObligation(schedule, context);
+
+    const rolledBack = rollbackIncompleteCorequisitoPlacement(
+      schedule,
+      context,
+      obligation,
+      theory
+    );
+
+    assert.equal(isTurmaPlacedOnSchedule(lab, rolledBack), false);
+    assert.equal(isTurmaPlacedOnSchedule(theory, rolledBack), false);
+  });
+
+  test("cancelar parceiro pendente não altera grade quando corequisito já foi aprovado", () => {
+    const waivedContext = buildSimuladorPlacementContext({
+      completedDisciplinaCodes: ["TEO/1"],
+      coRequisitos: {
+        "TEO/1": ["LAB/1"],
+        "LAB/1": ["TEO/1"],
+      },
+    });
+    const schedule = placeTurmaOnSchedule(lab, createEmptySchedule(), waivedContext);
+    const obligation = resolveActiveCorequisitoObligation(schedule, waivedContext);
+
+    assert.equal(obligation, null);
+    assert.equal(isTurmaPlacedOnSchedule(lab, schedule), true);
+  });
+
+  test("remover uma metade do par completo tira ambas da grade", () => {
+    let schedule = placeTurmaOnSchedule(lab, createEmptySchedule(), context);
+    schedule = placeTurmaOnSchedule(theory, schedule, context);
+
+    const cleared = removeTurmaFromSchedule(lab.turmaSigaaId, schedule, context);
+
+    assert.equal(isTurmaPlacedOnSchedule(lab, cleared), false);
+    assert.equal(isTurmaPlacedOnSchedule(theory, cleared), false);
+  });
+
+  test("detecta parceiro corequisito na grade antes de remover", () => {
+    let schedule = placeTurmaOnSchedule(lab, createEmptySchedule(), context);
+    schedule = placeTurmaOnSchedule(theory, schedule, context);
+
+    const partner = resolveMutualCorequisitoPartnerOnSchedule(
+      lab.turmaSigaaId,
+      schedule,
+      context,
+      [lab, theory, other]
+    );
+
+    assert.equal(partner?.turmaSigaaId, theory.turmaSigaaId);
+    assert.equal(
+      wouldRollbackIncompleteCorequisitoPlacement(
+        { partnerCode: "TEO/1" },
+        theory
+      ),
+      true
+    );
   });
 });

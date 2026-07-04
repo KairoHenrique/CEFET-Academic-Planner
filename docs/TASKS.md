@@ -35,7 +35,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 **Regra:** o stakeholder **avisa explicitamente** quando a entrega **não** está 100% aprovada. Após push com ressalvas → **`[@]`**, nunca `[x]`.
 
-**Tasks em `[@]` agora (jul/2026):** **F19** — `/simulador` no remoto; **2 polish UX pendentes** (amanhã); back **B67** aprovado `[x]`.
+**Tasks em `[@]` (jul/2026):** nenhuma — **F19** aprovada `[x]` · back **B67** `[x]`.
 
 **Polish pós-push (jun/2026, sem nova task):** `04887c9` — fix alerta nota nova pós-sync (baseline pré-sync) + nota obtida/máxima no sino · `5923e9c` — nome da disciplina no `SubjectCard` abre `/disciplinas/[código]`.
 
@@ -43,7 +43,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ## Roadmap detalhado — ordem de execução (#0 → #11)
 
-> **Próximo oficial:** polish **F19** `[@]` (2 ajustes front amanhã) · depois **Bloco 2b** (B54). Back **B67** `[x]`.
+> **Próximo oficial:** **Bloco 2b** (B54) · **Emergência:** reindexar PPC Eng. Computação v3 (`docs/referencias/PPC_EngComp-Div-v3.pdf`). Back **B67** `[x]` · **F19** `[x]`.
 > **Regra:** siga **#0 → #11** · dentro de cada bloco → **BACK (B) antes de FRONT (F)**. Checklist espelho: [Checklist mestre](#checklist-mestre-ordem-de-execução).
 
 ### #0 — Planejamento `✅`
@@ -59,7 +59,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ### #1 — Bloco 1 · API + UI ↔ SQLite `✅ 49/49`
 
-> Fatias verticais: **back → front** por etapa. `/simulador` (3F) consome **B67** `[x]` via API (**F19** `[@]`).
+> Fatias verticais: **back → front** por etapa. `/simulador` (3F) consome **B67** `[x]` via API (**F19** `[x]`).
 
 #### Etapa 1 — Fundação ✅
 - [x] **BACK:** B1 *(bootstrap SQLite — abre/migra `.db` na inicialização)*
@@ -146,7 +146,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 - [x] **FRONT:** F38 *(sino in-app: tarefas/notas novas + lembretes 24h/1h; polish `04887c9` baseline pré-sync + nota obtida/máxima)*
 - [x] **BACK:** B66 *(calendário acadêmico — robô isolado `POST /api/sync/calendario` + UI painel dual-semestre)*
 - [x] **BACK:** B67 *(turmas ofertadas — Ensino → Consultar Turmas do Próx. Semestre; Atendida/Pendente; `curso` vs `optativas` PPC; `scheduleBlocker` ⛔; `POST /api/sync/turmas` + `GET /api/turmas-ofertadas`)*
-- [@] **FRONT:** F19 *(`/simulador` via API — montar grade com turmas ofertadas reais; coreq/conflitos; export JPEG; popup trancado; **2 polish UX pendentes**)*
+- [x] **FRONT:** F19 *(`/simulador` via API — montar grade real; preview multi-horário; coreq par rollback+modal; cards uniformes; CH obr/opt/total; export JPEG)*
 
 **Ordem 2a:** `B24→B26` → `B27` → `B65` → `B28` → `B30` → `B31` → `F18` → `F37` → `F38` → `B66` → `B67` → `F19` · **8/8** até `F37`
 
@@ -383,10 +383,10 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ### 1.4 API e Integração UI ↔ SQLite
 
-> **Progresso:** Bloco 1 ✅ (`49/49`) · **Bloco 2a** — ordem linear: `B24→B26` → `B27` → `B65` → `B28` → `B30` → `B31` → `F18` → `F37` → `F38` → `B66` `[x]` → **B67** `[x]` → **F19** `[@]` · **8/8 oficiais** até `F37`.
-> **Próximo:** polish **F19** `[@]` (2 itens front) · **Bloco 2b** (B54).
+> **Progresso:** Bloco 1 ✅ (`49/49`) · **Bloco 2a** — ordem linear: `B24→B26` → `B27` → `B65` → `B28` → `B30` → `B31` → `F18` → `F37` → `F38` → `B66` `[x]` → **B67** `[x]` → **F19** `[x]` · **8/8 oficiais** até `F37`.
+> **Próximo:** **Bloco 2b** (B54) · **Emergência:** reindexar PPC EngComp v3.
 
-Roadmap detalhado: ver **[Roadmap #0→#11 no topo](#roadmap-detalhado--ordem-de-execução-0--11)** · [Ordem oficial v3](#ordem-oficial-de-execução-v3). **F19** `[@]` · **B67** `[x]`.
+Roadmap detalhado: ver **[Roadmap #0→#11 no topo](#roadmap-detalhado--ordem-de-execução-0--11)** · [Ordem oficial v3](#ordem-oficial-de-execução-v3). **F19** `[x]` · **B67** `[x]`.
 
 ---
 
@@ -475,7 +475,7 @@ Estratégia: **fatias verticais** — backend primeiro, depois frontend.
 - Prioridade de matérias e tarefas (`useStoredPriorities`)
 - Ordenação de tarefas (`useTaskSortMode`)
 - Nota de recuperação por disciplina (`lib/recovery/storage.ts`)
-- `/simulador` (Montar Grade) — **F19** `[@]` via API + sync **B67** `[x]`
+- `/simulador` (Montar Grade) — **F19** `[x]` via API + sync **B67** `[x]`
 
 ---
 
@@ -492,7 +492,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 |-------|-------|------|----------------------|--------|
 | **#0** | 0 | Planejamento | — | ✅ |
 | **#1** | 1 | SQLite local (API + UI) | ✅ **Concluído** | 49/49 |
-| **#2** | 2a | Scraper dev (Playwright local) | ✅ **8/8** · B67 `[x]` · **F19** `[@]` | 8/8 |
+| **#2** | 2a | Scraper dev (Playwright local) | ✅ **8/8** · B67 `[x]` · **F19** `[x]` | 8/8 |
 | **#3** | 2b | Worker sync (servidor) | Depois de #2a · fila §6.3 `SCOPE-CLOUD` | 0/5 |
 | **#4** | 6a | Supabase + deploy global | Depois de #3 | 0/8 |
 | **#5** | 6b | Auth: CPF login, cadastro completo | Depois de #4 | 0/9 |
@@ -539,7 +539,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] **BACK:**  B19
 - [x] **FRONT:** F13 *(dashboard + `/calendario` via `useSchedule` + extras localStorage)*
 
-> **3F (Simulador de matrícula)** — **F19** `[@]` via `GET /api/turmas-ofertadas` + **B67** `[x]` (`POST /api/sync/turmas`).
+> **3F (Simulador de matrícula)** — **F19** `[x]` via `GET /api/turmas-ofertadas` + **B67** `[x]` (`POST /api/sync/turmas`).
 
 ---
 
@@ -559,13 +559,13 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] **FRONT:** F38 *(sino in-app: tarefas/notas novas + lembretes 24h/1h; polish `04887c9` baseline pré-sync + nota obtida/máxima)*
 - [x] **BACK:** B66 *(calendário acadêmico — robô isolado `POST /api/sync/calendario` + UI painel dual-semestre)*
 - [x] **BACK:** B67 *(turmas ofertadas — Ensino → Consultar Turmas do Próx. Semestre; Atendida/Pendente; `curso` vs `optativas` PPC; `scheduleBlocker` ⛔; `POST /api/sync/turmas` + `GET /api/turmas-ofertadas`)*
-- [@] **FRONT:** F19 *(`/simulador` via API — montar grade com turmas ofertadas reais; coreq/conflitos; export JPEG; popup trancado; **2 polish UX pendentes**)*
+- [x] **FRONT:** F19 *(`/simulador` via API — montar grade real; preview multi-horário; coreq par rollback+modal; cards uniformes; CH obr/opt/total; export JPEG)*
 
 **Ordem 2a (execução linear):** `B24→B26` → `B27` → `B65` → `B28` → `B30` → `B31` → `F18` → `F37` → `F38` → `B66` → `B67` → `F19`
 
 **Contagem 8/8:** só os 8 primeiros grupos até **`F37`** · **`F38` · `B66` · `B67` · `F19`** = extras (fora do 8/8) · polish `04887c9`/`5923e9c` · modulação dashboard · fix mapa/histórico/notificações (jun/2026)
 
-**Próximo:** polish **F19** `[@]` (2 itens front) · **#6d:** `B68-orq` fora desta fila — ver [#6d](#6d--orquestração-sync--catálogo-global-pré-mobile)
+**Próximo:** **Bloco 2b** (B54) · **Emergência:** PPC EngComp v3 · **#6d:** `B68-orq` fora desta fila — ver [#6d](#6d--orquestração-sync--catálogo-global-pré-mobile)
 
 ---
 
@@ -707,7 +707,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 |---------|-------|--------|-----------|
 | #0 | 0 — Planejamento | ✅ | Concluído |
 | **#1** | **1 — SQLite** | ✅ **Concluído** | 49 / 49 |
-| **#2** | **2a — Scraper dev** | ✅ **8/8** · B67 `[x]` · **F19** `[@]` | 8 / 8 |
+| **#2** | **2a — Scraper dev** | ✅ **8/8** · B67 `[x]` · **F19** `[x]` | 8 / 8 |
 | **#3** | **2b — Worker sync** | ⬜ | 0 / 5 |
 | #4 | 6a — Cloud deploy | ⬜ *(após #3)* | 0 / 8 |
 | #5 | 6b — Cloud auth | ⬜ | 0 / 9 |
@@ -753,7 +753,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | **3C** | Integralização | CH por categoria + horas manuais ✅ |
 | **3D** | Mapa | Grade obrigatória PPC (1–10) + status via API (B18 · F12 ✅); optativas fora do mapa |
 | **3E** | Grade semanal | Horários do semestre via `GET /api/schedule` + UI (B19 · F13 ✅) |
-| **3F** | Simulador matrícula | **F19** `[@]` API real · **B67** `[x]` turmas ofertadas |
+| **3F** | Simulador matrícula | **F19** `[x]` API real · **B67** `[x]` turmas ofertadas |
 
 #### Etapa 1 — Fundação (só backend) ✅
 
@@ -793,7 +793,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 #### Etapa 3 — Demais telas (back → front)
 
-> **3C Integralização:** ✅ · **3D Mapa:** ✅ · **3E Grade:** ✅ · **3F Simulador:** F19 `[@]` · B67 `[x]`
+> **3C Integralização:** ✅ · **3D Mapa:** ✅ · **3E Grade:** ✅ · **3F Simulador:** F19 `[x]` · B67 `[x]`
 
 ##### 3A — Disciplinas
 
@@ -871,12 +871,12 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 ##### 3F — Simulador de matrícula
 
-> **Resumo:** `/simulador` (Montar Grade) — **F19** `[@]` via `GET /api/turmas-ofertadas` + sync **B67** `[x]` (`POST /api/sync/turmas`).
+> **Resumo:** `/simulador` (Montar Grade) — **F19** `[x]` via `GET /api/turmas-ofertadas` + sync **B67** `[x]` (`POST /api/sync/turmas`).
 
 | # | Tipo | Task | Resumo | Status |
 |---|------|------|--------|--------|
 | B67 | Back | Turmas ofertadas | Ensino → Consultar Turmas; Atendida/Pendente; curso/optativas PPC; `scheduleBlocker` | [x] |
-| F19 | Front | `/simulador` via API | Montar grade real; coreq/conflitos; export JPEG; **2 polish UX pendentes** | [@] |
+| F19 | Front | `/simulador` via API | Montar grade real; preview multi-horário; coreq par; cards uniformes; CH obr/opt/total; export JPEG | [x] |
 
 **Ordem sugerida Etapa 3:** `B9–B12 → F6–F8` → `B13–B15 → F9–F10` → `B16–B17 → F11` → `B18 → F12` → `B19 → F13`
 
@@ -912,7 +912,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | F38 | Front | Sino notificações in-app | Tarefas/notas novas pós-sync; lembretes 24h/1h; baseline pré-sync; nota obtida/máxima | 2.x | [x] |
 | B66 | Back | Calendário acadêmico | Robô isolado `POST /api/sync/calendario` + painel dual-semestre | 2.4 | [x] |
 | B67 | Back | Turmas ofertadas | Ensino → Consultar Turmas; Atendida/Pendente; curso/optativas PPC; `scheduleBlocker` | 2.4 | [x] |
-| F19 | Front | `/simulador` via API | Montar grade real; coreq/conflitos; export JPEG; **2 polish UX pendentes** | 2.4 | [@] |
+| F19 | Front | `/simulador` via API | Montar grade real; preview multi-horário; coreq par; cards uniformes; CH obr/opt/total; export JPEG | 2.4 | [x] |
 | B68-orq | Plan/Back | Orquestração sync + global | Sugestão §5.4/§6.5; decisão na #6d (**B68a–f**) — **fora da ordem #2** | 2c | [ ] |
 
 **Ordem 2a (#2, linear):** `B24→B26` → `B27` → `B65` → `B28` → `B30` → `B31` → `F18` → `F37` → `F38` → `B66` → `B67` → `F19` · **8/8** até `F37` · **`B68-orq`** = [#6d](#6d--orquestração-sync--catálogo-global-pré-mobile)
@@ -1115,7 +1115,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
       ↓
 #1  Bloco 1   SQLite local (3E)               ✅
       ↓
-#2  Bloco 2a  Scraper dev + sync REAL          ✅ 8/8 · B67 [x] · F19 [@]
+#2  Bloco 2a  Scraper dev + sync REAL          ✅ 8/8 · B67 [x] · F19 [x]
       ordem: B24→B26→B27→B65→B28→B30→B31→F18→F37→F38→B66→B67→F19
 #3  Bloco 2b  Worker + fila (§6.3 SCOPE-CLOUD)
       ↓
@@ -1395,7 +1395,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 ### 5.3 Simulador de Matrícula (Pré-horário)
 - [x] Página dedicada apenas ao simulador de horários/matrícula (`/simulador` — Montar Grade)
 - [x] Buscar turmas ofertadas do SIGAA (scraper **B67** `[x]`)
-- [@] Montar grade via API — **F19** `[@]` (`GET /api/turmas-ofertadas`, coreq, conflitos, export JPEG; **2 polish UX pendentes**)
+- [x] Montar grade via API — **F19** `[x]` (`GET /api/turmas-ofertadas`, preview multi-horário, coreq par rollback+modal, cards uniformes, CH obr/opt/total, export JPEG)
 - [x] Lista de matérias com ícones: Desbloqueada / Trancada (template mock)
 - [x] Alocar matéria desbloqueada em horário vazio da grade (clique — template)
 - [x] Clique em aula da grade abre modal com detalhes e opção de remover
@@ -1655,7 +1655,7 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 8. **Próximo passo do roadmap:** informe **depois do push** (tasks em `[@]` ou `[x]`). Com commits locais só `[%]`, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v3](#ordem-oficial-de-execução-v3) — **Bloco 2 (sync) antes do Bloco 6 (Supabase)**. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy **após** sync validado; RLS **só na 6c** (antes do PIX).
-11. **Próximo passo:** polish **F19** `[@]` (2 itens front amanhã) · **Bloco 2b** (B54–B56). **B67** `[x]`. **#6d (B68-orq):** aberto. Gift/dev: [Apêndice gift/dev](#apêndice--chaves-gift-e-painel-dev-jun2026). **B71** = última pré-go-live.
+11. **Próximo passo:** **Bloco 2b** (B54–B56) · **Emergência:** reindexar PPC Eng. Computação v3 (`docs/referencias/PPC_EngComp-Div-v3.pdf`; PDFs Meca/Moda em `docs/referencias/` para Bloco #11). **F19** `[x]` · **B67** `[x]`. **#6d (B68-orq):** aberto. Gift/dev: [Apêndice gift/dev](#apêndice--chaves-gift-e-painel-dev-jun2026). **B71** = última pré-go-live.
 12. **Integralização:** CH concluída = `historico` + PPC (`computeChDoneFromDisciplinas`); portal SIGAA só % / total currículo; matérias já passadas = **B30** ✅.
 13. **Gift + painel dev + simulação mapa:** escopo em `SCOPE.md` §2.1.1, §6.1.1, §10 — tasks **B68–B71**, **F39–F41**, **F40** — [Apêndice gift/dev](#apêndice--chaves-gift-e-painel-dev-jun2026). **Login operador:** email+senha **sempre** (pares **manuais no env**). **Painel robôs ops:** chavinhas R1/R2/R3, lista nome/CPF, individual/global sem cooldown. **B71** = última task (ocultar senhas SIGAA no painel).
 14. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial. **Polish em task `[x]`** (ex.: F38, dashboard) também exige nota no TASKS no mesmo ciclo do push.

@@ -1,31 +1,55 @@
 import type { ScheduleSlot } from "@/lib/types/schedule";
-import type { TurmaOfertadaCourse } from "@/lib/types/turmas-ofertadas-api";
+import type {
+  TurmaOfertadaCategoriaApi,
+  TurmaOfertadaCourse,
+} from "@/lib/types/turmas-ofertadas-api";
 
 export interface EnrollmentScheduleStats {
   placedCount: number;
+  obrigatoriasCh: number;
+  optativasCh: number;
   totalCh: number;
   placedTurmaIds: string[];
 }
 
 /** Conta turmas únicas na grade e soma CH uma vez por turma. */
 export function summarizePlacedSchedule(
-  schedule: ScheduleSlot[][]
+  schedule: ScheduleSlot[][],
+  catalog: TurmaOfertadaCourse[] = []
 ): EnrollmentScheduleStats {
+  const catalogByTurmaId = new Map(
+    catalog.map((course) => [course.turmaSigaaId, course])
+  );
   const chByTurma = new Map<string, number>();
+  const categoriaByTurma = new Map<string, TurmaOfertadaCategoriaApi>();
 
   for (const row of schedule) {
     for (const slot of row) {
       if (!slot?.turmaSigaaId || chByTurma.has(slot.turmaSigaaId)) continue;
       chByTurma.set(slot.turmaSigaaId, slot.ch ?? 0);
+      categoriaByTurma.set(
+        slot.turmaSigaaId,
+        catalogByTurmaId.get(slot.turmaSigaaId)?.categoria ?? "curso"
+      );
     }
   }
 
-  let totalCh = 0;
-  for (const ch of chByTurma.values()) totalCh += ch;
+  let obrigatoriasCh = 0;
+  let optativasCh = 0;
+
+  for (const [turmaId, ch] of chByTurma) {
+    if (categoriaByTurma.get(turmaId) === "optativa") {
+      optativasCh += ch;
+    } else {
+      obrigatoriasCh += ch;
+    }
+  }
 
   return {
     placedCount: chByTurma.size,
-    totalCh,
+    obrigatoriasCh,
+    optativasCh,
+    totalCh: obrigatoriasCh + optativasCh,
     placedTurmaIds: [...chByTurma.keys()],
   };
 }

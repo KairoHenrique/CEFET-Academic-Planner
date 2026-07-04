@@ -15,11 +15,13 @@ interface EnrollmentSchedulePanelProps {
   schedule: ScheduleSlot[][];
   catalog: TurmaOfertadaCourse[];
   placedCount: number;
+  obrigatoriasCh: number;
+  optativasCh: number;
   totalCh: number;
   semestreLabel?: string | null;
   highlightEmpty: boolean;
   allowedEmptyCells: Set<string> | null;
-  blockingCellKeys?: ReadonlySet<string> | null;
+  previewCellLayers?: ReadonlyMap<string, readonly string[]> | null;
   onSlotClick: (payload: {
     slot: ScheduleSlotData;
     day: string;
@@ -27,7 +29,11 @@ interface EnrollmentSchedulePanelProps {
     dayIdx: number;
     slotIdx: number;
   }) => void;
-  onEmptyClick: (dayIdx: number, slotIdx: number) => void;
+  onEmptyClick: (
+    dayIdx: number,
+    slotIdx: number,
+    clickMeta?: { clickOffsetX: number; elementWidth: number }
+  ) => void;
   onClearSchedule: () => void;
 }
 
@@ -35,11 +41,13 @@ export function EnrollmentSchedulePanel({
   schedule,
   catalog,
   placedCount,
+  obrigatoriasCh,
+  optativasCh,
   totalCh,
   semestreLabel,
   highlightEmpty,
   allowedEmptyCells,
-  blockingCellKeys = null,
+  previewCellLayers = null,
   onSlotClick,
   onEmptyClick,
   onClearSchedule,
@@ -90,10 +98,21 @@ export function EnrollmentSchedulePanel({
                 {placedCount}{" "}
                 {placedCount === 1 ? "disciplina" : "disciplinas"}
               </span>
-              {totalCh > 0 ? (
-                <span className="enrollment-stat-pill">
+              {placedCount > 0 ? (
+                <span
+                  className="enrollment-stat-pill enrollment-stat-pill--ch"
+                  title={`Obrigatórias: ${obrigatoriasCh}h · Optativas: ${optativasCh}h · Total: ${totalCh}h`}
+                >
                   <Icon name="chart" size={12} aria-hidden />
-                  {totalCh}h
+                  <span>Obr. {obrigatoriasCh}h</span>
+                  <span className="enrollment-stat-sep" aria-hidden>
+                    ·
+                  </span>
+                  <span>Opt. {optativasCh}h</span>
+                  <span className="enrollment-stat-sep" aria-hidden>
+                    ·
+                  </span>
+                  <span>Total {totalCh}h</span>
                 </span>
               ) : null}
             </div>
@@ -109,7 +128,7 @@ export function EnrollmentSchedulePanel({
             interactive={!exporting}
             highlightEmpty={highlightEmpty && !exporting}
             allowedEmptyCells={allowedEmptyCells}
-            blockingCellKeys={blockingCellKeys}
+            previewCellLayers={previewCellLayers}
             onSlotClick={onSlotClick}
             onEmptyClick={onEmptyClick}
           />

@@ -29,7 +29,9 @@ interface EnrollmentCourseGroupCardProps {
   placementContext: SimuladorPlacementContext;
   corequisitoObligation: CorequisitoObligation | null;
   selectedTurmaId: string | null;
+  selectedGroupId?: string | null;
   onSelect: (course: TurmaOfertadaCourse) => void;
+  onSelectGroup?: (group: EnrollmentCourseGroup) => void;
 }
 
 function buildActiveCorequisitoCodes(course: TurmaOfertadaCourse): string[] {
@@ -44,7 +46,9 @@ export function EnrollmentCourseGroupCard({
   placementContext,
   corequisitoObligation,
   selectedTurmaId,
+  selectedGroupId = null,
   onSelect,
+  onSelectGroup,
 }: EnrollmentCourseGroupCardProps) {
   const placedVariant = useMemo(
     () => group.variants.find((variant) => isTurmaPlacedOnSchedule(variant, schedule)),
@@ -106,6 +110,7 @@ export function EnrollmentCourseGroupCard({
         selectedTurmaId && group.variants.some((v) => v.turmaSigaaId === selectedTurmaId)
           ? "is-active"
           : "",
+        selectedGroupId === group.id ? "is-group-preview" : "",
         placedVariant ? "is-placed" : "",
       ]
         .filter(Boolean)
@@ -126,6 +131,13 @@ export function EnrollmentCourseGroupCard({
           style={{ backgroundColor: group.color }}
         />
         <div className="enrollment-course-group-body">
+          <button
+          type="button"
+          className="enrollment-course-group-trigger"
+          onClick={() => onSelectGroup?.(group)}
+          aria-pressed={selectedGroupId === group.id}
+          aria-label={`Ver horários disponíveis de ${group.name}`}
+        >
           <div className="enrollment-course-head">
             <SubjectApelido label={groupShortLabel} />
             <div className="enrollment-course-badges">
@@ -155,6 +167,7 @@ export function EnrollmentCourseGroupCard({
           <p className="enrollment-course-card-title" title={group.name}>
             {group.name}
           </p>
+        </button>
           <div
             className="enrollment-course-slots"
             role="group"

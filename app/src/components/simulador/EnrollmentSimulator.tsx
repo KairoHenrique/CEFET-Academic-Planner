@@ -1,10 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Modal } from "@/components/ui/Modal";
 import { ScheduleDetailContent } from "@/components/ui/ActivityDetail";
 import { EnrollmentConflictNotice } from "@/components/simulador/EnrollmentConflictNotice";
+import { EnrollmentCorequisitoRollbackDialog } from "@/components/simulador/EnrollmentCorequisitoRollbackDialog";
 import { EnrollmentSelectionFloat } from "@/components/simulador/EnrollmentSelectionFloat";
 import { EnrollmentSchedulePanel } from "@/components/simulador/EnrollmentSchedulePanel";
 import { EnrollmentSidebar } from "@/components/simulador/EnrollmentSidebar";
@@ -18,19 +19,26 @@ import { buildSimuladorPlacementContext } from "@/lib/simulador/corequisito-sche
 import {
   isCorequisitoPartnerSelection,
   resolveActiveCorequisitoObligation,
+  resolveIncompleteCorequisitoPlacedHalf,
+  resolveMutualCorequisitoPartnerOnSchedule,
   resolvePendingCorequisitoPartner,
+  rollbackIncompleteCorequisitoPlacement,
+  wouldRollbackIncompleteCorequisitoPlacement,
 } from "@/lib/simulador/corequisito-cluster-viability";
 import { summarizePlacedSchedule } from "@/lib/simulador/enrollment-schedule-stats";
-import {
-  ENROLLMENT_BLOCKING_FLASH_MS,
-  resolveSelectedLockedCourseBlockingCellKeys,
-} from "@/lib/simulador/enrollment-schedule-highlights";
 import { resolveEnrollmentCourseSelectability } from "@/lib/simulador/enrollment-course-selectability";
+import {
+  buildMultiVariantPreviewMap,
+  listPreviewCellColors,
+  resolvePreviewCourseAtCell,
+  resolvePreviewSegmentIndex,
+} from "@/lib/simulador/enrollment-multi-variant-preview";
 import {
   resolveEnrollmentScheduleConflictNotice,
   type EnrollmentScheduleConflictNotice,
 } from "@/lib/simulador/enrollment-schedule-conflict-notice";
 import { scrollEnrollmentScheduleIntoView } from "@/lib/simulador/scroll-enrollment-schedule-into-view";
+import type { EnrollmentCourseGroup } from "@/lib/simulador/group-enrollment-courses";
 import {
   buildAllowedEmptyCellKeys,
   canPlaceTurmaOnSchedule,
@@ -38,6 +46,7 @@ import {
   isAllowedPlacementCell,
   placeTurmaOnSchedule,
   removeTurmaFromSchedule,
+  scheduleCellKey,
 } from "@/lib/simulador/turma-schedule-placement";
 import {
   createEmptySchedule,
@@ -48,6 +57,30 @@ import type { TurmaOfertadaCourse, TurmasOfertadasResponse } from "@/lib/types/t
 
 interface EnrollmentSimulatorProps {
   data: TurmasOfertadasResponse;
+}
+
+interface CorequisitoRollbackPrompt {
+  mode: "cancel" | "remove";
+  primary: TurmaOfertadaCourse;
+  partner: TurmaOfertadaCourse;
+  removeTurmaId?: string;
+}
+
+function placeCourseOnSchedule(
+  course: TurmaOfertadaCourse,
+  schedule: ScheduleSlot[][],
+  placementContext: ReturnType<typeof buildSimuladorPlacementContext>,
+  visibleCourses: TurmaOfertadaCourse[]
+) {
+  const next = placeTurmaOnSchedule(course, schedule, placementContext);
+  const partner = resolvePendingCorequisitoPartner(
+    course,
+    next,
+    placementContext,
+    visibleCourses
+  );
+
+  return { next, partner };
 }
 
 export function EnrollmentSimulator({ data }: EnrollmentSimulatorProps) {
@@ -63,14 +96,13 @@ export function EnrollmentSimulator({ data }: EnrollmentSimulatorProps) {
   const [selectedCourse, setSelectedCourse] = useState<TurmaOfertadaCourse | null>(
     null
   );
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
+  const [selectedGroupVariants, setSelectedGroupVariants] = useState<
+    TurmaOfertadaCourse[]
+  >([]);
   const [conflictNotice, setConflictNotice] =
     useState<EnrollmentScheduleConflictNotice | null>(null);
   const [conflictNoticeEpoch, setConflictNoticeEpoch] = useState(0);
-  const [blockingFlashCellKeys, setBlockingFlashCellKeys] =
-    useState<ReadonlySet<string> | null>(null);
-  const blockingFlashTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
-    null
-  );
   const [detail, setDetail] = useState<{
     slot: ScheduleSlotData;
     day: string;
@@ -78,11 +110,43 @@ export function EnrollmentSimulator({ data }: EnrollmentSimulatorProps) {
     dayIdx: number;
     slotIdx: number;
   } | null>(null);
+  const [corequisitoRollbackPrompt, setCorequisitoRollbackPrompt] =
+    useState<CorequisitoRollbackPrompt | null>(null);
 
   const corequisitoObligation = useMemo(
     () => resolveActiveCorequisitoObligation(schedule, placementContext),
     [schedule, placementContext]
   );
+
+  const multiVariantPreview = useMemo(() => {
+    if (!selectedGroupId || selectedGroupVariants.length === 0) return null;
+
+    return buildMultiVariantPreviewMap(
+      selectedGroupVariants,
+      visible.courses,
+      schedule,
+      placementContext,
+      corequisitoObligation
+    );
+  }, [
+    selectedGroupId,
+    selectedGroupVariants,
+    visible.courses,
+    schedule,
+    placementContext,
+    corequisitoObligation,
+  ]);
+
+  const previewCellLayers = useMemo(() => {
+    if (!multiVariantPreview || multiVariantPreview.size === 0) return null;
+
+    return new Map(
+      [...multiVariantPreview.entries()].map(([key, options]) => [
+        key,
+        listPreviewCellColors(options),
+      ])
+    );
+  }, [multiVariantPreview]);
 
   const selectedCourseState = useMemo(() => {
     if (!selectedCourse) return null;
@@ -108,51 +172,22 @@ export function EnrollmentSimulator({ data }: EnrollmentSimulatorProps) {
     !selectedCourseState!.blockedByObligation;
 
   const allowedEmptyCells = useMemo(() => {
+    if (multiVariantPreview && multiVariantPreview.size > 0) {
+      return new Set(multiVariantPreview.keys());
+    }
+
     if (!selectedCourse || !canPlaceSelectedCourse) return null;
     return buildAllowedEmptyCellKeys(selectedCourse);
-  }, [selectedCourse, canPlaceSelectedCourse]);
+  }, [multiVariantPreview, selectedCourse, canPlaceSelectedCourse]);
+
+  const highlightEmpty = Boolean(
+    (multiVariantPreview && multiVariantPreview.size > 0) || canPlaceSelectedCourse
+  );
 
   const scheduleStats = useMemo(
-    () => summarizePlacedSchedule(schedule),
-    [schedule]
+    () => summarizePlacedSchedule(schedule, visible.courses),
+    [schedule, visible.courses]
   );
-
-  const clearBlockingFlash = useCallback(() => {
-    if (blockingFlashTimerRef.current) {
-      clearTimeout(blockingFlashTimerRef.current);
-      blockingFlashTimerRef.current = null;
-    }
-    setBlockingFlashCellKeys(null);
-  }, []);
-
-  const triggerBlockingFlash = useCallback(
-    (course: TurmaOfertadaCourse) => {
-      const keys = resolveSelectedLockedCourseBlockingCellKeys(
-        course,
-        visible.courses,
-        schedule,
-        placementContext
-      );
-      if (keys.size === 0) return;
-
-      if (blockingFlashTimerRef.current) {
-        clearTimeout(blockingFlashTimerRef.current);
-        blockingFlashTimerRef.current = null;
-      }
-
-      setBlockingFlashCellKeys(null);
-      requestAnimationFrame(() => {
-        setBlockingFlashCellKeys(new Set(keys));
-        blockingFlashTimerRef.current = setTimeout(() => {
-          setBlockingFlashCellKeys(null);
-          blockingFlashTimerRef.current = null;
-        }, ENROLLMENT_BLOCKING_FLASH_MS);
-      });
-    },
-    [visible.courses, schedule, placementContext]
-  );
-
-  useEffect(() => () => clearBlockingFlash(), [clearBlockingFlash]);
 
   const availableCurso = useMemo(
     () => filterTurmasNotOnSchedule(visible.curso, schedule),
@@ -172,35 +207,200 @@ export function EnrollmentSimulator({ data }: EnrollmentSimulatorProps) {
     ? formatTurmaHorarioDisplay(selectedCourse)
     : null;
 
-  const removeTurma = (turmaSigaaId: string | undefined) => {
-    if (!turmaSigaaId) return;
-    setSchedule((prev) =>
-      removeTurmaFromSchedule(turmaSigaaId, prev, placementContext)
-    );
-    setDetail(null);
-    setSelectedCourse((prev) =>
-      prev?.turmaSigaaId === turmaSigaaId ? null : prev
-    );
-  };
+  const clearGroupPreview = useCallback(() => {
+    setSelectedGroupId(null);
+    setSelectedGroupVariants([]);
+  }, []);
 
-  const handleEmptyClick = (dayIdx: number, slotIdx: number) => {
+  const showConflictForCourse = useCallback(
+    (course: TurmaOfertadaCourse) => {
+      const notice = resolveEnrollmentScheduleConflictNotice(
+        course,
+        visible.courses,
+        schedule,
+        placementContext
+      );
+
+      setSelectedCourse(course);
+      clearGroupPreview();
+      setConflictNotice(notice);
+      setConflictNoticeEpoch((value) => value + 1);
+      scrollEnrollmentScheduleIntoView();
+    },
+    [visible.courses, schedule, placementContext, clearGroupPreview]
+  );
+
+  const cancelSelectedCourse = useCallback(() => {
+    setSchedule((prev) =>
+      rollbackIncompleteCorequisitoPlacement(
+        prev,
+        placementContext,
+        corequisitoObligation,
+        selectedCourse
+      )
+    );
+    setSelectedCourse(null);
+    setConflictNotice(null);
+    setCorequisitoRollbackPrompt(null);
+  }, [placementContext, corequisitoObligation, selectedCourse]);
+
+  const requestCancelSelectedCourse = useCallback(() => {
+    if (
+      !wouldRollbackIncompleteCorequisitoPlacement(
+        corequisitoObligation,
+        selectedCourse
+      )
+    ) {
+      cancelSelectedCourse();
+      return;
+    }
+
+    if (!corequisitoObligation || !selectedCourse) return;
+
+    const placedHalf = resolveIncompleteCorequisitoPlacedHalf(
+      schedule,
+      placementContext,
+      corequisitoObligation
+    );
+    const primary = placedHalf
+      ? visible.courses.find(
+          (course) => course.turmaSigaaId === placedHalf.turmaSigaaId
+        )
+      : null;
+
+    if (!primary) {
+      cancelSelectedCourse();
+      return;
+    }
+
+    setCorequisitoRollbackPrompt({
+      mode: "cancel",
+      primary,
+      partner: selectedCourse,
+    });
+  }, [
+    cancelSelectedCourse,
+    corequisitoObligation,
+    placementContext,
+    schedule,
+    selectedCourse,
+    visible.courses,
+  ]);
+
+  const removeTurmaImmediate = useCallback(
+    (turmaSigaaId: string) => {
+      setSchedule((prev) =>
+        removeTurmaFromSchedule(turmaSigaaId, prev, placementContext)
+      );
+      setDetail(null);
+      setSelectedCourse((prev) =>
+        prev?.turmaSigaaId === turmaSigaaId ? null : prev
+      );
+      setCorequisitoRollbackPrompt(null);
+    },
+    [placementContext]
+  );
+
+  const requestRemoveTurma = useCallback(
+    (turmaSigaaId: string | undefined) => {
+      if (!turmaSigaaId) return;
+
+      const course = visible.courses.find(
+        (item) => item.turmaSigaaId === turmaSigaaId
+      );
+      if (!course) {
+        removeTurmaImmediate(turmaSigaaId);
+        return;
+      }
+
+      const partner = resolveMutualCorequisitoPartnerOnSchedule(
+        turmaSigaaId,
+        schedule,
+        placementContext,
+        visible.courses
+      );
+
+      if (!partner) {
+        removeTurmaImmediate(turmaSigaaId);
+        return;
+      }
+
+      setDetail(null);
+      setCorequisitoRollbackPrompt({
+        mode: "remove",
+        primary: course,
+        partner,
+        removeTurmaId: turmaSigaaId,
+      });
+    },
+    [placementContext, removeTurmaImmediate, schedule, visible.courses]
+  );
+
+  const confirmCorequisitoRollback = useCallback(() => {
+    if (!corequisitoRollbackPrompt) return;
+
+    if (corequisitoRollbackPrompt.mode === "cancel") {
+      cancelSelectedCourse();
+      return;
+    }
+
+    if (corequisitoRollbackPrompt.removeTurmaId) {
+      removeTurmaImmediate(corequisitoRollbackPrompt.removeTurmaId);
+    }
+  }, [cancelSelectedCourse, corequisitoRollbackPrompt, removeTurmaImmediate]);
+
+  const handleEmptyClick = (
+    dayIdx: number,
+    slotIdx: number,
+    clickMeta?: { clickOffsetX: number; elementWidth: number }
+  ) => {
+    if (multiVariantPreview && multiVariantPreview.size > 0) {
+      const options =
+        multiVariantPreview.get(scheduleCellKey(dayIdx, slotIdx)) ?? [];
+      const segmentIndex = clickMeta
+        ? resolvePreviewSegmentIndex(
+            options.length,
+            clickMeta.clickOffsetX,
+            clickMeta.elementWidth
+          )
+        : 0;
+      const course = resolvePreviewCourseAtCell(
+        multiVariantPreview,
+        dayIdx,
+        slotIdx,
+        segmentIndex
+      );
+      if (!course) return;
+      if (!canPlaceTurmaOnSchedule(course, schedule, placementContext)) return;
+
+      const { next, partner } = placeCourseOnSchedule(
+        course,
+        schedule,
+        placementContext,
+        visible.courses
+      );
+
+      setSchedule(next);
+      clearGroupPreview();
+      setSelectedCourse(partner);
+      setConflictNotice(null);
+      return;
+    }
+
     if (!selectedCourse) return;
     if (!isAllowedPlacementCell(selectedCourse, dayIdx, slotIdx)) return;
-    if (!canPlaceTurmaOnSchedule(selectedCourse, schedule, placementContext)) return;
+    if (!canPlaceTurmaOnSchedule(selectedCourse, schedule, placementContext)) {
+      return;
+    }
 
-    const next = placeTurmaOnSchedule(
+    const { next, partner } = placeCourseOnSchedule(
       selectedCourse,
       schedule,
-      placementContext
-    );
-    setSchedule(next);
-
-    const partner = resolvePendingCorequisitoPartner(
-      selectedCourse,
-      next,
       placementContext,
       visible.courses
     );
+
+    setSchedule(next);
     setSelectedCourse(partner);
   };
 
@@ -217,6 +417,8 @@ export function EnrollmentSimulator({ data }: EnrollmentSimulatorProps) {
   const handleCourseClick = (course: TurmaOfertadaCourse) => {
     if (!isTurmaSelectable(course)) return;
 
+    clearGroupPreview();
+
     const state = resolveEnrollmentCourseSelectability(
       course,
       visible.courses,
@@ -226,18 +428,7 @@ export function EnrollmentSimulator({ data }: EnrollmentSimulatorProps) {
     );
 
     if (state.timeLocked) {
-      const notice = resolveEnrollmentScheduleConflictNotice(
-        course,
-        visible.courses,
-        schedule,
-        placementContext
-      );
-
-      setSelectedCourse(course);
-      setConflictNotice(notice);
-      setConflictNoticeEpoch((value) => value + 1);
-      triggerBlockingFlash(course);
-      scrollEnrollmentScheduleIntoView();
+      showConflictForCourse(course);
       return;
     }
 
@@ -246,24 +437,57 @@ export function EnrollmentSimulator({ data }: EnrollmentSimulatorProps) {
     const isDeselect = selectedCourse?.turmaSigaaId === course.turmaSigaaId;
 
     if (isDeselect) {
-      setSelectedCourse(null);
-      setConflictNotice(null);
-      clearBlockingFlash();
+      requestCancelSelectedCourse();
       return;
     }
 
     setSelectedCourse(course);
     setConflictNotice(null);
-    clearBlockingFlash();
+    scrollEnrollmentScheduleIntoView();
+  };
+
+  const handleGroupClick = (group: EnrollmentCourseGroup) => {
+    if (!group.multiVariant) return;
+
+    const isDeselect = selectedGroupId === group.id && !selectedCourse;
+
+    if (isDeselect) {
+      clearGroupPreview();
+      setConflictNotice(null);
+      return;
+    }
+
+    const placeable = group.variants.filter((variant) => {
+      const state = resolveEnrollmentCourseSelectability(
+        variant,
+        visible.courses,
+        schedule,
+        placementContext,
+        corequisitoObligation
+      );
+      return state.selectable && !state.timeLocked;
+    });
+
+    if (placeable.length === 0) {
+      const primary = group.variants[0];
+      if (primary) showConflictForCourse(primary);
+      return;
+    }
+
+    setSelectedCourse(null);
+    setSelectedGroupId(group.id);
+    setSelectedGroupVariants(group.variants);
+    setConflictNotice(null);
     scrollEnrollmentScheduleIntoView();
   };
 
   const handleClearSchedule = () => {
     setSchedule(createEmptySchedule());
     setSelectedCourse(null);
+    clearGroupPreview();
     setConflictNotice(null);
-    clearBlockingFlash();
     setDetail(null);
+    setCorequisitoRollbackPrompt(null);
   };
 
   return (
@@ -277,7 +501,7 @@ export function EnrollmentSimulator({ data }: EnrollmentSimulatorProps) {
               selectedCourse={selectedCourse}
               selectedShortLabel={selectedShortLabel}
               selectedHorario={selectedHorario}
-              onDismiss={() => setSelectedCourse(null)}
+              onDismiss={requestCancelSelectedCourse}
             />
           ) : null}
 
@@ -285,11 +509,13 @@ export function EnrollmentSimulator({ data }: EnrollmentSimulatorProps) {
             schedule={schedule}
             catalog={visible.courses}
             placedCount={scheduleStats.placedCount}
+            obrigatoriasCh={scheduleStats.obrigatoriasCh}
+            optativasCh={scheduleStats.optativasCh}
             totalCh={scheduleStats.totalCh}
             semestreLabel={data.semestre}
-            highlightEmpty={canPlaceSelectedCourse}
+            highlightEmpty={highlightEmpty}
             allowedEmptyCells={allowedEmptyCells}
-            blockingCellKeys={blockingFlashCellKeys}
+            previewCellLayers={previewCellLayers}
             onSlotClick={handleSlotClick}
             onEmptyClick={handleEmptyClick}
             onClearSchedule={handleClearSchedule}
@@ -304,7 +530,9 @@ export function EnrollmentSimulator({ data }: EnrollmentSimulatorProps) {
           placementContext={placementContext}
           corequisitoObligation={corequisitoObligation}
           selectedTurmaId={selectedCourse?.turmaSigaaId ?? null}
+          selectedGroupId={selectedGroupId}
           onSelect={handleCourseClick}
+          onSelectGroup={handleGroupClick}
         />
       </div>
 
@@ -313,6 +541,29 @@ export function EnrollmentSimulator({ data }: EnrollmentSimulatorProps) {
           key={conflictNoticeEpoch}
           notice={conflictNotice}
           onDismiss={() => setConflictNotice(null)}
+        />
+      ) : null}
+
+      {corequisitoRollbackPrompt ? (
+        <EnrollmentCorequisitoRollbackDialog
+          open
+          mode={corequisitoRollbackPrompt.mode}
+          primary={{
+            shortLabel: formatTurmaShortLabel(
+              corequisitoRollbackPrompt.primary,
+              visible.courses
+            ),
+            name: corequisitoRollbackPrompt.primary.name,
+          }}
+          partner={{
+            shortLabel: formatTurmaShortLabel(
+              corequisitoRollbackPrompt.partner,
+              visible.courses
+            ),
+            name: corequisitoRollbackPrompt.partner.name,
+          }}
+          onConfirm={confirmCorequisitoRollback}
+          onCancel={() => setCorequisitoRollbackPrompt(null)}
         />
       ) : null}
 
@@ -333,7 +584,7 @@ export function EnrollmentSimulator({ data }: EnrollmentSimulatorProps) {
             time={detail.time}
             simulated
             onClose={() => setDetail(null)}
-            onRemove={() => removeTurma(detail.slot.turmaSigaaId)}
+            onRemove={() => requestRemoveTurma(detail.slot.turmaSigaaId)}
           />
         ) : null}
       </Modal>
