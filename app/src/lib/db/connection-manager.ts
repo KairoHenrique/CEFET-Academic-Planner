@@ -2,6 +2,7 @@ import { AsyncLocalStorage } from "node:async_hooks";
 import fs from "node:fs";
 import path from "node:path";
 import Database from "better-sqlite3";
+import { assertSqliteAllowed } from "@/lib/db/backend/sqlite-guard";
 
 const userContext = new AsyncLocalStorage<string | undefined>();
 
@@ -60,6 +61,7 @@ export function getActiveSigaaUsername(): string | undefined {
 }
 
 export function getActiveDatabase(): Database {
+  assertSqliteAllowed("planner.db");
   const dbPath = resolveDbPathForUser(getActiveSigaaUsername());
   let connection = connections.get(dbPath);
 

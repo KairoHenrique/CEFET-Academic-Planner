@@ -7,6 +7,7 @@ export type ApiErrorCode =
   | "SIGAA_SCRAPE_FAILED"
   | "NOT_FOUND"
   | "RATE_LIMITED"
+  | "SQLITE_DISABLED"
   | "INTERNAL_ERROR";
 
 export class ApiError extends Error {
@@ -34,6 +35,12 @@ export function validationError(message: string, details?: unknown): ApiError {
 
 export function notFoundError(message: string): ApiError {
   return new ApiError("NOT_FOUND", message, 404);
+}
+
+export function sqliteDisabledError(
+  message = "SQLite local indisponível no modo cloud/postgres."
+): ApiError {
+  return new ApiError("SQLITE_DISABLED", message, 503);
 }
 
 export function internalError(message = "Erro interno do servidor."): ApiError {

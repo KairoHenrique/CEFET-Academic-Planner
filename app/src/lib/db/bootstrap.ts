@@ -6,6 +6,7 @@ import {
   resetConnectionsForTests,
   resolveDbPathForUser,
 } from "./connection-manager";
+import { assertSqliteAllowed } from "./backend/sqlite-guard";
 import { countDisciplinas } from "./queries";
 import { seedPpcIfEmpty, syncPpcEmentasToDb } from "./seed-ppc";
 
@@ -308,6 +309,7 @@ export function initDB(): void {
 }
 
 export function ensureDbReady(): void {
+  assertSqliteAllowed("bootstrap");
   const dbPath = resolveDbPathForUser(getActiveSigaaUsername());
 
   if (isDatabaseBootstrapped(dbPath)) {
