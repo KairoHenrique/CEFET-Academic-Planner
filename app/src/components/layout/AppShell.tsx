@@ -6,6 +6,7 @@ import { AuthGate } from "@/components/auth/AuthGate";
 import { AutoSyncRunner } from "@/components/profile/AutoSyncRunner";
 import { SessionActivityTracker } from "@/components/auth/SessionActivityTracker";
 import { QueryProvider } from "@/components/providers/QueryProvider";
+import { SyncQueueProvider } from "@/components/providers/SyncQueueProvider";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -17,14 +18,16 @@ export function AppShell({ children }: AppShellProps) {
 
   return (
     <QueryProvider>
-      <AuthGate>
-        {!isLogin && <SessionActivityTracker />}
-        {!isLogin && <AutoSyncRunner />}
-        {!isLogin && <Navbar />}
-        <main className={`main-content ${isLogin ? "main-content-login" : ""}`}>
-          {children}
-        </main>
-      </AuthGate>
+      <SyncQueueProvider>
+        <AuthGate>
+          {!isLogin && <SessionActivityTracker />}
+          {!isLogin && <AutoSyncRunner />}
+          {!isLogin && <Navbar />}
+          <main className={`main-content ${isLogin ? "main-content-login" : ""}`}>
+            {children}
+          </main>
+        </AuthGate>
+      </SyncQueueProvider>
     </QueryProvider>
   );
 }
