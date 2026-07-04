@@ -35,7 +35,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 **Regra:** o stakeholder **avisa explicitamente** quando a entrega **não** está 100% aprovada. Após push com ressalvas → **`[@]`**, nunca `[x]`.
 
-**Tasks em `[@]` (jul/2026):** **B54** (worker Playwright — pendente validação VPS/Docker) · **F19** `[x]` · **B67** `[x]`.
+**Tasks em `[@]` (jul/2026):** *(nenhuma — B54/B55 aprovadas jul/2026)*.
 
 **Polish pós-push (jun/2026, sem nova task):** `04887c9` — fix alerta nota nova pós-sync (baseline pré-sync) + nota obtida/máxima no sino · `5923e9c` — nome da disciplina no `SubjectCard` abre `/disciplinas/[código]`.
 
@@ -43,7 +43,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ## Roadmap detalhado — ordem de execução (#0 → #11)
 
-> **Próximo oficial:** **Bloco 2b** (B55). **B54** `[@]` · Back **B67** `[x]` · **F19** `[x]` · PPC EngComp **v3** reindexado (jul/2026).
+> **Próximo oficial:** **Bloco 2b** (**B56**). **B54** `[x]` · **B55** `[x]` · Back **B67** `[x]` · **F19** `[x]` · PPC EngComp **v3** reindexado (jul/2026).
 > **Regra:** siga **#0 → #11** · dentro de cada bloco → **BACK (B) antes de FRONT (F)**. Checklist espelho: [Checklist mestre](#checklist-mestre-ordem-de-execução).
 
 ### #0 — Planejamento `✅`
@@ -152,12 +152,12 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ---
 
-### #3 — Bloco 2b · Worker sync (servidor) `🟡 1/5`
+### #3 — Bloco 2b · Worker sync (servidor) `🟡 2/5`
 
 > Fila §6.3 `SCOPE-CLOUD` — 1 job global, auto **3h/usuário**, manual **fim da fila** + cooldown **5 min**.
 
-- [@] **BACK:** B54 *(worker Playwright — `app/worker/` · HTTP `/health` `/status` `/jobs` · `BrowserJobSlot` max 1 · Docker · graceful shutdown)*
-- [ ] **BACK:** B55 *(API fila sync — filas prioritária + normal; enqueue; status/posição/ETA)*
+- [x] **BACK:** B54 *(worker Playwright — `app/worker/` · HTTP `/health` `/status` `/jobs` · `BrowserJobSlot` max 1 · Docker · graceful shutdown)*
+- [x] **BACK:** B55 *(API fila sync — filas prioritária + normal; enqueue; status/posição/ETA)*
 - [ ] **BACK:** B56 *(pipeline B24–B31 no worker — credenciais cifradas no servidor)*
 - [ ] **OPS:** O3 *(cooldowns produção — auto ≥3h/usuário; manual 5 min; manual → fim da fila; **exceção:** painel `/dev` **B70/F41** dispara robôs **sem cooldown**)*
 - [ ] **FRONT:** F19 *(status fila na UI — substituir `useAutoSync`; alinhar **F37**; `/simulador` real **B67**)*
@@ -383,8 +383,8 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ### 1.4 API e Integração UI ↔ SQLite
 
-> **Progresso:** Bloco 1 ✅ (`49/49`) · **Bloco 2a** ✅ · **Bloco 2b** — **B54** `[@]` · pendente **B55–B56** · **O3** · **F19** (fila UI).
-> **Próximo:** **B55** (fila sync API).
+> **Progresso:** Bloco 1 ✅ (`49/49`) · **Bloco 2a** ✅ · **Bloco 2b** — **B54** `[x]` · **B55** `[x]` · pendente **B56** · **O3** · **F19** (fila UI).
+> **Próximo:** **B56** (pipeline no worker).
 
 Roadmap detalhado: ver **[Roadmap #0→#11 no topo](#roadmap-detalhado--ordem-de-execução-0--11)** · [Ordem oficial v3](#ordem-oficial-de-execução-v3). **F19** `[x]` · **B67** `[x]`.
 
@@ -493,7 +493,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | **#0** | 0 | Planejamento | — | ✅ |
 | **#1** | 1 | SQLite local (API + UI) | ✅ **Concluído** | 49/49 |
 | **#2** | 2a | Scraper dev (Playwright local) | ✅ **8/8** · B67 `[x]` · **F19** `[x]` | 8/8 |
-| **#3** | 2b | Worker sync (servidor) | Depois de #2a · fila §6.3 `SCOPE-CLOUD` | 1/5 |
+| **#3** | 2b | Worker sync (servidor) | Depois de #2a · fila §6.3 `SCOPE-CLOUD` | 2/5 |
 | **#4** | 6a | Supabase + deploy global | Depois de #3 | 0/8 |
 | **#5** | 6b | Auth: CPF login, cadastro completo | Depois de #4 | 0/9 |
 | **#6** | 6c | RLS multi-tenant | **Obrigatório antes do PIX** | 0/2 |
@@ -565,16 +565,16 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 **Contagem 8/8:** só os 8 primeiros grupos até **`F37`** · **`F38` · `B66` · `B67` · `F19`** = extras (fora do 8/8) · polish `04887c9`/`5923e9c` · modulação dashboard · fix mapa/histórico/notificações (jun/2026)
 
-**Próximo:** **B55** (fila sync) · **#6d:** `B68-orq` fora desta fila — ver [#6d](#6d--orquestração-sync--catálogo-global-pré-mobile)
+**Próximo:** **B56** (pipeline worker) · **#6d:** `B68-orq` fora desta fila — ver [#6d](#6d--orquestração-sync--catálogo-global-pré-mobile)
 
 ---
 
-### #3 — Bloco 2b · Scraper SIGAA — worker `🟡 1/5`
+### #3 — Bloco 2b · Scraper SIGAA — worker `🟡 2/5`
 
 > **Escopo fila:** [`SCOPE-CLOUD.md` §6.3](./SCOPE-CLOUD.md#63-fila-de-sync--decisão-fechada-mvp-worker) — 1 job global, auto **3h/usuário**, manual **fim da fila** + cooldown **5 min**, **prioridade** no 1º login.
 
-- [@] **BACK:**  B54 — worker Playwright (`app/worker/` · slot 1 browser · Docker · POST `/jobs` R1)
-- [ ] **BACK:**  B55 — API fila sync (prioritária + normal; posição/ETA; polling ou Realtime)
+- [x] **BACK:**  B54 — worker Playwright (`app/worker/` · slot 1 browser · Docker · POST `/jobs` R1)
+- [x] **BACK:**  B55 — API fila sync (prioritária + normal; posição/ETA; polling ou Realtime)
 - [ ] **BACK:**  B56 — pipeline B24–B31 no worker (credenciais cifradas)
 - [ ] **OPS:**   O3 — cooldowns produção (auto 3h · manual 5 min · reinicia timer pós-sync); **exceção** painel `/dev` **B70/F41**
 - [ ] **FRONT:** F19 — status fila na UI (substituir `useAutoSync` client; alinhar **F37**)
@@ -922,15 +922,15 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 | # | Tipo | Task | Resumo | Status |
 |---|------|------|--------|--------|
-| B54 | Back | Worker Playwright | `app/worker/` · 1 slot browser · HTTP `/jobs` · Docker · graceful shutdown | [@] |
-| B55 | Back | API fila sync | Filas prioritária + normal; enqueue; status/posição | [ ] |
+| B54 | Back | Worker Playwright | `app/worker/` · 1 slot browser · HTTP `/jobs` · Docker · graceful shutdown | [x] |
+| B55 | Back | API fila sync | Filas prioritária + normal; enqueue; status/posição | [x] |
 | B56 | Back | Pipeline no worker | B24–B31 no servidor; credenciais cifradas | [ ] |
 | O3 | Ops | Cooldowns sync | Auto ≥3h/usuário; manual 5 min; manual → fim da fila; **exceção** painel dev **B70** (sem cooldown) | [ ] |
 | F19 | Front | UI fila + simulador | Status sync/fila (**F37**); `/simulador` real (**B67**) | [ ] |
 
 **Ordem 2b (#3):** `B54 → B55 → B56` → `O3` → `F19`
 
-#### B54 — Worker Playwright `[@]`
+#### B54 — Worker Playwright `[x]`
 
 - [x] Processo separado `app/worker/` (`main.ts` · `server.ts`) — fora do Next.js
 - [x] `BrowserJobSlot` — semáforo global (`SIGAA_WORKER_MAX_CONCURRENT`, padrão **1**)
@@ -939,7 +939,17 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] `worker/Dockerfile` (Playwright jammy) · `worker/README.md`
 - [x] Testes `tests/worker-b54.test.ts`
 
-> **Próximo:** **B55** — fila na API Next.js enfileira jobs e faz polling no worker.
+> **Próximo:** **B56** — pipeline no worker (credenciais cifradas no servidor).
+
+#### B55 — API fila sync `[x]`
+
+- [x] SQLite global `.data/sync-queue.db` (`SYNC_QUEUE_DB_PATH`) — lanes **priority** + **normal** (FIFO por lane)
+- [x] `POST /api/sync/queue` — enqueue (202) · idempotency key · cooldown manual **5 min** · senha cifrada (`CREDENTIALS_ENCRYPTION_KEY`)
+- [x] `GET /api/sync/queue/[jobId]` — status · posição · ETA
+- [x] Dispatcher assíncrono → worker B54 (`SIGAA_WORKER_URL`) ou **inline** (`SYNC_QUEUE_DISPATCH=inline`)
+- [x] Testes `tests/sync-queue-b55.test.ts` · `npm run test:sync-queue`
+
+> **Próximo:** **B56** — credenciais só no servidor; UI continua em `POST /api/sync` até **F19**.
 
 > Checklist: **[#2](#2--bloco-2a--scraper-sigaa--dev-88)** e **[#3](#3--bloco-2b--scraper-sigaa--worker-05)** no [Checklist mestre](#checklist-mestre-ordem-de-execução).
 
@@ -1631,7 +1641,7 @@ B71 (ÚLTIMA — endurecer credenciais antes do go-live)
 2. **Intervalo fixo 30 min** — substituir por **auto-sync ≥3h/usuário** na fila (**O3** / **B55**).
 3. **`sync.last_at` só local** — persistir `last_sync_at` por usuário no Postgres (Supabase) após **B39+**.
 4. **Sync manual sem limite** — manual → **fim da fila** + cooldown **5 min** (**O3** / **B55**).
-5. **Texto “dev” no menu perfil** — alinhar **F37** ao status real (último sync, **posição na fila**, erro) quando **B55** existir.
+5. **Texto “dev” no menu perfil** — alinhar **F37** ao status real (último sync, **posição na fila**, erro) quando **F19** consumir **B55** ✅.
 6. **Playwright no device** — pipeline só no worker; mobile nunca roda scraper local.
 
 ### Ordem sugerida de migração
@@ -1670,7 +1680,7 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 8. **Próximo passo do roadmap:** informe **depois do push** (tasks em `[@]` ou `[x]`). Com commits locais só `[%]`, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v3](#ordem-oficial-de-execução-v3) — **Bloco 2 (sync) antes do Bloco 6 (Supabase)**. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy **após** sync validado; RLS **só na 6c** (antes do PIX).
-11. **Próximo passo:** **B55** (fila sync API). **B54** `[@]` (validar Docker/VPS). **#6d:** policy **§6.6** · **B68a–c** ✅ · **B68d–f** pendente. **B71** = última pré-go-live.
+11. **Próximo passo:** **B56** (pipeline no worker). **B54** ✅ · **B55** ✅. **#6d:** policy **§6.6** · **B68a–c** ✅ · **B68d–f** pendente. **B71** = última pré-go-live.
 12. **Integralização:** CH concluída = `historico` + PPC (`computeChDoneFromDisciplinas`); portal SIGAA só % / total currículo; matérias já passadas = **B30** ✅.
 13. **Gift + painel dev + simulação mapa:** escopo em `SCOPE.md` §10.7, §6.1.1 · `SCOPE-CLOUD` §6.6 — tasks **B68–B71**, **F39–F41**. Painel: chavinhas R1/R2/R3 + **Orquestração sync** (TTLs/data fixa/batch). **B71** = ocultar senhas SIGAA.
 14. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial. **Polish em task `[x]`** (ex.: F38, dashboard) também exige nota no TASKS no mesmo ciclo do push.
