@@ -41,7 +41,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ## Roadmap detalhado — ordem de execução (#0 → #11)
 
-> **Próximo oficial:** **#6 — Bloco 6c** · **B40** *(RLS Postgres)* → **T2**. Bloco **6b** ✅ **8/8**.
+> **Próximo oficial:** **#6d — Bloco 2c** · **B68d** *(schema global vs user_id)*. **6c** ✅ **2/2** `[@]` *(aguardando aprovação 100%)*.
 > **Regra:** siga **#0 → #11** · dentro de cada bloco → **BACK (B) antes de FRONT (F)**. Checklist espelho: [Checklist mestre](#checklist-mestre-ordem-de-execução).
 
 ### #0 — Planejamento `✅`
@@ -198,14 +198,14 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ---
 
-### #6 — Bloco 6c · RLS multi-tenant `⬜ 0/2`
+### #6 — Bloco 6c · RLS multi-tenant `🟡 2/2 [@]`
 
 > **Obrigatório antes do Bloco 7 (PIX).**
 
-- [ ] **BACK:** B40 *(RLS policies Postgres — `user_id = auth.uid()`)*
-- [ ] **TEST:** T2 *(smoke isolamento — 2 contas não veem dados uma da outra)*
+- [@] **BACK:** B40 *(RLS policies Postgres — `user_id = auth.uid()` + tenant context na API)*
+- [@] **TEST:** T2 *(smoke isolamento — 2 contas não veem dados uma da outra)*
 
-**Ordem 6c:** `B40` → `T2`
+**Ordem 6c:** `B40` → `T2` ✅
 
 ---
 
@@ -385,7 +385,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ### 1.4 API e Integração UI ↔ SQLite
 
-> **Progresso:** Bloco 1 ✅ · **Bloco 2a/2b** ✅ · **Bloco 6a** ✅ **8/8** · **6b** ✅ **8/8** (**B44→B62** · **F29** ✅) · **próximo 6c** (**B40**) · URL **`https://acme-hub.khfm.workers.dev`**.
+> **Progresso:** Bloco 1 ✅ · **Bloco 2a/2b** ✅ · **Bloco 6a** ✅ **8/8** · **6b** ✅ **8/8** · **6c** ✅ **2/2** `[@]` · URL **`https://acme-hub.khfm.workers.dev`**.
 
 Roadmap detalhado: ver **[Roadmap #0→#11 no topo](#roadmap-detalhado--ordem-de-execução-0--11)** · [Ordem oficial v3](#ordem-oficial-de-execução-v3). **F19** simulador (2a) `[x]` · **B67** `[x]`.
 
@@ -499,7 +499,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | **#3** | 2b | Worker sync (servidor) | ✅ **5/5** · F19 UI fila `[x]` | 5/5 |
 | **#4** | 6a | Supabase + deploy global | ✅ **Concluído** · URL pública | 8/8 |
 | **#5** | 6b | Auth: CPF login, cadastro completo | ✅ **Concluído** | 8/8 |
-| **#6** | 6c | RLS multi-tenant | **Obrigatório antes do PIX** | 0/2 |
+| **#6** | 6c | RLS multi-tenant | ✅ **2/2** `[@]` | 2/2 |
 | **#6d** | 2c | Orquestração sync + catálogo global | **Antes do mobile (#8)** · policy **§6.6** · **3/6** | 3/6 |
 | **#7** | 7 | Assinatura PIX | Depois de #6 | 0/12 |
 | **#9** | 3 | Inteligência acadêmica | Depois de #7 (dados reais + PIX) · **antes do mobile** | 0/11 |
@@ -626,14 +626,14 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 ---
 
-### #6 — Bloco 6c · Cloud — multi-tenant `⬜ 0/2`
+### #6 — Bloco 6c · Cloud — multi-tenant `🟡 2/2 [@]`
 
 > **Obrigatório antes do Bloco 7 (PIX).**
 
-- [ ] **BACK:**  B40
-- [ ] **TEST:**  T2 — smoke 2 contas isoladas
+- [@] **BACK:**  B40
+- [@] **TEST:**  T2 — smoke 2 contas isoladas
 
-**Ordem 6c:** `B40` → `T2`
+**Ordem 6c:** `B40` → `T2` ✅
 
 ---
 
@@ -713,7 +713,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | **#3** | **2b — Worker sync** | ✅ **5/5** | 5 / 5 |
 | #4 | 6a — Cloud deploy | ✅ **Concluído** | 8 / 8 |
 | #5 | 6b — Cloud auth | ✅ | 8 / 8 |
-| #6 | 6c — RLS | ⬜ *(antes PIX)* | 0 / 2 |
+| #6 | 6c — RLS | ✅ **2/2** `[@]` | 2 / 2 |
 | **#6d** | **2c — Orquestração sync** | 🟡 *(antes mobile)* | 3 / 6 |
 | #7 | 7 — Assinatura PIX | ⬜ | 0 / 12 |
 | #9 | 3 — Inteligência | ⬜ *(antes mobile)* | 0 / 11 |
@@ -1019,7 +1019,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Teste estático `npm run test:b39`
 - [x] Migration aplicada no **Acme-Hub-dev** (`npm run db:migrate` · Session pooler `aws-1-sa-east-1`)
 
-> **6a concluído (jul/2026):** URL **`https://acme-hub.khfm.workers.dev`** · cron **`acme-hub-cron-ping`** · smoke T1 ✅. **6b** ✅ **8/8** — **B44→B62** + **F29**; próximo **6c** (**B40**).
+> **6a concluído (jul/2026):** URL **`https://acme-hub.khfm.workers.dev`** · cron **`acme-hub-cron-ping`** · smoke T1 ✅. **6b** ✅ **8/8**. **6c** ✅ **2/2** `[@]` · `npm run test:t2` · `npm run smoke:t2`.
 
 #### B41 — Seed PPC global `[x]`
 
@@ -1098,10 +1098,10 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 | # | Tipo | Task | Resumo | Status |
 |---|------|------|--------|--------|
-| B40 | Back | RLS policies | `user_id = auth.uid()` | [ ] |
-| T2 | Test | Isolamento | 2 contas não veem dados uma da outra | [ ] |
+| B40 | Back | RLS policies | `user_id = auth.uid()` · migration + tenant context API | [@] |
+| T2 | Test | Isolamento | 2 contas não veem dados uma da outra · `test:t2` + `smoke:t2` | [@] |
 
-**Ordem:** `B40` → `T2`
+**Ordem:** `B40` → `T2` ✅
 
 > Checklist: **#4–#6** no [Checklist mestre](#checklist-mestre-ordem-de-execução).
 
@@ -1780,7 +1780,7 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 8. **Próximo passo do roadmap:** informe **depois do push** (tasks em `[@]` ou `[x]`). Com commits locais só `[%]`, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v3](#ordem-oficial-de-execução-v3) — **Bloco 2 (sync) antes do Bloco 6 (Supabase)**. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy **após** sync validado; RLS **só na 6c** (antes do PIX). Marco “site no ar p/ testes gerais” → [final do TASKS.md](#marco--site-no-ar-para-testes-gerais).
-11. **Próximo passo:** **#6 — Bloco 6c** · **B40** → **T2**. **6b** ✅ — **F29** · **B61** · **B62** aprovados (jul/2026).
+11. **Próximo passo:** **#6d — Bloco 2c** · **B68d** *(schema global vs `user_id`)*. **6c** ✅ **2/2** `[@]` — rodar `npm run db:migrate` + `npm run deploy:cf` na produção.
 12. **Integralização:** CH concluída = `historico` + PPC (`computeChDoneFromDisciplinas`); portal SIGAA só % / total currículo; matérias já passadas = **B30** ✅.
 13. **Gift + painel dev + simulação mapa:** escopo em `SCOPE.md` §10.7, §6.1.1 · `SCOPE-CLOUD` §6.6 — tasks **B68–B71**, **F39–F41**. Painel: chavinhas R1/R2/R3 + **Orquestração sync** (TTLs/data fixa/batch). **B71** = ocultar senhas SIGAA.
 14. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial. **Polish em task `[x]`** (ex.: F38, dashboard) também exige nota no TASKS no mesmo ciclo do push.
