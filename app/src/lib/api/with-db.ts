@@ -3,6 +3,7 @@ import { ensurePostgresReady } from "@/lib/db/bootstrap-postgres";
 import { isPostgresBackend } from "@/lib/db/backend/config";
 import { runWithUserDb } from "@/lib/db/connection-manager";
 import { runWithQueryCursoId } from "@/lib/auth/account/query-curso-context";
+import { runWithTenantUserId } from "@/lib/db/postgres/tenant-context";
 import { resolveProfileFromAuthorization } from "@/lib/auth/account/resolve-profile-from-request";
 import {
   enforceAppAccessGate,
@@ -60,7 +61,9 @@ export function withDb<TContext = unknown>(
       const scopedUsername = profile?.cpf ?? username;
 
       return runWithQueryCursoId(profile?.cursoId, () =>
-        runWithUserDb(scopedUsername, runHandler)
+        runWithTenantUserId(profile?.userId, () =>
+          runWithUserDb(scopedUsername, runHandler)
+        )
       );
     }
 

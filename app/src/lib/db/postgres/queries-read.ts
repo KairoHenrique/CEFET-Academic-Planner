@@ -1,5 +1,6 @@
 import { resolveQueryCursoId } from "@/lib/db/resolve-query-curso-id";
 import { getPostgresPool } from "@/lib/db/postgres/pool";
+import { getActiveTenantUserId } from "@/lib/db/postgres/tenant-context";
 import type {
   AlunoRow,
   DisciplinaRow,
@@ -13,8 +14,8 @@ import type {
   TarefaRow,
 } from "@/lib/types/db";
 
-const TENANT_SQL = "user_id IS NULL";
 const cursoId = () => resolveQueryCursoId();
+const tenantUserId = () => getActiveTenantUserId();
 
 function mapDisciplinaRow(row: Record<string, unknown>): DisciplinaRow {
   return {
@@ -74,9 +75,15 @@ function mapSemestreRow(row: Record<string, unknown>): SemestreAtualWithDiscipli
 }
 
 export async function pgGetAluno(): Promise<AlunoRow | undefined> {
+  const userId = tenantUserId();
+  if (!userId) {
+    return undefined;
+  }
+
   const result = await getPostgresPool().query(
     `SELECT matricula, nome, curso, email, semestre_entrada, rg, status
-     FROM aluno WHERE ${TENANT_SQL} LIMIT 1`
+     FROM aluno WHERE user_id = $1 LIMIT 1`,
+    [userId]
   );
   return (result.rows[0] as AlunoRow | undefined) ?? undefined;
 }
@@ -114,18 +121,29 @@ export async function pgGetDisciplinaByCodigo(
 }
 
 export async function pgGetHistorico(): Promise<HistoricoRow[]> {
+  const userId = tenantUserId();
+  if (!userId) {
+    return [];
+  }
+
   const result = await getPostgresPool().query(
     `SELECT id, disciplina_id, semestre, status, nota_final
-     FROM historico WHERE ${TENANT_SQL} ORDER BY id`,
-    []
+     FROM historico WHERE user_id = $1 ORDER BY id`,
+    [userId]
   );
   return result.rows as HistoricoRow[];
 }
 
 export async function pgGetIntegralizacao(): Promise<IntegralizacaoRow[]> {
+  const userId = tenantUserId();
+  if (!userId) {
+    return [];
+  }
+
   const result = await getPostgresPool().query(
     `SELECT id, tipo_ch, total_necessario, concluido, pendente, manual
-     FROM integralizacao WHERE ${TENANT_SQL} ORDER BY id`
+     FROM integralizacao WHERE user_id = $1 ORDER BY id`,
+    [userId]
   );
   return result.rows.map((row) => ({
     id: Number(row.id),
@@ -139,16 +157,21 @@ export async function pgGetIntegralizacao(): Promise<IntegralizacaoRow[]> {
 }
 
 export async function pgGetSemestreAtual(): Promise<SemestreAtualWithDisciplina[]> {
+  const userId = tenantUserId();
+  if (!userId) {
+    return [];
+  }
+
   const result = await getPostgresPool().query(
     `
     SELECT sa.*, d.nome, d.carga_horaria
     FROM semestre_atual sa
     JOIN disciplinas d
       ON d.curso_id = sa.curso_id AND d.codigo = sa.disciplina_id
-    WHERE sa.${TENANT_SQL} AND sa.curso_id = $1
+    WHERE sa.user_id = $1 AND sa.curso_id = $2
     ORDER BY d.nome
     `,
-    [cursoId()]
+    [userId, cursoId()]
   );
   return result.rows.map((row) => mapSemestreRow(row));
 }
@@ -156,26 +179,37 @@ export async function pgGetSemestreAtual(): Promise<SemestreAtualWithDisciplina[
 export async function pgGetSemestreAtualByCodigo(
   codigo: string
 ): Promise<SemestreAtualWithDisciplina | undefined> {
+  const userId = tenantUserId();
+  if (!userId) {
+    return undefined;
+  }
+
   const result = await getPostgresPool().query(
     `
     SELECT sa.*, d.nome, d.carga_horaria
     FROM semestre_atual sa
     JOIN disciplinas d
       ON d.curso_id = sa.curso_id AND d.codigo = sa.disciplina_id
-    WHERE sa.${TENANT_SQL}
-      AND sa.curso_id = $1
-      AND LOWER(sa.disciplina_id) = LOWER($2)
+    WHERE sa.user_id = $1
+      AND sa.curso_id = $2
+      AND LOWER(sa.disciplina_id) = LOWER($3)
     LIMIT 1
     `,
-    [cursoId(), codigo]
+    [userId, cursoId(), codigo]
   );
   const row = result.rows[0];
   return row ? mapSemestreRow(row) : undefined;
 }
 
 export async function pgGetTarefas(): Promise<TarefaRow[]> {
+  const userId = tenantUserId();
+  if (!userId) {
+    return [];
+  }
+
   const result = await getPostgresPool().query(
-    `SELECT * FROM tarefas WHERE ${TENANT_SQL} ORDER BY data_fim, id`
+    `SELECT * FROM tarefas WHERE user_id = $1 ORDER BY data_fim, id`,
+    [userId]
   );
   return result.rows.map(mapTarefaRow);
 }
@@ -183,11 +217,16 @@ export async function pgGetTarefas(): Promise<TarefaRow[]> {
 export async function pgGetTarefasByDisciplina(
   disciplinaId: string
 ): Promise<TarefaRow[]> {
+  const userId = tenantUserId();
+  if (!userId) {
+    return [];
+  }
+
   const result = await getPostgresPool().query(
     `SELECT * FROM tarefas
-     WHERE ${TENANT_SQL} AND curso_id = $1 AND LOWER(disciplina_id) = LOWER($2)
+     WHERE user_id = $1 AND curso_id = $2 AND LOWER(disciplina_id) = LOWER($3)
      ORDER BY data_fim, id`,
-    [cursoId(), disciplinaId]
+    [userId, cursoId(), disciplinaId]
   );
   return result.rows.map(mapTarefaRow);
 }
@@ -195,11 +234,16 @@ export async function pgGetTarefasByDisciplina(
 export async function pgGetFaltasByDisciplina(
   disciplinaId: string
 ): Promise<FaltaRow[]> {
+  const userId = tenantUserId();
+  if (!userId) {
+    return [];
+  }
+
   const result = await getPostgresPool().query(
     `SELECT * FROM faltas
-     WHERE ${TENANT_SQL} AND curso_id = $1 AND LOWER(disciplina_id) = LOWER($2)
+     WHERE user_id = $1 AND curso_id = $2 AND LOWER(disciplina_id) = LOWER($3)
      ORDER BY data, id`,
-    [cursoId(), disciplinaId]
+    [userId, cursoId(), disciplinaId]
   );
   return result.rows.map(mapFaltaRow);
 }
@@ -207,11 +251,16 @@ export async function pgGetFaltasByDisciplina(
 export async function pgGetGrupoByDisciplina(
   disciplinaId: string
 ): Promise<GrupoMembroRow[]> {
+  const userId = tenantUserId();
+  if (!userId) {
+    return [];
+  }
+
   const result = await getPostgresPool().query(
     `SELECT * FROM grupo_membros
-     WHERE ${TENANT_SQL} AND curso_id = $1 AND LOWER(disciplina_id) = LOWER($2)
+     WHERE user_id = $1 AND curso_id = $2 AND LOWER(disciplina_id) = LOWER($3)
      ORDER BY id`,
-    [cursoId(), disciplinaId]
+    [userId, cursoId(), disciplinaId]
   );
   return result.rows.map((row) => ({
     id: Number(row.id),
@@ -261,11 +310,16 @@ function mapFaltaRow(row: Record<string, unknown>): FaltaRow {
 export async function pgGetNotasByDisciplina(
   disciplinaId: string
 ): Promise<NotaRow[]> {
+  const userId = tenantUserId();
+  if (!userId) {
+    return [];
+  }
+
   const result = await getPostgresPool().query(
     `SELECT * FROM notas
-     WHERE ${TENANT_SQL} AND curso_id = $1 AND LOWER(disciplina_id) = LOWER($2)
+     WHERE user_id = $1 AND curso_id = $2 AND LOWER(disciplina_id) = LOWER($3)
      ORDER BY id`,
-    [cursoId(), disciplinaId]
+    [userId, cursoId(), disciplinaId]
   );
   return result.rows.map((row) => ({
     id: Number(row.id),
