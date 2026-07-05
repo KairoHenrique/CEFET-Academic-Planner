@@ -9,7 +9,7 @@ import { shouldRunCalendarioSync } from "@/lib/sync/calendario-sync-plan";
 import { persistCalendarioSnapshot } from "@/lib/sync/persist-calendario-snapshot";
 import { recordCalendarioSyncedAt } from "@/lib/sync/sync-preferences";
 import { getCalendarioAcademico, purgeInvalidCalendarioAcademico } from "@/lib/db/queries";
-import { resolveSyncCredentials, type ResolvedSyncCredentials } from "@/lib/sync/resolve-credentials";
+import { resolveSyncCredentialsSync, type ResolvedSyncCredentials } from "@/lib/sync/resolve-credentials";
 import type { SyncRequest } from "@/lib/types/sync";
 
 export interface RunCalendarioSyncOptions {
@@ -133,7 +133,7 @@ export async function runCalendarioSync(
   input: SyncRequest,
   options: RunCalendarioSyncOptions = {}
 ): Promise<CalendarioSyncResult> {
-  const credentials = resolveSyncCredentials(input);
+  const credentials = resolveSyncCredentialsSync(input);
 
   const purged = purgeInvalidCalendarioAcademico();
   if (purged > 0) {

@@ -1,12 +1,31 @@
 import { validationError } from "@/lib/api/errors";
-import { loadSigaaCredentials } from "@/lib/crypto/sigaa-credential-store";
+import { resolveSigaaPassword, resolveSigaaPasswordSync } from "@/lib/crypto/resolve-sigaa-password";
 import type { SyncRequest } from "@/lib/types/sync";
 
 export interface ResolvedSyncCredentials extends SyncRequest {
   savePassword: boolean;
 }
 
-export function resolveSyncCredentials(input: {
+export async function resolveSyncCredentials(input: {
+  username: string;
+  password?: string;
+  savePassword?: boolean;
+}): Promise<ResolvedSyncCredentials> {
+  const username = input.username.trim();
+  const savePassword = input.savePassword === true;
+  const password = await resolveSigaaPassword({
+    username,
+    password: input.password,
+  });
+
+  return {
+    username,
+    password,
+    savePassword,
+  };
+}
+
+export function resolveSyncCredentialsSync(input: {
   username: string;
   password?: string;
   savePassword?: boolean;
@@ -22,14 +41,20 @@ export function resolveSyncCredentials(input: {
     };
   }
 
-  const stored = loadSigaaCredentials();
-  if (stored && stored.username === username) {
+  try {
+    const password = resolveSigaaPasswordSync({
+      username,
+      password: input.password,
+    });
+
     return {
-      username: stored.username,
-      password: stored.password,
+      username,
+      password,
       savePassword: true,
     };
+  } catch (error) {
+    throw validationError(
+      error instanceof Error ? error.message : "Informe a senha do SIGAA."
+    );
   }
-
-  throw validationError("Informe a senha do SIGAA.");
 }

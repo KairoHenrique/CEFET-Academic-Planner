@@ -1,6 +1,8 @@
 export type ApiErrorCode =
   | "VALIDATION_ERROR"
   | "INVALID_CREDENTIALS"
+  | "ACCOUNT_EXISTS"
+  | "AUTH_UNAVAILABLE"
   | "SIGAA_OFFLINE"
   | "SIGAA_TIMEOUT"
   | "SIGAA_AUTH_FAILED"
@@ -41,6 +43,24 @@ export function sqliteDisabledError(
   message = "SQLite local indisponível no modo cloud/postgres."
 ): ApiError {
   return new ApiError("SQLITE_DISABLED", message, 503);
+}
+
+export function invalidCredentialsError(
+  message = "Credenciais inválidas."
+): ApiError {
+  return new ApiError("INVALID_CREDENTIALS", message, 401);
+}
+
+export function accountExistsError(
+  message = "Conta já cadastrada."
+): ApiError {
+  return new ApiError("ACCOUNT_EXISTS", message, 409);
+}
+
+export function authUnavailableError(
+  message = "Autenticação cloud indisponível."
+): ApiError {
+  return new ApiError("AUTH_UNAVAILABLE", message, 503);
 }
 
 export function internalError(message = "Erro interno do servidor."): ApiError {

@@ -4,15 +4,20 @@ export async function ensurePostgresReady(): Promise<void> {
   const pool = getPostgresPool();
   await pool.query("SELECT 1");
 
+  const requiredMigrations = [
+    "20260704120000_b39_initial_schema.sql",
+    "20260704130000_b44_app_accounts.sql",
+  ];
+
   const migration = await pool.query<{ filename: string }>(
     `SELECT filename FROM planner_schema_migrations
-     WHERE filename = $1 LIMIT 1`,
-    ["20260704120000_b39_initial_schema.sql"]
+     WHERE filename = ANY($1::text[])`,
+    [requiredMigrations]
   );
 
-  if (migration.rowCount === 0) {
+  if ((migration.rowCount ?? 0) < requiredMigrations.length) {
     throw new Error(
-      "Schema Postgres não aplicado. Rode: npm run db:migrate"
+      "Schema Postgres incompleto. Rode: npm run db:migrate"
     );
   }
 }

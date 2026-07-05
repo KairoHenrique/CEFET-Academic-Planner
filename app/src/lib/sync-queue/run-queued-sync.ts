@@ -39,12 +39,12 @@ export function resolveSyncQueueLane(
 export async function runQueuedSync(
   input: RunQueuedSyncInput
 ): Promise<RunQueuedSyncResult> {
-  const password = resolveSyncQueuePassword({
+  const password = await resolveSyncQueuePassword({
     username: input.username,
     password: input.password,
   });
 
-  const enqueueResult = enqueueSyncJob({
+  const enqueueResult = await enqueueSyncJob({
     username: input.username.trim(),
     password,
     mode: input.mode ?? "full",

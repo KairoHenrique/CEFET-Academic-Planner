@@ -10,7 +10,7 @@ import { getTurmasOfertadas } from "@/lib/db/queries";
 import { persistTurmasOfertadasSnapshot } from "@/lib/sync/persist-turmas-ofertadas-snapshot";
 import { shouldRunTurmasOfertadasSync } from "@/lib/sync/turmas-ofertadas-sync-plan";
 import { recordTurmasOfertadasSyncedAt } from "@/lib/sync/sync-preferences";
-import { resolveSyncCredentials, type ResolvedSyncCredentials } from "@/lib/sync/resolve-credentials";
+import { resolveSyncCredentialsSync, type ResolvedSyncCredentials } from "@/lib/sync/resolve-credentials";
 import type { SyncRequest } from "@/lib/types/sync";
 
 export interface RunTurmasOfertadasSyncOptions {
@@ -143,7 +143,7 @@ export async function runTurmasOfertadasSync(
   input: SyncRequest,
   options: RunTurmasOfertadasSyncOptions = {}
 ): Promise<TurmasOfertadasSyncResult> {
-  const credentials = resolveSyncCredentials(input);
+  const credentials = resolveSyncCredentialsSync(input);
 
   if (
     !shouldRunTurmasOfertadasSync({
