@@ -12,7 +12,33 @@ import {
 } from "@/lib/sync-policy/merge-effective-policy";
 import type { EffectiveSyncPolicy, SyncPolicyOverrides } from "@/lib/sync-policy/types";
 
-type JsonValue = Record<string, unknown> | string | number | boolean | null;
+type JsonValue =
+  | Record<string, unknown>
+  | unknown[]
+  | string
+  | number
+  | boolean
+  | null;
+
+function serializeJsonbValue(value: JsonValue): string {
+  return JSON.stringify(value);
+}
+
+function parseJsonbValue(raw: unknown): JsonValue | null {
+  if (raw === null || raw === undefined) {
+    return null;
+  }
+
+  if (typeof raw === "string") {
+    try {
+      return JSON.parse(raw) as JsonValue;
+    } catch {
+      return raw;
+    }
+  }
+
+  return raw as JsonValue;
+}
 
 let memoryStore = new Map<string, JsonValue>();
 
@@ -67,7 +93,7 @@ export async function pgGetAppConfigJson(chave: string): Promise<JsonValue | nul
     `SELECT valor FROM app_config WHERE chave = $1 LIMIT 1`,
     [chave]
   );
-  return result.rows[0]?.valor ?? null;
+  return parseJsonbValue(result.rows[0]?.valor ?? null);
 }
 
 export async function pgSetAppConfigJson(
@@ -77,10 +103,10 @@ export async function pgSetAppConfigJson(
   const pool = getPostgresPool();
   await pool.query(
     `INSERT INTO app_config (chave, valor, updated_at)
-     VALUES ($1, $2, now())
+     VALUES ($1, $2::jsonb, now())
      ON CONFLICT (chave) DO UPDATE
      SET valor = EXCLUDED.valor, updated_at = now()`,
-    [chave, valor]
+    [chave, serializeJsonbValue(valor)]
   );
 }
 
@@ -117,7 +143,7 @@ export function writeSyncPolicyOverridesSync(
   overrides: SyncPolicyOverrides
 ): void {
   if (isPostgresBackend()) {
-    throw new Error("Use pgSetSyncPolicyOverrides no Postgres.");
+    throw new Error("Use writeSyncPolicyOverridesAsync no Postgres.");
   }
 
   const store = activeStore();
@@ -127,6 +153,27 @@ export function writeSyncPolicyOverridesSync(
   } else {
     memoryStore = store;
   }
+}
+
+export async function writeSyncPolicyOverridesAsync(
+  overrides: SyncPolicyOverrides
+): Promise<void> {
+  if (isPostgresBackend()) {
+    await pgSetSyncPolicyOverrides(overrides);
+    return;
+  }
+
+  writeSyncPolicyOverridesSync(overrides);
+}
+
+export async function readSyncPolicyOverridesAsync(): Promise<SyncPolicyOverrides | null> {
+  if (isPostgresBackend()) {
+    return pgGetSyncPolicyOverrides();
+  }
+
+  const store = activeStore();
+  const raw = store.get(SYNC_POLICY_OVERRIDES_KEY) ?? null;
+  return parseSyncPolicyOverrides(raw);
 }
 
 export async function pgGetOrchestratorState(

@@ -15,9 +15,10 @@ export function AuthGate({ children }: AuthGateProps) {
 
   useEffect(() => {
     const onLoginPage = pathname === "/login";
+    const onDevPanel = pathname === "/dev" || pathname.startsWith("/dev/");
     const authed = isAuthenticated();
 
-    if (!authed && !onLoginPage) {
+    if (!authed && !onLoginPage && !onDevPanel) {
       router.replace("/login");
       return;
     }

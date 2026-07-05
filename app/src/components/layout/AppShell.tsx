@@ -12,18 +12,28 @@ interface AppShellProps {
   children: React.ReactNode;
 }
 
+function isDevPanelRoute(pathname: string): boolean {
+  return pathname === "/dev" || pathname.startsWith("/dev/");
+}
+
 export function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
   const isLogin = pathname === "/login";
+  const isDevPanel = isDevPanelRoute(pathname);
+  const showStudentChrome = !isLogin && !isDevPanel;
 
   return (
     <QueryProvider>
       <SyncQueueProvider>
         <AuthGate>
-          {!isLogin && <SessionActivityTracker />}
-          {!isLogin && <AutoSyncRunner />}
-          {!isLogin && <Navbar />}
-          <main className={`main-content ${isLogin ? "main-content-login" : ""}`}>
+          {showStudentChrome && <SessionActivityTracker />}
+          {showStudentChrome && <AutoSyncRunner />}
+          {showStudentChrome && <Navbar />}
+          <main
+            className={`main-content ${
+              isLogin ? "main-content-login" : ""
+            } ${isDevPanel ? "main-content-dev" : ""}`}
+          >
             {children}
           </main>
         </AuthGate>
