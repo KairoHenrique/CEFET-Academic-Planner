@@ -41,7 +41,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ## Roadmap detalhado — ordem de execução (#0 → #11)
 
-> **Próximo oficial:** **#5 — Bloco 6b** · **B62** *(fila e-mail conta/promo)*. **B61** `[%]` local.
+> **Próximo oficial:** **#6 — Bloco 6c** · **B40** *(RLS Postgres)*. Bloco **6b** `[%]` local — aguardando push/aprovação.
 > **Regra:** siga **#0 → #11** · dentro de cada bloco → **BACK (B) antes de FRONT (F)**. Checklist espelho: [Checklist mestre](#checklist-mestre-ordem-de-execução).
 
 ### #0 — Planejamento `✅`
@@ -181,7 +181,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ---
 
-### #5 — Bloco 6b · Auth (CPF login + cadastro) `🟡 7/8`
+### #5 — Bloco 6b · Auth (CPF login + cadastro) `🟡 8/8`
 
 > Cadastro = e-mail + telefone + CPF + curso + senha SIGAA · **login só CPF + senha** · trial 7d 1×/CPF.
 
@@ -192,7 +192,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 - [x] **BACK:** B59 *(gate de acesso — middleware trial_active/active vs expirado → billing)*
 - [%] **FRONT:** F29 *(cadastro + login produção — CPF explícito no login · `PlannerNotice` toast de erro)*
 - [%] **BACK:** B61 *(PATCH `/api/perfil` → `app_profiles` no Postgres — UI **F37** ✅)*
-- [ ] **BACK:** B62 *(fila e-mail — promoções sempre + ciclo conta: cadastro, fim trial, plano perto de acabar, plano encerrado)*
+- [%] **BACK:** B62 *(fila e-mail — promoções sempre + ciclo conta: cadastro, fim trial, plano perto de acabar, plano encerrado)*
 
 **Ordem 6b:** `B44 → B45 → B58 → B63` → `B59` → `F29` → `B61 → B62`
 
@@ -380,7 +380,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ### 1.4 API e Integração UI ↔ SQLite
 
-> **Progresso:** Bloco 1 ✅ · **Bloco 2a/2b** ✅ · **Bloco 6a** ✅ **8/8** · **6b** **7/8** (**B44→B59** ✅ · **F29** · **B61** `[%]`) · URL **`https://acme-hub.khfm.workers.dev`**.
+> **Progresso:** Bloco 1 ✅ · **Bloco 2a/2b** ✅ · **Bloco 6a** ✅ **8/8** · **6b** **8/8** (**B44→B62** · **F29** `[%]`) · URL **`https://acme-hub.khfm.workers.dev`**.
 
 Roadmap detalhado: ver **[Roadmap #0→#11 no topo](#roadmap-detalhado--ordem-de-execução-0--11)** · [Ordem oficial v3](#ordem-oficial-de-execução-v3). **F19** simulador (2a) `[x]` · **B67** `[x]`.
 
@@ -493,7 +493,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | **#2** | 2a | Scraper dev (Playwright local) | ✅ **8/8** · B67 `[x]` · **F19** `[x]` | 8/8 |
 | **#3** | 2b | Worker sync (servidor) | ✅ **5/5** · F19 UI fila `[x]` | 5/5 |
 | **#4** | 6a | Supabase + deploy global | ✅ **Concluído** · URL pública | 8/8 |
-| **#5** | 6b | Auth: CPF login, cadastro completo | **F29** · **B61** `[%]` · pendente **B62** | 7/8 |
+| **#5** | 6b | Auth: CPF login, cadastro completo | **8/8** `[%]` local — aguardando push | 8/8 |
 | **#6** | 6c | RLS multi-tenant | **Obrigatório antes do PIX** | 0/2 |
 | **#6d** | 2c | Orquestração sync + catálogo global | **Antes do mobile (#8)** · policy **§6.6** · **3/6** | 3/6 |
 | **#7** | 7 | Assinatura PIX | Depois de #6 | 0/12 |
@@ -611,11 +611,10 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 ---
 
-### #5 — Bloco 6b · Cloud — Auth `🟡 7/8`
+### #5 — Bloco 6b · Cloud — Auth `🟡 8/8`
 
 - [x] **BACK:** B44 → B45 → B58 → B63 → B59
-- [%] **BACK:** B61
-- [ ] **BACK:** B62
+- [%] **BACK:** B61 → B62
 - [%] **FRONT:** F29
 
 **Ordem 6b:** `B44 → B45 → B58 → B63` → `B59` → `F29` → `B61 → B62`
@@ -709,7 +708,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | **#2** | **2a — Scraper dev** | ✅ **8/8** · B67 `[x]` · **F19** `[x]` | 8 / 8 |
 | **#3** | **2b — Worker sync** | ✅ **5/5** | 5 / 5 |
 | #4 | 6a — Cloud deploy | ✅ **Concluído** | 8 / 8 |
-| #5 | 6b — Cloud auth | 🟡 | 7 / 8 |
+| #5 | 6b — Cloud auth | 🟡 | 8 / 8 |
 | #6 | 6c — RLS | ⬜ *(antes PIX)* | 0 / 2 |
 | **#6d** | **2c — Orquestração sync** | 🟡 *(antes mobile)* | 3 / 6 |
 | #7 | 7 — Assinatura PIX | ⬜ | 0 / 12 |
@@ -1016,7 +1015,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Teste estático `npm run test:b39`
 - [x] Migration aplicada no **Acme-Hub-dev** (`npm run db:migrate` · Session pooler `aws-1-sa-east-1`)
 
-> **6a concluído (jul/2026):** URL **`https://acme-hub.khfm.workers.dev`** · cron **`acme-hub-cron-ping`** · smoke T1 ✅. **6b:** **6/8** — **B44→B59** ✅ · **F29** `[%]` (UI CPF cloud); pendente **B61** · **B62**.
+> **6a concluído (jul/2026):** URL **`https://acme-hub.khfm.workers.dev`** · cron **`acme-hub-cron-ping`** · smoke T1 ✅. **6b:** **8/8** `[%]` local — **B44→B62** + **F29**; próximo **6c** (**B40**).
 
 #### B41 — Seed PPC global `[x]`
 
@@ -1083,7 +1082,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | B63 | Back | `curso_id` na conta | Enum Comp/Meca/Moda; mapa/integralização filtram PPC por curso | [x] |
 | B61 | Back | Preferências contato | PATCH `/api/perfil` → `app_profiles` Postgres (UI **F37** ✅) | [%] |
 | F29 | Front | Cadastro + login | Cadastro: e-mail, tel, CPF, curso, senha · Login: **só CPF + senha** · tabs cloud + Bearer | [%] |
-| B62 | Back | E-mails conta/promo | Fila: promoções (**sempre**) + cadastro, fim trial, plano perto de acabar, plano encerrado | [ ] |
+| B62 | Back | E-mails conta/promo | Fila: promoções (**sempre**) + cadastro, fim trial, plano perto de acabar, plano encerrado | [%] |
 
 **Ordem 6b:** `B44 → B45 → B58 → B63` → `B59` → `F29` → `B61 → B62`
 
@@ -1234,7 +1233,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 #3  Bloco 2b  Worker + fila (§6.3 SCOPE-CLOUD)     ✅ 5/5
       ↓
 #4  Bloco 6a  Supabase + deploy global       (após sync validado)
-#5  Bloco 6b  Auth: cadastro + login CPF (6/8)
+#5  Bloco 6b  Auth: cadastro + login CPF (8/8)
 #6  Bloco 6c  RLS multi-tenant               (antes do PIX)
 #6d Bloco 2c  Orquestração sync (B68-orq)     policy §6.6 · 3/6
       ↓
@@ -1774,7 +1773,7 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 8. **Próximo passo do roadmap:** informe **depois do push** (tasks em `[@]` ou `[x]`). Com commits locais só `[%]`, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v3](#ordem-oficial-de-execução-v3) — **Bloco 2 (sync) antes do Bloco 6 (Supabase)**. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy **após** sync validado; RLS **só na 6c** (antes do PIX). Marco “site no ar p/ testes gerais” → [final do TASKS.md](#marco--site-no-ar-para-testes-gerais).
-11. **Próximo passo:** **#5 — Bloco 6b** · **B62** *(fila e-mail)*. **F29** · **B61** `[%]` commit local — aguardando push/aprovação.
+11. **Próximo passo:** **#6 — Bloco 6c** · **B40** → **T2** *(após push/aprovação do 6b)*. **6b** completo `[%]` local — **F29** · **B61** · **B62**.
 12. **Integralização:** CH concluída = `historico` + PPC (`computeChDoneFromDisciplinas`); portal SIGAA só % / total currículo; matérias já passadas = **B30** ✅.
 13. **Gift + painel dev + simulação mapa:** escopo em `SCOPE.md` §10.7, §6.1.1 · `SCOPE-CLOUD` §6.6 — tasks **B68–B71**, **F39–F41**. Painel: chavinhas R1/R2/R3 + **Orquestração sync** (TTLs/data fixa/batch). **B71** = ocultar senhas SIGAA.
 14. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial. **Polish em task `[x]`** (ex.: F38, dashboard) também exige nota no TASKS no mesmo ciclo do push.
@@ -1785,7 +1784,7 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 
 ## Marco — site no ar para testes gerais
 
-> **🌐 Mínimo funcional beta (jul/2026):** **F29** ✅ + **B58** ✅ + **B59** ✅ — cadastro, login CPF, trial e gate na cloud. Pendente **6b** fechar: **B61** · **B62**.
+> **🌐 Mínimo funcional beta (jul/2026):** **6b** `[%]` local — cadastro, login CPF, trial, gate, PATCH perfil cloud, fila e-mail. Sync SIGAA na nuvem = worker **B54–B56** (stub).
 
 > **🌐 Beta aberto:** URL pública com **cadastro + login CPF + trial + gate** (**F29** ✅). Sync SIGAA na nuvem ainda = worker **B54–B56** (stub).
 
