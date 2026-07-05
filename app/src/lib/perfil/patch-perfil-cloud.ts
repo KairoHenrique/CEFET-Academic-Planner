@@ -1,6 +1,7 @@
 import { validationError } from "@/lib/api/errors";
-import { saveAccountContact } from "@/lib/perfil/build-account";
-import { buildPerfil } from "@/lib/perfil/build-perfil";
+import type { AppProfileRecord } from "@/lib/auth/account/types";
+import { updateProfileContact } from "@/lib/auth/account/profile-repository";
+import { buildPerfilCloud } from "@/lib/perfil/build-perfil-cloud";
 import {
   normalizeOptionalEmail,
   normalizeOptionalPhone,
@@ -8,7 +9,10 @@ import {
 import { saveNotificationPreferences } from "@/lib/notifications/notification-preferences";
 import type { PatchPerfilBody, PerfilResponse } from "@/lib/types/perfil-api";
 
-export function patchPerfil(body: PatchPerfilBody): PerfilResponse {
+export async function patchPerfilCloud(
+  profile: AppProfileRecord,
+  body: PatchPerfilBody
+): Promise<PerfilResponse> {
   const hasAccountPatch = body.email !== undefined || body.phone !== undefined;
   const hasNotificationPatch = body.notifications !== undefined;
 
@@ -16,13 +20,15 @@ export function patchPerfil(body: PatchPerfilBody): PerfilResponse {
     throw validationError("Nenhuma alteração informada.");
   }
 
+  let updatedProfile = profile;
+
   if (hasAccountPatch) {
-    saveAccountContact({
+    updatedProfile = await updateProfileContact(profile.userId, {
       email:
         body.email !== undefined
           ? normalizeOptionalEmail(body.email)
           : undefined,
-      phone:
+      telefone:
         body.phone !== undefined
           ? normalizeOptionalPhone(body.phone)
           : undefined,
@@ -33,5 +39,5 @@ export function patchPerfil(body: PatchPerfilBody): PerfilResponse {
     saveNotificationPreferences(body.notifications);
   }
 
-  return buildPerfil();
+  return buildPerfilCloud(updatedProfile);
 }
