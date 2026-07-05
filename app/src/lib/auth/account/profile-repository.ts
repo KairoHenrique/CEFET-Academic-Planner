@@ -1,4 +1,10 @@
 import { getPostgresPool } from "@/lib/db/postgres/pool";
+import {
+  accountExistsError,
+  internalError,
+  notFoundError,
+  validationError,
+} from "@/lib/api/errors";
 import type { AppCursoId, AppProfileRecord } from "@/lib/auth/account/types";
 
 interface ProfileRow {
@@ -136,4 +142,54 @@ export async function insertAppProfile(input: {
 export async function deleteProfileByUserId(userId: string): Promise<void> {
   const pool = getPostgresPool();
   await pool.query("DELETE FROM app_profiles WHERE user_id = $1", [userId]);
+}
+
+export async function updateProfileContact(
+  userId: string,
+  input: {
+    email?: string | null;
+    telefone?: string | null;
+  }
+): Promise<AppProfileRecord> {
+  const pool = getPostgresPool();
+  const current = await findProfileByUserId(userId);
+  if (!current) {
+    throw notFoundError("Perfil não encontrado.");
+  }
+
+  const nextEmail =
+    input.email !== undefined ? input.email ?? current.email : current.email;
+  const nextTelefone =
+    input.telefone !== undefined
+      ? input.telefone ?? current.telefone
+      : current.telefone;
+
+  if (!nextEmail?.trim()) {
+    throw validationError("E-mail de contato é obrigatório.");
+  }
+  if (!nextTelefone?.trim()) {
+    throw validationError("Telefone de contato é obrigatório.");
+  }
+
+  if (nextEmail.toLowerCase() !== current.email.toLowerCase()) {
+    const existing = await findProfileByEmail(nextEmail);
+    if (existing && existing.userId !== userId) {
+      throw accountExistsError("Já existe uma conta com este e-mail.");
+    }
+  }
+
+  const result = await pool.query<ProfileRow>(
+    `UPDATE app_profiles
+     SET email = $2, telefone = $3, updated_at = now()
+     WHERE user_id = $1
+     RETURNING user_id, cpf, email, telefone, curso_id, created_at`,
+    [userId, nextEmail, nextTelefone]
+  );
+
+  const row = result.rows[0];
+  if (!row) {
+    throw internalError("Falha ao atualizar perfil.");
+  }
+
+  return mapProfileRow(row);
 }
