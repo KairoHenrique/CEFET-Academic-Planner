@@ -9,6 +9,7 @@ export async function ensurePostgresReady(): Promise<void> {
     "20260704130000_b44_app_accounts.sql",
     "20260704140000_b58_trial_por_cpf.sql",
     "20260704150000_b62_account_email_queue.sql",
+    "20260705180000_b40_rls_multi_tenant.sql",
   ];
 
   const migration = await pool.query<{ filename: string }>(
