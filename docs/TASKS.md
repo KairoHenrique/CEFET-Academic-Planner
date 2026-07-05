@@ -9,7 +9,7 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
 > - **Regras acadêmicas:** [`docs/SCOPE.md`](./SCOPE.md)
 > - **Ordem de execução:** [§ Ordem oficial](#ordem-oficial-de-execução-v3)
 > - **Modo testes:** deploy global após sync validado; RLS na fase 6c (antes do PIX)
-> **Pré-mobile (#8):** **#6d** + **#7** + **#9 + #10** (site maduro) · policy **§6.6 `SCOPE-CLOUD`** · **B68a–c** ✅ · **B68d–f** + **B70/F41**
+> **Pré-mobile (#8):** **#6d** + **#7** + **#9 + #10** (site maduro + **F28** site mobile) · policy **§6.6 `SCOPE-CLOUD`** · **B68a–c** ✅ · **B68d–f** + **B70/F41**
 
 **Navegação rápida:** [Roadmap detalhado (#0→#11)](#roadmap-detalhado--ordem-de-execução-0--11) · [Sequência #0→#11](#sequência-completa--o-que-fazer-e-em-qual-ordem) · [Ordem oficial v3](#ordem-oficial-de-execução-v3) · [Checklist BACK→FRONT](#checklist-mestre-ordem-de-execução) · [Detalhe por bloco](#detalhe-dos-blocos) · [B68 orquestração sync](#6d--orquestração-sync--catálogo-global-pré-mobile) · [Escopo cloud](./SCOPE-CLOUD.md) · [Marco testes gerais](#marco--site-no-ar-para-testes-gerais) · [Apêndice escopo futuro](#apêndice--escopo-futuro-fora-da-ordem-011) · [Apêndice B65 dev](#apêndice--b65-sync-automático-dev-remover-antes-de-produção) · [Apêndice gift + painel dev](#apêndice--chaves-gift-e-painel-dev-jun2026)
 
@@ -41,7 +41,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ## Roadmap detalhado — ordem de execução (#0 → #11)
 
-> **Próximo oficial:** **#6 — Bloco 6c** · **B40** *(RLS Postgres)*. Bloco **6b** `[%]` local — aguardando push/aprovação.
+> **Próximo oficial:** **#6 — Bloco 6c** · **B40** *(RLS Postgres)* → **T2**. Bloco **6b** ✅ **8/8**.
 > **Regra:** siga **#0 → #11** · dentro de cada bloco → **BACK (B) antes de FRONT (F)**. Checklist espelho: [Checklist mestre](#checklist-mestre-ordem-de-execução).
 
 ### #0 — Planejamento `✅`
@@ -181,7 +181,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ---
 
-### #5 — Bloco 6b · Auth (CPF login + cadastro) `🟡 8/8`
+### #5 — Bloco 6b · Auth (CPF login + cadastro) `✅ 8/8`
 
 > Cadastro = e-mail + telefone + CPF + curso + senha SIGAA · **login só CPF + senha** · trial 7d 1×/CPF.
 
@@ -190,9 +190,9 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 - [x] **BACK:** B58 *(trial por CPF — `trial_por_cpf` 7 dias uma vez; anti-abuso)*
 - [x] **BACK:** B63 *(`curso_id` — Comp/Meca/Moda; mapa/integralização filtram PPC)*
 - [x] **BACK:** B59 *(gate de acesso — middleware trial_active/active vs expirado → billing)*
-- [%] **FRONT:** F29 *(cadastro + login produção — CPF explícito no login · `PlannerNotice` toast de erro)*
-- [%] **BACK:** B61 *(PATCH `/api/perfil` → `app_profiles` no Postgres — UI **F37** ✅)*
-- [%] **BACK:** B62 *(fila e-mail — promoções sempre + ciclo conta: cadastro, fim trial, plano perto de acabar, plano encerrado)*
+- [x] **FRONT:** F29 *(cadastro + login produção — CPF explícito no login · `PlannerNotice` toast de erro)*
+- [x] **BACK:** B61 *(PATCH `/api/perfil` → `app_profiles` no Postgres — UI **F37** ✅)*
+- [x] **BACK:** B62 *(fila e-mail — promoções sempre + ciclo conta: cadastro, fim trial, plano perto de acabar, plano encerrado)*
 
 **Ordem 6b:** `B44 → B45 → B58 → B63` → `B59` → `F29` → `B61 → B62`
 
@@ -250,28 +250,9 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ---
 
-### #8 — Bloco 8 · Mobile Expo Go `⬜ 0/10`
-
-> **Requer #6d + #7 + #9 + #10** (site maduro). Mesmo backend Supabase. *Execução: **#9 → #10 → #8** — ver [ordem oficial](#ordem-oficial-de-execução-v3).*
-
-- [ ] **SETUP:** M1 *(projeto Expo TypeScript — pasta `mobile/`)*
-- [ ] **SETUP:** M2 *(Supabase client — env + auth no Expo)*
-- [ ] **FRONT:** M3 *(auth mobile — login + checagem assinatura)*
-- [ ] **FRONT:** M4 *(dashboard mobile — stats, entregas, cards)*
-- [ ] **FRONT:** M5 *(disciplinas — lista + detalhe)*
-- [ ] **FRONT:** M6 *(calendário — agenda mensal leitura)*
-- [ ] **FRONT:** M7 *(mapa PPC — grid estático)*
-- [ ] **SHARED:** M8 *(tipos compartilhados — `packages/` ou copy types)*
-- [ ] **TEST:** M9 *(Expo Go — fluxo Android/iOS)*
-- [ ] **FUTURE:** M10 *(EAS Build — lojas pós-MVP)*
-
-**Ordem Bloco 8:** `M1–M2` → `M3–M7` → `M8` → `M9` → `M10`
-
----
-
 ### #9 — Bloco 3 · Inteligência acadêmica `⬜ 0/11`
 
-> Depende de dados reais do Bloco 2.
+> Depende de dados reais do Bloco 2. **Executar antes do mobile (#8).**
 
 - [ ] **BACK:** B32 *(motor elegibilidade — histórico + pré-requisitos → pode cursar?)*
 - [ ] **BACK:** B33 *(choque de horários — API detecta sobreposição na grade)*
@@ -289,13 +270,37 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ---
 
-### #10 — Bloco 4 · Polimento UX `⬜ 0/3`
+### #10 — Bloco 4 · Polimento UX + site mobile `⬜ 0/4`
+
+> **Executar antes do mobile (#8).** Quem não instalar o app Android usa o site no celular (**F28**).
 
 - [ ] **FRONT:** F25 *(loading skeletons — todas as telas)*
 - [ ] **FRONT:** F26 *(transições de página entre rotas)*
 - [ ] **FRONT:** F27 *(favicon + título na aba)*
+- [ ] **FRONT:** F28 *(site mobile — nav touch, layouts responsivos nas telas críticas, uso confortável no browser sem instalar app)*
 
-**Ordem Bloco 4:** `F25 → F26 → F27`
+**Ordem Bloco 4:** `F25 → F26 → F27 → F28`
+
+---
+
+### #8 — Bloco 8 · Mobile Android (Expo Go) `⬜ 0/10`
+
+> **Requer #6d + #7 + #9 + #10** (site maduro, incl. **F28**). Mesmo backend Supabase.  
+> **Ordem de execução:** **#9 → #10 → #8** — ver [ordem oficial](#ordem-oficial-de-execução-v3).  
+> **Decisão (jul/2026):** app nativo **só Android** · **sem** Play Store / App Store (zero custo de loja) · alternativa = **site mobile** (**F28**).
+
+- [ ] **SETUP:** M1 *(projeto Expo TypeScript — pasta `mobile/` · target **Android only**)*
+- [ ] **SETUP:** M2 *(Supabase client — env + auth no Expo · Android)*
+- [ ] **FRONT:** M3 *(auth mobile — login CPF + checagem assinatura)*
+- [ ] **FRONT:** M4 *(dashboard mobile — stats, entregas, cards)*
+- [ ] **FRONT:** M5 *(disciplinas — lista + detalhe)*
+- [ ] **FRONT:** M6 *(calendário — agenda mensal leitura)*
+- [ ] **FRONT:** M7 *(mapa PPC — grid estático)*
+- [ ] **SHARED:** M8 *(tipos compartilhados — `packages/` ou copy types)*
+- [ ] **TEST:** M9 *(Expo Go — fluxo **Android**; sem iOS)*
+- [ ] **OPTIONAL:** M10 *(APK sideload — download pelo site; **sem** Play Store · opcional pós-MVP)*
+
+**Ordem Bloco 8:** `M1–M2` → `M3–M7` → `M8` → `M9` → `(M10 opcional)`
 
 ---
 
@@ -380,7 +385,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ### 1.4 API e Integração UI ↔ SQLite
 
-> **Progresso:** Bloco 1 ✅ · **Bloco 2a/2b** ✅ · **Bloco 6a** ✅ **8/8** · **6b** **8/8** (**B44→B62** · **F29** `[%]`) · URL **`https://acme-hub.khfm.workers.dev`**.
+> **Progresso:** Bloco 1 ✅ · **Bloco 2a/2b** ✅ · **Bloco 6a** ✅ **8/8** · **6b** ✅ **8/8** (**B44→B62** · **F29** ✅) · **próximo 6c** (**B40**) · URL **`https://acme-hub.khfm.workers.dev`**.
 
 Roadmap detalhado: ver **[Roadmap #0→#11 no topo](#roadmap-detalhado--ordem-de-execução-0--11)** · [Ordem oficial v3](#ordem-oficial-de-execução-v3). **F19** simulador (2a) `[x]` · **B67** `[x]`.
 
@@ -406,9 +411,9 @@ FASE C   Bloco 6a            Supabase + deploy global (seed, sem RLS rígido)
 FASE D   Bloco 7             Assinatura PIX
     ↓
 FASE F   Bloco 3             Inteligência acadêmica (web)
-         Bloco 4             Polimento UX — gráficos, ajustes finais web
+         Bloco 4             Polimento UX + site mobile (**F28**)
     ↓
-FASE E   Bloco 8             Mobile Expo Go  ← **após site maduro**
+FASE E   Bloco 8             Mobile Android (Expo Go)  ← **após #9 + #10** · **sem lojas**
     ↓
 FASE G   Bloco 9             Multi-PPC (Mecatrônica, Moda) 🔒 só após mobile (#8)
 ```
@@ -424,9 +429,9 @@ FASE G   Bloco 9             Multi-PPC (Mecatrônica, Moda) 🔒 só após mobil
 | **6** | C | **6c** | RLS por usuário | Segurança antes de abrir pagamento |
 | **6d** | B | **2c** | Orquestração sync + catálogo global (**B68-orq**) | **Antes do mobile** — policy §6.6 · **B68a–c** ✅ |
 | **7** | D | **7** | PIX + gate de acesso | Monetização com produto estável |
-| **8** | E | **8** | Expo Go | **Depois de #9 + #10** (site maduro) + **#6d** + **#7** |
 | **9** | F | **3** | Grafo, matrícula, alertas | **Depois de #7** · **antes do mobile (#8)** |
-| **10** | F | **4** | Skeletons, transições, favicon, gráficos | **Antes do mobile (#8)** |
+| **10** | F | **4** | Skeletons, transições, favicon, **site mobile (F28)** | **Antes do mobile (#8)** |
+| **#8** | E | **8** | Mobile Android (Expo Go) | **Depois de #9 + #10** + **#6d** + **#7** · **sem lojas** |
 | **11** | — | **9** | Multi-PPC (Mecatrônica, Moda) | **Só após #8 mobile** com Eng. Computação completa |
 
 ### Sync antes da cloud (decisão de produto)
@@ -461,9 +466,9 @@ Estratégia: **fatias verticais** — backend primeiro, depois frontend.
 | **2** | #2–3 | Scraper SIGAA — **prioridade pós-Bloco 1** |
 | **6** | #4–6 | Cloud Supabase — **após sync validado** |
 | **7** | #7 | Assinatura PIX |
-| **8** | #8 | Mobile Expo Go |
-| **3** | #9 | Inteligência acadêmica |
-| **4** | #10 | Polimento UX |
+| **3** | #9 | Inteligência acadêmica *(antes do mobile)* |
+| **4** | #10 | Polimento UX + **site mobile (F28)** *(antes do mobile)* |
+| **8** | #8 | Mobile Android (Expo Go · **sem lojas**) |
 | **—** | #11 | Multi-PPC (Mecatrônica, Moda) 🔒 pós-mobile |
 
 **O que permanece no client (localStorage) durante o Bloco 1:**
@@ -493,16 +498,16 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | **#2** | 2a | Scraper dev (Playwright local) | ✅ **8/8** · B67 `[x]` · **F19** `[x]` | 8/8 |
 | **#3** | 2b | Worker sync (servidor) | ✅ **5/5** · F19 UI fila `[x]` | 5/5 |
 | **#4** | 6a | Supabase + deploy global | ✅ **Concluído** · URL pública | 8/8 |
-| **#5** | 6b | Auth: CPF login, cadastro completo | **8/8** `[%]` local — aguardando push | 8/8 |
+| **#5** | 6b | Auth: CPF login, cadastro completo | ✅ **Concluído** | 8/8 |
 | **#6** | 6c | RLS multi-tenant | **Obrigatório antes do PIX** | 0/2 |
 | **#6d** | 2c | Orquestração sync + catálogo global | **Antes do mobile (#8)** · policy **§6.6** · **3/6** | 3/6 |
 | **#7** | 7 | Assinatura PIX | Depois de #6 | 0/12 |
-| **#8** | 8 | Mobile Expo Go | Depois de **#6d** + **#7** + **#9** + **#10** (site maduro) | 0/10 |
-| **#9** | 3 | Inteligência acadêmica | Depois de #7 (dados reais + PIX) | 0/11 |
-| **#10** | 4 | Polimento UX | Antes do mobile — gráficos e ajustes web | 0/3 |
+| **#9** | 3 | Inteligência acadêmica | Depois de #7 (dados reais + PIX) · **antes do mobile** | 0/11 |
+| **#10** | 4 | Polimento UX + site mobile (**F28**) | **Antes do mobile (#8)** | 0/4 |
+| **#8** | 8 | Mobile Android (Expo Go) | Depois de **#6d** + **#7** + **#9** + **#10** · **sem Play/App Store** | 0/10 |
 | **#11** | 9 | Multi-PPC (Mecatrônica, Moda) | **🔒 Só após #8** | 0/4 |
 
-> **Atalho:** [Roadmap detalhado topo](#roadmap-detalhado--ordem-de-execução-0--11) · [Checklist #1](#1--bloco-1--api--ui--sqlite-4949) · [#2–#3](#2-3--bloco-2--scraper-sigaa-detalhe) · [#6d](#6d--orquestração-sync--catálogo-global-pré-mobile) · [#4–#6](#4-6--bloco-6--cloud--supabase-detalhe) · [#7](#7--bloco-7--assinatura-pix-detalhe) · [#8](#8--bloco-8--mobile-expo-go-detalhe) · [#9](#9--bloco-3--inteligência-acadêmica-detalhe) · [#10](#10--bloco-4--polimento-ux-detalhe) · [#11](#11--expansão-multi-ppc-detalhe)
+> **Atalho:** [Roadmap detalhado topo](#roadmap-detalhado--ordem-de-execução-0--11) · [Checklist #1](#1--bloco-1--api--ui--sqlite-4949) · [#2–#3](#2-3--bloco-2--scraper-sigaa-detalhe) · [#6d](#6d--orquestração-sync--catálogo-global-pré-mobile) · [#4–#6](#4-6--bloco-6--cloud--supabase-detalhe) · [#7](#7--bloco-7--assinatura-pix-detalhe) · [#9](#9--bloco-3--inteligência-acadêmica-detalhe) · [#10](#10--bloco-4--polimento-ux--site-mobile-detalhe) · [#8](#8--bloco-8--mobile-android-detalhe) · [#11](#11--expansão-multi-ppc-detalhe)
 
 ---
 
@@ -611,11 +616,11 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 ---
 
-### #5 — Bloco 6b · Cloud — Auth `🟡 8/8`
+### #5 — Bloco 6b · Cloud — Auth `✅ 8/8`
 
 - [x] **BACK:** B44 → B45 → B58 → B63 → B59
-- [%] **BACK:** B61 → B62
-- [%] **FRONT:** F29
+- [x] **BACK:** B61 → B62
+- [x] **FRONT:** F29
 
 **Ordem 6b:** `B44 → B45 → B58 → B63` → `B59` → `F29` → `B61 → B62`
 
@@ -645,27 +650,9 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 ---
 
-### #8 — Bloco 8 · Mobile Expo Go `⬜ 0/10`
-
-> **Pré-mobile (#8):** **#6d (B68-orq)** + **#7 PIX** + **#9 + #10** (site web maduro). Policy **§6.6** · **B68a–c** ✅ · pendente **B68d–f** + painel policy **B70/F41**.
-
-- [ ] **SETUP:** M1 → M2
-- [ ] **FRONT:** M3
-- [ ] **FRONT:** M4
-- [ ] **FRONT:** M5
-- [ ] **FRONT:** M6
-- [ ] **FRONT:** M7
-- [ ] **SHARED:** M8
-- [ ] **TEST:**  M9
-- [ ] **FUTURE:** M10
-
-**Ordem Bloco 8:** `M1–M2` → `M3` → `M4` → `M5` → `M6` → `M7` → `M8` → `M9` → `M10`
-
----
-
 ### #9 — Bloco 3 · Inteligência acadêmica `⬜ 0/11`
 
-> Depende de dados reais do Bloco 2.
+> Depende de dados reais do Bloco 2. **Executar antes do mobile (#8).**
 
 - [ ] **BACK:**  B32 → B33 → B34
 - [ ] **FRONT:** F21 → F22 → F23
@@ -678,17 +665,34 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 ---
 
-### #10 — Bloco 4 · Polimento UX `⬜ 0/3`
+### #10 — Bloco 4 · Polimento UX + site mobile `⬜ 0/4`
 
-- [ ] **FRONT:** F25 → F26 → F27
+> **Executar antes do mobile (#8).** Alternativa ao app instalado = site no celular (**F28**).
 
-**Ordem Bloco 4:** `F25 → F26 → F27`
+- [ ] **FRONT:** F25 → F26 → F27 → F28
+
+**Ordem Bloco 4:** `F25 → F26 → F27 → F28`
+
+---
+
+### #8 — Bloco 8 · Mobile Android (Expo Go) `⬜ 0/10`
+
+> **Pré-mobile (#8):** **#6d (B68-orq)** + **#7 PIX** + **#9 + #10** (site maduro + **F28**).  
+> **Decisão (jul/2026):** app **só Android** · **sem** Play Store / App Store · quem não instalar usa o **site mobile**.
+
+- [ ] **SETUP:** M1 → M2 *(Android only)*
+- [ ] **FRONT:** M3 → M4 → M5 → M6 → M7
+- [ ] **SHARED:** M8
+- [ ] **TEST:**  M9 *(Expo Go · Android)*
+- [ ] **OPTIONAL:** M10 *(APK sideload pelo site · sem loja)*
+
+**Ordem Bloco 8:** `M1–M2` → `M3–M7` → `M8` → `M9` → `(M10 opcional)`
 
 ---
 
 ### #11 — Expansão multi-PPC (Mecatrônica + Moda) `🔒 0/4`
 
-> **⛔ Não iniciar antes do #8 (Mobile Expo Go)** com Eng. Computação 100% funcional. Ver `SCOPE.md` §6.2.
+> **⛔ Não iniciar antes do #8 (Mobile Android)** com Eng. Computação 100% funcional. Ver `SCOPE.md` §6.2.
 
 - [ ] **PLAN:** Obter PPC oficial Eng. Mecatrônica (Divinópolis)
 - [ ] **PLAN:** Obter PPC oficial Design de Moda (Divinópolis)
@@ -708,13 +712,13 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | **#2** | **2a — Scraper dev** | ✅ **8/8** · B67 `[x]` · **F19** `[x]` | 8 / 8 |
 | **#3** | **2b — Worker sync** | ✅ **5/5** | 5 / 5 |
 | #4 | 6a — Cloud deploy | ✅ **Concluído** | 8 / 8 |
-| #5 | 6b — Cloud auth | 🟡 | 8 / 8 |
+| #5 | 6b — Cloud auth | ✅ | 8 / 8 |
 | #6 | 6c — RLS | ⬜ *(antes PIX)* | 0 / 2 |
 | **#6d** | **2c — Orquestração sync** | 🟡 *(antes mobile)* | 3 / 6 |
 | #7 | 7 — Assinatura PIX | ⬜ | 0 / 12 |
-| #8 | 8 — Mobile Expo Go | ⬜ *(após #9 + #10)* | 0 / 10 |
 | #9 | 3 — Inteligência | ⬜ *(antes mobile)* | 0 / 11 |
-| #10 | 4 — Polimento UX | ⬜ *(antes mobile)* | 0 / 3 |
+| #10 | 4 — Polimento + site mobile | ⬜ *(antes mobile · incl. F28)* | 0 / 4 |
+| #8 | 8 — Mobile Android | ⬜ *(após #9 + #10 · sem lojas)* | 0 / 10 |
 | #11 | 9 — Multi-PPC | 🔒 *(após #8)* | 0 / 4 |
 
 ---
@@ -731,9 +735,9 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | **#4–#6** | [Bloco 6 — Cloud Supabase](#4-6--bloco-6--cloud--supabase-detalhe) |
 | **#6d** | [Orquestração sync + catálogo global](#6d--orquestração-sync--catálogo-global-pré-mobile) |
 | **#7** | [Bloco 7 — PIX](#7--bloco-7--assinatura-pix-detalhe) |
-| **#8** | [Bloco 8 — Mobile](#8--bloco-8--mobile-expo-go-detalhe) |
 | **#9** | [Bloco 3 — Inteligência](#9--bloco-3--inteligência-acadêmica-detalhe) |
-| **#10** | [Bloco 4 — Polimento](#10--bloco-4--polimento-ux-detalhe) |
+| **#10** | [Bloco 4 — Polimento + site mobile](#10--bloco-4--polimento-ux--site-mobile-detalhe) |
+| **#8** | [Bloco 8 — Mobile Android](#8--bloco-8--mobile-android-detalhe) |
 | **#11** | [Multi-PPC](#11--expansão-multi-ppc-detalhe) *(após mobile)* |
 
 ---
@@ -1015,7 +1019,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Teste estático `npm run test:b39`
 - [x] Migration aplicada no **Acme-Hub-dev** (`npm run db:migrate` · Session pooler `aws-1-sa-east-1`)
 
-> **6a concluído (jul/2026):** URL **`https://acme-hub.khfm.workers.dev`** · cron **`acme-hub-cron-ping`** · smoke T1 ✅. **6b:** **8/8** `[%]` local — **B44→B62** + **F29**; próximo **6c** (**B40**).
+> **6a concluído (jul/2026):** URL **`https://acme-hub.khfm.workers.dev`** · cron **`acme-hub-cron-ping`** · smoke T1 ✅. **6b** ✅ **8/8** — **B44→B62** + **F29**; próximo **6c** (**B40**).
 
 #### B41 — Seed PPC global `[x]`
 
@@ -1080,9 +1084,9 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | B58 | Back | Trial por CPF | Registro `trial_por_cpf`: 7 dias **uma vez** por CPF (anti-abuso) | [x] |
 | B59 | Back | Gate de acesso | Middleware: `trial_active` \| `active` liberam; expirado → billing | [x] |
 | B63 | Back | `curso_id` na conta | Enum Comp/Meca/Moda; mapa/integralização filtram PPC por curso | [x] |
-| B61 | Back | Preferências contato | PATCH `/api/perfil` → `app_profiles` Postgres (UI **F37** ✅) | [%] |
-| F29 | Front | Cadastro + login | Cadastro: e-mail, tel, CPF, curso, senha · Login: **só CPF + senha** · tabs cloud + Bearer | [%] |
-| B62 | Back | E-mails conta/promo | Fila: promoções (**sempre**) + cadastro, fim trial, plano perto de acabar, plano encerrado | [%] |
+| B61 | Back | Preferências contato | PATCH `/api/perfil` → `app_profiles` Postgres (UI **F37** ✅) | [x] |
+| F29 | Front | Cadastro + login | Cadastro: e-mail, tel, CPF, curso, senha · Login: **só CPF + senha** · tabs cloud + Bearer | [x] |
+| B62 | Back | E-mails conta/promo | Fila: promoções (**sempre**) + cadastro, fim trial, plano perto de acabar, plano encerrado | [x] |
 
 **Ordem 6b:** `B44 → B45 → B58 → B63` → `B59` → `F29` → `B61 → B62`
 
@@ -1135,32 +1139,9 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 ---
 
-### #8 — Bloco 8 · Mobile Expo Go (detalhe)
-
-**Objetivo:** testes no celular via Expo Go; mesmo backend Supabase.
-
-| # | Tipo | Task | Resumo | Status |
-|---|------|------|--------|--------|
-| M1 | Setup | Projeto Expo | `mobile/` TypeScript | [ ] |
-| M2 | Setup | Supabase client | Env + auth no Expo | [ ] |
-| M3 | Front | Auth mobile | Login + checagem assinatura | [ ] |
-| M4 | Front | Dashboard | Stats, entregas, cards | [ ] |
-| M5 | Front | Disciplinas | Lista + detalhe | [ ] |
-| M6 | Front | Calendário | Agenda mensal (leitura) | [ ] |
-| M7 | Front | Mapa PPC | Grid estático | [ ] |
-| M8 | Shared | Tipos | `packages/` ou copy types | [ ] |
-| M9 | Test | Expo Go | Fluxo Android/iOS | [ ] |
-| M10 | Future | EAS Build | Lojas (pós-MVP) | [ ] |
-
-**Ordem:** `M1 → M2` → `M3 → M4 → M5 → M6 → M7` → `M8` → `M9` → `M10`
-
-> Checklist: **#8** no [Checklist mestre](#checklist-mestre-ordem-de-execução).
-
----
-
 ### #9 — Bloco 3 · Inteligência acadêmica (detalhe)
 
-**Objetivo:** regras de negócio com dados reais (pré-requisitos, matrícula, grafo, alertas).
+**Objetivo:** regras de negócio com dados reais (pré-requisitos, matrícula, grafo, alertas). **Executar antes do mobile (#8).**
 
 | Área | O que resolve |
 |------|----------------|
@@ -1188,19 +1169,43 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 ---
 
-### #10 — Bloco 4 · Polimento UX (detalhe)
+### #10 — Bloco 4 · Polimento UX + site mobile (detalhe)
 
-**Objetivo:** skeletons, transições de página e favicon.
+**Objetivo:** skeletons, transições, favicon e **site usável no celular** (alternativa ao app instalado).
 
 | # | Tipo | Task | Resumo | Fase | Status |
 |---|------|------|--------|------|--------|
 | F25 | Front | Loading skeletons | Placeholders em todas as telas | 6.4 | [ ] |
 | F26 | Front | Transições de página | Animações entre rotas | 6.4 | [ ] |
 | F27 | Front | Favicon + título | Identidade na aba do browser | 6.4 | [ ] |
+| F28 | Front | Site mobile | Nav touch, layouts responsivos, telas críticas no browser | 6.4 | [ ] |
 
-**Ordem:** `F25 → F26 → F27`
+**Ordem:** `F25 → F26 → F27 → F28`
 
 > Checklist: **#10** no [Checklist mestre](#checklist-mestre-ordem-de-execução).
+
+---
+
+### #8 — Bloco 8 · Mobile Android (detalhe)
+
+**Objetivo:** app **Android only** via Expo Go; mesmo backend Supabase. **Sem** Play Store / App Store. Quem não instalar usa **F28** (site mobile).
+
+| # | Tipo | Task | Resumo | Status |
+|---|------|------|--------|--------|
+| M1 | Setup | Projeto Expo | `mobile/` TypeScript · **Android only** | [ ] |
+| M2 | Setup | Supabase client | Env + auth no Expo · Android | [ ] |
+| M3 | Front | Auth mobile | Login CPF + checagem assinatura | [ ] |
+| M4 | Front | Dashboard | Stats, entregas, cards | [ ] |
+| M5 | Front | Disciplinas | Lista + detalhe | [ ] |
+| M6 | Front | Calendário | Agenda mensal (leitura) | [ ] |
+| M7 | Front | Mapa PPC | Grid estático | [ ] |
+| M8 | Shared | Tipos | `packages/` ou copy types | [ ] |
+| M9 | Test | Expo Go | Fluxo **Android** (sem iOS) | [ ] |
+| M10 | Optional | APK sideload | Download pelo site · **sem** Play Store | [ ] |
+
+**Ordem:** `M1 → M2` → `M3 → M4 → M5 → M6 → M7` → `M8` → `M9` → `(M10 opcional)`
+
+> Checklist: **#8** no [Checklist mestre](#checklist-mestre-ordem-de-execução).
 
 ---
 
@@ -1233,16 +1238,16 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 #3  Bloco 2b  Worker + fila (§6.3 SCOPE-CLOUD)     ✅ 5/5
       ↓
 #4  Bloco 6a  Supabase + deploy global       (após sync validado)
-#5  Bloco 6b  Auth: cadastro + login CPF (8/8)
+#5  Bloco 6b  Auth: cadastro + login CPF ✅ (8/8)
 #6  Bloco 6c  RLS multi-tenant               (antes do PIX)
 #6d Bloco 2c  Orquestração sync (B68-orq)     policy §6.6 · 3/6
       ↓
 #7  Bloco 7   Assinatura PIX
       ↓
 #9  Bloco 3   Inteligência acadêmica        ← site antes mobile
-#10 Bloco 4   Polimento UX                   ← gráficos / ajustes web
+#10 Bloco 4   Polimento UX + site mobile (F28) ← gráficos / ajustes web
       ↓
-#8  Bloco 8   Mobile Expo Go                 (requer #6d + #7 + #9 + #10)
+#8  Bloco 8   Mobile Android (Expo Go)          (requer #6d + #7 + #9 + #10 · sem lojas)
       ↓
 #11 Bloco 9   Multi-PPC (Mecatrônica, Moda)  🔒 após #8
 ```
@@ -1256,7 +1261,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | **Fase 4** | Disciplinas UI | Notas, faltas, tarefas, simulador local |
 | **Fase 5** | Bloco 3 + PPC | Mapa, matrícula, integralização |
 | **Fase 6** | Bloco 4 | Polimento UX |
-| **Fase 7** | Bloco 8 | App mobile Expo Go |
+| **Fase 7** | Bloco 8 | App mobile Android (Expo Go · sem lojas) |
 | **Fase 8** | Bloco 6 | Cloud Supabase |
 | **Fase 9** | Bloco 7 | Assinatura PIX |
 
@@ -1539,7 +1544,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 ## Fase 6: Polimento Visual
 
-> **Resumo:** Skeletons, animações e favicon — **Bloco 4** (F25–F27).
+> **Resumo:** Skeletons, animações, favicon e **site mobile** — **Bloco 4** (F25–F28).
 
 ### 6.1 Polimento Visual
 - [x] Redesign visual paleta Cruzeiro (fundo jersey, dourado, ícones SVG, sem emojis)
@@ -1553,18 +1558,20 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [/] Adicionar loading skeletons em todas as telas — **feito:** dashboard, disciplinas (lista + detalhe inline), calendário, mapa, integralização, grade semanal; **pendente:** `/simulador`, login (**F25**)
 - [x] Responsividade básica (breakpoints mobile/tablet/desktop)
 - [/] Favicon e título na aba — título **ACME HUB** · favicon gerado de `logo_v2.png` (**F27** parcial)
+- [ ] Site mobile — nav touch, layouts responsivos, telas críticas usáveis no browser (**F28** · alternativa ao app Android)
 
 ---
 
-## Fase 7: App Mobile (Expo Go)
+## Fase 7: App Mobile Android (Expo Go)
 
-> **Resumo:** App mobile para testes via **Expo Go**, backend **Supabase** — **Bloco 8**. **Só depois** do site web maduro (**#9 + #10**). Escopo: [`docs/SCOPE-CLOUD.md`](./SCOPE-CLOUD.md) §7.
+> **Resumo:** App **Android only** via **Expo Go**; backend **Supabase** — **Bloco 8**. **Só depois** do site maduro (**#9 + #10**, incl. **F28** site mobile). **Sem** Play Store / App Store. Escopo: [`docs/SCOPE-CLOUD.md`](./SCOPE-CLOUD.md) §7.
 
-- [ ] Criar projeto Expo em `mobile/` (TypeScript)
+- [ ] Criar projeto Expo em `mobile/` (TypeScript · **Android only**)
 - [ ] Integrar Supabase Auth + checagem de assinatura ativa
 - [ ] Telas: dashboard, disciplinas, calendário, mapa
-- [ ] Testar no Expo Go (Android/iOS)
-- [ ] EAS Build para lojas (fase posterior — M10)
+- [ ] Testar no Expo Go (**Android**; sem iOS)
+- [ ] *(Opcional pós-MVP)* APK sideload pelo site — **sem** loja (**M10**)
+- [ ] **Alternativa sem instalar:** site adaptado ao celular (**F28** · Bloco 4)
 
 ---
 
@@ -1773,7 +1780,7 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 8. **Próximo passo do roadmap:** informe **depois do push** (tasks em `[@]` ou `[x]`). Com commits locais só `[%]`, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v3](#ordem-oficial-de-execução-v3) — **Bloco 2 (sync) antes do Bloco 6 (Supabase)**. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy **após** sync validado; RLS **só na 6c** (antes do PIX). Marco “site no ar p/ testes gerais” → [final do TASKS.md](#marco--site-no-ar-para-testes-gerais).
-11. **Próximo passo:** **#6 — Bloco 6c** · **B40** → **T2** *(após push/aprovação do 6b)*. **6b** completo `[%]` local — **F29** · **B61** · **B62**.
+11. **Próximo passo:** **#6 — Bloco 6c** · **B40** → **T2**. **6b** ✅ — **F29** · **B61** · **B62** aprovados (jul/2026).
 12. **Integralização:** CH concluída = `historico` + PPC (`computeChDoneFromDisciplinas`); portal SIGAA só % / total currículo; matérias já passadas = **B30** ✅.
 13. **Gift + painel dev + simulação mapa:** escopo em `SCOPE.md` §10.7, §6.1.1 · `SCOPE-CLOUD` §6.6 — tasks **B68–B71**, **F39–F41**. Painel: chavinhas R1/R2/R3 + **Orquestração sync** (TTLs/data fixa/batch). **B71** = ocultar senhas SIGAA.
 14. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial. **Polish em task `[x]`** (ex.: F38, dashboard) também exige nota no TASKS no mesmo ciclo do push.
@@ -1784,7 +1791,7 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 
 ## Marco — site no ar para testes gerais
 
-> **🌐 Mínimo funcional beta (jul/2026):** **6b** `[%]` local — cadastro, login CPF, trial, gate, PATCH perfil cloud, fila e-mail. Sync SIGAA na nuvem = worker **B54–B56** (stub).
+> **🌐 Mínimo funcional beta (jul/2026):** **6b** ✅ — cadastro, login CPF, trial, gate, PATCH perfil cloud, fila e-mail. Sync SIGAA na nuvem = worker **B54–B56** (stub).
 
 > **🌐 Beta aberto:** URL pública com **cadastro + login CPF + trial + gate** (**F29** ✅). Sync SIGAA na nuvem ainda = worker **B54–B56** (stub).
 

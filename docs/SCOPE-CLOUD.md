@@ -7,7 +7,7 @@
 
 ## 1. Direção do produto
 
-SaaS para alunos do CEFET-MG: app web hospedado, dados no **Supabase** (Postgres + Auth + Storage), sync SIGAA via **worker Playwright** no servidor, **assinatura por período via PIX**, e app **mobile Expo Go** consumindo o mesmo backend.
+SaaS para alunos do CEFET-MG: app web hospedado, dados no **Supabase** (Postgres + Auth + Storage), sync SIGAA via **worker Playwright** no servidor, **assinatura por período via PIX**, app **mobile Android (Expo Go)** e **site mobile (F28)** consumindo o mesmo backend — **sem** publicação em lojas oficiais.
 
 **Dev local:** SQLite em `app/.data/` para iterar o Bloco 1; produção migra para Supabase (Bloco 6).
 
@@ -19,7 +19,7 @@ SaaS para alunos do CEFET-MG: app web hospedado, dados no **Supabase** (Postgres
 ┌─────────────────────────────────────────────────────────────────┐
 │                         Clientes                                 │
 │  ┌──────────────────┐              ┌──────────────────────────┐ │
-│  │  Web (Next.js)   │              │  Mobile (Expo Go / RN)   │ │
+│  │  Web (Next.js)   │              │  Mobile Android (Expo Go) │ │
 │  │  app.cefetplanner│              │  testes no celular       │ │
 │  └────────┬─────────┘              └────────────┬─────────────┘ │
 └───────────┼─────────────────────────────────────┼───────────────┘
@@ -56,7 +56,7 @@ SaaS para alunos do CEFET-MG: app web hospedado, dados no **Supabase** (Postgres
 | **Auth do app** | Supabase Auth | E-mail/senha ou magic link (definir) |
 | **Auth SIGAA** | Credenciais do portal | Armazenadas cifradas, usadas só no worker |
 | **Pagamentos** | PIX (gateway TBD) | Mercado Pago, Asaas, AbacatePay, etc. |
-| **Mobile** | Expo (React Native) + Expo Go | Dev/testes; produção = build EAS depois |
+| **Mobile** | Expo (React Native) + Expo Go | **Android only** · dev/testes · **sem** Play/App Store · alternativa = site mobile (**F28**) |
 | **Scraper** | Playwright em worker dedicado | Não roda no browser nem no celular |
 
 ---
@@ -491,12 +491,13 @@ UI (**F41**): seção **Orquestração sync** — formulário da tabela acima + 
 
 ---
 
-## 7. App mobile (Expo Go)
+## 7. App mobile (Android · Expo Go)
 
 ### 7.1 Objetivo da fase mobile
 
-- **Testes no celular** durante o desenvolvimento usando **Expo Go** (familiaridade do time).
-- **Pré-requisito:** site web Eng. Computação maduro (**#9 inteligência + #10 polimento/gráficos**) — mobile é cliente fino da API estável, não laboratório de UX.
+- **Testes no celular Android** durante o desenvolvimento usando **Expo Go**.
+- **Pré-requisito:** site web Eng. Computação maduro (**#9 inteligência + #10 polimento**, incl. **F28 site mobile**) — mobile é cliente fino da API estável, não laboratório de UX.
+- **Quem não instalar** (ou não puder instalar) usa o **site adaptado ao celular** (**F28** · Bloco 4) — zero custo de loja.
 - Mesmas telas principais: dashboard, disciplinas, calendário, mapa.
 - Consome **Supabase** diretamente (ou via API Next.js — definir na implementação).
 
@@ -507,21 +508,24 @@ UI (**F41**): seção **Orquestração sync** — formulário da tabela acima + 
 | Login conta app + checagem assinatura | Sync SIGAA no device |
 | Dashboard, disciplinas, calendário | Download automático de PDFs na nuvem pessoal |
 | Leitura/edição de notas e tarefas manuais | Simulador de matrícula completo |
-| Expo Go para dev | Publicação App Store / Play Store |
+| Expo Go para dev (**Android only**) | **iOS** · **Play Store** · **App Store** |
+| *(Opcional pós-MVP)* APK sideload pelo site | Publicação em lojas oficiais |
 
 ### 7.3 Estrutura do monorepo (proposta)
 
 ```
 /
 ├── app/          # Next.js web (existente)
-├── mobile/       # Expo (novo)
+├── mobile/       # Expo (novo · Android only)
 └── packages/     # (opcional) tipos e utils compartilhados
 ```
 
-### 7.4 Produção mobile (futuro)
+### 7.4 Distribuição (sem lojas)
 
-- Build com **EAS Build** quando sair do Expo Go.
-- Mesmo backend Supabase.
+- **Padrão:** testar e usar via **Expo Go** (Android).
+- **Opcional (M10):** gerar **APK sideload** — link de download no site; **sem** Play Store (zero taxa de loja).
+- **Alternativa web:** **F28** — site responsivo/touch no browser; não exige instalar app.
+- Mesmo backend Supabase em todos os canais.
 
 ---
 
@@ -639,9 +643,9 @@ Persistência por `user_id`:
 | 6 | C | **6c** | RLS multi-tenant (**antes do PIX**) |
 | 7 | D | **7** | Assinatura PIX + gift keys + painel dev |
 | 7b | D | **7** | **B71** endurecimento credenciais — **última task antes do go-live** |
-| 8 | E | **8** | Mobile Expo Go |
-| 9 | F | **3** | Inteligência acadêmica |
-| 10 | F | **4** | Polimento UX |
+| 9 | F | **3** | Inteligência acadêmica *(antes do mobile)* |
+| 10 | F | **4** | Polimento UX + **site mobile (F28)** *(antes do mobile)* |
+| 8 | E | **8** | Mobile Android (Expo Go · **sem lojas**) |
 
 ### Modo global de testes (6a)
 

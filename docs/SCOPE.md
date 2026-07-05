@@ -385,7 +385,7 @@ Seção fixa ou painel expansível (ícone ℹ️ em cada linha da tabela) expli
 
 ## 8. Mobile
 
-Ver **`docs/SCOPE-CLOUD.md` §7** — app **Expo Go**, backend Supabase, sem scraper no device.
+Ver **`docs/SCOPE-CLOUD.md` §7** — app **Android (Expo Go)**, site mobile (**F28**) como alternativa, backend Supabase, **sem lojas**, sem scraper no device.
 
 ---
 
