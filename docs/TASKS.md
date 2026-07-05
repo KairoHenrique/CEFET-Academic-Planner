@@ -41,7 +41,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ## Roadmap detalhado — ordem de execução (#0 → #11)
 
-> **Próximo oficial:** **#6d — Bloco 2c** · **B68d** *(schema global vs user_id)*. **6c** ✅ **2/2** `[@]` *(aguardando aprovação 100%)*.
+> **Próximo oficial:** **#6d — Bloco 2c** · **B68d** *(schema global vs user_id)*.
 > **Regra:** siga **#0 → #11** · dentro de cada bloco → **BACK (B) antes de FRONT (F)**. Checklist espelho: [Checklist mestre](#checklist-mestre-ordem-de-execução).
 
 ### #0 — Planejamento `✅`
@@ -198,12 +198,12 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ---
 
-### #6 — Bloco 6c · RLS multi-tenant `🟡 2/2 [@]`
+### #6 — Bloco 6c · RLS multi-tenant `✅ 2/2`
 
 > **Obrigatório antes do Bloco 7 (PIX).**
 
-- [@] **BACK:** B40 *(RLS policies Postgres — `user_id = auth.uid()` + tenant context na API)*
-- [@] **TEST:** T2 *(smoke isolamento — 2 contas não veem dados uma da outra)*
+- [x] **BACK:** B40 *(RLS policies Postgres — `user_id = auth.uid()` + tenant context na API)*
+- [x] **TEST:** T2 *(smoke isolamento — 2 contas não veem dados uma da outra)*
 
 **Ordem 6c:** `B40` → `T2` ✅
 
@@ -385,7 +385,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ### 1.4 API e Integração UI ↔ SQLite
 
-> **Progresso:** Bloco 1 ✅ · **Bloco 2a/2b** ✅ · **Bloco 6a** ✅ **8/8** · **6b** ✅ **8/8** · **6c** ✅ **2/2** `[@]` · URL **`https://acme-hub.khfm.workers.dev`**.
+> **Progresso:** Bloco 1 ✅ · **Bloco 2a/2b** ✅ · **Bloco 6a** ✅ **8/8** · **6b** ✅ **8/8** · **6c** ✅ **2/2** · URL **`https://acme-hub.khfm.workers.dev`**.
 
 Roadmap detalhado: ver **[Roadmap #0→#11 no topo](#roadmap-detalhado--ordem-de-execução-0--11)** · [Ordem oficial v3](#ordem-oficial-de-execução-v3). **F19** simulador (2a) `[x]` · **B67** `[x]`.
 
@@ -394,7 +394,7 @@ Roadmap detalhado: ver **[Roadmap #0→#11 no topo](#roadmap-detalhado--ordem-de
 ## Ordem oficial de execução (v3)
 
 > **Princípio (jul/2026):** terminar Bloco 1 no SQLite → **sync SIGAA real (Bloco 2) antes do Supabase** → cloud (6a/6b/6c) → PIX (#7) → **site web maduro** (#9 inteligência + #10 polimento/gráficos) → **só então mobile** (#8) → multi-PPC (#11). Mobile consome a mesma API — não duplicar UX incompleta no Expo.  
-> **Modo testes global (6a):** URL pública + Supabase free; **RLS/multi-tenant só na 6c**, antes do PIX.
+> **Modo testes global (6a):** URL pública + Supabase free; **RLS/multi-tenant** ✅ **6c** (antes do PIX).
 
 ```
 FASE A   Bloco 1 (3E)          SQLite local — grade semanal ✅
@@ -404,7 +404,7 @@ FASE B   Bloco 2a            Scraper dev (B24–B31) — sync REAL ⚠️ priori
     ↓
 FASE C   Bloco 6a            Supabase + deploy global (seed, sem RLS rígido)
          Bloco 6b            Auth app + credenciais SIGAA cifradas
-         Bloco 6c            RLS multi-tenant — obrigatório antes de cobrar
+         Bloco 6c ✅          RLS multi-tenant — obrigatório antes de cobrar
     ↓
          Bloco 2c            Orquestração sync + global (B68-orq) — policy §6.6
     ↓
@@ -499,7 +499,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | **#3** | 2b | Worker sync (servidor) | ✅ **5/5** · F19 UI fila `[x]` | 5/5 |
 | **#4** | 6a | Supabase + deploy global | ✅ **Concluído** · URL pública | 8/8 |
 | **#5** | 6b | Auth: CPF login, cadastro completo | ✅ **Concluído** | 8/8 |
-| **#6** | 6c | RLS multi-tenant | ✅ **2/2** `[@]` | 2/2 |
+| **#6** | 6c | RLS multi-tenant | ✅ **Concluído** | 2/2 |
 | **#6d** | 2c | Orquestração sync + catálogo global | **Antes do mobile (#8)** · policy **§6.6** · **3/6** | 3/6 |
 | **#7** | 7 | Assinatura PIX | Depois de #6 | 0/12 |
 | **#9** | 3 | Inteligência acadêmica | Depois de #7 (dados reais + PIX) · **antes do mobile** | 0/11 |
@@ -626,12 +626,12 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 ---
 
-### #6 — Bloco 6c · Cloud — multi-tenant `🟡 2/2 [@]`
+### #6 — Bloco 6c · Cloud — multi-tenant `✅ 2/2`
 
 > **Obrigatório antes do Bloco 7 (PIX).**
 
-- [@] **BACK:**  B40
-- [@] **TEST:**  T2 — smoke 2 contas isoladas
+- [x] **BACK:**  B40
+- [x] **TEST:**  T2 — smoke 2 contas isoladas
 
 **Ordem 6c:** `B40` → `T2` ✅
 
@@ -713,7 +713,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | **#3** | **2b — Worker sync** | ✅ **5/5** | 5 / 5 |
 | #4 | 6a — Cloud deploy | ✅ **Concluído** | 8 / 8 |
 | #5 | 6b — Cloud auth | ✅ | 8 / 8 |
-| #6 | 6c — RLS | ✅ **2/2** `[@]` | 2 / 2 |
+| #6 | 6c — RLS | ✅ **Concluído** | 2 / 2 |
 | **#6d** | **2c — Orquestração sync** | 🟡 *(antes mobile)* | 3 / 6 |
 | #7 | 7 — Assinatura PIX | ⬜ | 0 / 12 |
 | #9 | 3 — Inteligência | ⬜ *(antes mobile)* | 0 / 11 |
@@ -1019,7 +1019,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Teste estático `npm run test:b39`
 - [x] Migration aplicada no **Acme-Hub-dev** (`npm run db:migrate` · Session pooler `aws-1-sa-east-1`)
 
-> **6a concluído (jul/2026):** URL **`https://acme-hub.khfm.workers.dev`** · cron **`acme-hub-cron-ping`** · smoke T1 ✅. **6b** ✅ **8/8**. **6c** ✅ **2/2** `[@]` · `npm run test:t2` · `npm run smoke:t2`.
+> **6a concluído (jul/2026):** URL **`https://acme-hub.khfm.workers.dev`** · cron **`acme-hub-cron-ping`** · smoke T1 ✅. **6b** ✅ **8/8**. **6c** ✅ **2/2** · `npm run test:t2` · `npm run smoke:t2`.
 
 #### B41 — Seed PPC global `[x]`
 
@@ -1098,8 +1098,8 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 | # | Tipo | Task | Resumo | Status |
 |---|------|------|--------|--------|
-| B40 | Back | RLS policies | `user_id = auth.uid()` · migration + tenant context API | [@] |
-| T2 | Test | Isolamento | 2 contas não veem dados uma da outra · `test:t2` + `smoke:t2` | [@] |
+| B40 | Back | RLS policies | `user_id = auth.uid()` · migration + tenant context API | [x] |
+| T2 | Test | Isolamento | 2 contas não veem dados uma da outra · `test:t2` + `smoke:t2` | [x] |
 
 **Ordem:** `B40` → `T2` ✅
 
@@ -1239,7 +1239,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
       ↓
 #4  Bloco 6a  Supabase + deploy global       (após sync validado)
 #5  Bloco 6b  Auth: cadastro + login CPF ✅ (8/8)
-#6  Bloco 6c  RLS multi-tenant               (antes do PIX)
+#6  Bloco 6c  RLS multi-tenant ✅             (antes do PIX)
 #6d Bloco 2c  Orquestração sync (B68-orq)     policy §6.6 · 3/6
       ↓
 #7  Bloco 7   Assinatura PIX
@@ -1779,8 +1779,8 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
    - **Obrigatório:** toda entrega deve refletir no TASKS.md **no mesmo ciclo** — tabela B/F, checklist mestre, progresso, bullets de UI e notas para agentes **sem texto stale**.
 8. **Próximo passo do roadmap:** informe **depois do push** (tasks em `[@]` ou `[x]`). Com commits locais só `[%]`, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v3](#ordem-oficial-de-execução-v3) — **Bloco 2 (sync) antes do Bloco 6 (Supabase)**. Dentro de cada fatia: `B` antes de `F`.
-10. **Modo testes global (6a):** deploy **após** sync validado; RLS **só na 6c** (antes do PIX). Marco “site no ar p/ testes gerais” → [final do TASKS.md](#marco--site-no-ar-para-testes-gerais).
-11. **Próximo passo:** **#6d — Bloco 2c** · **B68d** *(schema global vs `user_id`)*. **6c** ✅ **2/2** `[@]` — rodar `npm run db:migrate` + `npm run deploy:cf` na produção.
+10. **Modo testes global (6a):** deploy **após** sync validado; RLS ✅ **6c** (antes do PIX). Marco “site no ar p/ testes gerais” → [final do TASKS.md](#marco--site-no-ar-para-testes-gerais).
+11. **Próximo passo:** **#6d — Bloco 2c** · **B68d** *(schema global vs `user_id`)*.
 12. **Integralização:** CH concluída = `historico` + PPC (`computeChDoneFromDisciplinas`); portal SIGAA só % / total currículo; matérias já passadas = **B30** ✅.
 13. **Gift + painel dev + simulação mapa:** escopo em `SCOPE.md` §10.7, §6.1.1 · `SCOPE-CLOUD` §6.6 — tasks **B68–B71**, **F39–F41**. Painel: chavinhas R1/R2/R3 + **Orquestração sync** (TTLs/data fixa/batch). **B71** = ocultar senhas SIGAA.
 14. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial. **Polish em task `[x]`** (ex.: F38, dashboard) também exige nota no TASKS no mesmo ciclo do push.
@@ -1791,19 +1791,19 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 
 ## Marco — site no ar para testes gerais
 
-> **🌐 Mínimo funcional beta (jul/2026):** **6b** ✅ — cadastro, login CPF, trial, gate, PATCH perfil cloud, fila e-mail. Sync SIGAA na nuvem = worker **B54–B56** (stub).
+> **🌐 Mínimo funcional beta (jul/2026):** **6b** ✅ · **6c** ✅ — cadastro, login CPF, trial, gate, RLS/isolamento por conta. Sync SIGAA na nuvem = worker **B54–B56** (stub).
 
 > **🌐 Beta aberto:** URL pública com **cadastro + login CPF + trial + gate** (**F29** ✅). Sync SIGAA na nuvem ainda = worker **B54–B56** (stub).
 
-> **🌐 O que isso NÃO significa:** **não** é todas as páginas/feature na nuvem iguais ao dev local. **Sync SIGAA real na cloud** depende do **worker (B54–B56)** — hoje **stub** no Postgres. **Dados isolados por conta** = **6c** (RLS). **PIX / planos pagos** = **Bloco 7**. Telas do Bloco 1 **abrem** na URL; experiência acadêmica **completa** com dados SIGAA hoje = **dev local (SQLite)**. **Não** é go-live comercial (**B71**). **6a** ✅ = só infra (health/PPC); login cloud conclui no **6b**.
+> **🌐 O que isso NÃO significa:** **não** é todas as páginas/feature na nuvem iguais ao dev local. **Sync SIGAA real na cloud** depende do **worker (B54–B56)** — hoje **stub** no Postgres. **Dados isolados por conta** ✅ **6c** (RLS). **PIX / planos pagos** = **Bloco 7**. Telas do Bloco 1 **abrem** na URL; experiência acadêmica **completa** com dados SIGAA hoje = **dev local (SQLite)** + rotas cloud ainda parciais (`getConfig` SQLite). **Não** é go-live comercial (**B71**).
 
 ### Fases até o go-live comercial
 
 | Fase | O que está no ar | Quem testa | Limitações |
 |------|------------------|------------|------------|
 | **6a** ✅ | URL + Postgres + health/PPC; **sem** login cloud completo | Time / smoke técnico | Sync cloud = stub |
-| **6b** *(este marco)* | **Conta aberta:** cadastro, login CPF, trial, gate, telas carregam | **Qualquer pessoa** (beta aberto; **≠** lançamento comercial) | Sync na nuvem = worker **B54–B56**; dados por usuário = **6c** |
-| **6c** | RLS + isolamento antes de cobrar | Continua beta | Obrigatório antes do PIX |
+| **6b** ✅ | **Conta aberta:** cadastro, login CPF, trial, gate, telas carregam | **Qualquer pessoa** (beta aberto; **≠** lançamento comercial) | Sync na nuvem = worker **B54–B56** |
+| **6c** ✅ | RLS + isolamento por `user_id` | Continua beta | Dashboard cloud ainda parcial (SQLite em `getConfig`) |
 | **Bloco 7** | PIX + planos + **go-live** oficial | Público com assinatura | Endurecimento **B71** |
 
 ### O que **não** está incluído neste marco (6b)
@@ -1811,7 +1811,7 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 | Fora do marco | Onde entra |
 |---------------|------------|
 | Sync SIGAA **real** na nuvem (dados por aluno na URL) | Worker **B54–B56** (hoje **stub**) |
-| Dados **isolados** por conta | **6c** (RLS) |
+| Dados **isolados** por conta | ✅ **6c** (RLS) |
 | Cobrança / assinatura | **Bloco 7** (PIX) |
 | Inteligência acadêmica avançada | **Bloco 3** |
 | Mobile | **Bloco 8** |

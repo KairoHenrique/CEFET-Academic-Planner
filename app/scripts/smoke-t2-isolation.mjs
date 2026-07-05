@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
- * Smoke T2 — 2 contas não veem dados uma da outra (GET /api/dashboard).
+ * Smoke T2 — 2 contas não veem dados uma da outra.
+ * Valida RLS via Supabase Auth + SELECT em `aluno` (JWT por conta).
  * Uso: node scripts/smoke-t2-isolation.mjs
  * Requer app/.env.local com Supabase + DATABASE_URL + PLANNER_APP_URL (opcional).
  */
@@ -78,6 +79,15 @@ const admin = createClient(supabaseUrl, serviceKey, {
 });
 const pool = new pg.Pool({ connectionString: databaseUrl, max: 2 });
 
+async function ensureActiveTrial(cpf) {
+  await pool.query(
+    `INSERT INTO trial_por_cpf (cpf, trial_started_at)
+     VALUES ($1, now())
+     ON CONFLICT (cpf) DO UPDATE SET trial_started_at = now()`,
+    [cpf]
+  );
+}
+
 async function ensureAccount(cpf, label) {
   const authEmail = buildInternalAuthEmail(cpf);
   const list = await admin.auth.admin.listUsers();
@@ -109,6 +119,8 @@ async function ensureAccount(cpf, label) {
     [userId, matricula, nome]
   );
 
+  await ensureActiveTrial(cpf);
+
   return { userId, nome, cpf };
 }
 
@@ -123,38 +135,47 @@ async function signIn(cpf) {
   if (error || !data.session?.access_token) {
     throw new Error(`Login falhou (${cpf}): ${error?.message ?? "sem token"}`);
   }
-  return data.session.access_token;
+  return data.session;
 }
 
-async function fetchDashboard(token) {
-  const res = await fetch(`${base}/api/dashboard`, {
-    headers: { authorization: `Bearer ${token}` },
+async function fetchAlunoViaRls(session, cpf) {
+  const authed = createClient(supabaseUrl, anonKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
   });
-  const text = await res.text();
-  if (!res.ok) {
-    throw new Error(`dashboard ${res.status}: ${text.slice(0, 300)}`);
+  await authed.auth.setSession({
+    access_token: session.access_token,
+    refresh_token: session.refresh_token,
+  });
+
+  const { data, error } = await authed.from("aluno").select("nome, matricula");
+  if (error) {
+    throw new Error(`RLS aluno falhou (${cpf}): ${error.message}`);
   }
-  return JSON.parse(text);
+  return data ?? [];
 }
 
 try {
   const accountA = await ensureAccount(T2_CPF_A, "A");
   const accountB = await ensureAccount(T2_CPF_B, "B");
 
-  const tokenA = await signIn(T2_CPF_A);
-  const tokenB = await signIn(T2_CPF_B);
+  const sessionA = await signIn(T2_CPF_A);
+  const sessionB = await signIn(T2_CPF_B);
 
-  const dashA = await fetchDashboard(tokenA);
-  const dashB = await fetchDashboard(tokenB);
+  const rowsA = await fetchAlunoViaRls(sessionA, T2_CPF_A);
+  const rowsB = await fetchAlunoViaRls(sessionB, T2_CPF_B);
 
-  const nomeA = dashA?.data?.aluno?.nome ?? dashA?.aluno?.nome;
-  const nomeB = dashB?.data?.aluno?.nome ?? dashB?.aluno?.nome;
+  const nomeA = rowsA[0]?.nome;
+  const nomeB = rowsB[0]?.nome;
 
-  console.log(`Conta A dashboard aluno: ${nomeA ?? "(vazio)"}`);
-  console.log(`Conta B dashboard aluno: ${nomeB ?? "(vazio)"}`);
+  console.log(`Conta A (RLS): ${nomeA ?? "(vazio)"} · ${rowsA.length} linha(s)`);
+  console.log(`Conta B (RLS): ${nomeB ?? "(vazio)"} · ${rowsB.length} linha(s)`);
 
   if (nomeA !== accountA.nome || nomeB !== accountB.nome) {
-    console.error("Falha: dashboard não retornou o aluno correto por conta.");
+    console.error("Falha: RLS não retornou o aluno correto por conta.");
+    process.exit(1);
+  }
+  if (rowsA.length !== 1 || rowsB.length !== 1) {
+    console.error("Falha: cada conta deve ver exatamente 1 linha em aluno.");
     process.exit(1);
   }
   if (nomeA === nomeB) {
@@ -162,7 +183,7 @@ try {
     process.exit(1);
   }
 
-  console.log("T2 smoke OK — isolamento confirmado.");
+  console.log("T2 smoke OK — isolamento RLS confirmado.");
   process.exit(0);
 } catch (error) {
   console.error(error);
