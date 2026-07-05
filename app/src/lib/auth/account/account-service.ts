@@ -21,9 +21,21 @@ import type {
   LoginAccountInput,
   RegisterAccountInput,
 } from "@/lib/auth/account/types";
+import {
+  ensureTrialRecordForCpf,
+  resolveTrialSubscriptionForCpf,
+} from "@/lib/auth/trial/trial-service";
 import { persistServerSigaaCredentials, sealServerSigaaPassword } from "@/lib/crypto/server-sigaa-credential-store";
 import { ensurePostgresReady } from "@/lib/db/bootstrap-postgres";
 import { createServerSupabaseClient } from "@/lib/supabase/client";
+
+async function resolveAccountSubscription(cpf: string) {
+  const existing = await resolveTrialSubscriptionForCpf(cpf);
+  if (existing) {
+    return existing;
+  }
+  return ensureTrialRecordForCpf(cpf);
+}
 
 async function signInWithInternalEmail(
   cpf: string,
@@ -46,10 +58,12 @@ async function signInWithInternalEmail(
   }
 
   await persistServerSigaaCredentials(cpf, password).catch(() => undefined);
+  const subscription = await resolveAccountSubscription(cpf);
 
   return {
     profile,
     session: mapSupabaseSession(data.session),
+    subscription,
   };
 }
 
@@ -102,6 +116,7 @@ export async function registerAccount(
       sigaaPasswordEnc: sealServerSigaaPassword(input.password),
     });
 
+    const subscription = await ensureTrialRecordForCpf(input.cpf);
     const sessionResult = await signInWithInternalEmail(
       input.cpf,
       input.password
@@ -110,6 +125,7 @@ export async function registerAccount(
     return {
       profile,
       session: sessionResult.session,
+      subscription,
     };
   } catch (error) {
     await admin.auth.admin.deleteUser(userId);
