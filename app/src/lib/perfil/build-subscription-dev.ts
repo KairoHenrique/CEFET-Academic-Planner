@@ -1,15 +1,9 @@
+import { resolvePlanDurationDays, resolvePlanLabel } from "@/lib/billing/plan-catalog";
 import { getConfig } from "@/lib/db/queries";
 import type { PerfilSubscription } from "@/lib/types/perfil-api";
 import { ensureTrialStartedAt } from "@/lib/perfil/build-account";
 
-const TRIAL_DAYS = 7;
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
-
-const PLAN_LABELS: Record<string, string> = {
-  trial: "Trial gratuito",
-  semester: "Plano semestre",
-  year: "Plano anual",
-};
 
 function addDays(iso: string, days: number): string {
   const base = Date.parse(iso);
@@ -32,15 +26,16 @@ export function buildPerfilSubscription(): PerfilSubscription {
   const configuredExpiresAt = getConfig("subscription.expires_at")?.trim();
   const expiresAt =
     configuredExpiresAt ||
-    (planId === "trial"
-      ? addDays(ensureTrialStartedAt(), TRIAL_DAYS)
-      : addDays(new Date().toISOString(), 180));
+    addDays(
+      planId === "trial" ? ensureTrialStartedAt() : new Date().toISOString(),
+      resolvePlanDurationDays(planId)
+    );
 
   const daysRemaining = computeDaysRemaining(expiresAt);
 
   return {
     planId,
-    planLabel: PLAN_LABELS[planId] ?? planId,
+    planLabel: resolvePlanLabel(planId),
     status,
     expiresAt,
     daysRemaining,

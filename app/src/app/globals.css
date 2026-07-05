@@ -1200,9 +1200,37 @@ a:hover {
   color: var(--gold-300);
 }
 
+.planos-card-price {
+  margin: 0 0 var(--space-2);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.planos-card-savings {
+  margin: 0 0 var(--space-3);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--gold-300);
+}
+
 .planos-card-copy {
   margin: 0 0 var(--space-4);
   font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.planos-card-note {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.planos-policy-note {
+  margin: var(--space-5) 0 0;
+  font-size: 0.8125rem;
   line-height: 1.5;
   color: var(--text-secondary);
 }
