@@ -17,6 +17,8 @@ import {
   returnToPortal,
   scrapeDisciplinaPages,
 } from "@/lib/scraper/turma-virtual/portal-turma-navigation";
+import { resolveTurmaSubpagesForMode } from "@/lib/sync-policy/resolve-sync-mode";
+import type { SyncMode } from "@/lib/types/sync-pipeline";
 import { sleep } from "@/lib/scraper/turma-virtual/html-utils";
 import type {
   TurmaVirtualDisciplinaRawPages,
@@ -32,6 +34,7 @@ export interface ScrapeTurmaVirtualOptions {
   semestreDisciplinas?: PortalDisciplinaSemestre[];
   semestreLetivo?: string | null;
   matricula?: string | null;
+  mode?: SyncMode;
 }
 
 export async function scrapeTurmaVirtual(
@@ -79,9 +82,13 @@ export async function scrapeTurmaVirtual(
 
   const disciplinas: TurmaVirtualDisciplinaSnapshot[] = [];
 
+  const turmaSubpages = resolveTurmaSubpagesForMode(options.mode ?? "deep");
+
   for (const entry of entries) {
     try {
-      const pagesHtml = await scrapeDisciplinaPages(page, entry.sigaaNome);
+      const pagesHtml = await scrapeDisciplinaPages(page, entry.sigaaNome, {
+        subpageKeys: turmaSubpages,
+      });
 
       if (!pagesHtml) {
         disciplinas.push(buildEmptyDisciplina(entry, "Não foi possível entrar na disciplina."));

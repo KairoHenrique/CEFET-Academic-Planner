@@ -22,7 +22,7 @@ function bootstrapQueueSchema(database: Database.Database): void {
       username TEXT NOT NULL,
       lane TEXT NOT NULL CHECK (lane IN ('priority', 'normal')),
       trigger TEXT NOT NULL CHECK (trigger IN ('first_login', 'manual', 'auto')),
-      mode TEXT NOT NULL CHECK (mode IN ('full', 'incremental')),
+      mode TEXT NOT NULL CHECK (mode IN ('full', 'lite', 'deep', 'incremental')),
       status TEXT NOT NULL CHECK (status IN ('queued', 'running', 'completed', 'failed')),
       save_password INTEGER NOT NULL DEFAULT 0,
       idempotency_key TEXT,
@@ -57,7 +57,65 @@ export function getSyncQueueDatabase(): Database.Database {
   queueDb = new Database(dbPath);
   queueDb.pragma("journal_mode = WAL");
   bootstrapQueueSchema(queueDb);
+  migrateSyncQueueModesIfNeeded(queueDb);
   return queueDb;
+}
+
+function migrateSyncQueueModesIfNeeded(database: Database.Database): void {
+  const row = database
+    .prepare(
+      `SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'sync_jobs'`
+    )
+    .get() as { sql?: string } | undefined;
+
+  if (row?.sql?.includes("'lite'")) {
+    return;
+  }
+
+  database.exec(`
+    CREATE TABLE IF NOT EXISTS sync_jobs_v2 (
+      id TEXT PRIMARY KEY,
+      username TEXT NOT NULL,
+      lane TEXT NOT NULL CHECK (lane IN ('priority', 'normal')),
+      trigger TEXT NOT NULL CHECK (trigger IN ('first_login', 'manual', 'auto')),
+      mode TEXT NOT NULL CHECK (mode IN ('full', 'lite', 'deep', 'incremental')),
+      status TEXT NOT NULL CHECK (status IN ('queued', 'running', 'completed', 'failed')),
+      save_password INTEGER NOT NULL DEFAULT 0,
+      idempotency_key TEXT,
+      password_enc TEXT NOT NULL DEFAULT '',
+      created_at TEXT NOT NULL,
+      started_at TEXT,
+      finished_at TEXT,
+      result_json TEXT,
+      error_code TEXT,
+      error_message TEXT
+    );
+
+    INSERT INTO sync_jobs_v2 (
+      id, username, lane, trigger, mode, status, save_password,
+      idempotency_key, password_enc, created_at, started_at, finished_at,
+      result_json, error_code, error_message
+    )
+    SELECT
+      id, username, lane, trigger, mode, status, save_password,
+      idempotency_key, password_enc, created_at, started_at, finished_at,
+      result_json, error_code, error_message
+    FROM sync_jobs;
+
+    DROP TABLE sync_jobs;
+    ALTER TABLE sync_jobs_v2 RENAME TO sync_jobs;
+
+    CREATE INDEX IF NOT EXISTS idx_sync_jobs_status_created
+      ON sync_jobs(status, lane, created_at);
+
+    CREATE INDEX IF NOT EXISTS idx_sync_jobs_username_status
+      ON sync_jobs(username, status, created_at DESC);
+
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_sync_jobs_idempotency_active
+      ON sync_jobs(idempotency_key)
+      WHERE idempotency_key IS NOT NULL
+        AND status IN ('queued', 'running');
+  `);
 }
 
 export function resetSyncQueueDatabaseForTests(): void {
@@ -137,17 +195,40 @@ export function findActiveJobByIdempotencyKey(
   return row ? mapRow(row) : null;
 }
 
-export function findRunningSyncJob(): SyncQueueJobRecord | null {
-  const row = getSyncQueueDatabase()
+export function listRunningSyncJobs(): SyncQueueJobRecord[] {
+  const rows = getSyncQueueDatabase()
     .prepare(
       `SELECT * FROM sync_jobs
        WHERE status = 'running'
-       ORDER BY started_at ASC
+       ORDER BY started_at ASC`
+    )
+    .all() as Record<string, unknown>[];
+
+  return rows.map(mapRow);
+}
+
+export function findRunningSyncJob(): SyncQueueJobRecord | null {
+  return listRunningSyncJobs()[0] ?? null;
+}
+
+export function countRunningSyncJobs(): number {
+  const row = getSyncQueueDatabase()
+    .prepare(`SELECT COUNT(*) AS total FROM sync_jobs WHERE status = 'running'`)
+    .get() as { total: number };
+
+  return Number(row.total ?? 0);
+}
+
+export function isUsernameSyncRunning(username: string): boolean {
+  const row = getSyncQueueDatabase()
+    .prepare(
+      `SELECT 1 FROM sync_jobs
+       WHERE status = 'running' AND username = ?
        LIMIT 1`
     )
-    .get() as Record<string, unknown> | undefined;
+    .get(username.trim());
 
-  return row ? mapRow(row) : null;
+  return Boolean(row);
 }
 
 export function listQueuedSyncJobsOrdered(): SyncQueueJobRecord[] {
@@ -235,7 +316,19 @@ export function markSyncJobFailed(
     .run(finishedAt, errorCode, errorMessage, jobId);
 }
 
-export function dequeueNextSyncJob(): SyncQueueJobRecord | null {
-  const next = listQueuedSyncJobsOrdered()[0] ?? null;
-  return next;
+export function dequeueNextSyncJob(maxConcurrent = 1): SyncQueueJobRecord | null {
+  const running = listRunningSyncJobs();
+  if (running.length >= maxConcurrent) {
+    return null;
+  }
+
+  const runningUsernames = new Set(running.map((job) => job.username));
+  for (const job of listQueuedSyncJobsOrdered()) {
+    if (runningUsernames.has(job.username)) {
+      continue;
+    }
+    return job;
+  }
+
+  return null;
 }

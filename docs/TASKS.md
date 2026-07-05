@@ -9,7 +9,7 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
 > - **Regras acadêmicas:** [`docs/SCOPE.md`](./SCOPE.md)
 > - **Ordem de execução:** [§ Ordem oficial](#ordem-oficial-de-execução-v3)
 > - **Modo testes:** deploy global após sync validado; RLS na fase 6c (antes do PIX)
-> **Pré-mobile (#8):** **#6d** + **#7** + **#9 + #10** (site maduro + **F28** site mobile) · policy **§6.6 `SCOPE-CLOUD`** · **B68a–c** ✅ · **B68d–f** + **B70/F41**
+> **Pré-mobile (#8):** **#6d** ✅ + **#7** + **#9 + #10** (site maduro + **F28** site mobile) · policy **§6.6 `SCOPE-CLOUD`** · **B68a–f** ✅ · **B70/F41** pendente
 
 **Navegação rápida:** [Roadmap detalhado (#0→#11)](#roadmap-detalhado--ordem-de-execução-0--11) · [Sequência #0→#11](#sequência-completa--o-que-fazer-e-em-qual-ordem) · [Ordem oficial v3](#ordem-oficial-de-execução-v3) · [Checklist BACK→FRONT](#checklist-mestre-ordem-de-execução) · [Detalhe por bloco](#detalhe-dos-blocos) · [B68 orquestração sync](#6d--orquestração-sync--catálogo-global-pré-mobile) · [Escopo cloud](./SCOPE-CLOUD.md) · [Marco testes gerais](#marco--site-no-ar-para-testes-gerais) · [Apêndice escopo futuro](#apêndice--escopo-futuro-fora-da-ordem-011) · [Apêndice B65 dev](#apêndice--b65-sync-automático-dev-remover-antes-de-produção) · [Apêndice gift + painel dev](#apêndice--chaves-gift-e-painel-dev-jun2026)
 
@@ -41,7 +41,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ## Roadmap detalhado — ordem de execução (#0 → #11)
 
-> **Próximo oficial:** **#6d — Bloco 2c** · **B68d** *(schema global vs user_id)*.
+> **Próximo oficial:** **B70/F41** *(painel `/dev` policy §6.6)* · depois **#7** PIX.
 > **Regra:** siga **#0 → #11** · dentro de cada bloco → **BACK (B) antes de FRONT (F)**. Checklist espelho: [Checklist mestre](#checklist-mestre-ordem-de-execução).
 
 ### #0 — Planejamento `✅`
@@ -209,18 +209,18 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ---
 
-### #6d — Orquestração sync + catálogo global (pré-mobile) `🟡 3/6`
+### #6d — Orquestração sync + catálogo global (pré-mobile) `✅ 6/6`
 
 > **Policy fechada (jul/2026):** `SCOPE-CLOUD` **[§6.6](./SCOPE-CLOUD.md#66-política-de-sync--decisão-de-produto-jul2026)** · botão **lite** · global R2/R3 · batch noturno · policy editável no `/dev`.
 
 - [x] **PLAN:** B68a *(matriz gatilho × robô — R1 full/lite/deep · R2 · R3 — §6.6)*
 - [x] **PLAN:** B68b *(TTLs por camada + intervalo **ou** data fixa no painel dev — defaults §6.6)*
 - [x] **PLAN:** B68c *(botão **Sincronizar** = **R1-lite** notas+tarefas; **R1-deep** batch noturno / “sync completo” perfil)*
-- [ ] **BACK:** B68d *(schema global vs `user_id` — policy `app_config`; **B39** ✅)*
-- [ ] **BACK:** B68e *(orquestrador — cron batch 03–06h · R2/R3 global · R1-deep fila · `max_concurrent` CPFs distintos · parar B66 pós-sync CPF)*
-- [ ] **BACK:** B68f *(pipeline `lite`/`deep` · login rápido R1-lite · ler policy **B70** em runtime)*
+- [x] **BACK:** B68d *(schema global vs `user_id` — policy `app_config`; **B39** ✅ · `test:b68d`)*
+- [x] **BACK:** B68e *(orquestrador — cron batch 03–06h · R2/R3 global · R1-deep fila · `max_concurrent` CPFs distintos · `POST /api/cron/sync-orchestrator` · `test:b68e`)*
+- [x] **BACK:** B68f *(pipeline `lite`/`deep` · login rápido R1-lite · ler policy em runtime · `test:b68f`)*
 
-**Ordem #6d:** `B68a → B68b → B68c` ✅ → `B68d` → `B68e → B68f`
+**Ordem #6d:** `B68a → B68b → B68c → B68d → B68e → B68f` ✅
 
 ---
 
@@ -385,7 +385,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ### 1.4 API e Integração UI ↔ SQLite
 
-> **Progresso:** Bloco 1 ✅ · **Bloco 2a/2b** ✅ · **Bloco 6a** ✅ **8/8** · **6b** ✅ **8/8** · **6c** ✅ **2/2** · URL **`https://acme-hub.khfm.workers.dev`**.
+> **Progresso:** Bloco 1 ✅ · **Bloco 2a/2b** ✅ · **Bloco 6a** ✅ **8/8** · **6b** ✅ **8/8** · **6c** ✅ **2/2** · **#6d** ✅ **6/6** · URL **`https://acme-hub.khfm.workers.dev`**.
 
 Roadmap detalhado: ver **[Roadmap #0→#11 no topo](#roadmap-detalhado--ordem-de-execução-0--11)** · [Ordem oficial v3](#ordem-oficial-de-execução-v3). **F19** simulador (2a) `[x]` · **B67** `[x]`.
 
@@ -427,7 +427,7 @@ FASE G   Bloco 9             Multi-PPC (Mecatrônica, Moda) 🔒 só após mobil
 | **4** | C | **6a** | Supabase + PG + deploy URL pública | Testes globais **depois** do sync funcionar |
 | **5** | C | **6b** | Auth: login CPF; cadastro e-mail/tel/curso | Contas + PPC + gate |
 | **6** | C | **6c** | RLS por usuário | Segurança antes de abrir pagamento |
-| **6d** | B | **2c** | Orquestração sync + catálogo global (**B68-orq**) | **Antes do mobile** — policy §6.6 · **B68a–c** ✅ |
+| **6d** | B | **2c** | Orquestração sync + catálogo global (**B68-orq**) | ✅ **6/6** — policy §6.6 |
 | **7** | D | **7** | PIX + gate de acesso | Monetização com produto estável |
 | **9** | F | **3** | Grafo, matrícula, alertas | **Depois de #7** · **antes do mobile (#8)** |
 | **10** | F | **4** | Skeletons, transições, favicon, **site mobile (F28)** | **Antes do mobile (#8)** |
@@ -500,7 +500,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | **#4** | 6a | Supabase + deploy global | ✅ **Concluído** · URL pública | 8/8 |
 | **#5** | 6b | Auth: CPF login, cadastro completo | ✅ **Concluído** | 8/8 |
 | **#6** | 6c | RLS multi-tenant | ✅ **Concluído** | 2/2 |
-| **#6d** | 2c | Orquestração sync + catálogo global | **Antes do mobile (#8)** · policy **§6.6** · **3/6** | 3/6 |
+| **#6d** | 2c | Orquestração sync + catálogo global | ✅ **6/6** · policy **§6.6** | 6/6 |
 | **#7** | 7 | Assinatura PIX | Depois de #6 | 0/12 |
 | **#9** | 3 | Inteligência acadêmica | Depois de #7 (dados reais + PIX) · **antes do mobile** | 0/11 |
 | **#10** | 4 | Polimento UX + site mobile (**F28**) | **Antes do mobile (#8)** | 0/4 |
@@ -568,7 +568,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 **Contagem 8/8:** só os 8 primeiros grupos até **`F37`** · **`F38` · `B66` · `B67` · `F19`** = extras (fora do 8/8) · polish `04887c9`/`5923e9c` · modulação dashboard · fix mapa/histórico/notificações (jun/2026)
 
-**Próximo:** **#6d** `B68d`–`f` · **#4** Supabase
+**Próximo:** **B70/F41** *(painel `/dev`)* · **#7** PIX
 
 ---
 
@@ -586,20 +586,20 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 ---
 
-### #6d — Orquestração sync + catálogo global (pré-mobile) `🟡 3/6`
+### #6d — Orquestração sync + catálogo global (pré-mobile) `✅ 6/6`
 
 > **Policy fechada (jul/2026):** `SCOPE-CLOUD` **[§6.6](./SCOPE-CLOUD.md#66-política-de-sync--decisão-de-produto-jul2026)**.
 
 - [x] **PLAN:**  B68a — matriz gatilho × robô (R1 full/lite/deep · R2 · R3)
 - [x] **PLAN:**  B68b — TTLs por camada; intervalo **ou** data fixa via painel `/dev`
 - [x] **PLAN:**  B68c — botão **Sincronizar** = **R1-lite** (notas+tarefas); deep = batch noturno
-- [ ] **BACK:**  B68d — schema global vs `user_id` + `app_config` policy *(**B39** ✅)*
-- [ ] **BACK:**  B68e — orquestrador cron + fila R1-deep + R2/R3 global + `max_concurrent`
-- [ ] **BACK:**  B68f — pipeline lite/deep + runtime lê policy **B70**
+- [x] **BACK:**  B68d — schema global vs `user_id` + `app_config` policy *(**B39** ✅ · `test:b68d`)*
+- [x] **BACK:**  B68e — orquestrador cron + fila R1-deep + R2/R3 global + `max_concurrent` *(worker CF · `test:b68e`)*
+- [x] **BACK:**  B68f — pipeline lite/deep + runtime lê policy *(SyncButton/useAutoSync lite · `test:b68f`)*
 
-**Ordem #6d:** `B68a → B68b → B68c` ✅ → `B68d` → `B68e → B68f`
+**Ordem #6d:** `B68a → B68b → B68c → B68d → B68e → B68f` ✅
 
-**Antes do mobile (#8):** concluir **B68d–f** + worker **B54–B56** consome policy.
+**Antes do mobile (#8):** **#6d** ✅ · **B70/F41** painel policy · worker **B54–B56** consome policy.
 
 ---
 
@@ -714,7 +714,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | #4 | 6a — Cloud deploy | ✅ **Concluído** | 8 / 8 |
 | #5 | 6b — Cloud auth | ✅ | 8 / 8 |
 | #6 | 6c — RLS | ✅ **Concluído** | 2 / 2 |
-| **#6d** | **2c — Orquestração sync** | 🟡 *(antes mobile)* | 3 / 6 |
+| **#6d** | **2c — Orquestração sync** | ✅ | 6 / 6 |
 | #7 | 7 — Assinatura PIX | ⬜ | 0 / 12 |
 | #9 | 3 — Inteligência | ⬜ *(antes mobile)* | 0 / 11 |
 | #10 | 4 — Polimento + site mobile | ⬜ *(antes mobile · incl. F28)* | 0 / 4 |
@@ -897,7 +897,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | **2.1 Auth** | Login Playwright, sessão, senha AES opcional, erros |
 | **2.2 Portal** | RG, semestre, tarefas; CH portal (% / total) **auxiliar** |
 | **2.3 Turma** | Notas, faltas, grupo, tarefas |
-| **2.4 Extra** | **B30** histórico · **B66** calendário · **B67** turmas · **B68-orq** orquestração *(policy §6.6 · 3/6)* |
+| **2.4 Extra** | **B30** histórico · **B66** calendário · **B67** turmas · **B68-orq** orquestração *(policy §6.6 · ✅ 6/6)* |
 
 | # | Tipo | Task | Resumo | Fase | Status |
 |---|------|------|--------|------|--------|
@@ -915,7 +915,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | B66 | Back | Calendário acadêmico | Robô isolado `POST /api/sync/calendario` + painel dual-semestre | 2.4 | [x] |
 | B67 | Back | Turmas ofertadas | Ensino → Consultar Turmas; Atendida/Pendente; curso/optativas PPC; `scheduleBlocker` | 2.4 | [x] |
 | F19 | Front | `/simulador` via API | Montar grade real; preview multi-horário; coreq par; cards uniformes; CH obr/opt/total; export JPEG | 2.4 | [x] |
-| B68-orq | Plan/Back | Orquestração sync + global | Policy **§6.6** · **B68a–c** ✅ · **B68d–f** pendente — **fora da ordem #2** | 2c | [/] |
+| B68-orq | Plan/Back | Orquestração sync + global | Policy **§6.6** · **B68a–f** ✅ · **B70/F41** pendente — **fora da ordem #2** | 2c | [x] |
 
 **Ordem 2a (#2, linear):** `B24→B26` → `B27` → `B65` → `B28` → `B30` → `B31` → `F18` → `F37` → `F38` → `B66` → `B67` → `F19` · **8/8** até `F37` · **`B68-orq`** = [#6d](#6d--orquestração-sync--catálogo-global-pré-mobile)
 
@@ -942,7 +942,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] `worker/Dockerfile` (Playwright jammy) · `worker/README.md`
 - [x] Testes `tests/worker-b54.test.ts`
 
-> **Próximo:** **#6d** `B68d`–`f`.
+> **Próximo:** **B70/F41** *(painel `/dev` policy)*.
 
 #### B55 — API fila sync `[x]`
 
@@ -952,7 +952,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Dispatcher assíncrono → worker B54 (`SIGAA_WORKER_URL`) ou **inline** (`SYNC_QUEUE_DISPATCH=inline`)
 - [x] Testes `tests/sync-queue-b55.test.ts` · `npm run test:sync-queue`
 
-> **Próximo:** **#6d** `B68d`–`f`.
+> **Próximo:** **B70/F41** *(painel `/dev` policy)*.
 
 #### B56 — Pipeline no worker `[x]`
 
@@ -968,7 +968,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Cooldown manual **5 min** na fila · manual/auto → lane **normal** (fim da fila)
 - [x] Auto-sync elegível só após `sync.last_at + intervalo` (timer reinicia pós-sync OK)
 - [x] `skipCooldown` + trigger `dev` para painel `/dev` (**B70/F41**)
-- [x] Cliente envia `trigger: auto|manual|first_login` (`useAutoSync` · `SyncButton` · login)
+- [x] Cliente envia `trigger: auto|manual|first_login` · **B68f:** `SyncButton`/`useAutoSync` enfileiram **R1-lite** (`mode: lite`)
 - [x] Testes `tests/sync-b56-o3.test.ts`
 
 #### F19 — UI fila + polling `[x]`
@@ -1240,7 +1240,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 #4  Bloco 6a  Supabase + deploy global       (após sync validado)
 #5  Bloco 6b  Auth: cadastro + login CPF ✅ (8/8)
 #6  Bloco 6c  RLS multi-tenant ✅             (antes do PIX)
-#6d Bloco 2c  Orquestração sync (B68-orq)     policy §6.6 · 3/6
+#6d Bloco 2c  Orquestração sync (B68-orq)     policy §6.6 · ✅ 6/6
       ↓
 #7  Bloco 7   Assinatura PIX
       ↓
@@ -1330,14 +1330,14 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 **Ordem linear 2a (continuação pós-B31):** `F18` → `F37` → `F38` → `B66` → `B67` → `F19` · **`B68-orq`** = [#6d](#6d--orquestração-sync--catálogo-global-pré-mobile) (fora do #2)
 
-#### B68-orq — Orquestração sync + catálogo global `[/]`
+#### B68-orq — Orquestração sync + catálogo global `[x]`
 
-> **Pré-mobile (#8):** **#6d + #7 + #9 + #10** (site web maduro). Policy **§6.6 `SCOPE-CLOUD`**. **B68a–c** ✅ · pendente **B68d–f**. *(Distinto do **B68** simulação mapa no Apêndice gift/dev.)*
+> **Pré-mobile (#8):** **#6d** ✅ · **#7 + #9 + #10** (site web maduro). Policy **§6.6 `SCOPE-CLOUD`**. **B68a–f** ✅ · pendente **B70/F41** painel. *(Distinto do **B68** simulação mapa no Apêndice gift/dev.)*
 
 - [x] **Policy documentada** — matriz robô × gatilho; R1 full/lite/deep; botão lite; global R2/R3; batch noturno; policy no `/dev`
-- [ ] **Schema global (B68d)** — Postgres + `app_config` policy
-- [ ] **Orquestrador (B68e)** — cron + fila worker
-- [ ] **Pipeline lite/deep (B68f)** — scraper layers + runtime lê policy
+- [x] **Schema global (B68d)** — catálogo GLOBAL/TENANT · `app_config` · migration seed · `test:b68d`
+- [x] **Orquestrador (B68e)** — janela 03–06h · plan/tick R2/R3 · fila R1-deep · `max_concurrent` · cron CF · `test:b68e`
+- [x] **Pipeline lite/deep (B68f)** — `resolveSyncMode` · subpáginas turma · histórico por mode · runtime policy · `test:b68f`
 
 #### B66 — Calendário acadêmico `[x]`
 > **Escopo aprovado** (jun/2026). Robô isolado — calendário nem sempre existe no SIGAA; snapshot `unavailable` **não apaga** dados locais. Semestre alvo derivado da **data atual** (`resolveCalendarioSemesterTargets` — jul/2026: `2026.1` + `2026.2`). **Aprovado** stakeholder jun/2026 (`75694c0`).
@@ -1345,7 +1345,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Schema `calendario_academico` + `build-calendar` + `CalendarAcademicDates` em `/calendario`
 - [x] Scraper Ensino → Calendário Acadêmico (`navigate-to-calendario`, `parse-calendario-html`, `scrape-calendario`)
 - [x] `POST /api/sync/calendario` + `runCalendarioSync` + policy persist + TTL 7d (`calendario-sync-plan`)
-- [x] Disparo em background pós-sync principal — removido do client (**F19**); orquestração global pendente **B68e**
+- [x] Disparo em background pós-sync principal — removido do client (**F19**); orquestração global **B68e** *(R2/R3 marca state Postgres; scrape B66/B67 no tick futuro)*
 - [x] Testes `bloco-2a-b66.test.ts`
 - [x] UI painel acadêmico: **duas colunas** (semestre corrente + próximo); troca **1 dia antes** do início do Período Letivo (`buildAcademicDateDisplayGroups` · `resolveAcademicSemesterDisplayPair`)
 - [x] Estado vazio por coluna — *Nenhuma informação*; divisor vertical entre semestres (desktop)
@@ -1747,7 +1747,7 @@ B71 (ÚLTIMA — endurecer credenciais antes do go-live)
 ### Ordem sugerida de migração
 
 ```
-B31 ✅ → B54–B56 (worker 1× + fila) ✅ → O3 (3h auto / 5 min manual) ✅ → F19 UI fila ✅ → #6d B68d–f
+B31 ✅ → B54–B56 (worker 1× + fila) ✅ → O3 (3h auto / 5 min manual) ✅ → F19 UI fila ✅ → #6d B68d–f ✅
 ```
 
 ### Arquivos tocados na entrega B65
@@ -1780,7 +1780,7 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 8. **Próximo passo do roadmap:** informe **depois do push** (tasks em `[@]` ou `[x]`). Com commits locais só `[%]`, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v3](#ordem-oficial-de-execução-v3) — **Bloco 2 (sync) antes do Bloco 6 (Supabase)**. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy **após** sync validado; RLS ✅ **6c** (antes do PIX). Marco “site no ar p/ testes gerais” → [final do TASKS.md](#marco--site-no-ar-para-testes-gerais).
-11. **Próximo passo:** **#6d — Bloco 2c** · **B68d** *(schema global vs `user_id`)*.
+11. **Próximo passo:** **B70/F41** *(painel `/dev` — policy §6.6)* · depois **#7** PIX.
 12. **Integralização:** CH concluída = `historico` + PPC (`computeChDoneFromDisciplinas`); portal SIGAA só % / total currículo; matérias já passadas = **B30** ✅.
 13. **Gift + painel dev + simulação mapa:** escopo em `SCOPE.md` §10.7, §6.1.1 · `SCOPE-CLOUD` §6.6 — tasks **B68–B71**, **F39–F41**. Painel: chavinhas R1/R2/R3 + **Orquestração sync** (TTLs/data fixa/batch). **B71** = ocultar senhas SIGAA.
 14. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial. **Polish em task `[x]`** (ex.: F38, dashboard) também exige nota no TASKS no mesmo ciclo do push.

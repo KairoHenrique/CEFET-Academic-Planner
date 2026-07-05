@@ -1,6 +1,7 @@
 import type { SyncStep } from "@/lib/types/sync";
 
-export type SyncMode = "full" | "incremental";
+/** Escopos R1 — §6.6 SCOPE-CLOUD. `incremental` = alias legado de `lite`. */
+export type SyncMode = "full" | "lite" | "deep" | "incremental";
 
 export type SyncStageName = "portal" | "historico" | "turma";
 

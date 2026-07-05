@@ -1,4 +1,5 @@
-import { validationError } from "./errors";
+import { validationError } from "@/lib/api/errors";
+import { normalizeSyncMode } from "@/lib/sync-policy/resolve-sync-mode";
 import type { SyncRequest } from "@/lib/types/sync";
 import type { SyncJobTrigger } from "@/lib/sync-queue/types";
 import type {
@@ -59,7 +60,10 @@ export function parseSyncRequest(body: unknown): SyncRequest {
     username: username.trim(),
     password: typeof password === "string" ? password : "",
     savePassword,
-    mode: record.mode === "incremental" ? "incremental" : "full",
+    mode:
+      typeof record.mode === "string"
+        ? normalizeSyncMode(record.mode, "full")
+        : "full",
     trigger,
   };
 }

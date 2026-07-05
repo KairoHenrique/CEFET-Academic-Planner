@@ -10,6 +10,7 @@ import { persistPortalSnapshot } from "@/lib/sync/persist-portal-snapshot";
 import { persistTurmaVirtualSnapshot } from "@/lib/sync/persist-turma-virtual-snapshot";
 import { persistHistoricoSnapshot } from "@/lib/sync/persist-historico-snapshot";
 import { shouldRunHistoricoStage } from "@/lib/sync/sync-stage-plan";
+import { normalizeSyncMode } from "@/lib/sync-policy/resolve-sync-mode";
 import { recordHistoricoSyncedAt } from "@/lib/sync/sync-preferences";
 import type { SyncMode, SyncPipelineResult, SyncStageResult } from "@/lib/types/sync-pipeline";
 import type { SyncStep } from "@/lib/types/sync";
@@ -132,6 +133,7 @@ async function runTurmaStage(
       semestreDisciplinas: portalSnapshot.semestreAtual,
       semestreLetivo: portalSnapshot.semestreLetivo,
       matricula: portalSnapshot.aluno.matricula,
+      mode,
     });
     const turmaResult = persistTurmaVirtualSnapshot(turmaSnapshot);
 
@@ -162,11 +164,12 @@ async function runTurmaStage(
 }
 
 function assertPipelineViable(mode: SyncMode, stages: SyncStageResult[]): void {
+  const normalized = normalizeSyncMode(mode);
   const portalOk = stages.some(
     (stage) => stage.stage === "portal" && stage.outcome === "ok"
   );
 
-  if (mode === "full" && !portalOk) {
+  if (normalized === "full" && !portalOk) {
     throw internalError(
       "Não foi possível sincronizar com o SIGAA. Verifique sua conexão ou tente novamente."
     );
