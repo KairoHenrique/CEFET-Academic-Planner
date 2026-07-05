@@ -28,6 +28,7 @@ import {
 import { persistServerSigaaCredentials, sealServerSigaaPassword } from "@/lib/crypto/server-sigaa-credential-store";
 import { ensurePostgresReady } from "@/lib/db/bootstrap-postgres";
 import { createServerSupabaseClient } from "@/lib/supabase/client";
+import { enqueueWelcomeAccountEmail } from "@/lib/email/enqueue-account-email";
 
 async function resolveAccountSubscription(cpf: string) {
   const existing = await resolveTrialSubscriptionForCpf(cpf);
@@ -117,6 +118,7 @@ export async function registerAccount(
     });
 
     const subscription = await ensureTrialRecordForCpf(input.cpf);
+    await enqueueWelcomeAccountEmail(profile).catch(() => undefined);
     const sessionResult = await signInWithInternalEmail(
       input.cpf,
       input.password
