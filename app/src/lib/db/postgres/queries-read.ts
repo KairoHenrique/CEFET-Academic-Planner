@@ -1,4 +1,4 @@
-import { resolveDefaultCursoId } from "@/lib/db/backend/config";
+import { resolveQueryCursoId } from "@/lib/db/resolve-query-curso-id";
 import { getPostgresPool } from "@/lib/db/postgres/pool";
 import type {
   AlunoRow,
@@ -9,11 +9,12 @@ import type {
   IntegralizacaoRow,
   NotaRow,
   SemestreAtualWithDisciplina,
+  RequisitoRow,
   TarefaRow,
 } from "@/lib/types/db";
 
 const TENANT_SQL = "user_id IS NULL";
-const cursoId = () => resolveDefaultCursoId();
+const cursoId = () => resolveQueryCursoId();
 
 function mapDisciplinaRow(row: Record<string, unknown>): DisciplinaRow {
   return {
@@ -77,6 +78,21 @@ export async function pgGetDisciplinas(): Promise<DisciplinaRow[]> {
     [cursoId()]
   );
   return result.rows.map((row) => mapDisciplinaRow(row));
+}
+
+export async function pgGetRequisitos(): Promise<RequisitoRow[]> {
+  const result = await getPostgresPool().query(
+    `SELECT disciplina_id, requisito_id, tipo
+     FROM requisitos
+     WHERE curso_id = $1
+     ORDER BY disciplina_id, requisito_id`,
+    [cursoId()]
+  );
+  return result.rows.map((row) => ({
+    disciplina_id: String(row.disciplina_id),
+    requisito_id: String(row.requisito_id),
+    tipo: row.tipo != null ? String(row.tipo) : null,
+  }));
 }
 
 export async function pgGetDisciplinaByCodigo(

@@ -188,7 +188,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 - [%] **BACK:** B44 *(conta do aluno — cadastro e-mail/tel/CPF/`curso_id`; login só CPF)*
 - [%] **BACK:** B45 *(credenciais cifradas AES no servidor — obrigatório para worker **B56**)*
 - [%] **BACK:** B58 *(trial por CPF — `trial_por_cpf` 7 dias uma vez; anti-abuso)*
-- [ ] **BACK:** B63 *(`curso_id` — Comp/Meca/Moda; mapa/integralização filtram PPC)*
+- [%] **BACK:** B63 *(`curso_id` — Comp/Meca/Moda; mapa/integralização filtram PPC)*
 - [ ] **BACK:** B59 *(gate de acesso — middleware trial_active/active vs expirado → billing)*
 - [ ] **FRONT:** F29 *(cadastro + login produção — CPF explícito no login)*
 - [ ] **FRONT:** F36 *(menu Config no avatar — toggle e-mails promocionais)*
@@ -1079,7 +1079,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | B45 | Back | Credenciais cifradas | Persistência AES (CPF + senha) no servidor — **obrigatório** para sync sem usuário online (worker **B56**) | [%] |
 | B58 | Back | Trial por CPF | Registro `trial_por_cpf`: 7 dias **uma vez** por CPF (anti-abuso) | [%] |
 | B59 | Back | Gate de acesso | Middleware: `trial_active` \| `active` liberam; expirado → billing | [ ] |
-| B63 | Back | `curso_id` na conta | Enum Comp/Meca/Moda; mapa/integralização filtram PPC por curso | [ ] |
+| B63 | Back | `curso_id` na conta | Enum Comp/Meca/Moda; mapa/integralização filtram PPC por curso | [%] |
 | B61 | Back | Preferências contato | `promocoes_email_ativas` + PATCH configurações | [ ] |
 | F29 | Front | Cadastro + login | Cadastro: e-mail, tel, CPF, curso, senha · Login: **só CPF + senha** | [ ] |
 | F36 | Front | Menu Config (avatar) | Configurações; toggle **e-mails promocionais** | [ ] |
