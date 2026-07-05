@@ -166,7 +166,7 @@ Complementa PIX e trial (`SCOPE.md` §2.1.1). Implementação cloud:
 | Aspecto | Regra |
 |---|---|
 | **Login** | **CPF + senha SIGAA** — e-mail e telefone **não** autenticam |
-| **E-mail** | Cadastro obrigatório; contato + notificações (§4.4) |
+| **E-mail** | Cadastro obrigatório; contato + envios §4.4 (promo + ciclo conta) |
 | **Telefone** | Cadastro obrigatório; contato (suporte / canais futuros) |
 | **Curso** | Cadastro obrigatório: Eng. Computação, Mecatrônica ou Moda → `curso_id` + PPC |
 | **Senha do app** | **Não existe** separada — mesma senha do SIGAA |
@@ -191,11 +191,13 @@ Recuperação de acesso: por **e-mail** ou **telefone** cadastrados (não usa e-
 3. Sync dispara job assíncrono; **SIGAA** confirma ou rejeita senha.
 4. Dashboard carrega dados do Postgres.
 
-### 4.4 Notificações por e-mail
+### 4.4 E-mail (promoções e ciclo de conta)
 
-- Envio condicionado ao toggle em **Configurações** (avatar → menu) — `SCOPE.md` §2.5.
-- Eventos mínimos v1: nova/atualizada tarefa relevante; nota de prova lançada.
-- Implementação de fila/e-mail = tasks (Bloco 6b/7); regra de negócio aqui no escopo.
+- **Sem e-mail acadêmico** — tarefas, notas e prazos = **somente in-app** (sino **F38**); ver `SCOPE.md` §2.5.
+- **Promoções:** **sempre enviadas** ao e-mail de contato cadastrado — **sem opt-out** do aluno (**B62**).
+- **Ciclo de conta (sempre envia):** cadastro/boas-vindas · fim do trial · plano perto de acabar · plano encerrado.
+- **Contato (e-mail/tel):** editar no modal perfil (**F37** ✅ · `PATCH /api/perfil`); na cloud **B61** persiste em `app_profiles` — **sem** opt-out de promoções.
+- Implementação de fila/provedor = **B62**; regra de negócio em `SCOPE.md` §2.5.
 
 ---
 
@@ -494,6 +496,7 @@ UI (**F41**): seção **Orquestração sync** — formulário da tabela acima + 
 ### 7.1 Objetivo da fase mobile
 
 - **Testes no celular** durante o desenvolvimento usando **Expo Go** (familiaridade do time).
+- **Pré-requisito:** site web Eng. Computação maduro (**#9 inteligência + #10 polimento/gráficos**) — mobile é cliente fino da API estável, não laboratório de UX.
 - Mesmas telas principais: dashboard, disciplinas, calendário, mapa.
 - Consome **Supabase** diretamente (ou via API Next.js — definir na implementação).
 
@@ -669,7 +672,7 @@ Durante beta/testes com URL pública:
 - [x] **Login só com CPF + senha SIGAA** (e-mail/telefone não autenticam)
 - [x] **Cadastro: e-mail + telefone + CPF + senha SIGAA + curso (Comp/Meca/Moda)**
 - [x] **Validação de senha delegada ao SIGAA** (sync Playwright)
-- [x] **Notificações por e-mail** com opt-out em Configurações (avatar)
+- [x] **E-mail:** promoções (**sempre**) + ciclo conta (cadastro, trial, plano) — **sem** opt-out · **sem** alertas acadêmicos por e-mail; in-app **F38**
 - [x] **Materiais SIGAA:** download automático **fora de escopo** (cancelado jun/2026); histórico escolar PDF (**B30**) permanece
 - [x] **Chaves de plano (gift):** 8 chars, uso único, emissão só operador (`SCOPE.md` §2.1.1)
 - [x] **Simulação de mapa:** overlay local; não altera histórico sync (`SCOPE.md` §6.1.1)
