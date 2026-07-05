@@ -10,6 +10,7 @@ import { EnrollmentSelectionFloat } from "@/components/simulador/EnrollmentSelec
 import { EnrollmentSchedulePanel } from "@/components/simulador/EnrollmentSchedulePanel";
 import { EnrollmentSidebar } from "@/components/simulador/EnrollmentSidebar";
 import {
+  buildTurmaShortLabelRegistry,
   filterSimuladorTurmas,
   formatTurmaHorarioDisplay,
   formatTurmaShortLabel,
@@ -85,6 +86,10 @@ function placeCourseOnSchedule(
 
 export function EnrollmentSimulator({ data }: EnrollmentSimulatorProps) {
   const visible = useMemo(() => filterSimuladorTurmas(data), [data]);
+  const shortLabelRegistry = useMemo(
+    () => buildTurmaShortLabelRegistry(visible.courses),
+    [visible.courses]
+  );
   const placementContext = useMemo(
     () => buildSimuladorPlacementContext(data.enrollmentContext),
     [data.enrollmentContext]
@@ -200,7 +205,7 @@ export function EnrollmentSimulator({ data }: EnrollmentSimulatorProps) {
   );
 
   const selectedShortLabel = selectedCourse
-    ? formatTurmaShortLabel(selectedCourse, visible.courses)
+    ? formatTurmaShortLabel(selectedCourse, shortLabelRegistry)
     : null;
 
   const selectedHorario = selectedCourse
@@ -551,14 +556,14 @@ export function EnrollmentSimulator({ data }: EnrollmentSimulatorProps) {
           primary={{
             shortLabel: formatTurmaShortLabel(
               corequisitoRollbackPrompt.primary,
-              visible.courses
+              shortLabelRegistry
             ),
             name: corequisitoRollbackPrompt.primary.name,
           }}
           partner={{
             shortLabel: formatTurmaShortLabel(
               corequisitoRollbackPrompt.partner,
-              visible.courses
+              shortLabelRegistry
             ),
             name: corequisitoRollbackPrompt.partner.name,
           }}

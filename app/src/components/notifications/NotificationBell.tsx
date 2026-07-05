@@ -79,13 +79,14 @@ function renderGradeSubtitle(item: NotificationSnapshotItem) {
 
   const obtida = formatGradePoints(item.notaObtida);
   const disciplinaNome = item.disciplinaNome ?? item.subtitle;
+  const maxPoints = item.notaMaxima;
   const hasMax =
-    item.notaMaxima !== null &&
-    item.notaMaxima !== undefined &&
-    item.notaMaxima > 0;
+    maxPoints !== null &&
+    maxPoints !== undefined &&
+    maxPoints > 0;
 
   const obtainedColor = hasMax
-    ? resolveGradeScorePercentColor(item.notaObtida, item.notaMaxima)
+    ? resolveGradeScorePercentColor(item.notaObtida, maxPoints)
     : GRADE_SCORE_GOLD;
 
   return (
@@ -103,7 +104,7 @@ function renderGradeSubtitle(item: NotificationSnapshotItem) {
           <>
             <strong className="notification-bell-grade-sep">/</strong>
             <strong className="notification-bell-grade-max">
-              {formatGradePoints(item.notaMaxima!)}
+              {formatGradePoints(maxPoints)}
             </strong>
           </>
         )}

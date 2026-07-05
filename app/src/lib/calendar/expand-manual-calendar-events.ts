@@ -11,6 +11,7 @@ import {
 import {
   formatRecurrenceDaysShort,
   parseRecurrenceDays,
+  type WeekdayIndex,
 } from "@/lib/calendar/recurrence-weekdays";
 import { resolveSubjectShortLabel } from "@/lib/disciplinas/subject-display-name";
 import type { CalendarEvent } from "@/lib/types/calendar";
@@ -134,7 +135,14 @@ function expandWeeklyManualEvent(row: EventoCalendarioRow): CalendarEvent[] {
 
   for (const date of eachIsoDateInRange(row.data, row.recorrencia_ate)) {
     const weekday = isoDateToWeekdayIndex(date);
-    if (weekday == null || !selectedDays.has(weekday)) continue;
+    if (
+      weekday == null ||
+      weekday < 0 ||
+      weekday > 6 ||
+      !selectedDays.has(weekday as WeekdayIndex)
+    ) {
+      continue;
+    }
 
     events.push({
       ...shared,

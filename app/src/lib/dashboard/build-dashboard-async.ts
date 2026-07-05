@@ -1,6 +1,6 @@
 import {
   buildIntegralizacaoFromQueries,
-  type IntegralizacaoQueryPort,
+  type IntegralizacaoQueryDeps,
 } from "@/lib/integralizacao/build-integralizacao-from-queries";
 import { notFoundError } from "@/lib/api/errors";
 import type { DashboardResponse } from "@/lib/types/dashboard";
@@ -9,10 +9,9 @@ import { buildSubjectSummary } from "@/lib/disciplinas/build-subject";
 import { mapTarefaToAcademicTask } from "@/lib/disciplinas/mappers";
 import { shouldHideTaskFromDashboard } from "@/lib/tasks/dates";
 import { toIntegrationCategories } from "@/lib/integralizacao/build-integralizacao";
-import type { IntegralizacaoQueryDeps } from "@/lib/integralizacao/build-integralizacao-from-queries";
 
 export async function buildDashboardFromQueries(
-  deps: import("@/lib/integralizacao/build-integralizacao-from-queries").IntegralizacaoQueryDeps
+  deps: IntegralizacaoQueryDeps
 ): Promise<DashboardResponse> {
   const aluno = await deps.getAluno();
   if (!aluno) {

@@ -19,7 +19,9 @@ export function resolveCategoryDoneHours(
     !isManualChType(tipoCh) &&
     syncedDone !== null &&
     (sigaaResumo.fromHistoricoPdf ||
-      (syncedRow?.pendente !== null && syncedRow.pendente >= 0))
+      (syncedRow != null &&
+        syncedRow.pendente !== null &&
+        syncedRow.pendente >= 0))
   ) {
     return syncedDone;
   }

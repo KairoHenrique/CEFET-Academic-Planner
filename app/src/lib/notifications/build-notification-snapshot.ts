@@ -23,10 +23,9 @@ import type {
 } from "@/lib/types/notifications-api";
 
 /** Tarefas concluídas ou sem prazo não entram no sino. */
-export function isTaskEligibleForNotification(row: {
-  concluida: number;
-  data_fim: string | null;
-}): boolean {
+export function isTaskEligibleForNotification<
+  T extends { concluida: number; data_fim: string | null },
+>(row: T): row is T & { data_fim: string } {
   if (row.concluida === 1) return false;
   return Boolean(row.data_fim?.trim());
 }
