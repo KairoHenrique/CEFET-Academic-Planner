@@ -11,7 +11,7 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
 > - **Modo testes:** deploy global após sync validado; RLS na fase 6c (antes do PIX)
 > - **Pré-mobile (#6d):** orquestração sync + catálogo global — policy **§6.6 `SCOPE-CLOUD`** (jul/2026) · **B68a–c** ✅ · implementar **B68d–f** + painel policy **B70/F41**
 
-**Navegação rápida:** [Roadmap detalhado (#0→#11)](#roadmap-detalhado--ordem-de-execução-0--11) · [Sequência #0→#11](#sequência-completa--o-que-fazer-e-em-qual-ordem) · [Ordem oficial v3](#ordem-oficial-de-execução-v3) · [Checklist BACK→FRONT](#checklist-mestre-ordem-de-execução) · [Detalhe por bloco](#detalhe-dos-blocos) · [B68 orquestração sync](#6d--orquestração-sync--catálogo-global-pré-mobile) · [Escopo cloud](./SCOPE-CLOUD.md) · [Apêndice escopo futuro](#apêndice--escopo-futuro-fora-da-ordem-011) · [Apêndice B65 dev](#apêndice--b65-sync-automático-dev-remover-antes-de-produção) · [Apêndice gift + painel dev](#apêndice--chaves-gift-e-painel-dev-jun2026)
+**Navegação rápida:** [Roadmap detalhado (#0→#11)](#roadmap-detalhado--ordem-de-execução-0--11) · [Sequência #0→#11](#sequência-completa--o-que-fazer-e-em-qual-ordem) · [Ordem oficial v3](#ordem-oficial-de-execução-v3) · [Checklist BACK→FRONT](#checklist-mestre-ordem-de-execução) · [Detalhe por bloco](#detalhe-dos-blocos) · [B68 orquestração sync](#6d--orquestração-sync--catálogo-global-pré-mobile) · [Escopo cloud](./SCOPE-CLOUD.md) · [Marco testes gerais](#marco--site-no-ar-para-testes-gerais) · [Apêndice escopo futuro](#apêndice--escopo-futuro-fora-da-ordem-011) · [Apêndice B65 dev](#apêndice--b65-sync-automático-dev-remover-antes-de-produção) · [Apêndice gift + painel dev](#apêndice--chaves-gift-e-painel-dev-jun2026)
 
 **Legenda:**
 - `[ ]` — Não iniciada
@@ -41,7 +41,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ## Roadmap detalhado — ordem de execução (#0 → #11)
 
-> **Próximo oficial:** **#5 — Bloco 6b** · **B44** *(conta do aluno — cadastro/login CPF)*. Bloco **6a** ✅ (`https://acme-hub.khfm.workers.dev`).
+> **Próximo oficial:** **#5 — Bloco 6b** · **B63** *(`curso_id` — mapa/integralização filtram PPC)*. Bloco **6a** ✅ (`https://acme-hub.khfm.workers.dev`).
 > **Regra:** siga **#0 → #11** · dentro de cada bloco → **BACK (B) antes de FRONT (F)**. Checklist espelho: [Checklist mestre](#checklist-mestre-ordem-de-execução).
 
 ### #0 — Planejamento `✅`
@@ -187,13 +187,13 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 - [%] **BACK:** B44 *(conta do aluno — cadastro e-mail/tel/CPF/`curso_id`; login só CPF)*
 - [%] **BACK:** B45 *(credenciais cifradas AES no servidor — obrigatório para worker **B56**)*
-- [ ] **BACK:** B58 *(trial por CPF — `trial_por_cpf` 7 dias uma vez; anti-abuso)*
+- [%] **BACK:** B58 *(trial por CPF — `trial_por_cpf` 7 dias uma vez; anti-abuso)*
 - [ ] **BACK:** B63 *(`curso_id` — Comp/Meca/Moda; mapa/integralização filtram PPC)*
 - [ ] **BACK:** B59 *(gate de acesso — middleware trial_active/active vs expirado → billing)*
 - [ ] **FRONT:** F29 *(cadastro + login produção — CPF explícito no login)*
-- [ ] **FRONT:** F36 *(menu Config no avatar — toggle notificações e-mail)*
-- [ ] **BACK:** B61 *(`notificacoes_email_ativas` + PATCH configurações)*
-- [ ] **BACK:** B62 *(e-mails transacionais — fila atividades + nota de prova; respeita toggle)*
+- [ ] **FRONT:** F36 *(menu Config no avatar — toggle e-mails promocionais)*
+- [ ] **BACK:** B61 *(`promocoes_email_ativas` + PATCH configurações)*
+- [ ] **BACK:** B62 *(fila e-mail — promoções + ciclo conta: cadastro, fim trial, plano perto de acabar, plano encerrado)*
 
 **Ordem 6b:** `B44 → B45 → B58 → B63` → `B59` → `F29 → F36` → `B61 → B62`
 
@@ -381,7 +381,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ### 1.4 API e Integração UI ↔ SQLite
 
-> **Progresso:** Bloco 1 ✅ · **Bloco 2a/2b** ✅ · **Bloco 6a** ✅ **8/8** · **6b** `B44`+`B45` **`[%]`** · URL **`https://acme-hub.khfm.workers.dev`**.
+> **Progresso:** Bloco 1 ✅ · **Bloco 2a/2b** ✅ · **Bloco 6a** ✅ **8/8** · **6b** `B44`+`B45`+`B58` **`[%]`** · URL **`https://acme-hub.khfm.workers.dev`**.
 
 Roadmap detalhado: ver **[Roadmap #0→#11 no topo](#roadmap-detalhado--ordem-de-execução-0--11)** · [Ordem oficial v3](#ordem-oficial-de-execução-v3). **F19** simulador (2a) `[x]` · **B67** `[x]`.
 
@@ -439,10 +439,11 @@ FASE G   Bloco 9             Multi-PPC (Mecatrônica, Moda) 🔒 só após mobil
 ### Modo global de testes (6a)
 
 - Deploy Cloudflare Pages com URL compartilhável.
-- Supabase free; seed-demo ou dados já sincronizados do scraper.
-- RLS **permissivo ou desligado** — ok para beta fechado.
-- **6c obrigatório** antes do **Bloco 7** (PIX) e divulgação ampla.
+- Supabase free; seed PPC global (**B41**).
+- RLS **permissivo ou desligado** na 6a/6b — ok para beta aberto.
+- **6c obrigatório** antes do **Bloco 7** (PIX) e cobrança.
 - **Plano operacional:** [`docs/plan/6a-supabase-plan.md`](./plan/6a-supabase-plan.md).
+- **Marco “site no ar para testes gerais”:** ver [final do documento](#marco--site-no-ar-para-testes-gerais).
 
 ---
 
@@ -1014,7 +1015,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Teste estático `npm run test:b39`
 - [x] Migration aplicada no **Acme-Hub-dev** (`npm run db:migrate` · Session pooler `aws-1-sa-east-1`)
 
-> **6a concluído (jul/2026):** URL **`https://acme-hub.khfm.workers.dev`** · cron **`acme-hub-cron-ping`** · smoke T1 ✅. **6b:** **B44**+**B45** **`[%]`** — cadastro/login CPF + credenciais AES em `app_profiles`.
+> **6a concluído (jul/2026):** URL **`https://acme-hub.khfm.workers.dev`** · cron **`acme-hub-cron-ping`** · smoke T1 ✅. **6b:** **B44**+**B45**+**B58** **`[%]`** — cadastro/login CPF, credenciais AES, trial 7d por CPF.
 
 #### B41 — Seed PPC global `[x]`
 
@@ -1070,19 +1071,19 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 #### 6b — Auth (#5)
 
 > **Escopo (regras):** `SCOPE.md` §2.0–§2.2, §2.5 · `SCOPE-CLOUD.md` §3–§4.  
-> **Resumo:** cadastro = **e-mail + telefone + CPF + senha SIGAA + curso (PPC)**; **login só CPF + senha**; trial **7 dias / 1× por CPF**.
+> **Resumo:** cadastro = **e-mail + telefone + CPF + senha SIGAA + curso (PPC)**; **login só CPF + senha**; trial **7 dias / 1× por CPF**; **e-mail** = promo + ciclo conta (§2.5) — acadêmico só in-app (**F38**).
 
 | # | Tipo | Task | Resumo | Status |
 |---|------|------|--------|--------|
 | B44 | Back | Conta do aluno | Cadastro: e-mail, telefone, CPF, `curso_id`, senha cifrada; **login só CPF** | [%] |
 | B45 | Back | Credenciais cifradas | Persistência AES (CPF + senha) no servidor — **obrigatório** para sync sem usuário online (worker **B56**) | [%] |
-| B58 | Back | Trial por CPF | Registro `trial_por_cpf`: 7 dias **uma vez** por CPF (anti-abuso) | [ ] |
+| B58 | Back | Trial por CPF | Registro `trial_por_cpf`: 7 dias **uma vez** por CPF (anti-abuso) | [%] |
 | B59 | Back | Gate de acesso | Middleware: `trial_active` \| `active` liberam; expirado → billing | [ ] |
 | B63 | Back | `curso_id` na conta | Enum Comp/Meca/Moda; mapa/integralização filtram PPC por curso | [ ] |
-| B61 | Back | Preferências contato | `notificacoes_email_ativas` + PATCH configurações | [ ] |
+| B61 | Back | Preferências contato | `promocoes_email_ativas` + PATCH configurações | [ ] |
 | F29 | Front | Cadastro + login | Cadastro: e-mail, tel, CPF, curso, senha · Login: **só CPF + senha** | [ ] |
-| F36 | Front | Menu Config (avatar) | Configurações; toggle notificações e-mail | [ ] |
-| B62 | Back | E-mails transacionais | Fila: atividades + nota de prova (respeita toggle) | [ ] |
+| F36 | Front | Menu Config (avatar) | Configurações; toggle **e-mails promocionais** | [ ] |
+| B62 | Back | E-mails conta/promo | Fila: promoções (toggle) + cadastro, fim trial, plano perto de acabar, plano encerrado | [ ] |
 
 **Ordem 6b:** `B44 → B45 → B58 → B63` → `B59` → `F29 → F36` → `B61 → B62`
 
@@ -1378,7 +1379,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Sino de notificações in-app — tarefas/notas novas + lembretes 24h/1h (**F38**); polish `04887c9` (baseline pré-sync, nota obtida/máxima no painel)
 - [ ] Cadastro produção: e-mail, telefone, CPF, **curso (Comp/Meca/Moda)**, senha — **API B44** ✅ (`POST /api/auth/register`); UI **F29**
 - [ ] Login produção: **apenas CPF + senha** — **API B44** ✅ (`POST /api/auth/login`); UI **F29**
-- [ ] Menu Config no avatar + toggle e-mail (**F36** · **B61** — produção; perfil dev = **F37**)
+- [ ] Menu Config no avatar + toggle **e-mails promocionais** (**F36** · **B61** — produção; perfil dev = **F37**)
 
 ### 3.2 Dashboard Central
 - [x] Header com saudação, nome do aluno e semestre atual — **via API** (`useDashboard`, TanStack Query)
@@ -1772,10 +1773,46 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
    - **Obrigatório:** toda entrega deve refletir no TASKS.md **no mesmo ciclo** — tabela B/F, checklist mestre, progresso, bullets de UI e notas para agentes **sem texto stale**.
 8. **Próximo passo do roadmap:** informe **depois do push** (tasks em `[@]` ou `[x]`). Com commits locais só `[%]`, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v3](#ordem-oficial-de-execução-v3) — **Bloco 2 (sync) antes do Bloco 6 (Supabase)**. Dentro de cada fatia: `B` antes de `F`.
-10. **Modo testes global (6a):** deploy **após** sync validado; RLS **só na 6c** (antes do PIX).
+10. **Modo testes global (6a):** deploy **após** sync validado; RLS **só na 6c** (antes do PIX). Marco “site no ar p/ testes gerais” → [final do TASKS.md](#marco--site-no-ar-para-testes-gerais).
 11. **Próximo passo:** **#5 — Bloco 6b** · **B44**+**B45** **`[%]`** commit local — aguardando push/aprovação. Bloco **6a** ✅.
 12. **Integralização:** CH concluída = `historico` + PPC (`computeChDoneFromDisciplinas`); portal SIGAA só % / total currículo; matérias já passadas = **B30** ✅.
 13. **Gift + painel dev + simulação mapa:** escopo em `SCOPE.md` §10.7, §6.1.1 · `SCOPE-CLOUD` §6.6 — tasks **B68–B71**, **F39–F41**. Painel: chavinhas R1/R2/R3 + **Orquestração sync** (TTLs/data fixa/batch). **B71** = ocultar senhas SIGAA.
 14. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial. **Polish em task `[x]`** (ex.: F38, dashboard) também exige nota no TASKS no mesmo ciclo do push.
 15. **Credenciais SIGAA:** sync **sem** o aluno no site exige senha **cifrada no servidor** (dev: B25 opcional + `useAutoSync` no client; produção: **B45** + worker **B56**). Ver `SCOPE.md` §2 · `SCOPE-CLOUD.md` §4–§6.
 16. **Código frontend** está em `app/src/` (não na raiz `src/`). Mock data em `app/src/config/mock/`.
+
+---
+
+## Marco — site no ar para testes gerais
+
+> **🌐 Quando concluir:** Bloco **6b** inteiro — [`B44 → B45 → B58 → B63` → `B59` → `F29` → `F36` → `B61` → `B62`](#5--bloco-6b--auth-cpf-login--cadastro--0-9) (9/9 **`[x]`**). Mínimo funcional antes de divulgar amplamente: **F29** + **B58** + **B59** (cadastro, login CPF, trial, gate).
+
+> **🌐 O que significa “site no ar para testes gerais” (qualquer pessoa, sem convite):** URL pública (`https://acme-hub.khfm.workers.dev` ou domínio definido) com **cadastro + login CPF + trial + gate + UI F29** ponta a ponta. Qualquer um cria conta e usa o app no trial **sem convite**.
+
+> **🌐 O que isso NÃO significa:** **não** é todas as páginas/feature na nuvem iguais ao dev local. **Sync SIGAA real na cloud** depende do **worker (B54–B56)** — hoje **stub** no Postgres. **Dados isolados por conta** = **6c** (RLS). **PIX / planos pagos** = **Bloco 7**. Telas do Bloco 1 **abrem** na URL; experiência acadêmica **completa** com dados SIGAA hoje = **dev local (SQLite)**. **Não** é go-live comercial (**B71**). **6a** ✅ = só infra (health/PPC); login cloud conclui no **6b**.
+
+### Fases até o go-live comercial
+
+| Fase | O que está no ar | Quem testa | Limitações |
+|------|------------------|------------|------------|
+| **6a** ✅ | URL + Postgres + health/PPC; **sem** login cloud completo | Time / smoke técnico | Sync cloud = stub |
+| **6b** *(este marco)* | **Conta aberta:** cadastro, login CPF, trial, gate, telas carregam | **Qualquer pessoa** (beta aberto; **≠** lançamento comercial) | Sync na nuvem = worker **B54–B56**; dados por usuário = **6c** |
+| **6c** | RLS + isolamento antes de cobrar | Continua beta | Obrigatório antes do PIX |
+| **Bloco 7** | PIX + planos + **go-live** oficial | Público com assinatura | Endurecimento **B71** |
+
+### O que **não** está incluído neste marco (6b)
+
+| Fora do marco | Onde entra |
+|---------------|------------|
+| Sync SIGAA **real** na nuvem (dados por aluno na URL) | Worker **B54–B56** (hoje **stub**) |
+| Dados **isolados** por conta | **6c** (RLS) |
+| Cobrança / assinatura | **Bloco 7** (PIX) |
+| Inteligência acadêmica avançada | **Bloco 3** |
+| Mobile | **Bloco 8** |
+| PPC Mecatrônica / Moda completos | **Bloco 11** |
+
+**Experiência acadêmica completa hoje (Eng. Comp):** dev local **SQLite** (Blocos 1–2).
+
+### Go-live comercial oficial
+
+**Bloco 7** — PIX + planos + **B71** (endurecimento credenciais) imediatamente antes da divulgação ampla definitiva.

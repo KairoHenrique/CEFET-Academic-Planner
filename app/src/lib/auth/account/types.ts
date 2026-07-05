@@ -1,3 +1,5 @@
+import type { TrialSubscriptionSnapshot } from "@/lib/auth/trial/trial-status";
+
 export type AppCursoId =
   | "eng-computacao"
   | "eng-mecatronica"
@@ -35,4 +37,5 @@ export interface AuthSessionPayload {
 export interface AccountAuthResult {
   profile: AppProfileRecord;
   session: AuthSessionPayload;
+  subscription: TrialSubscriptionSnapshot;
 }

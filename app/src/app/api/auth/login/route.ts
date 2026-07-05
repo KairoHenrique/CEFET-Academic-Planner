@@ -20,6 +20,7 @@ export const POST = async (request: Request) => {
       ok: true as const,
       profile: result.profile,
       session: result.session,
+      subscription: result.subscription,
     });
   } catch (error) {
     return apiErrorResponse(error);
