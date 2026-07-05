@@ -1,5 +1,8 @@
 import pg from "pg";
-import { isPostgresBackend } from "@/lib/db/backend/config";
+import {
+  isCloudDeployment,
+  isPostgresBackend,
+} from "@/lib/db/backend/config";
 
 let pool: pg.Pool | null = null;
 
@@ -19,7 +22,8 @@ export function getPostgresPool(): pg.Pool {
   if (!pool) {
     pool = new pg.Pool({
       connectionString: loadDatabaseUrl(),
-      max: 5,
+      // Workers: uma conexão por isolate — pool>1 pode derrubar o worker.
+      max: isCloudDeployment() ? 1 : 5,
       idleTimeoutMillis: 30_000,
       connectionTimeoutMillis: 10_000,
     });
