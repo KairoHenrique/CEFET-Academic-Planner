@@ -79,6 +79,8 @@ npm install
 npm run deploy:cf
 ```
 
+> **⚠️ Vars no dashboard:** o `wrangler.jsonc` local **não** declara `vars` — um `deploy:cf` **sobrescreve** variáveis que você configurou só no dashboard (ex.: `PLANNER_CLOUD`, `NEXT_PUBLIC_SUPABASE_*`). Após deploy CLI, **reconfirme** em Workers → acme-hub → Settings → Variables (Production) ou use secrets via `wrangler secret put`. Ver também `npm run deploy:crons` (B62).
+
 Primeira vez: `npx wrangler login`
 
 **GitHub (recomendado):** Workers Builds · root directory **`app`** · build command:
@@ -104,7 +106,15 @@ npx wrangler secret put PLANNER_HEALTH_URL --config workers/cron-ping/wrangler.j
 npm run deploy:cron-ping
 ```
 
-Cron: **diário 15:00 UTC** (`0 15 * * *`) = **12:00 horário de Brasília (UTC−3)**.
+Cron ping: **diário 15:00 UTC** (`0 15 * * *`) = **12:00 horário de Brasília (UTC−3)**.
+
+**B62 — fila de e-mails:** worker `acme-hub-cron-account-emails` · cron **a cada 15 min** (`*/15 * * * *`) · `POST /api/cron/account-emails`.
+
+```powershell
+npm run deploy:crons   # lê CRON_SECRET + URL de app/.env.local · deploy ping + emails
+# ou só emails:
+npm run deploy:cron-emails
+```
 
 > **Por que UTC?** Cloudflare Cron Triggers **só aceitam fuso UTC** — não dá para configurar “12h Brasília” direto. Convertemos: 15:00 UTC − 3h = 12:00 BRT. Qualquer horário dentro de 24–48 h mantém o Supabase free acordado.
 
