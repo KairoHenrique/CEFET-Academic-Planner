@@ -155,10 +155,10 @@ describe("O3 — enqueue auto cooldown", () => {
 
     resetSyncQueueDatabaseForTests();
 
-    await withUserDb("999", () => {
+    await withUserDb("999", async () => {
       recordSyncCompletedAt(new Date().toISOString());
 
-      assert.throws(
+      await assert.rejects(
         () =>
           enqueueSyncJob({
             username: "999",
@@ -186,7 +186,7 @@ describe("O3 — enqueue auto cooldown", () => {
 
     resetSyncQueueDatabaseForTests();
 
-    const result = await withUserDb("888", () => {
+    const result = await withUserDb("888", async () => {
       recordSyncCompletedAt(new Date().toISOString());
 
       return enqueueSyncJob({

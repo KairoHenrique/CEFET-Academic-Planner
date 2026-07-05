@@ -11,7 +11,7 @@ import {
   recordSyncCompletedAt,
   recordSyncedUsername,
 } from "@/lib/sync/sync-preferences";
-import { resolveSyncCredentials, type ResolvedSyncCredentials } from "@/lib/sync/resolve-credentials";
+import { resolveSyncCredentialsSync, type ResolvedSyncCredentials } from "@/lib/sync/resolve-credentials";
 import type { SigaaSession } from "@/lib/scraper/types";
 import type { SyncMode, SyncPipelineResult } from "@/lib/types/sync-pipeline";
 import type { SyncRequest } from "@/lib/types/sync";
@@ -87,7 +87,7 @@ export async function runSync(
   input: SyncRequest,
   options: RunSyncOptions = {}
 ): Promise<SyncResult> {
-  const credentials = resolveSyncCredentials(input);
+  const credentials = resolveSyncCredentialsSync(input);
   const mode = options.mode ?? "full";
 
   console.info(

@@ -185,8 +185,8 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 > Cadastro = e-mail + telefone + CPF + curso + senha SIGAA · **login só CPF + senha** · trial 7d 1×/CPF.
 
-- [ ] **BACK:** B44 *(conta do aluno — cadastro e-mail/tel/CPF/`curso_id`; login só CPF)*
-- [ ] **BACK:** B45 *(credenciais cifradas AES no servidor — obrigatório para worker **B56**)*
+- [%] **BACK:** B44 *(conta do aluno — cadastro e-mail/tel/CPF/`curso_id`; login só CPF)*
+- [%] **BACK:** B45 *(credenciais cifradas AES no servidor — obrigatório para worker **B56**)*
 - [ ] **BACK:** B58 *(trial por CPF — `trial_por_cpf` 7 dias uma vez; anti-abuso)*
 - [ ] **BACK:** B63 *(`curso_id` — Comp/Meca/Moda; mapa/integralização filtram PPC)*
 - [ ] **BACK:** B59 *(gate de acesso — middleware trial_active/active vs expirado → billing)*
@@ -381,7 +381,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ### 1.4 API e Integração UI ↔ SQLite
 
-> **Progresso:** Bloco 1 ✅ · **Bloco 2a/2b** ✅ · **Bloco 6a** ✅ **8/8** · URL **`https://acme-hub.khfm.workers.dev`** · próximo **6b** `B44`.
+> **Progresso:** Bloco 1 ✅ · **Bloco 2a/2b** ✅ · **Bloco 6a** ✅ **8/8** · **6b** `B44`+`B45` **`[%]`** · URL **`https://acme-hub.khfm.workers.dev`**.
 
 Roadmap detalhado: ver **[Roadmap #0→#11 no topo](#roadmap-detalhado--ordem-de-execução-0--11)** · [Ordem oficial v3](#ordem-oficial-de-execução-v3). **F19** simulador (2a) `[x]` · **B67** `[x]`.
 
@@ -613,7 +613,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 ### #5 — Bloco 6b · Cloud — Auth `⬜ 0/9`
 
-- [ ] **BACK:**  B44 → B45 → B58 → B63 → B59 → B61 → B62
+- [%] **BACK:**  B44 → B45 → B58 → B63 → B59 → B61 → B62
 - [ ] **FRONT:** F29 · F36
 
 **Ordem 6b:** `B44 → B45 → B58 → B63` → `B59` → `F29 → F36` → `B61 → B62`
@@ -1014,7 +1014,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Teste estático `npm run test:b39`
 - [x] Migration aplicada no **Acme-Hub-dev** (`npm run db:migrate` · Session pooler `aws-1-sa-east-1`)
 
-> **6a concluído (jul/2026):** URL **`https://acme-hub.khfm.workers.dev`** · cron **`acme-hub-cron-ping`** · smoke T1 ✅. **Próximo:** **6b** `B44`.
+> **6a concluído (jul/2026):** URL **`https://acme-hub.khfm.workers.dev`** · cron **`acme-hub-cron-ping`** · smoke T1 ✅. **6b:** **B44**+**B45** **`[%]`** — cadastro/login CPF + credenciais AES em `app_profiles`.
 
 #### B41 — Seed PPC global `[x]`
 
@@ -1074,8 +1074,8 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 | # | Tipo | Task | Resumo | Status |
 |---|------|------|--------|--------|
-| B44 | Back | Conta do aluno | Cadastro: e-mail, telefone, CPF, `curso_id`, senha cifrada; **login só CPF** | [ ] |
-| B45 | Back | Credenciais cifradas | Persistência AES (CPF + senha) no servidor — **obrigatório** para sync sem usuário online (worker **B56**) | [ ] |
+| B44 | Back | Conta do aluno | Cadastro: e-mail, telefone, CPF, `curso_id`, senha cifrada; **login só CPF** | [%] |
+| B45 | Back | Credenciais cifradas | Persistência AES (CPF + senha) no servidor — **obrigatório** para sync sem usuário online (worker **B56**) | [%] |
 | B58 | Back | Trial por CPF | Registro `trial_por_cpf`: 7 dias **uma vez** por CPF (anti-abuso) | [ ] |
 | B59 | Back | Gate de acesso | Middleware: `trial_active` \| `active` liberam; expirado → billing | [ ] |
 | B63 | Back | `curso_id` na conta | Enum Comp/Meca/Moda; mapa/integralização filtram PPC por curso | [ ] |
@@ -1376,8 +1376,8 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Modulação de layout **somente no dashboard** (demais telas layout fixo)
 - [x] Menu perfil no avatar — modal, tutorial, /planos (**F37** ✅ · back **B65** `[x]`)
 - [x] Sino de notificações in-app — tarefas/notas novas + lembretes 24h/1h (**F38**); polish `04887c9` (baseline pré-sync, nota obtida/máxima no painel)
-- [ ] Cadastro produção: e-mail, telefone, CPF, **curso (Comp/Meca/Moda)**, senha (F29 · B44 · B58 · B63)
-- [ ] Login produção: **apenas CPF + senha** (sem e-mail no login)
+- [ ] Cadastro produção: e-mail, telefone, CPF, **curso (Comp/Meca/Moda)**, senha — **API B44** ✅ (`POST /api/auth/register`); UI **F29**
+- [ ] Login produção: **apenas CPF + senha** — **API B44** ✅ (`POST /api/auth/login`); UI **F29**
 - [ ] Menu Config no avatar + toggle e-mail (**F36** · **B61** — produção; perfil dev = **F37**)
 
 ### 3.2 Dashboard Central
@@ -1773,7 +1773,7 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 8. **Próximo passo do roadmap:** informe **depois do push** (tasks em `[@]` ou `[x]`). Com commits locais só `[%]`, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v3](#ordem-oficial-de-execução-v3) — **Bloco 2 (sync) antes do Bloco 6 (Supabase)**. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy **após** sync validado; RLS **só na 6c** (antes do PIX).
-11. **Próximo passo:** **#5 — Bloco 6b** · **B44** *(conta do aluno — cadastro/login CPF)*. Bloco **6a** ✅ — URL **`https://acme-hub.khfm.workers.dev`**.
+11. **Próximo passo:** **#5 — Bloco 6b** · **B44**+**B45** **`[%]`** commit local — aguardando push/aprovação. Bloco **6a** ✅.
 12. **Integralização:** CH concluída = `historico` + PPC (`computeChDoneFromDisciplinas`); portal SIGAA só % / total currículo; matérias já passadas = **B30** ✅.
 13. **Gift + painel dev + simulação mapa:** escopo em `SCOPE.md` §10.7, §6.1.1 · `SCOPE-CLOUD` §6.6 — tasks **B68–B71**, **F39–F41**. Painel: chavinhas R1/R2/R3 + **Orquestração sync** (TTLs/data fixa/batch). **B71** = ocultar senhas SIGAA.
 14. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial. **Polish em task `[x]`** (ex.: F38, dashboard) também exige nota no TASKS no mesmo ciclo do push.

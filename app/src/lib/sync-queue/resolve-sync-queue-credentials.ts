@@ -1,25 +1,16 @@
-import { ApiError } from "@/lib/api/errors";
-import { loadSigaaCredentials } from "@/lib/crypto/sigaa-credential-store";
+import { resolveSigaaPassword, resolveSigaaPasswordSync } from "@/lib/crypto/resolve-sigaa-password";
 
-export function resolveSyncQueuePassword(input: {
+export async function resolveSyncQueuePassword(input: {
+  username: string;
+  password?: string;
+}): Promise<string> {
+  return resolveSigaaPassword(input);
+}
+
+/** @deprecated Prefer `resolveSyncQueuePassword` (async). Mantido para callers SQLite legados. */
+export function resolveSyncQueuePasswordSync(input: {
   username: string;
   password?: string;
 }): string {
-  const username = input.username.trim();
-  const inline = input.password?.trim();
-
-  if (inline) {
-    return inline;
-  }
-
-  const stored = loadSigaaCredentials();
-  if (stored && stored.username === username) {
-    return stored.password;
-  }
-
-  throw new ApiError(
-    "VALIDATION_ERROR",
-    "Informe a senha do SIGAA ou salve a senha no dispositivo.",
-    400
-  );
+  return resolveSigaaPasswordSync(input);
 }

@@ -68,7 +68,9 @@ function assertTriggerCooldown(input: EnqueueSyncJobInput): void {
   }
 }
 
-export function enqueueSyncJob(input: EnqueueSyncJobInput): EnqueueSyncJobResult {
+export async function enqueueSyncJob(
+  input: EnqueueSyncJobInput
+): Promise<EnqueueSyncJobResult> {
   const idempotencyKey = input.idempotencyKey?.trim() || null;
   if (idempotencyKey) {
     const existing = findActiveJobByIdempotencyKey(idempotencyKey);
@@ -82,7 +84,7 @@ export function enqueueSyncJob(input: EnqueueSyncJobInput): EnqueueSyncJobResult
 
   assertTriggerCooldown(input);
 
-  const password = resolveSyncQueuePassword({
+  const password = await resolveSyncQueuePassword({
     username: input.username,
     password: input.password,
   });

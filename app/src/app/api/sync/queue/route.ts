@@ -21,9 +21,9 @@ export const POST = async (request: Request) => {
     const body = await request.json();
     const input = parseEnqueueSyncQueueRequest(body);
 
-    const result = await runWithUserDb(input.username, () => {
+    const result = await runWithUserDb(input.username, async () => {
       ensureDbReady();
-      return enqueueSyncJob(input);
+      return await enqueueSyncJob(input);
     });
 
     if (!result.reused) {

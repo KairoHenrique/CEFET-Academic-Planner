@@ -94,7 +94,7 @@ describe("B55 — sync queue store", () => {
 
     resetSyncQueueDatabaseForTests();
 
-    const normal = await withUserDb("111", () =>
+    const normal = await withUserDb("111", async () =>
       enqueueSyncJob({
         username: "111",
         password: "a",
@@ -102,7 +102,7 @@ describe("B55 — sync queue store", () => {
         trigger: "auto",
       })
     );
-    const priority = await withUserDb("222", () =>
+    const priority = await withUserDb("222", async () =>
       enqueueSyncJob({
         username: "222",
         password: "b",
@@ -129,14 +129,14 @@ describe("B55 — sync queue store", () => {
 
     resetSyncQueueDatabaseForTests();
 
-    const first = enqueueSyncJob({
+    const first = await enqueueSyncJob({
       username: "333",
       password: "x",
       lane: "normal",
       trigger: "manual",
       idempotencyKey: "idem-1",
     });
-    const second = enqueueSyncJob({
+    const second = await enqueueSyncJob({
       username: "333",
       password: "x",
       lane: "normal",
@@ -159,14 +159,14 @@ describe("B55 — sync queue store", () => {
 
     resetSyncQueueDatabaseForTests();
 
-    enqueueSyncJob({
+    await enqueueSyncJob({
       username: "444",
       password: "x",
       lane: "normal",
       trigger: "manual",
     });
 
-    assert.throws(
+    await assert.rejects(
       () =>
         enqueueSyncJob({
           username: "444",
@@ -215,7 +215,7 @@ describe("B55 — dispatcher", () => {
       steps: [{ label: "mock", progress: 100 }],
     }));
 
-    const result = await withUserDb("55566677788", () =>
+    const result = await withUserDb("55566677788", async () =>
       enqueueSyncJob({
         username: "55566677788",
         password: "mock-pass",
@@ -250,7 +250,7 @@ describe("B55 — job view", () => {
 
     resetSyncQueueDatabaseForTests();
 
-    const { job } = await withUserDb("999", () =>
+    const { job } = await withUserDb("999", async () =>
       enqueueSyncJob({
         username: "999",
         password: "y",
