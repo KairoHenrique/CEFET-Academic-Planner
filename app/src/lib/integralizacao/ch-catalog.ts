@@ -1,5 +1,5 @@
 import type { AppCursoId } from "@/lib/auth/account/types";
-import { resolveQueryCursoId } from "@/lib/db/resolve-query-curso-id";
+import { DEFAULT_CURSO_ID } from "@/lib/db/backend/config";
 import type { IntegrationCategory } from "@/lib/types/integration";
 import { INTEGRATION_TOTAL_HOURS } from "@/lib/types/integration";
 
@@ -45,7 +45,7 @@ export function isChType(value: string): value is ChType {
 }
 
 export function getChCatalogForCurso(
-  cursoId: AppCursoId | string = resolveQueryCursoId()
+  cursoId: AppCursoId | string = DEFAULT_CURSO_ID
 ): readonly ChCatalogEntry[] {
   switch (cursoId) {
     case "eng-computacao":
@@ -57,8 +57,9 @@ export function getChCatalogForCurso(
   }
 }
 
+/** Catálogo padrão (client-safe — Eng. Comp.). No servidor Postgres use `getChCatalogForCurso(resolveQueryCursoId())`. */
 export function getChCatalog(): readonly ChCatalogEntry[] {
-  return getChCatalogForCurso(resolveQueryCursoId());
+  return getChCatalogForCurso(DEFAULT_CURSO_ID);
 }
 
 export function getIntegrationTotalHours(): number {

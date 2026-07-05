@@ -20,7 +20,11 @@ import {
 import { normalizeCefetCh } from "@/lib/disciplinas/cefet-ch";
 import { buildDisciplineShortLabelRegistry } from "@/lib/disciplinas/subject-display-name";
 import { computeChDoneFromDisciplinas } from "@/lib/integralizacao/compute-ch-from-disciplinas";
-import { getChCatalog } from "@/lib/integralizacao/ch-catalog";
+import {
+  getChCatalog,
+  getChCatalogForCurso,
+} from "@/lib/integralizacao/ch-catalog";
+import { resolveQueryCursoId } from "@/lib/db/resolve-query-curso-id";
 import { mapDisciplineTipoToChType } from "@/lib/integralizacao/map-discipline-tipo-to-ch";
 import { getObrigatoriaTotalFromCatalog } from "@/lib/mapa/period-ch-gates";
 import type {
@@ -146,7 +150,7 @@ function assembleMapaFromData(input: MapaAssemblyInput): MapaResponse {
   );
   const completed = buildCompletedDisciplinaSet(historico);
   const preRequisitos = buildPreRequisitoMap(requisitos);
-  const catalog = getChCatalog();
+  const catalog = getChCatalogForCurso(resolveQueryCursoId());
   const syncedObrigatoria =
     integralizacaoRows.find(
       (row) => row.tipo_ch === "Obrigatória" && row.manual === 0
