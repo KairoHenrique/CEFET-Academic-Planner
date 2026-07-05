@@ -2,9 +2,10 @@ import { notFoundError } from "@/lib/api/errors";
 import { aggregateIntegralizacaoCategories } from "@/lib/integralizacao/aggregate-categories";
 import { computeChDoneFromDisciplinas } from "@/lib/integralizacao/compute-ch-from-disciplinas";
 import {
-  getChCatalog,
+  getChCatalogForCurso,
   getIntegrationTotalHours,
 } from "@/lib/integralizacao/ch-catalog";
+import { resolveQueryCursoId } from "@/lib/db/resolve-query-curso-id";
 import { readSigaaIntegralizacaoResumo } from "@/lib/integralizacao/sigaa-ch-config";
 import type {
   AlunoRow,
@@ -36,7 +37,7 @@ export async function buildIntegralizacaoFromQueries(
   }
 
   const rows = await deps.getIntegralizacao();
-  const catalog = getChCatalog();
+  const catalog = getChCatalogForCurso(resolveQueryCursoId());
   const disciplinas = await deps.getDisciplinas();
   const historico = await deps.getHistorico();
   const semestreAtual = await deps.getSemestreAtual();

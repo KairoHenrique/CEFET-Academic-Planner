@@ -27,6 +27,16 @@ function mapDisciplinaRow(row: Record<string, unknown>): DisciplinaRow {
   };
 }
 
+function mapRequisitoRow(row: Record<string, unknown>): RequisitoRow {
+  const raw = row.tipo != null ? String(row.tipo) : "pre";
+  const tipo: RequisitoRow["tipo"] = raw === "co" ? "co" : "pre";
+  return {
+    disciplina_id: String(row.disciplina_id),
+    requisito_id: String(row.requisito_id),
+    tipo,
+  };
+}
+
 function mapSemestreRow(row: Record<string, unknown>): SemestreAtualWithDisciplina {
   return {
     disciplina_id: String(row.disciplina_id),
@@ -88,11 +98,7 @@ export async function pgGetRequisitos(): Promise<RequisitoRow[]> {
      ORDER BY disciplina_id, requisito_id`,
     [cursoId()]
   );
-  return result.rows.map((row) => ({
-    disciplina_id: String(row.disciplina_id),
-    requisito_id: String(row.requisito_id),
-    tipo: row.tipo != null ? String(row.tipo) : null,
-  }));
+  return result.rows.map((row) => mapRequisitoRow(row));
 }
 
 export async function pgGetDisciplinaByCodigo(
