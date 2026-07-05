@@ -1,5 +1,5 @@
 ---
-description: TASKS.md sempre 100% sincronizado · [/]→commit→[%]→push→[x] · próximos passos só após push
+description: TASKS.md 100% sync · push+aprovar=[x] automático · [/]→[%]→push→[x]
 alwaysApply: true
 ---
 
@@ -140,12 +140,53 @@ Se falhar qualquer item → **corrigir antes de commitar**.
 
 ## Ao push ou aprovação
 
+> **Gatilho automático:** quando o usuário pedir **push + aprovação** (ver [Gatilhos do usuário](#gatilhos-do-usuário--push-e-aprovação-automática)), o agente **executa o fluxo completo no mesmo turno** — não perguntar, não parar só no push.
+
 1. Usuário pede push → `git push`.
 2. **Push sem aprovação 100%** (usuário avisa bugs/ressalvas) → **`[%]` → `[@]`** nas tasks enviadas.
 3. **Push com aprovação 100%** → **`[%]` → `[x]`**.
 4. **Aprovação explícita depois** (task já em `[@]`) → **`[@]` → `[x]`** (push opcional se já no remoto).
-5. **Re-sincronize 100%** o TASKS.md (10 pontos + verificação final).
-6. Informe o próximo passo oficial de `docs/TASKS.md` (permitido após `[@]` ou `[x]`).
+5. **Re-sincronize 100%** o `docs/TASKS.md` (10 pontos + verificação final).
+6. **Commit** `docs/TASKS.md` (e `SCOPE*.md` se mudou escopo) — **no mesmo turno** do push/aprovação.
+7. Informe o próximo passo oficial de `docs/TASKS.md` (permitido após `[@]` ou `[x]`).
+
+---
+
+## Gatilhos do usuário — push e aprovação automática
+
+Quando o usuário usar qualquer frase abaixo (ou equivalente), trate como **aprovação 100% explícita** e rode o fluxo **sem pedir confirmação extra**:
+
+| Intenção | Exemplos de frase | Ação obrigatória do agente |
+|----------|-------------------|----------------------------|
+| **Push + aprovar** | *"pode dar push e aprovar"*, *"push e aprova"*, *"sobe e aprova 100%"*, *"push, aprovado"* | Ver [Sequência push + aprovação](#sequência-push--aprovação-100-automática) |
+| **Só aprovar** (já no remoto) | *"aprova"*, *"aprovado 100%"*, *"pode marcar [x]"* | `[@]` ou `[%]` pendente → **`[x]`** · sync 10 pontos · commit docs · push docs se necessário |
+| **Push sem aprovar** | *"dá push"*, *"sobe pro remoto"* (sem mencionar aprovação) | `[%]` → **`[@]`** (padrão) · sync · commit docs · push |
+
+**Na dúvida** entre `[@]` e `[x]` após push → use **`[@]`**, salvo se o usuário disser **aprovar/aprovado/100%**.
+
+### Sequência push + aprovação 100% (automática)
+
+Executar **nesta ordem**, no **mesmo turno**:
+
+1. `git status` + `git log` — identificar tasks em `[%]` ou `[@]` nos commits a enviar.
+2. **`grep`** cada ID (`F29`, `B61`, bloco `6b`, etc.) em `docs/TASKS.md`.
+3. **Sync 100%** — `[%]` → **`[x]`** (ou `[@]` → **`[x]`** se já tinha push):
+   - tabela B/F · checklist mestre · §1.4 · cabeçalho bloco · resumo progresso · item **11. Próximo passo** · remover textos *"aguardando push"*, *"`[%]` local"*, *"🟡"* quando bloco fechou.
+4. **Verificação final** (checklist de 10 pontos).
+5. **`git add`** só `docs/TASKS.md` (+ `docs/SCOPE.md` / `docs/SCOPE-CLOUD.md` se alterados).
+6. **`git commit`** — mensagem `docs: aprova {IDs/bloco} (push {mês/ano})` (ou incluir no commit de código se ainda não commitado).
+7. **`git push`** — todos os commits locais pendentes (código + docs).
+8. **Resposta ao usuário:** confirma push · tasks marcadas **`[x]`** · **Próximo na ordem:** {ID oficial do item 11}.
+
+**Proibido** neste gatilho: parar após push sem sync `[x]` · deixar `TASKS.md` unstaged · responder "próximo passo" com bloco ainda em `[%]`.
+
+### Sequência push sem aprovação (automática)
+
+1. Mesmos passos 1–4, mas transição **`[%]` → `[@]`** (não `[x]`).
+2. Commit docs + push.
+3. Resposta: tasks em **`[@]`** · bugs/ressalvas se o usuário citou · **Próximo na ordem** permitido.
+
+---
 
 ## Mini resumo (após commit → `[%]`)
 
