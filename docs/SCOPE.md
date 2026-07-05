@@ -34,7 +34,7 @@ Este documento detalha as funcionalidades e premissas de domínio do projeto. Se
 |---|---|---|
 | **CPF** | Cadastro + **login** | Login SIGAA (só números). **Chave anti-abuso** do trial (§2.1). |
 | **Senha SIGAA** | Cadastro + login | Mesma senha do portal. **Fase testes (jun/2026):** visível no painel dev para debug do sync — testadores **informados e consentientes**. **Produção:** cifrada em repouso (**B71** — última task pré-go-live). Validada pelo **SIGAA no sync**. |
-| **E-mail** | **Só cadastro** | Contato e **notificações** (atividades, nota de prova). **Não** é usuário de login. Opt-out em Configurações (§2.5). |
+| **E-mail** | **Só cadastro** | Contato. Envio: **promoções** (sempre — §2.5), **cadastro**, **fim do trial**, **plano perto de acabar**, **plano encerrado**. **Não** é login. **Sem** alertas acadêmicos por e-mail (sino in-app **F38**). |
 | **Telefone** | **Só cadastro** | Contato (WhatsApp/SMS futuro, suporte). **Não** é login na v1. |
 | **Curso** | **Cadastro** (obrigatório) | **Eng. Computação**, **Eng. Mecatrônica** ou **Design de Moda** — define qual **PPC** alimenta mapa, integralização e simulador (§6.2). |
 
@@ -120,13 +120,19 @@ Portal do Discente:   https://sig.cefetmg.br/sigaa/portais/discente/discente.jsf
 Turma Virtual:        https://sig.cefetmg.br/sigaa/ava/index.jsf
 ```
 
-### 2.5 Configurações, contato e notificações
+### 2.5 Configurações, contato e e-mail
 
 - Menu **Configurações** ao clicar na **foto/avatar** (navbar).
-- Toggle: **“Receber notificações por e-mail”** (padrão: ligado).
-- E-mails vão para o **e-mail cadastrado** (campo de contato, não de login).
-- Telefone cadastrado fica disponível para **contato futuro** (suporte, lembretes — canal a definir nas tasks).
-- Quando e-mail desligado: sem alertas acadêmicos por e-mail (billing/recuperação podem usar e-mail ou SMS conforme implementação).
+- E-mails vão para o **e-mail cadastrado** (campo de contato, **não** de login).
+- **Tipos de e-mail (v1):**
+  1. **Promoções** — ofertas e campanhas (**sempre enviadas**; sem opt-out do aluno)
+  2. **Cadastro** — confirmação/boas-vindas ao criar conta
+  3. **Fim do trial** — aviso quando os 7 dias gratuitos terminam
+  4. **Plano perto de acabar** — lembrete antes da expiração da assinatura
+  5. **Plano encerrado** — aviso após expiração ou conclusão do período pago
+- **Sem toggle de promoções** — o aluno **não** desativa e-mails promocionais; volume baixo e relevante (operador controla campanhas no painel dev, não spam em massa).
+- **Alertas acadêmicos** (tarefas, notas, prazos): **somente in-app** (sino **F38**), **nunca** por e-mail.
+- Telefone cadastrado fica disponível para **contato futuro** (suporte, SMS — canal a definir nas tasks).
 
 ### 2.6 Prioridade de Dados (Regra #1)
 
@@ -303,7 +309,7 @@ Cada curso tem seu **PPC**. O aluno escolhe o **curso no cadastro**; mapa, integ
 
 #### Fase 1 — Eng. Computação (entrega atual)
 
-Todo o fluxo (sync → cloud → PIX → mobile) deve estar **100% para Eng. Computação** antes de exigir paridade para os outros PPCs.
+Todo o fluxo (sync → cloud → PIX → **site web maduro** → mobile) deve estar **100% para Eng. Computação** antes de exigir paridade para os outros PPCs.
 
 #### Fase 2 — Indexação Mecatrônica e Moda (Bloco 9, pós-mobile)
 
@@ -392,7 +398,7 @@ Ver **`docs/SCOPE-CLOUD.md` §7** — app **Expo Go**, backend Supabase, sem scr
 5. **Nem todo professor usa o SIGAA.** O sistema deve funcionar mesmo sem dados do SIGAA (modo manual).
 6. **Co-requisitos** são matérias que devem ser cursadas no mesmo semestre (ex: uma teoria e seu laboratório). Não é pré-requisito.
 7. **O sistema não altera dados no SIGAA.** É somente leitura (scraping).
-8. **Um curso por vez até o mobile:** Eng. Computação deve estar completa (web → cloud → sync → PIX → mobile) antes de indexar Mecatrônica ou Moda (§6.2).
+8. **Um curso por vez até o mobile:** Eng. Computação completa na **web** (sync, cloud, PIX, gráficos, inteligência, polimento — **#9 + #10**) **antes** do app mobile (#8); só então indexar Mecatrônica ou Moda (§6.2).
 9. **Simulação de mapa ≠ histórico real:** overlay local; não substitui sync do PDF (§7).
 10. **Chaves de plano:** uso único; emissão exclusiva do operador (§2.1.1, §10).
 11. **Senhas no painel dev (fase testes):** visíveis ao operador para debug SIGAA; **B71** encerra isso antes do go-live.
