@@ -1,12 +1,14 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 import fs from "node:fs";
 import path from "node:path";
-import Database from "better-sqlite3";
+import BetterSqlite3 from "better-sqlite3";
 import { assertSqliteAllowed } from "@/lib/db/backend/sqlite-guard";
+
+type SqliteDatabase = BetterSqlite3.Database;
 
 const userContext = new AsyncLocalStorage<string | undefined>();
 
-const connections = new Map<string, Database>();
+const connections = new Map<string, SqliteDatabase>();
 const bootstrappedPaths = new Set<string>();
 
 function resolveDataRoot(): string {
@@ -60,14 +62,14 @@ export function getActiveSigaaUsername(): string | undefined {
   return userContext.getStore();
 }
 
-export function getActiveDatabase(): Database {
+export function getActiveDatabase(): SqliteDatabase {
   assertSqliteAllowed("planner.db");
   const dbPath = resolveDbPathForUser(getActiveSigaaUsername());
   let connection = connections.get(dbPath);
 
   if (!connection) {
     fs.mkdirSync(path.dirname(dbPath), { recursive: true });
-    connection = new Database(dbPath);
+    connection = new BetterSqlite3(dbPath);
     connection.pragma("journal_mode = WAL");
     connections.set(dbPath, connection);
   }

@@ -35,15 +35,13 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 **Regra:** o stakeholder **avisa explicitamente** quando a entrega **não** está 100% aprovada. Após push com ressalvas → **`[@]`**, nunca `[x]`.
 
-**Tasks em `[@]` (jul/2026):** **O1** · **O2** — no remoto; **T1** deploy/smoke em andamento (sem aprovação 100%).
-
 **Polish pós-push (jun/2026, sem nova task):** `04887c9` — fix alerta nota nova pós-sync (baseline pré-sync) + nota obtida/máxima no sino · `5923e9c` — nome da disciplina no `SubjectCard` abre `/disciplinas/[código]`.
 
 ---
 
 ## Roadmap detalhado — ordem de execução (#0 → #11)
 
-> **Próximo oficial:** **T1** — **deploy Cloudflare + smoke URL pública** (hora do ar). Runbook: [`docs/plan/t1-smoke-deploy.md`](./plan/t1-smoke-deploy.md).
+> **Próximo oficial:** **#5 — Bloco 6b** · **B44** *(conta do aluno — cadastro/login CPF)*. Bloco **6a** ✅ (`https://acme-hub.khfm.workers.dev`).
 > **Regra:** siga **#0 → #11** · dentro de cada bloco → **BACK (B) antes de FRONT (F)**. Checklist espelho: [Checklist mestre](#checklist-mestre-ordem-de-execução).
 
 ### #0 — Planejamento `✅`
@@ -166,7 +164,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ---
 
-### #4 — Bloco 6a · Supabase + deploy global `🟡 5/8`
+### #4 — Bloco 6a · Supabase + deploy global `✅ 8/8`
 
 > **Só após B31 validado.** RLS flexível nesta fase (testes globais).
 
@@ -175,9 +173,9 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 - [x] **BACK:** B41 *(seed PPC global — disciplinas/requisitos read-only)*
 - [x] **BACK:** B42 *(client Supabase — adapter queries SQLite→PG)*
 - [x] **BACK:** B43 *(migrar APIs — dashboard, disciplinas, sync stub)*
-- [@] **OPS:** O1 *(deploy Cloudflare Workers + cron ping Supabase — OpenNext)*
-- [@] **OPS:** O2 *(remover `.db` local em prod — PLANNER_CLOUD + guard SQLite)*
-- [/] **TEST:** T1 *(deploy Cloudflare + cron + smoke URL pública — ver [`t1-smoke-deploy.md`](./plan/t1-smoke-deploy.md))*
+- [x] **OPS:** O1 *(deploy Cloudflare Workers + cron ping Supabase — OpenNext)*
+- [x] **OPS:** O2 *(remover `.db` local em prod — PLANNER_CLOUD + guard SQLite)*
+- [x] **TEST:** T1 *(deploy Cloudflare + cron + smoke URL pública — [`t1-smoke-deploy.md`](./plan/t1-smoke-deploy.md))*
 
 **Ordem 6a:** `PLAN` → `B39 → B41 → B42 → B43` → `O1 → O2` → `T1`
 
@@ -383,7 +381,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ### 1.4 API e Integração UI ↔ SQLite
 
-> **Progresso:** Bloco 1 ✅ · **Bloco 2a/2b** ✅ · **Bloco 6a** — **PLAN** ✅ · **B39–B43** `[x]` · **O1–O2** `[@]` · **T1** `[/]`.
+> **Progresso:** Bloco 1 ✅ · **Bloco 2a/2b** ✅ · **Bloco 6a** ✅ **8/8** · URL **`https://acme-hub.khfm.workers.dev`** · próximo **6b** `B44`.
 
 Roadmap detalhado: ver **[Roadmap #0→#11 no topo](#roadmap-detalhado--ordem-de-execução-0--11)** · [Ordem oficial v3](#ordem-oficial-de-execução-v3). **F19** simulador (2a) `[x]` · **B67** `[x]`.
 
@@ -494,7 +492,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | **#1** | 1 | SQLite local (API + UI) | ✅ **Concluído** | 49/49 |
 | **#2** | 2a | Scraper dev (Playwright local) | ✅ **8/8** · B67 `[x]` · **F19** `[x]` | 8/8 |
 | **#3** | 2b | Worker sync (servidor) | ✅ **5/5** · F19 UI fila `[x]` | 5/5 |
-| **#4** | 6a | Supabase + deploy global | **T1** `[/]` *(deploy + smoke)* | 5/8 |
+| **#4** | 6a | Supabase + deploy global | ✅ **Concluído** · URL pública | 8/8 |
 | **#5** | 6b | Auth: CPF login, cadastro completo | Depois de #4 | 0/9 |
 | **#6** | 6c | RLS multi-tenant | **Obrigatório antes do PIX** | 0/2 |
 | **#6d** | 2c | Orquestração sync + catálogo global | **Antes do mobile (#8)** · policy **§6.6** · **3/6** | 3/6 |
@@ -600,14 +598,14 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 ---
 
-### #4 — Bloco 6a · Cloud — deploy global (testes) `🟡 5/8`
+### #4 — Bloco 6a · Cloud — deploy global (testes) `✅ 8/8`
 
 > Supabase + Postgres + URL pública. **Só após B31 validado.** RLS flexível nesta fase.
 
 - [x] **PLAN:** Projeto Supabase free + env dev/prod — [`docs/plan/6a-supabase-plan.md`](./plan/6a-supabase-plan.md) · **Acme-Hub-dev** · `.env.local` ok
 - [x] **BACK:**  B39 → B41 → B42 → B43
-- [@] **OPS:**   O1 → [@] O2
-- [/] **TEST:**  T1 — deploy Cloudflare + smoke URL (runbook [`t1-smoke-deploy.md`](./plan/t1-smoke-deploy.md))
+- [x] **OPS:**   O1 → O2
+- [x] **TEST:**  T1 — deploy Cloudflare + smoke URL (runbook [`t1-smoke-deploy.md`](./plan/t1-smoke-deploy.md))
 
 **Ordem 6a:** `PLAN` → `B39 → B41 → B42 → B43` → `O1 → O2` → `T1`
 
@@ -708,7 +706,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | **#1** | **1 — SQLite** | ✅ **Concluído** | 49 / 49 |
 | **#2** | **2a — Scraper dev** | ✅ **8/8** · B67 `[x]` · **F19** `[x]` | 8 / 8 |
 | **#3** | **2b — Worker sync** | ✅ **5/5** | 5 / 5 |
-| #4 | 6a — Cloud deploy | 🟡 *(em andamento)* | 5 / 8 |
+| #4 | 6a — Cloud deploy | ✅ **Concluído** | 8 / 8 |
 | #5 | 6b — Cloud auth | ⬜ | 0 / 9 |
 | #6 | 6c — RLS | ⬜ *(antes PIX)* | 0 / 2 |
 | **#6d** | **2c — Orquestração sync** | 🟡 *(antes mobile)* | 3 / 6 |
@@ -994,9 +992,9 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | B41 | Back | Seed PPC global | 61 disciplinas + requisitos · `npm run db:seed-ppc` | [x] |
 | B42 | Back | Client Supabase | `@supabase/supabase-js` + adapter PG (`PLANNER_DATABASE=postgres`) | [x] |
 | B43 | Back | Migrar APIs | dashboard · disciplinas · sync stub cloud | [x] |
-| O1 | Ops | Deploy Frontend | Cloudflare Workers (OpenNext) + cron ping Postgres | [@] |
-| O2 | Ops | Remover `.db` local | `PLANNER_CLOUD` + guard SQLite · stubs fila sync | [@] |
-| T1 | Test | Deploy + smoke | **`npm run deploy:cf`** + cron + health/PPC/UI na URL pública | [/] |
+| O1 | Ops | Deploy Frontend | Cloudflare Workers (OpenNext) + cron ping Postgres | [x] |
+| O2 | Ops | Remover `.db` local | `PLANNER_CLOUD` + guard SQLite · stubs fila sync | [x] |
+| T1 | Test | Deploy + smoke | **`npm run deploy:cf`** + cron + health/PPC/UI na URL pública | [x] |
 
 **Ordem:** `PLAN` → `B39 → B41 → B42 → B43` → `O1 → O2` → `T1`
 
@@ -1016,7 +1014,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Teste estático `npm run test:b39`
 - [x] Migration aplicada no **Acme-Hub-dev** (`npm run db:migrate` · Session pooler `aws-1-sa-east-1`)
 
-> **Próximo:** **T1** — deploy + smoke ([`t1-smoke-deploy.md`](./plan/t1-smoke-deploy.md)). Código pronto; falta operação no Cloudflare.
+> **6a concluído (jul/2026):** URL **`https://acme-hub.khfm.workers.dev`** · cron **`acme-hub-cron-ping`** · smoke T1 ✅. **Próximo:** **6b** `B44`.
 
 #### B41 — Seed PPC global `[x]`
 
@@ -1039,16 +1037,17 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Builders async + query ports (`postgresQueryDeps`)
 - [x] Testes `npm run test:b41-b43`
 
-#### O1 — Deploy Cloudflare + cron ping `[@]`
+#### O1 — Deploy Cloudflare + cron ping `[x]`
 
 - [x] `GET /api/health` — liveness + `?deep=1` com `SELECT 1` no Postgres
 - [x] `CRON_SECRET` — protege ping deep (Bearer / `x-cron-secret`)
 - [x] OpenNext `@opennextjs/cloudflare` · `wrangler.jsonc` · scripts `deploy:cf`
-- [x] Worker `acme-hub-cron-ping` — cron diário 12:00 UTC
+- [x] Worker `acme-hub-cron-ping` — cron diário **15:00 UTC** (= 12:00 BRT)
 - [x] Runbook [`docs/plan/o1-cloudflare-deploy.md`](./plan/o1-cloudflare-deploy.md)
 - [x] Testes `npm run test:o1`
+- [x] **Stakeholder aprovou** — deploy prod jul/2026
 
-#### O2 — Prod sem `.db` local `[@]`
+#### O2 — Prod sem `.db` local `[x]`
 
 - [x] `PLANNER_CLOUD` + auto-detect Workers — cloud força backend `postgres`
 - [x] `assertSqliteAllowed()` — bloqueia `planner.db`, bootstrap SQLite e `sync-queue.db`
@@ -1056,16 +1055,17 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Stubs fila sync cloud (`/api/sync/queue`)
 - [x] Runbook [`docs/plan/o2-prod-postgres.md`](./plan/o2-prod-postgres.md)
 - [x] Testes `npm run test:o2`
+- [x] **Stakeholder aprovou** — guard validado em prod
 
-#### T1 — Deploy Cloudflare + smoke URL pública `[/]`
+#### T1 — Deploy Cloudflare + smoke URL pública `[x]`
 
-> **Em andamento** — stakeholder iniciando deploy (sem aprovação 100% ainda).
+> **Aprovado jul/2026** — URL **`https://acme-hub.khfm.workers.dev`**.
 
-- [x] Push **O2** no remoto
-- [ ] Env vars Cloudflare (`PLANNER_CLOUD`, Postgres, Supabase, `CRON_SECRET`)
-- [ ] `npm run deploy:cf` + `npm run deploy:cron-ping`
-- [ ] Smoke: `/api/health`, `/api/disciplinas/01%2F1`, UI abre
-- [ ] Runbook [`docs/plan/t1-smoke-deploy.md`](./plan/t1-smoke-deploy.md)
+- [x] Env vars Cloudflare (`PLANNER_CLOUD`, Postgres, Supabase, `CRON_SECRET`)
+- [x] `npm run deploy:cf` + `npm run deploy:cron-ping`
+- [x] Smoke: `/api/health`, `/api/health?deep=1` → `"database":"ok"`, `/api/disciplinas/01%2F1`, UI `/`
+- [x] Runbook [`docs/plan/t1-smoke-deploy.md`](./plan/t1-smoke-deploy.md)
+- [x] Login SIGAA na URL pública ainda bloqueado (SQLite bootstrap) — **fora do escopo T1**; normal até **6b**
 
 #### 6b — Auth (#5)
 
@@ -1773,7 +1773,7 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 8. **Próximo passo do roadmap:** informe **depois do push** (tasks em `[@]` ou `[x]`). Com commits locais só `[%]`, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v3](#ordem-oficial-de-execução-v3) — **Bloco 2 (sync) antes do Bloco 6 (Supabase)**. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy **após** sync validado; RLS **só na 6c** (antes do PIX).
-11. **Próximo passo:** concluir **T1** `[/]` (deploy + smoke) — runbook [`t1-smoke-deploy.md`](./plan/t1-smoke-deploy.md). **O1–O2** `[@]` no remoto.
+11. **Próximo passo:** **#5 — Bloco 6b** · **B44** *(conta do aluno — cadastro/login CPF)*. Bloco **6a** ✅ — URL **`https://acme-hub.khfm.workers.dev`**.
 12. **Integralização:** CH concluída = `historico` + PPC (`computeChDoneFromDisciplinas`); portal SIGAA só % / total currículo; matérias já passadas = **B30** ✅.
 13. **Gift + painel dev + simulação mapa:** escopo em `SCOPE.md` §10.7, §6.1.1 · `SCOPE-CLOUD` §6.6 — tasks **B68–B71**, **F39–F41**. Painel: chavinhas R1/R2/R3 + **Orquestração sync** (TTLs/data fixa/batch). **B71** = ocultar senhas SIGAA.
 14. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial. **Polish em task `[x]`** (ex.: F38, dashboard) também exige nota no TASKS no mesmo ciclo do push.

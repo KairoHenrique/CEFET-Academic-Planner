@@ -1,6 +1,7 @@
 import { notFoundError } from "@/lib/api/errors";
 import { getDisciplinaByCodigo } from "@/lib/db/queries";
 import { maxAbsencesFromCefetCh, normalizeCefetCh } from "@/lib/disciplinas/cefet-ch";
+import type { DisciplinaRow } from "@/lib/types/db";
 import type { SubjectDetailResponse } from "@/lib/types/disciplinas-api";
 import { resolvePpcEmenta } from "./resolve-ppc-ementa";
 import { resolveSubjectShortLabel } from "./subject-display-name";

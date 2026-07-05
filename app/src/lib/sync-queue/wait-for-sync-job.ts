@@ -19,7 +19,7 @@ export async function waitForSyncJob(
 
     if (job.status === "failed") {
       throw new ApiError(
-        job.error?.code ?? "WORKER_JOB_FAILED",
+        "INTERNAL_ERROR",
         job.error?.message ?? "Falha no sync enfileirado.",
         500
       );
