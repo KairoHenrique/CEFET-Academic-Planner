@@ -45,6 +45,12 @@ import type { NotificationsSnapshotResponse } from "@/lib/types/notifications-ap
 import type { PerfilResponse, PatchPerfilBody } from "@/lib/types/perfil-api";
 import type { ScheduleApiResponse } from "@/lib/types/schedule-api";
 import type {
+  AccountAuthResponse,
+  AuthConfigResponse,
+  LoginAccountBody,
+  RegisterAccountBody,
+} from "@/lib/types/auth-api";
+import type {
   TurmasOfertadasResponse,
   TurmasOfertadasSyncResponse,
 } from "@/lib/types/turmas-ofertadas-api";
@@ -52,6 +58,10 @@ import type {
 export type ClientErrorCode =
   | "VALIDATION_ERROR"
   | "INVALID_CREDENTIALS"
+  | "ACCOUNT_EXISTS"
+  | "AUTH_UNAVAILABLE"
+  | "UNAUTHORIZED"
+  | "SUBSCRIPTION_REQUIRED"
   | "SIGAA_OFFLINE"
   | "SIGAA_TIMEOUT"
   | "SIGAA_AUTH_FAILED"
@@ -91,10 +101,20 @@ async function parseJsonBody<T>(response: Response): Promise<T> {
   }
 }
 
-function buildSigaaUserHeaders(username?: string): HeadersInit {
-  const activeUser = username?.trim() || getSession()?.username?.trim();
-  if (!activeUser) return {};
-  return { "X-Planner-Sigaa-User": activeUser };
+function buildRequestAuthHeaders(username?: string): HeadersInit {
+  const session = getSession();
+  const headers: Record<string, string> = {};
+
+  if (session?.mode === "cloud" && session.accessToken?.trim()) {
+    headers.Authorization = `Bearer ${session.accessToken.trim()}`;
+  }
+
+  const activeUser = username?.trim() || session?.username?.trim();
+  if (activeUser) {
+    headers["X-Planner-Sigaa-User"] = activeUser;
+  }
+
+  return headers;
 }
 
 async function requestJson<T>(
@@ -109,7 +129,7 @@ async function requestJson<T>(
       ...init,
       headers: {
         "Content-Type": "application/json",
-        ...buildSigaaUserHeaders(sigaaUsername),
+        ...buildRequestAuthHeaders(sigaaUsername),
         ...init?.headers,
       },
     });
@@ -132,6 +152,28 @@ async function requestJson<T>(
   }
 
   return body;
+}
+
+export async function getAuthConfig(): Promise<AuthConfigResponse> {
+  return requestJson<AuthConfigResponse>("/api/auth/config");
+}
+
+export async function postAuthRegister(
+  body: RegisterAccountBody
+): Promise<AccountAuthResponse> {
+  return requestJson<AccountAuthResponse>("/api/auth/register", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function postAuthLogin(
+  body: LoginAccountBody
+): Promise<AccountAuthResponse> {
+  return requestJson<AccountAuthResponse>("/api/auth/login", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
 }
 
 export async function getSyncReadiness(
