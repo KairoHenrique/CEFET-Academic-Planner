@@ -4,6 +4,10 @@ import { isPostgresBackend } from "@/lib/db/backend/config";
 import { runWithUserDb } from "@/lib/db/connection-manager";
 import { runWithQueryCursoId } from "@/lib/auth/account/query-curso-context";
 import { resolveProfileFromAuthorization } from "@/lib/auth/account/resolve-profile-from-request";
+import {
+  enforceAppAccessGate,
+  shouldEnforceAccessGate,
+} from "@/lib/auth/access/access-gate";
 import { apiErrorResponse } from "./response";
 
 const SIGAA_USER_HEADER = "x-planner-sigaa-user";
@@ -44,6 +48,15 @@ export function withDb<TContext = unknown>(
       const profile = await resolveProfileFromAuthorization(
         request.headers.get("Authorization")
       );
+
+      if (shouldEnforceAccessGate(request)) {
+        try {
+          await enforceAppAccessGate(profile);
+        } catch (error) {
+          return apiErrorResponse(error);
+        }
+      }
+
       const scopedUsername = profile?.cpf ?? username;
 
       return runWithQueryCursoId(profile?.cursoId, () =>

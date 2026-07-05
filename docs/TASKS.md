@@ -41,7 +41,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ## Roadmap detalhado — ordem de execução (#0 → #11)
 
-> **Próximo oficial:** **#5 — Bloco 6b** · **B63** *(`curso_id` — mapa/integralização filtram PPC)*. Bloco **6a** ✅ (`https://acme-hub.khfm.workers.dev`).
+> **Próximo oficial:** **#5 — Bloco 6b** · **F29** *(cadastro + login produção — UI CPF)*. Bloco **6a** ✅ (`https://acme-hub.khfm.workers.dev`).
 > **Regra:** siga **#0 → #11** · dentro de cada bloco → **BACK (B) antes de FRONT (F)**. Checklist espelho: [Checklist mestre](#checklist-mestre-ordem-de-execução).
 
 ### #0 — Planejamento `✅`
@@ -189,7 +189,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 - [%] **BACK:** B45 *(credenciais cifradas AES no servidor — obrigatório para worker **B56**)*
 - [%] **BACK:** B58 *(trial por CPF — `trial_por_cpf` 7 dias uma vez; anti-abuso)*
 - [%] **BACK:** B63 *(`curso_id` — Comp/Meca/Moda; mapa/integralização filtram PPC)*
-- [ ] **BACK:** B59 *(gate de acesso — middleware trial_active/active vs expirado → billing)*
+- [%] **BACK:** B59 *(gate de acesso — middleware trial_active/active vs expirado → billing)*
 - [ ] **FRONT:** F29 *(cadastro + login produção — CPF explícito no login)*
 - [ ] **FRONT:** F36 *(menu Config no avatar — toggle e-mails promocionais)*
 - [ ] **BACK:** B61 *(`promocoes_email_ativas` + PATCH configurações)*
@@ -381,7 +381,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ### 1.4 API e Integração UI ↔ SQLite
 
-> **Progresso:** Bloco 1 ✅ · **Bloco 2a/2b** ✅ · **Bloco 6a** ✅ **8/8** · **6b** `B44`+`B45`+`B58` **`[%]`** · URL **`https://acme-hub.khfm.workers.dev`**.
+> **Progresso:** Bloco 1 ✅ · **Bloco 2a/2b** ✅ · **Bloco 6a** ✅ **8/8** · **6b** BACK **B44→B59** **`[%]`** · URL **`https://acme-hub.khfm.workers.dev`**.
 
 Roadmap detalhado: ver **[Roadmap #0→#11 no topo](#roadmap-detalhado--ordem-de-execução-0--11)** · [Ordem oficial v3](#ordem-oficial-de-execução-v3). **F19** simulador (2a) `[x]` · **B67** `[x]`.
 
@@ -1015,7 +1015,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Teste estático `npm run test:b39`
 - [x] Migration aplicada no **Acme-Hub-dev** (`npm run db:migrate` · Session pooler `aws-1-sa-east-1`)
 
-> **6a concluído (jul/2026):** URL **`https://acme-hub.khfm.workers.dev`** · cron **`acme-hub-cron-ping`** · smoke T1 ✅. **6b:** **B44**+**B45**+**B58** **`[%]`** — cadastro/login CPF, credenciais AES, trial 7d por CPF.
+> **6a concluído (jul/2026):** URL **`https://acme-hub.khfm.workers.dev`** · cron **`acme-hub-cron-ping`** · smoke T1 ✅. **6b BACK:** **B44**→**B59** **`[%]`** — auth CPF, trial, curso_id, gate API cloud.
 
 #### B41 — Seed PPC global `[x]`
 
@@ -1078,7 +1078,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | B44 | Back | Conta do aluno | Cadastro: e-mail, telefone, CPF, `curso_id`, senha cifrada; **login só CPF** | [%] |
 | B45 | Back | Credenciais cifradas | Persistência AES (CPF + senha) no servidor — **obrigatório** para sync sem usuário online (worker **B56**) | [%] |
 | B58 | Back | Trial por CPF | Registro `trial_por_cpf`: 7 dias **uma vez** por CPF (anti-abuso) | [%] |
-| B59 | Back | Gate de acesso | Middleware: `trial_active` \| `active` liberam; expirado → billing | [ ] |
+| B59 | Back | Gate de acesso | Middleware: `trial_active` \| `active` liberam; expirado → billing | [%] |
 | B63 | Back | `curso_id` na conta | Enum Comp/Meca/Moda; mapa/integralização filtram PPC por curso | [%] |
 | B61 | Back | Preferências contato | `promocoes_email_ativas` + PATCH configurações | [ ] |
 | F29 | Front | Cadastro + login | Cadastro: e-mail, tel, CPF, curso, senha · Login: **só CPF + senha** | [ ] |

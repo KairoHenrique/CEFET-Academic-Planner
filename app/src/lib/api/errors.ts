@@ -3,6 +3,8 @@ export type ApiErrorCode =
   | "INVALID_CREDENTIALS"
   | "ACCOUNT_EXISTS"
   | "AUTH_UNAVAILABLE"
+  | "UNAUTHORIZED"
+  | "SUBSCRIPTION_REQUIRED"
   | "SIGAA_OFFLINE"
   | "SIGAA_TIMEOUT"
   | "SIGAA_AUTH_FAILED"
@@ -61,6 +63,19 @@ export function authUnavailableError(
   message = "Autenticação cloud indisponível."
 ): ApiError {
   return new ApiError("AUTH_UNAVAILABLE", message, 503);
+}
+
+export function unauthorizedError(
+  message = "Não autenticado."
+): ApiError {
+  return new ApiError("UNAUTHORIZED", message, 401);
+}
+
+export function subscriptionRequiredError(
+  message = "Assinatura necessária para continuar.",
+  details?: unknown
+): ApiError {
+  return new ApiError("SUBSCRIPTION_REQUIRED", message, 403, details);
 }
 
 export function internalError(message = "Erro interno do servidor."): ApiError {
