@@ -1,3 +1,5 @@
+import type { AppCursoId } from "@/lib/auth/account/types";
+import { resolveQueryCursoId } from "@/lib/db/resolve-query-curso-id";
 import type { IntegrationCategory } from "@/lib/types/integration";
 import { INTEGRATION_TOTAL_HOURS } from "@/lib/types/integration";
 
@@ -42,8 +44,21 @@ export function isChType(value: string): value is ChType {
   return CH_TYPES.includes(value as ChType);
 }
 
+export function getChCatalogForCurso(
+  cursoId: AppCursoId | string = resolveQueryCursoId()
+): readonly ChCatalogEntry[] {
+  switch (cursoId) {
+    case "eng-computacao":
+    case "eng-mecatronica":
+    case "design-moda":
+      return ENG_COMPUTACAO_CH_CATALOG;
+    default:
+      return ENG_COMPUTACAO_CH_CATALOG;
+  }
+}
+
 export function getChCatalog(): readonly ChCatalogEntry[] {
-  return ENG_COMPUTACAO_CH_CATALOG;
+  return getChCatalogForCurso(resolveQueryCursoId());
 }
 
 export function getIntegrationTotalHours(): number {

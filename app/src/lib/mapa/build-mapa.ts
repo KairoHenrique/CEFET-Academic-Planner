@@ -23,7 +23,14 @@ import { computeChDoneFromDisciplinas } from "@/lib/integralizacao/compute-ch-fr
 import { getChCatalog } from "@/lib/integralizacao/ch-catalog";
 import { mapDisciplineTipoToChType } from "@/lib/integralizacao/map-discipline-tipo-to-ch";
 import { getObrigatoriaTotalFromCatalog } from "@/lib/mapa/period-ch-gates";
-import type { DisciplinaRow } from "@/lib/types/db";
+import type {
+  AlunoRow,
+  DisciplinaRow,
+  HistoricoRow,
+  IntegralizacaoRow,
+  RequisitoRow,
+  SemestreAtualWithDisciplina,
+} from "@/lib/types/db";
 import type {
   CourseMapNode,
   CourseMapPeriod,
@@ -108,24 +115,30 @@ function buildPeriods(
   }));
 }
 
-export function buildMapa(): MapaResponse {
-  const aluno = getAluno();
-  if (!aluno) {
-    throw notFoundError(
-      "Nenhum dado sincronizado. Faça login e sincronize com o SIGAA."
-    );
-  }
+interface MapaAssemblyInput {
+  cursoLabel: string;
+  disciplinas: DisciplinaRow[];
+  semestreAtual: SemestreAtualWithDisciplina[];
+  historico: HistoricoRow[];
+  requisitos: RequisitoRow[];
+  integralizacaoRows: IntegralizacaoRow[];
+}
 
-  const disciplinas = getDisciplinas();
+function assembleMapaFromData(input: MapaAssemblyInput): MapaResponse {
+  const {
+    cursoLabel,
+    disciplinas,
+    semestreAtual,
+    historico,
+    requisitos,
+    integralizacaoRows,
+  } = input;
+
   if (disciplinas.length === 0) {
     throw notFoundError(
       "Grade curricular não encontrada. Execute o seed do PPC ou sincronize com o SIGAA."
     );
   }
-
-  const semestreAtual = getSemestreAtual();
-  const historico = getHistorico();
-  const requisitos = getRequisitos();
 
   const current = mergeDisciplinaSets(
     buildCurrentDisciplinaSet(semestreAtual.map((row) => row.disciplina_id)),
@@ -134,7 +147,6 @@ export function buildMapa(): MapaResponse {
   const completed = buildCompletedDisciplinaSet(historico);
   const preRequisitos = buildPreRequisitoMap(requisitos);
   const catalog = getChCatalog();
-  const integralizacaoRows = getIntegralizacao();
   const syncedObrigatoria =
     integralizacaoRows.find(
       (row) => row.tipo_ch === "Obrigatória" && row.manual === 0
@@ -165,7 +177,7 @@ export function buildMapa(): MapaResponse {
   const totals = countStatusTotals(statuses);
 
   return {
-    curso: aluno.curso ?? "Engenharia de Computação",
+    curso: cursoLabel,
     statusLabels: COURSE_MAP_STATUS_LABELS,
     periods,
     stats: {
@@ -177,4 +189,52 @@ export function buildMapa(): MapaResponse {
     },
     historicoSynced: historico.length > 0,
   };
+}
+
+export interface MapaQueryDeps {
+  getAluno: () => Promise<AlunoRow | undefined>;
+  getDisciplinas: () => Promise<DisciplinaRow[]>;
+  getSemestreAtual: () => Promise<SemestreAtualWithDisciplina[]>;
+  getHistorico: () => Promise<HistoricoRow[]>;
+  getRequisitos: () => Promise<RequisitoRow[]>;
+  getIntegralizacao: () => Promise<IntegralizacaoRow[]>;
+}
+
+export async function buildMapaFromQueries(
+  deps: MapaQueryDeps,
+  options?: { cursoLabel?: string }
+): Promise<MapaResponse> {
+  const aluno = await deps.getAluno();
+  if (!aluno) {
+    throw notFoundError(
+      "Nenhum dado sincronizado. Faça login e sincronize com o SIGAA."
+    );
+  }
+
+  return assembleMapaFromData({
+    cursoLabel: options?.cursoLabel ?? aluno.curso ?? "Engenharia de Computação",
+    disciplinas: await deps.getDisciplinas(),
+    semestreAtual: await deps.getSemestreAtual(),
+    historico: await deps.getHistorico(),
+    requisitos: await deps.getRequisitos(),
+    integralizacaoRows: await deps.getIntegralizacao(),
+  });
+}
+
+export function buildMapa(): MapaResponse {
+  const aluno = getAluno();
+  if (!aluno) {
+    throw notFoundError(
+      "Nenhum dado sincronizado. Faça login e sincronize com o SIGAA."
+    );
+  }
+
+  return assembleMapaFromData({
+    cursoLabel: aluno.curso ?? "Engenharia de Computação",
+    disciplinas: getDisciplinas(),
+    semestreAtual: getSemestreAtual(),
+    historico: getHistorico(),
+    requisitos: getRequisitos(),
+    integralizacaoRows: getIntegralizacao(),
+  });
 }
