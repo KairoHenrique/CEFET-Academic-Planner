@@ -176,7 +176,8 @@ Executar **nesta ordem**, no **mesmo turno**:
 5. **`git add`** só `docs/TASKS.md` (+ `docs/SCOPE.md` / `docs/SCOPE-CLOUD.md` se alterados).
 6. **`git commit`** — mensagem `docs: aprova {IDs/bloco} (push {mês/ano})` (ou incluir no commit de código se ainda não commitado).
 7. **`git push`** — todos os commits locais pendentes (código + docs).
-8. **Resposta ao usuário:** confirma push · tasks marcadas **`[x]`** · **Próximo na ordem:** {ID oficial do item 11}.
+8. **[Ops pós-deploy](#ops-pós-deploy-automático)** — migrations + cron workers (quando aplicável).
+9. **Resposta ao usuário:** confirma push · tasks marcadas **`[x]`** · ops rodadas · **Próximo na ordem:** {ID oficial do item 11}.
 
 **Proibido** neste gatilho: parar após push sem sync `[x]` · deixar `TASKS.md` unstaged · responder "próximo passo" com bloco ainda em `[%]`.
 
@@ -185,6 +186,23 @@ Executar **nesta ordem**, no **mesmo turno**:
 1. Mesmos passos 1–4, mas transição **`[%]` → `[@]`** (não `[x]`).
 2. Commit docs + push.
 3. Resposta: tasks em **`[@]`** · bugs/ressalvas se o usuário citou · **Próximo na ordem** permitido.
+
+---
+
+## Ops pós-deploy (automático)
+
+**Não delegar ao usuário** — rodar no mesmo turno após push/aprovação quando a entrega incluir:
+
+| Gatilho | Comando | Quando |
+|---------|---------|--------|
+| Nova migration em `supabase/migrations/` | `cd app && npm run db:migrate` | Sempre após merge/push de task **B*** com SQL |
+| **B62** / fila e-mail / `POST /api/cron/account-emails` | `cd app && npm run deploy:crons` | Após migrate + app no ar (secrets em `.env.local`) |
+| App cloud alterado (API Routes) | `cd app && npm run deploy:cf` | Quando código em `app/src/app/api/` mudou na task |
+
+**Requisitos:** `app/.env.local` com `DATABASE_URL`, `CRON_SECRET` e URL pública (`PLANNER_HEALTH_URL` ou default prod).  
+**Smoke opcional:** `POST /api/cron/account-emails` com Bearer `CRON_SECRET` → `{ "ok": true, ... }`.
+
+**Proibido:** lembrar o usuário de rodar migrate/cron manualmente sem tentar executar primeiro.
 
 ---
 
