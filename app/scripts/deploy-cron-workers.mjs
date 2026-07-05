@@ -75,6 +75,7 @@ console.log(`App URL: ${appUrl}`);
 
 const pingConfig = "workers/cron-ping/wrangler.jsonc";
 const emailsConfig = "workers/cron-account-emails/wrangler.jsonc";
+const orchestratorConfig = "workers/cron-sync-orchestrator/wrangler.jsonc";
 
 putSecret("CRON_SECRET", cronSecret, pingConfig);
 putSecret("PLANNER_HEALTH_URL", appUrl, pingConfig);
@@ -83,5 +84,9 @@ deploy(pingConfig);
 putSecret("CRON_SECRET", cronSecret, emailsConfig);
 putSecret("PLANNER_APP_URL", appUrl, emailsConfig);
 deploy(emailsConfig);
+
+putSecret("CRON_SECRET", cronSecret, orchestratorConfig);
+putSecret("PLANNER_APP_URL", appUrl, orchestratorConfig);
+deploy(orchestratorConfig);
 
 console.log("Cron workers deployados.");

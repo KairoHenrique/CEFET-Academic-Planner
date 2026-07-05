@@ -1,4 +1,9 @@
 import { validationError } from "@/lib/api/errors";
+import { readEffectiveSyncPolicySync } from "@/lib/sync-policy/app-config-store";
+import {
+  normalizeSyncMode,
+  resolveSyncModeForTrigger,
+} from "@/lib/sync-policy/resolve-sync-mode";
 import type {
   EnqueueSyncJobInput,
   SyncJobTrigger,
@@ -45,12 +50,21 @@ export function parseEnqueueSyncQueueRequest(body: unknown): EnqueueSyncJobInput
     throw validationError("Informe o usuário do SIGAA.");
   }
 
+  const trigger = parseTrigger(record.trigger ?? "manual");
+  const policy = readEffectiveSyncPolicySync();
+  const requestedMode =
+    typeof record.mode === "string" ? record.mode : undefined;
+
   return {
     username,
     password,
     lane: parseLane(record.lane ?? "normal"),
-    trigger: parseTrigger(record.trigger ?? "manual"),
-    mode: record.mode === "incremental" ? "incremental" : "full",
+    trigger,
+    mode: resolveSyncModeForTrigger({
+      trigger,
+      requestedMode,
+      buttonScope: policy.buttonScope,
+    }),
     savePassword: record.savePassword === true,
     idempotencyKey:
       typeof record.idempotencyKey === "string"

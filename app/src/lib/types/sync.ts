@@ -1,6 +1,6 @@
 import type { SyncJobTrigger } from "@/lib/sync-queue/types";
 
-export type SyncMode = "full" | "incremental";
+export type SyncMode = "full" | "lite" | "deep" | "incremental";
 
 export interface SyncStep {
   label: string;

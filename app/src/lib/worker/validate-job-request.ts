@@ -30,8 +30,12 @@ export function parseWorkerJobRequest(body: unknown): WorkerJobRequest {
   }
 
   const mode =
-    record.mode === "incremental" || record.mode === "full"
-      ? record.mode
+    typeof record.mode === "string"
+      ? (["full", "lite", "deep", "incremental"] as const).includes(
+          record.mode as "full"
+        )
+        ? (record.mode as WorkerJobRequest["mode"])
+        : undefined
       : undefined;
 
   return {

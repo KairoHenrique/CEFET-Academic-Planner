@@ -22,7 +22,7 @@ export function useAutoSync(
   startSync: (
     credentials?: undefined,
     options?: {
-      mode?: "full" | "incremental";
+      mode?: "full" | "lite" | "deep" | "incremental";
       background?: boolean;
       trigger?: "auto" | "manual" | "first_login";
     }
@@ -47,7 +47,7 @@ export function useAutoSync(
     if (consumeBackgroundSyncPending()) {
       entrySyncDoneRef.current = true;
       void startSyncRef.current(undefined, {
-        mode: "incremental",
+        mode: "lite",
         background: true,
         trigger: "auto",
       });
@@ -68,7 +68,7 @@ export function useAutoSync(
       if (!creds?.username || needsSyncPassword(creds.username)) return;
 
       void startSyncRef.current(undefined, {
-        mode: "incremental",
+        mode: "lite",
         background: true,
         trigger: "auto",
       });

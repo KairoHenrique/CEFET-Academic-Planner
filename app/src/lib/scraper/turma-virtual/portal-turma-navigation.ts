@@ -551,13 +551,18 @@ export interface DisciplinaPagesHtml {
 
 export async function scrapeDisciplinaPages(
   page: Page,
-  disciplinaLabel: string
+  disciplinaLabel: string,
+  options?: { subpageKeys?: string[] }
 ): Promise<DisciplinaPagesHtml | null> {
   const entered = await enterDisciplinaFromPortal(page, disciplinaLabel);
   if (!entered) {
     console.warn(`[scraper:turma] Não entrou em "${disciplinaLabel}"`);
     return null;
   }
+
+  const allowed = options?.subpageKeys
+    ? new Set(options.subpageKeys)
+    : null;
 
   const results: DisciplinaPagesHtml = {
     notasHtml: null,
@@ -568,6 +573,10 @@ export async function scrapeDisciplinaPages(
   };
 
   for (const config of TURMA_SUBPAGES) {
+    if (allowed && !allowed.has(config.key)) {
+      continue;
+    }
+
     const html = await navigateToSubpage(page, config, disciplinaLabel);
 
     if (config.key === "notas") results.notasHtml = html;

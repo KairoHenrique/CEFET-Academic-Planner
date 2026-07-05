@@ -14,6 +14,8 @@ import type {
   EnqueueSyncJobResult,
   SyncQueueLane,
 } from "@/lib/sync-queue/types";
+import { readEffectiveSyncPolicySync } from "@/lib/sync-policy/app-config-store";
+import { resolveSyncModeForTrigger } from "@/lib/sync-policy/resolve-sync-mode";
 import { getSyncLastAt } from "@/lib/sync/sync-preferences";
 import {
   isAutoSyncEligible,
@@ -91,7 +93,13 @@ export async function enqueueSyncJob(
 
   const now = new Date().toISOString();
   const jobId = randomUUID();
-  const mode = input.mode ?? "full";
+  const policy = readEffectiveSyncPolicySync();
+  const mode =
+    input.mode ??
+    resolveSyncModeForTrigger({
+      trigger: input.trigger,
+      buttonScope: policy.buttonScope,
+    });
   const lane = resolveLane(input);
 
   insertSyncJob({
