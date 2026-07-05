@@ -4,9 +4,14 @@ import { brand } from "@/config/brand";
 interface LoginCardProps {
   children: React.ReactNode;
   foot?: React.ReactNode;
+  subtitle?: string;
 }
 
-export function LoginCard({ children, foot }: LoginCardProps) {
+export function LoginCard({
+  children,
+  foot,
+  subtitle = "Mesmo usuário e senha do portal SIGAA.",
+}: LoginCardProps) {
   return (
     <div className="login-page">
       <div className="login-card card">
@@ -18,9 +23,7 @@ export function LoginCard({ children, foot }: LoginCardProps) {
               <h1 className="login-title">{brand.name}</h1>
             </div>
           </div>
-          <p className="login-subtitle">
-            Mesmo usuário e senha do portal SIGAA.
-          </p>
+          <p className="login-subtitle">{subtitle}</p>
         </header>
 
         <div className="login-body">{children}</div>

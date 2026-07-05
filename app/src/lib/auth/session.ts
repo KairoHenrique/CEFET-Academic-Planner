@@ -1,11 +1,21 @@
 import { clearSyncCredentials } from "@/lib/auth/credentials";
+import type { AppCursoId } from "@/lib/auth/account/types";
 
 const SESSION_KEY = "academic-planner-session";
+
+export type AuthSessionMode = "sigaa" | "cloud";
 
 export interface AuthSession {
   username: string;
   savePassword: boolean;
   loggedAt: string;
+  mode?: AuthSessionMode;
+  cpf?: string;
+  email?: string;
+  cursoId?: AppCursoId;
+  accessToken?: string;
+  refreshToken?: string;
+  expiresAt?: number;
 }
 
 export function getSession(): AuthSession | null {
@@ -28,5 +38,16 @@ export function clearSession() {
 }
 
 export function isAuthenticated(): boolean {
-  return Boolean(getSession());
+  const session = getSession();
+  if (!session) return false;
+
+  if (session.mode === "cloud") {
+    return Boolean(session.accessToken?.trim());
+  }
+
+  return Boolean(session.username?.trim());
+}
+
+export function isCloudSession(session: AuthSession | null = getSession()): boolean {
+  return session?.mode === "cloud";
 }
