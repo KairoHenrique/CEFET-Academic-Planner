@@ -72,8 +72,10 @@ Assinatura **por período de acesso** (v1):
 | Plano | Duração | Observação |
 |---|---|---|
 | **Trial** | **7 dias** | **Uma vez por CPF** (login SIGAA); ver `SCOPE.md` §2.1 |
-| **Semestre** | ~6 meses | Alinhado ao calendário acadêmico |
-| **Ano** | 12 meses | Desconto vs. 2 semestres (TBD) |
+| **Trimestre** | **3 meses** | Plano base — **R$ 50** (v1) |
+| **Semestre** | **6 meses** | **R$ 85** — desconto vs. 2 trimestres |
+| **Ano** | **12 meses** | **R$ 150** — desconto vs. 2 semestres |
+| **5 anos** | **60 meses** | **R$ 700** — desconto vs. 5 anuais |
 
 ### 3.2 Fluxo de cadastro + trial + pagamento
 
@@ -660,7 +662,8 @@ Durante beta/testes com URL pública:
 
 ## 12. Decisões em aberto (TBD)
 
-- [ ] Preços dos planos (semestre / ano)
+- [x] **Catálogo canônico de planos** (trial / trimestre / semestre / ano) — `app/src/lib/billing/` + `GET /api/billing/plans` (**B47**)
+- [x] **Preços base v1:** R$ 50 (3m) · R$ 85 (6m) · R$ 150 (12m) · R$ 700 (5a) — override via `BILLING_PRICE_*` env
 - [ ] Gateway PIX definitivo
 
 - [ ] **Orquestração sync + catálogo global** — policy **§6.6** (jul/2026); implementar **B68d–f** + worker **B54–B56**; painel policy **B70/F41**

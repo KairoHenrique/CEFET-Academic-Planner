@@ -20,6 +20,7 @@
     "test:b68e": "tsx --test tests/b68e-sync-orchestrator.test.ts",
     "test:b68f": "tsx --test tests/b68f-sync-pipeline-policy.test.ts",
     "test:b70": "tsx --test tests/b70-dev-panel-api.test.ts",
+    "test:b47": "tsx --test tests/b47-plan-catalog.test.ts",
     "test:t2": "tsx --env-file=.env.local --test tests/t2-rls-isolation.test.ts",
     "test:b41-b43": "tsx --test tests/b41-b43-postgres.test.ts",
     "smoke:t2": "node scripts/smoke-t2-isolation.mjs",
