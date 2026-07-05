@@ -156,6 +156,28 @@ if (command === "build") {
   process.exit(runOpenNext("build"));
 }
 
+if (command === "deploy") {
+  const wranglerPath = path.join(process.cwd(), "wrangler.jsonc");
+  const wranglerBackup = fs.readFileSync(wranglerPath, "utf8");
+  const inject = spawnSync("node", ["scripts/inject-wrangler-vars.mjs"], {
+    stdio: "inherit",
+    cwd: process.cwd(),
+  });
+  if ((inject.status ?? 1) !== 0) {
+    process.exit(inject.status ?? 1);
+  }
+
+  const buildStatusDeploy = runOpenNext("build");
+  if (buildStatusDeploy !== 0) {
+    fs.writeFileSync(wranglerPath, wranglerBackup);
+    process.exit(buildStatusDeploy);
+  }
+
+  const deployStatus = runOpenNext("deploy");
+  fs.writeFileSync(wranglerPath, wranglerBackup);
+  process.exit(deployStatus);
+}
+
 const buildStatus = runOpenNext("build");
 if (buildStatus !== 0) {
   process.exit(buildStatus);

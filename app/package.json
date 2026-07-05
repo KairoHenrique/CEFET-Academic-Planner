@@ -25,6 +25,7 @@
     "deploy:cron-ping": "wrangler deploy --config workers/cron-ping/wrangler.jsonc",
     "deploy:cron-emails": "wrangler deploy --config workers/cron-account-emails/wrangler.jsonc",
     "deploy:crons": "node scripts/deploy-cron-workers.mjs",
+    "smoke:cron": "node scripts/smoke-cron.mjs",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
     "worker:dev": "tsx worker/main.ts",
     "worker:start": "tsx worker/main.ts",

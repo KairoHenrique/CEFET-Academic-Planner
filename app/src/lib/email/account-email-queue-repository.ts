@@ -68,47 +68,29 @@ export async function claimPendingAccountEmails(
   limit = 20
 ): Promise<AccountEmailQueueRow[]> {
   const pool = getPostgresPool();
-  const client = await pool.connect();
 
-  try {
-    await client.query("BEGIN");
-
-    const result = await client.query<QueueRowRecord>(
-      `SELECT id, user_id, cpf, to_email, kind, dedupe_key, subject, body_text,
-              status, scheduled_for, attempts, last_error, sent_at, created_at
+  // Uma única query (sem pool.connect) — compatível com Cloudflare Workers / pg pool.
+  const result = await pool.query<QueueRowRecord>(
+    `WITH picked AS (
+       SELECT id
        FROM account_email_queue
        WHERE status = 'pending'
          AND scheduled_for <= now()
        ORDER BY scheduled_for ASC, created_at ASC
        LIMIT $1
-       FOR UPDATE SKIP LOCKED`,
-      [limit]
-    );
+       FOR UPDATE SKIP LOCKED
+     )
+     UPDATE account_email_queue q
+     SET status = 'processing', attempts = q.attempts + 1
+     FROM picked
+     WHERE q.id = picked.id
+     RETURNING q.id, q.user_id, q.cpf, q.to_email, q.kind, q.dedupe_key, q.subject,
+               q.body_text, q.status, q.scheduled_for, q.attempts, q.last_error,
+               q.sent_at, q.created_at`,
+    [limit]
+  );
 
-    const ids = result.rows.map((row) => row.id);
-    if (ids.length === 0) {
-      await client.query("COMMIT");
-      return [];
-    }
-
-    await client.query(
-      `UPDATE account_email_queue
-       SET status = 'processing', attempts = attempts + 1
-       WHERE id = ANY($1::uuid[])`,
-      [ids]
-    );
-
-    await client.query("COMMIT");
-
-    return result.rows.map((row) =>
-      mapQueueRow({ ...row, status: "processing", attempts: row.attempts + 1 })
-    );
-  } catch (error) {
-    await client.query("ROLLBACK");
-    throw error;
-  } finally {
-    client.release();
-  }
+  return result.rows.map(mapQueueRow);
 }
 
 export async function markAccountEmailSent(id: string): Promise<void> {
