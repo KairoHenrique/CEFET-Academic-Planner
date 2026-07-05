@@ -9,7 +9,7 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
 > - **Regras acadêmicas:** [`docs/SCOPE.md`](./SCOPE.md)
 > - **Ordem de execução:** [§ Ordem oficial](#ordem-oficial-de-execução-v3)
 > - **Modo testes:** deploy global após sync validado; RLS na fase 6c (antes do PIX)
-> **Pré-mobile (#8):** **#6d** ✅ + **#6e** + **#7** + **#9 + #10** (site maduro + **F28**) · policy **§6.6** · **B68a–f** ✅ · **próximo: B70**
+> **Pré-mobile (#8):** **#6d** ✅ + **#6e** ✅ + **#7** + **#9 + #10** (site maduro + **F28**) · policy **§6.6** · **B68a–f** ✅
 
 **Navegação rápida:** [Roadmap detalhado (#0→#11)](#roadmap-detalhado--ordem-de-execução-0--11) · [Sequência #0→#11](#sequência-completa--o-que-fazer-e-em-qual-ordem) · [Ordem oficial v3](#ordem-oficial-de-execução-v3) · [Checklist BACK→FRONT](#checklist-mestre-ordem-de-execução) · [Detalhe por bloco](#detalhe-dos-blocos) · [#6d orquestração sync](#6d--orquestração-sync--catálogo-global-pré-mobile) · [#6e painel dev](#6e--painel-dev--policy-pré-pix) · [Escopo cloud](./SCOPE-CLOUD.md) · [Marco testes gerais](#marco--site-no-ar-para-testes-gerais) · [Apêndice escopo futuro](#apêndice--escopo-futuro-fora-da-ordem-011) · [Apêndice B65 dev](#apêndice--b65-sync-automático-dev-remover-antes-de-produção) · [Apêndice gift + painel dev](#apêndice--chaves-gift-e-painel-dev-jun2026)
 
@@ -41,7 +41,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ## Roadmap detalhado — ordem de execução (#0 → #11)
 
-> **Próximo oficial:** **#6e — B70** *(painel dev API · policy §6.6)* → **F41** → depois **#7** PIX.
+> **Próximo oficial:** **#7 — PIX** (`B47`…).
 > **Regra:** siga **#0 → #11** · dentro de cada bloco → **BACK (B) antes de FRONT (F)**. Checklist espelho: [Checklist mestre](#checklist-mestre-ordem-de-execução).
 
 ### #0 — Planejamento `✅`
@@ -224,12 +224,12 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ---
 
-### #6e — Painel dev + policy (pré-PIX) `⬜ 0/2`
+### #6e — Painel dev + policy (pré-PIX) `✅ 2/2`
 
-> **Só após #6d.** Fecha o ciclo **B68-orq**: policy editável no `/dev`, chavinhas R1/R2/R3 e ops **sem cooldown** (O3). **Antes do billing PIX (#7).**
+> **Só após #6d.** Fecha o ciclo **B68-orq**: policy editável no `/dev`, robôs R1/R2/R3 modulares e ops **sem cooldown** (O3). **Antes do billing PIX (#7).**
 
-- [ ] **BACK:** B70 *(painel dev API — `/api/dev/*`; login operador; contas, chaves, promoções; **`GET/PATCH /api/dev/sync-policy`** §6.6; disparo robôs **sem cooldown**)*
-- [ ] **FRONT:** F41 *(painel `/dev` — login operador; contas/chaves; chavinhas R1/R2/R3; **seção Orquestração sync** — TTLs, data fixa, batch noturno, `max_concurrent`; individual/global)*
+- [x] **BACK:** B70 *(painel dev API — `/api/dev/*`; login operador; contas+assinatura; **`GET/PATCH /api/dev/sync-policy`** §6.6; **`GET /api/dev/sync-status`**; robôs modulares sem cooldown · `test:b70` · chaves gift = **B69**/F41)*
+- [x] **FRONT:** F41 *(painel `/dev` — login operador; **navbar** 4 abas; robôs **R1/R2/R3** modulares; contas+assinaturas; fila sync; **Orquestração sync** §6.6 · chaves gift = **B69**)*
 
 **Ordem #6e:** `B70` → `F41`
 
@@ -396,7 +396,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ### 1.4 API e Integração UI ↔ SQLite
 
-> **Progresso:** Bloco 1 ✅ · **Bloco 2a/2b** ✅ · **Bloco 6a** ✅ **8/8** · **6b** ✅ **8/8** · **6c** ✅ **2/2** · **#6d** ✅ **6/6** · **próximo #6e B70** · URL **`https://acme-hub.khfm.workers.dev`**.
+> **Progresso:** Bloco 1 ✅ · **Bloco 2a/2b** ✅ · **Bloco 6a** ✅ **8/8** · **6b** ✅ **8/8** · **6c** ✅ **2/2** · **#6d** ✅ **6/6** · **#6e** ✅ **2/2** · próximo **#7 PIX** · URL **`https://acme-hub.khfm.workers.dev`**.
 
 Roadmap detalhado: ver **[Roadmap #0→#11 no topo](#roadmap-detalhado--ordem-de-execução-0--11)** · [Ordem oficial v3](#ordem-oficial-de-execução-v3). **F19** simulador (2a) `[x]` · **B67** `[x]`.
 
@@ -418,7 +418,7 @@ FASE C   Bloco 6a            Supabase + deploy global (seed, sem RLS rígido)
          Bloco 6c ✅          RLS multi-tenant — obrigatório antes de cobrar
     ↓
          Bloco 2c ✅          Orquestração sync + global (B68-orq) — policy §6.6
-         Bloco 2e            Painel dev + policy (B70/F41) — **próximo**
+         Bloco 2e ✅          Painel dev + policy (B70/F41)
     ↓
 FASE D   Bloco 7             Assinatura PIX
     ↓
@@ -440,7 +440,7 @@ FASE G   Bloco 9             Multi-PPC (Mecatrônica, Moda) 🔒 só após mobil
 | **5** | C | **6b** | Auth: login CPF; cadastro e-mail/tel/curso | Contas + PPC + gate |
 | **6** | C | **6c** | RLS por usuário | Segurança antes de abrir pagamento |
 | **6d** | B | **2c** | Orquestração sync + catálogo global (**B68-orq**) | ✅ **6/6** — policy §6.6 |
-| **6e** | B/F | **2e** | Painel dev + policy §6.6 (**B70** → **F41**) | **Próximo** — pré-PIX |
+| **6e** | B/F | **2e** | Painel dev + policy §6.6 (**B70** → **F41**) | ✅ **2/2** |
 | **7** | D | **7** | PIX + gate de acesso | Monetização · **após #6e** |
 | **9** | F | **3** | Grafo, matrícula, alertas | **Depois de #7** · **antes do mobile (#8)** |
 | **10** | F | **4** | Skeletons, transições, favicon, **site mobile (F28)** | **Antes do mobile (#8)** |
@@ -478,7 +478,7 @@ Estratégia: **fatias verticais** — backend primeiro, depois frontend.
 | **1** | #1 | API + SQLite ✅ |
 | **2** | #2–3 | Scraper SIGAA — **prioridade pós-Bloco 1** |
 | **6** | #4–6 | Cloud Supabase — **após sync validado** |
-| **2e** | #6e | Painel dev + policy (B70/F41) — **próximo** |
+| **2e** | #6e | Painel dev + policy (B70/F41 ✅) |
 | **7** | #7 | Assinatura PIX |
 | **3** | #9 | Inteligência acadêmica *(antes do mobile)* |
 | **4** | #10 | Polimento UX + **site mobile (F28)** *(antes do mobile)* |
@@ -515,7 +515,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | **#5** | 6b | Auth: CPF login, cadastro completo | ✅ **Concluído** | 8/8 |
 | **#6** | 6c | RLS multi-tenant | ✅ **Concluído** | 2/2 |
 | **#6d** | 2c | Orquestração sync + catálogo global | ✅ **6/6** · policy **§6.6** | 6/6 |
-| **#6e** | 2e | Painel dev + policy (B70 → F41) | **Próximo** · pré-PIX | 0/2 |
+| **#6e** | 2e | Painel dev + policy (B70 → F41) | ✅ **2/2** | 2/2 |
 | **#7** | 7 | Assinatura PIX | Depois de **#6e** | 0/15 |
 | **#9** | 3 | Inteligência acadêmica | Depois de #7 (dados reais + PIX) · **antes do mobile** | 0/11 |
 | **#10** | 4 | Polimento UX + site mobile (**F28**) | **Antes do mobile (#8)** | 0/4 |
@@ -583,7 +583,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 **Contagem 8/8:** só os 8 primeiros grupos até **`F37`** · **`F38` · `B66` · `B67` · `F19`** = extras (fora do 8/8) · polish `04887c9`/`5923e9c` · modulação dashboard · fix mapa/histórico/notificações (jun/2026)
 
-**Próximo:** **#6e — B70** → **F41** · depois **#7** PIX (`B47`…)
+**Próximo:** **#7 — PIX** (`B47`…)
 
 ---
 
@@ -614,7 +614,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 **Ordem #6d:** `B68a → B68b → B68c → B68d → B68e → B68f` ✅
 
-**Antes do mobile (#8):** **#6d** ✅ · **#6e** B70/F41 · **#7** PIX · **#9 + #10**.
+**Antes do mobile (#8):** **#6d** ✅ · **#6e** ✅ · **#7** PIX · **#9 + #10**.
 
 ---
 
@@ -652,12 +652,12 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 ---
 
-### #6e — Painel dev + policy (pré-PIX) `⬜ 0/2`
+### #6e — Painel dev + policy (pré-PIX) `✅ 2/2`
 
 > **Só após #6d.** Policy §6.6 editável · ops sem cooldown.
 
-- [ ] **BACK:**  B70 — painel dev API · `GET/PATCH /api/dev/sync-policy` · robôs sem cooldown
-- [ ] **FRONT:** F41 — UI `/dev` · chavinhas R1/R2/R3 · **Orquestração sync**
+- [x] **BACK:**  B70 — painel dev API · `GET/PATCH /api/dev/sync-policy` · `GET /api/dev/sync-status` · robôs modulares sem cooldown · `test:b70`
+- [x] **FRONT:** F41 — UI `/dev` · navbar 4 abas · robôs R1/R2/R3 modulares · contas+assinaturas · fila sync · **Orquestração sync**
 
 **Ordem #6e:** `B70` → `F41`
 
@@ -742,7 +742,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | #5 | 6b — Cloud auth | ✅ | 8 / 8 |
 | #6 | 6c — RLS | ✅ **Concluído** | 2 / 2 |
 | **#6d** | **2c — Orquestração sync** | ✅ | 6 / 6 |
-| **#6e** | **2e — Painel dev** | ⬜ **próximo** | 0 / 2 |
+| **#6e** | **2e — Painel dev** | ✅ | 2 / 2 |
 | #7 | 7 — Assinatura PIX | ⬜ | 0 / 15 |
 | #9 | 3 — Inteligência | ⬜ *(antes mobile)* | 0 / 11 |
 | #10 | 4 — Polimento + site mobile | ⬜ *(antes mobile · incl. F28)* | 0 / 4 |
@@ -971,7 +971,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] `worker/Dockerfile` (Playwright jammy) · `worker/README.md`
 - [x] Testes `tests/worker-b54.test.ts`
 
-> **Próximo:** **#6e — B70** → **F41**.
+> **Próximo:** **#7 — PIX** (`B47`…).
 
 #### B55 — API fila sync `[x]`
 
@@ -981,7 +981,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Dispatcher assíncrono → worker B54 (`SIGAA_WORKER_URL`) ou **inline** (`SYNC_QUEUE_DISPATCH=inline`)
 - [x] Testes `tests/sync-queue-b55.test.ts` · `npm run test:sync-queue`
 
-> **Próximo:** **#6e — B70** → **F41**.
+> **Próximo:** **#7 — PIX** (`B47`…).
 
 #### B56 — Pipeline no worker `[x]`
 
@@ -1146,8 +1146,8 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 | # | Tipo | Task | Resumo | Status |
 |---|------|------|--------|--------|
-| B70 | Back | Painel dev API | Login operador; `/api/dev/*`; **`GET/PATCH /api/dev/sync-policy`**; robôs sem cooldown | [ ] |
-| F41 | Front | Painel dev `/dev` | Login operador; chavinhas R1/R2/R3; **Orquestração sync** (TTLs, batch, policy §6.6) | [ ] |
+| B70 | Back | Painel dev API | Login operador; `/api/dev/*`; **`GET/PATCH /api/dev/sync-policy`**; **`GET /api/dev/sync-status`**; robôs modulares sem cooldown; auditoria | [x] |
+| F41 | Front | Painel dev `/dev` | Login operador; navbar 4 abas; robôs R1/R2/R3 modulares; contas+assinaturas; fila sync; **Orquestração sync** (TTLs, batch, policy §6.6) | [x] |
 
 **Ordem #6e:** `B70` → `F41`
 
@@ -1291,7 +1291,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 #5  Bloco 6b  Auth: cadastro + login CPF ✅ (8/8)
 #6  Bloco 6c  RLS multi-tenant ✅             (antes do PIX)
 #6d Bloco 2c  Orquestração sync (B68-orq)     policy §6.6 · ✅ 6/6
-#6e Bloco 2e  Painel dev + policy (B70/F41)   ← PRÓXIMO · 0/2
+#6e Bloco 2e  Painel dev + policy (B70/F41)        ✅ 2/2
       ↓
 #7  Bloco 7   Assinatura PIX                   0/15
       ↓
@@ -1383,7 +1383,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 #### B68-orq — Orquestração sync + catálogo global `[x]`
 
-> **Pré-mobile (#8):** **#6d** ✅ · **#6e** B70/F41 *(próximo)* · **#7 + #9 + #10**. Policy **§6.6 `SCOPE-CLOUD`**. *(Distinto do **B68** simulação mapa no Apêndice gift/dev.)*
+> **Pré-mobile (#8):** **#6d** ✅ · **#6e** ✅ · **#7 + #9 + #10**. Policy **§6.6 `SCOPE-CLOUD`**. *(Distinto do **B68** simulação mapa no Apêndice gift/dev.)*
 
 - [x] **Policy documentada** — matriz robô × gatilho; R1 full/lite/deep; botão lite; global R2/R3; batch noturno; policy no `/dev`
 - [x] **Schema global (B68d)** — catálogo GLOBAL/TENANT · `app_config` · migration seed · `test:b68d`
@@ -1706,31 +1706,35 @@ Rota **`/dev`** — invisível ao aluno.
 | **R2** | `POST /api/sync/calendario` (**B66**) | `calendario_academico` global |
 | **R3** | `POST /api/sync/turmas` (**B67**) | `turmas_ofertadas` global |
 
-#### Back (**B70**)
+#### Back (**B70**) `[x]`
 
-- [ ] **`POST /api/dev/auth/login`** — body `{ email, password }`; valida contra **todos** os pares `EMAIL_DEV`/`PASSWORD_DEV`, `PLANNER_DEV_2_*`, … lidos do env
-- [ ] Middleware **`/api/dev/*`** — exige sessão operador (cookie httpOnly); **401** sem login
-- [ ] **Nunca** expor lista de emails autorizados ao client; mensagem genérica em falha de login
-- [ ] `GET /api/dev/accounts` — lista contas com **nome**, CPF (mascarado), curso, último sync, flags de credencial salva
-- [ ] Query **`?q=`** — busca por nome ou CPF (parcial)
-- [ ] **`GET/PATCH /api/dev/sync-policy`** + **`POST …/reset`** — policy orquestração §6.6
-- [ ] `POST /api/dev/robots/run` — body: `{ scope: "individual" | "global", cpf?: string, robots: { r1: boolean, r2: boolean, r3: boolean } }`
-- [ ] Resolver senha SIGAA **server-side** (B25 decrypt dev / B45 prod) — **nunca** reenviar ao browser do operador após **B71**
-- [ ] **Bypass cooldown** — não aplicar `sync-preferences` / TTL / fila ao disparo manual do `/dev`
-- [ ] **Global:** iterar contas com credencial válida (ou subset da busca); log por CPF + robô + outcome
-- [ ] **Auditoria** — toda execução manual registrada (operador, escopo, robôs, alvos, timestamp)
+- [x] **`POST /api/dev/auth/login`** — body `{ email, password }`; valida contra **todos** os pares `EMAIL_DEV`/`PASSWORD_DEV`, `PLANNER_DEV_2_*`, … lidos do env
+- [x] Guard **`/api/dev/*`** — exige sessão operador (cookie httpOnly); **401** sem login
+- [x] **Nunca** expor lista de emails autorizados ao client; mensagem genérica em falha de login
+- [x] **`GET /api/dev/sync-status`** — fila sync + preview orquestrador B68e
+- [x] **`GET /api/dev/accounts`** — trial/assinatura por CPF (`trial_por_cpf` join Postgres)
+- [x] Query **`?q=`** — busca por nome ou CPF (parcial)
+- [x] **`GET/PATCH /api/dev/sync-policy`** + **`POST …/reset`** — policy orquestração §6.6
+- [x] Robôs **modulares** — `lib/dev-panel/robots/` (run-r1/r2/r3 + dispatch)
+- [x] **`POST /api/dev/robots/run`** — `{ scope, cpf?, robots: { r1|r2|r3 } }` — um ou mais robôs por chamada
+- [x] Resolver senha SIGAA **server-side** (B25 decrypt dev / B45 prod) — **nunca** reenviar ao browser do operador após **B71**
+- [x] **Bypass cooldown** — `skipCooldown` + trigger `dev` no disparo manual do `/dev`
+- [x] **Global:** iterar contas com credencial válida; R2/R3 global via orquestrador (`force: true`); R1 por CPF
+- [x] **Auditoria** — `GET /api/dev/audit-log` + append em login/logout/policy/robôs
+- [x] **`test:b70`** — registry, sessão HMAC, parse, policy admin, guard 401
 
-#### Front (**F41**)
+#### Front (**F41**) `[x]`
 
-- [ ] **`/dev/login`** (ou gate na rota `/dev`) — formulário **email + senha**; obrigatório **sempre** que não houver sessão operador
-- [ ] Após login → painel; logout limpa cookie e volta ao formulário
-- [ ] Rota **`/dev`** — seção **Robôs** (ou aba dedicada)
-- [ ] **Menu chavinhas** — um toggle por linha (**R1**, **R2**, **R3**); estilo pill dourado ON / cinza OFF (igual selects do app)
-- [ ] **Orquestração sync** — formulário policy §6.6: escopo botão (**lite**), TTLs por camada (intervalo **ou** data fixa), batch noturno, `max_concurrent`, **Restaurar padrões**
-- [ ] **Lista contas** — colunas nome + CPF; campo busca; seleção de linha para disparo individual
-- [ ] Botões **Rodar selecionado** (individual) e **Rodar todos** (global) — só robôs com chave ON
-- [ ] Feedback inline — progresso / erro por robô (sem bloquear navbar do aluno)
-- [ ] Reutilizar demais áreas do painel: chaves gift, promoções, simular tempo (escopo §10 `SCOPE.md`)
+- [x] **`/dev`** — gate com login **email + senha** quando não há sessão operador (`GET /api/dev/auth/session`)
+- [x] Após login → painel; logout limpa cookie e volta ao formulário
+- [x] **Navbar operador** — 4 abas: Robôs · Fila sync · Policy · Auditoria (`?view=`)
+- [x] **Robôs modulares** — card independente **R1/R2/R3** com ações próprias (conta + global)
+- [x] **Contas & assinaturas** — trial, expiração, dias restantes, credencial SIGAA
+- [x] **Fila sync** — jobs enfileirados + ordem prevista do orquestrador
+- [x] **Orquestração sync** — formulário policy §6.6 (botão lite, TTLs, global R2/R3, batch noturno, `max_concurrent`, **Restaurar padrões**)
+- [x] Feedback inline por robô (resultados + erros)
+- [x] **Sem navbar aluno** — rota `/dev` isolada (`AuthGate` + `AppShell` + `DevNavbar`)
+- [ ] Chaves gift / promoções — **B69/F40** (placeholder no painel)
 
 #### Fora de escopo (v1 painel dev)
 
@@ -1765,7 +1769,7 @@ B68 + F39 (simulação mapa — pode paralelizar ao Bloco 1 pós-F12)
 ### Dev local (antes da cloud)
 
 - Stub em `build-subscription-dev.ts` / `/planos` placeholder → evoluir para resgate real quando **B69** existir.
-- Painel dev SQLite: rota `/dev` com **login email+senha** (`EMAIL_DEV`/`PASSWORD_DEV` no `.env.local`; devs extras **`PLANNER_DEV_N_*` manual**) — layout com lista nome/CPF, chavinhas R1/R2/R3 (**F41** stub OK antes do Bloco 7).
+- Painel dev SQLite/cloud: rota **`/dev`** com login operador, navbar, robôs modulares R1/R2/R3 e policy §6.6 — **F41** `[x]`.
 
 ---
 
@@ -1830,9 +1834,9 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 8. **Próximo passo do roadmap:** informe **depois do push** (tasks em `[@]` ou `[x]`). Com commits locais só `[%]`, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v3](#ordem-oficial-de-execução-v3) — **Bloco 2 (sync) antes do Bloco 6 (Supabase)**. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy **após** sync validado; RLS ✅ **6c** (antes do PIX). Marco “site no ar p/ testes gerais” → [final do TASKS.md](#marco--site-no-ar-para-testes-gerais).
-11. **Próximo passo:** **#6e — B70** *(API painel dev · policy §6.6)* → **F41** → **#7** PIX.
+11. **Próximo passo:** **#7 — PIX** (`B47` planos e preços → `B48` gateway).
 12. **Integralização:** CH concluída = `historico` + PPC (`computeChDoneFromDisciplinas`); portal SIGAA só % / total currículo; matérias já passadas = **B30** ✅.
-13. **Gift + painel dev + simulação mapa:** escopo em `SCOPE.md` §10.7, §6.1.1 · `SCOPE-CLOUD` §6.6 — tasks **B68–B71**, **F39–F41**. Painel: chavinhas R1/R2/R3 + **Orquestração sync** (TTLs/data fixa/batch). **B71** = ocultar senhas SIGAA.
+13. **Gift + painel dev + simulação mapa:** escopo em `SCOPE.md` §10.7, §6.1.1 · `SCOPE-CLOUD` §6.6 — tasks **B68–B71**, **F39–F41**. Painel: robôs modulares R1/R2/R3 + **Orquestração sync** (TTLs/data fixa/batch). **B71** = ocultar senhas SIGAA.
 14. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial. **Polish em task `[x]`** (ex.: F38, dashboard) também exige nota no TASKS no mesmo ciclo do push.
 15. **Credenciais SIGAA:** sync **sem** o aluno no site exige senha **cifrada no servidor** (dev: B25 opcional + `useAutoSync` no client; produção: **B45** + worker **B56**). Ver `SCOPE.md` §2 · `SCOPE-CLOUD.md` §4–§6.
 16. **Código frontend** está em `app/src/` (não na raiz `src/`). Mock data em `app/src/config/mock/`.
