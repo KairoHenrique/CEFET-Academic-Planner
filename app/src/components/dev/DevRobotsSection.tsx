@@ -25,7 +25,7 @@ const EMPTY_RUN_STATE: RobotRunState = {
 
 export function DevRobotsSection() {
   const [search, setSearch] = useState("");
-  const [selectedCpf, setSelectedCpf] = useState<string | null>(null);
+  const [selectedAccountRef, setSelectedAccountRef] = useState<string | null>(null);
   const [activeRobot, setActiveRobot] = useState<DevRobotId | null>(null);
   const [runState, setRunState] = useState<RobotRunState>(EMPTY_RUN_STATE);
 
@@ -34,8 +34,10 @@ export function DevRobotsSection() {
 
   const accounts = accountsQuery.data?.accounts ?? [];
   const selectedAccount = useMemo(
-    () => accounts.find((account) => account.cpf === selectedCpf) ?? null,
-    [accounts, selectedCpf]
+    () =>
+      accounts.find((account) => account.accountRef === selectedAccountRef) ??
+      null,
+    [accounts, selectedAccountRef]
   );
 
   async function runRobot(robotId: DevRobotId, scope: "individual" | "global") {
@@ -57,7 +59,7 @@ export function DevRobotsSection() {
         setActiveRobot(null);
         return;
       }
-      if (!selectedAccount.hasSigaaPassword) {
+      if (!selectedAccount.credentialSaved) {
         setRunState((current) => ({
           ...current,
           [robotId]: {
@@ -73,7 +75,8 @@ export function DevRobotsSection() {
     try {
       const response = await runMutation.mutateAsync({
         scope,
-        cpf: scope === "individual" ? selectedAccount?.cpf : undefined,
+        accountRef:
+          scope === "individual" ? selectedAccount?.accountRef : undefined,
         robots: selectionForRobot(robotId),
         mode: robotId === "r1" ? "deep" : undefined,
       });
@@ -101,8 +104,8 @@ export function DevRobotsSection() {
     <div className="dev-robots-layout">
       <DevAccountsList
         accounts={accounts}
-        selectedCpf={selectedCpf}
-        onSelect={setSelectedCpf}
+        selectedAccountRef={selectedAccountRef}
+        onSelect={setSelectedAccountRef}
         search={search}
         onSearchChange={setSearch}
         loading={accountsQuery.isLoading}
@@ -117,7 +120,7 @@ export function DevRobotsSection() {
             pending={runMutation.isPending && activeRobot === definition.id}
             results={runState[definition.id].results}
             error={runState[definition.id].error}
-            canRunIndividual={Boolean(selectedAccount?.hasSigaaPassword)}
+            canRunIndividual={Boolean(selectedAccount?.credentialSaved)}
             onRunIndividual={() => void runRobot(definition.id, "individual")}
             onRunGlobal={() => void runRobot(definition.id, "global")}
           />

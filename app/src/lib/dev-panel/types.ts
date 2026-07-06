@@ -23,18 +23,35 @@ export interface DevAccountSubscriptionView {
   trialStartedAt: string | null;
 }
 
-export interface DevAccountView {
-  /** Apenas resposta autenticada do operador — uso interno do painel. */
+/** Registro interno do servidor — nunca expor `cpf` na API do painel. */
+export interface DevAccountRecord {
+  userId?: string | null;
   cpf: string;
   cpfMasked: string;
   cpfLast4: string;
   displayName: string;
   cursoId: AppCursoId | string;
   email: string | null;
-  hasSigaaPassword: boolean;
+  credentialSaved: boolean;
   lastSyncAt: string | null;
   subscription: DevAccountSubscriptionView | null;
 }
+
+/** Resposta pública autenticada do operador — sem CPF completo. */
+export interface DevAccountPublicView {
+  accountRef: string;
+  cpfMasked: string;
+  cpfLast4: string;
+  displayName: string;
+  cursoId: AppCursoId | string;
+  email: string | null;
+  credentialSaved: boolean;
+  lastSyncAt: string | null;
+  subscription: DevAccountSubscriptionView | null;
+}
+
+/** @deprecated Use DevAccountRecord (server) / DevAccountPublicView (API). */
+export type DevAccountView = DevAccountPublicView;
 
 export interface DevQueueJobView {
   jobId: string;
@@ -83,7 +100,7 @@ export type DevRobotScope = "individual" | "global";
 
 export interface DevRobotRunRequest {
   scope: DevRobotScope;
-  cpf?: string;
+  accountRef?: string;
   robots: DevRobotsSelection;
   mode?: "full" | "lite" | "deep";
 }

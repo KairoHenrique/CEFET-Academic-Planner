@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { ApiError } from "./errors";
+import { logSafeError } from "@/lib/security/safe-log";
 
 export function apiSuccess<T>(data: T, status = 200): NextResponse<T> {
   return NextResponse.json(data, { status });
@@ -20,7 +21,7 @@ export function apiErrorResponse(error: unknown): NextResponse {
     );
   }
 
-  console.error("[api] unexpected error", error);
+  logSafeError("[api] unexpected error", error);
   return NextResponse.json(
     {
       ok: false,

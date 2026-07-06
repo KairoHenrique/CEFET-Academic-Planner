@@ -37,7 +37,7 @@ export async function POST(request: Request) {
     appendDevAuditLog({
       action: "gift_keys.create",
       operatorEmail: session.email,
-      details: {
+      detail: {
         count: result.count,
         planId: input.planId,
         internalLabel: input.internalLabel,

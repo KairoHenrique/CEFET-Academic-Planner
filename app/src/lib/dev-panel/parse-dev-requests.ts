@@ -1,5 +1,4 @@
 import { validationError } from "@/lib/api/errors";
-import { normalizeCpf } from "@/lib/auth/account/cpf";
 import type {
   DevRobotRunRequest,
   DevRobotsSelection,
@@ -36,10 +35,12 @@ export function parseDevRobotRunRequest(body: unknown): DevRobotRunRequest {
     throw validationError('Campo scope deve ser "individual" ou "global".');
   }
 
-  const cpf =
-    typeof record.cpf === "string" ? normalizeCpf(record.cpf) : undefined;
-  if (scope === "individual" && (!cpf || cpf.length < 11)) {
-    throw validationError("Informe um CPF válido para escopo individual.");
+  const accountRef =
+    typeof record.accountRef === "string" ? record.accountRef.trim() : undefined;
+  if (scope === "individual" && !accountRef) {
+    throw validationError(
+      "Informe accountRef válido para escopo individual."
+    );
   }
 
   const modeRaw = record.mode;
@@ -50,7 +51,7 @@ export function parseDevRobotRunRequest(body: unknown): DevRobotRunRequest {
 
   return {
     scope,
-    cpf,
+    accountRef,
     robots: parseRobots(record.robots),
     mode,
   };

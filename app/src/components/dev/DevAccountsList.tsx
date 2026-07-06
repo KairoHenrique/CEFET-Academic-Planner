@@ -1,6 +1,6 @@
 "use client";
 
-import type { DevAccountView } from "@/lib/dev-panel/types";
+import type { DevAccountPublicView } from "@/lib/dev-panel/types";
 import { DevSectionHeader } from "@/components/dev/DevSectionHeader";
 import {
   formatDevDateTime,
@@ -9,9 +9,9 @@ import {
 import { Icon } from "@/components/ui/Icon";
 
 interface DevAccountsListProps {
-  accounts: DevAccountView[];
-  selectedCpf: string | null;
-  onSelect: (cpf: string) => void;
+  accounts: DevAccountPublicView[];
+  selectedAccountRef: string | null;
+  onSelect: (accountRef: string) => void;
   search: string;
   onSearchChange: (value: string) => void;
   loading?: boolean;
@@ -32,7 +32,7 @@ function formatLastSync(value: string | null): string {
 
 export function DevAccountsList({
   accounts,
-  selectedCpf,
+  selectedAccountRef,
   onSelect,
   search,
   onSearchChange,
@@ -80,26 +80,26 @@ export function DevAccountsList({
               <th>Status</th>
               <th>Expira</th>
               <th>Dias</th>
-              <th>Credencial</th>
+              <th>Credencial SIGAA</th>
               <th>Último sync</th>
             </tr>
           </thead>
           <tbody>
             {accounts.map((account) => {
-              const selected = selectedCpf === account.cpf;
+              const selected = selectedAccountRef === account.accountRef;
 
               return (
                 <tr
-                  key={account.cpf}
+                  key={account.accountRef}
                   className={`data-table-row-clickable ${
                     selected ? "dev-table-row--selected" : ""
                   }`}
                   tabIndex={0}
-                  onClick={() => onSelect(account.cpf)}
+                  onClick={() => onSelect(account.accountRef)}
                   onKeyDown={(event) => {
                     if (event.key === "Enter" || event.key === " ") {
                       event.preventDefault();
-                      onSelect(account.cpf);
+                      onSelect(account.accountRef);
                     }
                   }}
                   aria-selected={selected}
@@ -138,12 +138,12 @@ export function DevAccountsList({
                   <td>
                     <span
                       className={`enrollment-status-pill ${
-                        account.hasSigaaPassword
+                        account.credentialSaved
                           ? "enrollment-status-pill--success"
                           : "enrollment-status-pill--muted"
                       }`}
                     >
-                      {account.hasSigaaPassword ? "Salva" : "Ausente"}
+                      {account.credentialSaved ? "Salva" : "Ausente"}
                     </span>
                   </td>
                   <td>{formatLastSync(account.lastSyncAt)}</td>

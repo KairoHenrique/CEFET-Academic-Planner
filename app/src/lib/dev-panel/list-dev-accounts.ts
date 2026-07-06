@@ -12,11 +12,12 @@ import {
 } from "@/lib/db/connection-manager";
 import { loadSigaaCredentials } from "@/lib/crypto/sigaa-credential-store";
 import { cpfLast4, maskCpf } from "@/lib/dev-panel/mask-cpf";
+import { resolveDevAccountRef } from "@/lib/dev-panel/dev-account-ref";
 import {
   resolvePostgresDevSubscription,
   resolveSqliteDevSubscription,
 } from "@/lib/dev-panel/resolve-dev-subscription";
-import type { DevAccountView } from "@/lib/dev-panel/types";
+import type { DevAccountRecord } from "@/lib/dev-panel/types";
 
 function matchesQuery(input: {
   cpf: string;
@@ -35,7 +36,7 @@ function matchesQuery(input: {
   );
 }
 
-function readSqliteAccount(cpf: string): DevAccountView | null {
+function readSqliteAccount(cpf: string): DevAccountRecord | null {
   const dbPath = resolveDbPathForUser(cpf);
   if (!fs.existsSync(dbPath)) {
     return null;
@@ -46,7 +47,7 @@ function readSqliteAccount(cpf: string): DevAccountView | null {
     const aluno = getAluno();
     const stored = loadSigaaCredentials();
     const normalized = normalizeSigaaUsername(cpf);
-    const hasPassword =
+    const credentialSaved =
       Boolean(stored?.password) && stored?.username === normalized;
 
     return {
@@ -56,14 +57,14 @@ function readSqliteAccount(cpf: string): DevAccountView | null {
       displayName: aluno?.nome?.trim() || `CPF ${cpfLast4(cpf)}`,
       cursoId: aluno?.curso?.trim() || "eng-computacao",
       email: aluno?.email?.trim() || null,
-      hasSigaaPassword: hasPassword,
+      credentialSaved,
       lastSyncAt: null,
       subscription: resolveSqliteDevSubscription(cpf),
     };
   });
 }
 
-async function listPostgresAccounts(query?: string): Promise<DevAccountView[]> {
+async function listPostgresAccounts(query?: string): Promise<DevAccountRecord[]> {
   const pool = getPostgresPool();
   const q = query?.trim().toLowerCase() ?? "";
   const cpfNeedle = q.replace(/\D/g, "");
@@ -71,14 +72,19 @@ async function listPostgresAccounts(query?: string): Promise<DevAccountView[]> {
   const cpfPattern = cpfNeedle ? `%${cpfNeedle}%` : null;
 
   const result = await pool.query<{
+    user_id: string;
     cpf: string;
     email: string;
     curso_id: string;
-    sigaa_password_enc: string;
     updated_at: Date;
+    credential_saved: boolean;
     trial_started_at: Date | null;
   }>(
-    `SELECT p.cpf, p.email, p.curso_id, p.sigaa_password_enc, p.updated_at,
+    `SELECT p.user_id, p.cpf, p.email, p.curso_id, p.updated_at,
+            (
+              p.sigaa_password_enc IS NOT NULL
+              AND length(trim(p.sigaa_password_enc)) > 0
+            ) AS credential_saved,
             t.trial_started_at
      FROM app_profiles p
      LEFT JOIN trial_por_cpf t ON t.cpf = p.cpf
@@ -93,19 +99,20 @@ async function listPostgresAccounts(query?: string): Promise<DevAccountView[]> {
   );
 
   return result.rows.map((row) => ({
+    userId: row.user_id,
     cpf: normalizeCpf(row.cpf),
     cpfMasked: maskCpf(row.cpf),
     cpfLast4: cpfLast4(row.cpf),
     displayName: row.email.split("@")[0] || `CPF ${cpfLast4(row.cpf)}`,
     cursoId: row.curso_id,
     email: row.email,
-    hasSigaaPassword: row.sigaa_password_enc.trim().length > 0,
+    credentialSaved: row.credential_saved,
     lastSyncAt: row.updated_at.toISOString(),
     subscription: resolvePostgresDevSubscription(row.trial_started_at),
   }));
 }
 
-function listSqliteAccounts(query?: string): DevAccountView[] {
+function listSqliteAccounts(query?: string): DevAccountRecord[] {
   const root = path.join(
     process.env.PLANNER_DATA_ROOT?.trim() || path.join(process.cwd(), ".data"),
     "users"
@@ -125,7 +132,7 @@ function listSqliteAccounts(query?: string): DevAccountView[] {
     cpfs.push("");
   }
 
-  const accounts: DevAccountView[] = [];
+  const accounts: DevAccountRecord[] = [];
   for (const cpf of cpfs) {
     const account = readSqliteAccount(cpf);
     if (!account) continue;
@@ -144,7 +151,7 @@ function listSqliteAccounts(query?: string): DevAccountView[] {
   return accounts;
 }
 
-export async function listDevAccounts(query?: string): Promise<DevAccountView[]> {
+export async function listDevAccounts(query?: string): Promise<DevAccountRecord[]> {
   if (isPostgresBackend()) {
     return listPostgresAccounts(query);
   }
@@ -154,14 +161,11 @@ export async function listDevAccounts(query?: string): Promise<DevAccountView[]>
 
 export async function listDevTargetCpfs(input: {
   scope: "individual" | "global";
-  cpf?: string;
+  accountRef?: string;
   query?: string;
 }): Promise<string[]> {
   if (input.scope === "individual") {
-    const cpf = normalizeCpf(input.cpf ?? "");
-    if (cpf.length < 11) {
-      throw new Error("CPF inválido para escopo individual.");
-    }
+    const cpf = await resolveDevAccountRef(input.accountRef ?? "");
     return [cpf];
   }
 
@@ -171,7 +175,8 @@ export async function listDevTargetCpfs(input: {
     const cpfNeedle = q.replace(/\D/g, "");
     const result = await pool.query<{ cpf: string }>(
       `SELECT cpf FROM app_profiles
-       WHERE length(trim(sigaa_password_enc)) > 0
+       WHERE sigaa_password_enc IS NOT NULL
+         AND length(trim(sigaa_password_enc)) > 0
          AND (
            $1::text IS NULL
            OR lower(email) LIKE $1
@@ -199,6 +204,6 @@ export async function listDevTargetCpfs(input: {
     .map((entry) => entry.name)
     .filter((cpf) => {
       const account = readSqliteAccount(cpf);
-      return account?.hasSigaaPassword;
+      return account?.credentialSaved;
     });
 }
