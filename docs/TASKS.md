@@ -11,7 +11,7 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
 > - **Modo testes:** deploy global após sync validado; RLS na fase 6c (antes do PIX)
 > **Pré-mobile (#8):** **#6d** ✅ + **#6e** ✅ + **#7** + **#9 + #10** (site maduro + **F28**) · policy **§6.6** · **B68a–f** ✅
 >
-> **⚠️ Bloqueador de produção (jul/2026) — [Bloco 2f · B72](#12--bloco-2f--sync-real-postgres-b72):** o scraper/worker só possui caminho de **escrita SQLite**. Em cloud (`PLANNER_DATABASE=postgres`) o `/api/sync` é **stub** → `turmas_ofertadas`, `historico`, notas etc. ficam **vazios** no Supabase. **B72 (a–e)** cria o *Write Port + adapter Postgres* para o site rodar completo na nuvem igual ao local. **Prioridade: antes do deploy de F21–F23.**
+> **⚠️ Bloqueador de produção (jul/2026) — [Bloco 2f · B72](#12--bloco-2f--sync-real-postgres-b72):** **B72a–d `[%]`** — sync real grava no Supabase via **mirror SQLite→Postgres** (validado live: aluno, 31 histórico, 37 notas, 149 faltas, 99 turmas no Supabase). Restante: **B72e** (worker hospedado) para o botão Sincronizar funcionar **na URL pública**; até lá o sync roda do dev/worker local (`npm run sync:mirror`). Deploy F21–F23 liberado após push/aprovação.
 
 **Navegação rápida:** [Roadmap detalhado (#0→#11)](#roadmap-detalhado--ordem-de-execução-0--11) · [Sequência #0→#11](#sequência-completa--o-que-fazer-e-em-qual-ordem) · [Ordem oficial v3](#ordem-oficial-de-execução-v3) · [Checklist BACK→FRONT](#checklist-mestre-ordem-de-execução) · [Detalhe por bloco](#detalhe-dos-blocos) · [#6d orquestração sync](#6d--orquestração-sync--catálogo-global-pré-mobile) · [#6e painel dev](#6e--painel-dev--policy-pré-pix) · [Escopo cloud](./SCOPE-CLOUD.md) · [Marco testes gerais](#marco--site-no-ar-para-testes-gerais) · [Apêndice escopo futuro](#apêndice--escopo-futuro-fora-da-ordem-011) · [Apêndice B65 dev](#apêndice--b65-sync-automático-dev-remover-antes-de-produção) · [Apêndice gift + painel dev](#apêndice--chaves-gift-e-painel-dev-jun2026)
 
@@ -43,7 +43,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ## Roadmap detalhado — ordem de execução (#0 → #11)
 
-> **Próximo oficial:** **#9 — Bloco 3** · **B35** após push de B32–B34 + F21–F23 (`[%]` local).
+> **Próximo oficial:** **#12 — Bloco 2f** · **B72e** (worker hospedado + smoke na URL) após push/aprovação de **B72a–d** `[%]` — sync real no Supabase já validado local→cloud.
 > **Regra:** siga **#0 → #11** · dentro de cada bloco → **BACK (B) antes de FRONT (F)**. Checklist espelho: [Checklist mestre](#checklist-mestre-ordem-de-execução).
 
 ### #0 — Planejamento `✅`
@@ -285,19 +285,21 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ---
 
-### #12 — Bloco 2f · Sync real Postgres (B72) `🟡 1/5`
+### #12 — Bloco 2f · Sync real Postgres (B72) `🟡 4/5`
 
-> **Bloqueador de produção.** Fecha o gap de escrita: hoje o scraper/worker grava **só no SQLite** e o `/api/sync` em cloud é **stub**. **B72** cria o *Write Port + adapter Postgres* para o site rodar completo no Supabase/Cloudflare **igual ao local**. **Executar antes de deployar F21–F23** (senão simulador/dashboard ficam vazios na URL).
+> **Bloqueador de produção (quase fechado).** Gap de escrita resolvido com **mirror SQLite→Postgres**: o pipeline do scraper continua gravando no staging SQLite (regras de negócio intactas — prioridade do usuário, merges) e, pós-sucesso, o snapshot é **replicado ao Supabase** em transação idempotente. Cloud (Cloudflare) só **lê** Postgres; o scraper roda em Node (dev local ou worker B72e).
 >
-> **Padrão:** Repository Port + Adapter (Clean Architecture) — a leitura já é dual (`queries.ts` SQLite · `queries-read.ts` Postgres); B72 torna a **escrita** dual também. Um pipeline, dois adapters, resolvidos por `PLANNER_DATABASE`.
+> **Padrão:** SQLite = staging do scraper · Postgres = serving DB · Mirror = replicação idempotente com proteção `manual`/`override` na fronteira (CQRS: worker escreve, cloud lê). Decisão de arquitetura: duplicar 20+ funções de escrita com regras de merge num adapter PG criaria drift de regra de negócio; o mirror reutiliza as regras (`user-data-priority.ts`) verbatim.
 
-- [%] **BACK:** B72a *(`PlannerWritePort` — interface de escrita por entidade + adapter SQLite embrulhando `queries.ts`; sem mudar comportamento local · vertical de referência: turmas ofertadas async)*
-- [ ] **BACK:** B72b *(adapter Postgres — UPSERT idempotente: `turmas_ofertadas`, `aluno`, `historico`, `notas`, `faltas`, `tarefas`, `disciplinas_portal`, `calendario`; `curso_id` + `user_id` tenant)*
-- [ ] **BACK:** B72c *(pipeline persist assíncrono + tenant context no worker — resolve `user_id` via CPF→`app_profiles` antes de gravar; `ensurePostgresReady` no worker em modo cloud)*
-- [ ] **BACK:** B72d *(desstub `/api/sync` + `/api/sync/queue` — fila `sync_jobs` no Postgres · idempotency key · lock otimista · dispatch worker `SIGAA_WORKER_URL`)*
-- [ ] **OPS:** B72e *(worker hospedado + cron popula catálogo global · smoke end-to-end: login→sync→turmas→simulador na URL pública)*
+- [%] **BACK:** B72a *(`PlannerWritePort` + adapter SQLite; resolvido via `isSqliteAllowed()` — staging sempre SQLite, cloud puro lança erro)*
+- [%] **BACK:** B72b *(mirror Postgres — `lib/sync-mirror/`: snapshot readonly do SQLite do usuário → UPSERT/replace idempotente em `aluno`, `historico`, `semestre_atual`, `notas`, `faltas`, `tarefas`, `grupo_membros`, `integralizacao`, `configuracoes` (whitelist, sem credenciais) + catálogo global `disciplinas`, `requisitos`, `turmas_ofertadas`, `calendario_academico`; linhas `manual=1`/`*_override=1` no PG preservadas)*
+- [%] **BACK:** B72c *(tenant CPF→`app_profiles` (`user_id` + `curso_id`) + hook `runMirrorAfterSync` nos 3 runners (`runSync`, turmas, calendário) — qualquer caminho (rota, fila, worker, script) espelha automaticamente; falha de mirror não derruba sync)*
+- [%] **BACK:** B72d *(desstub `/api/sync*` em modo postgres local — `runWithScraperSqlite` (override ALS do guard, nunca vale em `isCloudDeployment()`); fila SQLite + readiness + turmas + calendário funcionam em dev postgres; stub permanece **só** no deploy Cloudflare até B72e · script `npm run sync:mirror` (SIGAA_CPF/SIGAA_PASSWORD) roda sync completo + verificação de linhas no PG)*
+- [ ] **OPS:** B72e *(worker hospedado com `SYNC_MIRROR_POSTGRES=true` + dispatch `SIGAA_WORKER_URL` no `/api/sync` cloud + cron catálogo global · smoke end-to-end: login→sync→turmas→simulador na URL pública)*
 
-**Ordem Bloco 2f:** `B72a → B72b → B72c → B72d → B72e` → **então** deploy `F21–F23`
+**Validação live (06/jul):** `npm run sync:mirror` com conta real → Supabase populado: aluno 1 · histórico 31 · semestre_atual 7 · notas 37 · faltas 149 · tarefas 2 · grupo 10 · integralização 5 · config 8 · turmas_ofertadas 99 · calendário 6. Fix extra no scraper: interstitial "Notificações Acadêmicas" do SIGAA (confirmar senha + leitura) e shim `__name` do esbuild/tsx no `page.evaluate`.
+
+**Ordem Bloco 2f:** `B72a → B72b → B72c → B72d → B72e` → deploy `F21–F23` (liberado após push/aprovação de a–d)
 
 ---
 
@@ -416,7 +418,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ### 1.4 API e Integração UI ↔ SQLite
 
-> **Progresso:** Bloco 1 ✅ · **Bloco 2a/2b** ✅ · **Bloco 6a** ✅ **8/8** · **6b** ✅ **8/8** · **6c** ✅ **2/2** · **#6d** ✅ **6/6** · **#6e** ✅ **2/2** · **#7** ✅ **15/15** · **#9** B32–B34 + F21–F23 `[%]` · URL **`https://acme-hub.khfm.workers.dev`**.
+> **Progresso:** Bloco 1 ✅ · **Bloco 2a/2b** ✅ · **Bloco 6a** ✅ **8/8** · **6b** ✅ **8/8** · **6c** ✅ **2/2** · **#6d** ✅ **6/6** · **#6e** ✅ **2/2** · **#7** ✅ **15/15** · **#12** B72a–d `[%]` **4/5** (mirror validado live; falta **B72e** worker hospedado) · **#9** B32–B34 + F21–F23 `[%]` (deploy após push B72) · URL **`https://acme-hub.khfm.workers.dev`**.
 
 Roadmap detalhado: ver **[Roadmap #0→#11 no topo](#roadmap-detalhado--ordem-de-execução-0--11)** · [Ordem oficial v3](#ordem-oficial-de-execução-v3). **F19** simulador (2a) `[x]` · **B67** `[x]`.
 
@@ -442,6 +444,8 @@ FASE C   Bloco 6a            Supabase + deploy global (seed, sem RLS rígido)
     ↓
 FASE D   Bloco 7 ✅           Assinatura PIX
     ↓
+         Bloco 2f 🟡          Sync real Postgres (**B72**) — a–d `[%]` mirror validado · falta B72e (worker)
+    ↓
 FASE F   Bloco 3             Inteligência acadêmica (web)
          Bloco 4             Polimento UX + site mobile (**F28**)
     ↓
@@ -462,7 +466,7 @@ FASE G   Bloco 9             Multi-PPC (Mecatrônica, Moda) 🔒 só após mobil
 | **6d** | B | **2c** | Orquestração sync + catálogo global (**B68-orq**) | ✅ **6/6** — policy §6.6 |
 | **6e** | B/F | **2e** | Painel dev + policy §6.6 (**B70** → **F41**) | ✅ **2/2** |
 | **7** | D | **7** | PIX + gate de acesso | ✅ **15/15** · monetização |
-| **12** | B | **2f** | **Sync real Postgres (B72)** — Write Port + adapter PG | ⚠️ **Bloqueador** · site completo na nuvem **antes** de deployar F21–F23 |
+| **12** | B | **2f** | **Sync real Postgres (B72)** — mirror SQLite→PG | 🟡 **4/5** `[%]` — mirror validado live; falta **B72e** (worker hospedado) |
 | **9** | F | **3** | Grafo, matrícula, alertas | **Depois de #7** · **antes do mobile (#8)** |
 | **10** | F | **4** | Skeletons, transições, favicon, **site mobile (F28)** | **Antes do mobile (#8)** |
 | **#8** | E | **8** | Mobile Android (Expo Go) | **Depois de #9 + #10** + **#6d + #6e + #7** · **sem lojas** |
@@ -500,7 +504,7 @@ Estratégia: **fatias verticais** — backend primeiro, depois frontend.
 | **2** | #2–3 | Scraper SIGAA — **prioridade pós-Bloco 1** |
 | **6** | #4–6 | Cloud Supabase — **após sync validado** |
 | **2e** | #6e | Painel dev + policy (B70/F41 ✅) |
-| **2f** | #12 | **Sync real Postgres (B72)** — ⚠️ bloqueador antes de F21–F23 |
+| **2f** | #12 | **Sync real Postgres (B72)** — 🟡 4/5 `[%]` mirror validado; falta B72e |
 | **7** | #7 | Assinatura PIX |
 | **3** | #9 | Inteligência acadêmica *(antes do mobile)* |
 | **4** | #10 | Polimento UX + **site mobile (F28)** *(antes do mobile)* |
@@ -539,8 +543,8 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | **#6d** | 2c | Orquestração sync + catálogo global | ✅ **6/6** · policy **§6.6** | 6/6 |
 | **#6e** | 2e | Painel dev + policy (B70 → F41) | ✅ **2/2** | 2/2 |
 | **#7** | 7 | Assinatura PIX | ✅ **Concluído** | 15/15 |
-| **#12** | 2f | **Sync real Postgres (B72)** | ⚠️ **Bloqueador** · B72a `[%]` (Write Port + SQLite) · **antes** do deploy F21–F23 | 1/5 |
-| **#9** | 3 | Inteligência acadêmica | B32–B34 + F21–F23 `[%]` · **B72** antes de deployar F21–F23 | 6/11 |
+| **#12** | 2f | **Sync real Postgres (B72)** | 🟡 B72a–d `[%]` (mirror validado live) · falta **B72e** worker hospedado | 4/5 |
+| **#9** | 3 | Inteligência acadêmica | B32–B34 + F21–F23 `[%]` · deploy liberado após push **B72a–d** | 6/11 |
 | **#10** | 4 | Polimento UX + site mobile (**F28**) | **Antes do mobile (#8)** | 0/4 |
 | **#8** | 8 | Mobile Android (Expo Go) | Depois de **#6d** + **#7** + **#9** + **#10** · **sem Play/App Store** | 0/10 |
 | **#11** | 9 | Multi-PPC (Mecatrônica, Moda) | **🔒 Só após #8** | 0/4 |
@@ -606,7 +610,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 **Contagem 8/8:** só os 8 primeiros grupos até **`F37`** · **`F38` · `B66` · `B67` · `F19`** = extras (fora do 8/8) · polish `04887c9`/`5923e9c` · modulação dashboard · fix mapa/histórico/notificações (jun/2026)
 
-**Próximo:** **#9 — Bloco 3** · **B35** após push de B32–B34 + F21–F23 (`[%]` local).
+**Próximo:** **#12 — Bloco 2f** · **B72e** (worker hospedado + smoke na URL) após push/aprovação de **B72a–d** `[%]` — mirror SQLite→Postgres validado live.
 
 ---
 
@@ -700,9 +704,23 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 ---
 
+### #12 — Bloco 2f · Sync real Postgres (B72) `🟡 4/5`
+
+> 🟡 **Mirror SQLite→Postgres validado live** (Supabase populado com conta real). Falta **B72e** para o Sincronizar na URL pública. Ver [detalhe](#12--bloco-2f--sync-real-postgres-b72).
+
+- [%] **BACK:** B72a — Write Port + adapter SQLite (staging)
+- [%] **BACK:** B72b — mirror Postgres (`lib/sync-mirror/` — UPSERT idempotente + proteção manual/override)
+- [%] **BACK:** B72c — tenant CPF→`app_profiles` + hook `runMirrorAfterSync` nos runners
+- [%] **BACK:** B72d — desstub `/api/sync*` local postgres (`runWithScraperSqlite`) + `npm run sync:mirror`
+- [ ] **OPS:**  B72e — worker hospedado + dispatch cloud + smoke E2E na URL
+
+**Ordem #12:** `B72a → B72b → B72c → B72d → B72e` → deploy `F21–F23` (liberado após push a–d)
+
+---
+
 ### #9 — Bloco 3 · Inteligência acadêmica `🟡 6/11`
 
-> Depende de dados reais do Bloco 2. **Executar antes do mobile (#8).**
+> Depende de dados reais do Bloco 2. **Executar antes do mobile (#8).** Deploy F21–F23 na URL **após B72**.
 
 - [%] **BACK:**  B32 → B33 → B34
 - [%] **FRONT:** F21 → F22 → F23
@@ -766,8 +784,9 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | #6 | 6c — RLS | ✅ **Concluído** | 2 / 2 |
 | **#6d** | **2c — Orquestração sync** | ✅ | 6 / 6 |
 | **#6e** | **2e — Painel dev** | ✅ | 2 / 2 |
-| #7 | 7 — Assinatura PIX | 🟡 | 2 / 15 |
-| #9 | 3 — Inteligência | 🟡 B32–B34 + F21–F23 `[%]` | 6 / 11 |
+| #7 | 7 — Assinatura PIX | ✅ | 15 / 15 |
+| **#12** | **2f — Sync real Postgres (B72)** | 🟡 B72a–d `[%]` mirror validado · falta B72e | 4 / 5 |
+| #9 | 3 — Inteligência | 🟡 B32–B34 + F21–F23 `[%]` · deploy após push **B72a–d** | 6 / 11 |
 | #10 | 4 — Polimento + site mobile | ⬜ *(antes mobile · incl. F28)* | 0 / 4 |
 | #8 | 8 — Mobile Android | ⬜ *(após #9 + #10 · sem lojas)* | 0 / 10 |
 | #11 | 9 — Multi-PPC | 🔒 *(após #8)* | 0 / 4 |
@@ -994,7 +1013,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] `worker/Dockerfile` (Playwright jammy) · `worker/README.md`
 - [x] Testes `tests/worker-b54.test.ts`
 
-> **Próximo:** **#9 — Bloco 3** · **B35** após push de B32–B34 + F21–F23 (`[%]` local).
+> **Próximo:** **#12 — Bloco 2f** · **B72e** (worker hospedado + smoke na URL) após push/aprovação de **B72a–d** `[%]` — mirror SQLite→Postgres validado live.
 
 #### B55 — API fila sync `[x]`
 
@@ -1004,7 +1023,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Dispatcher assíncrono → worker B54 (`SIGAA_WORKER_URL`) ou **inline** (`SYNC_QUEUE_DISPATCH=inline`)
 - [x] Testes `tests/sync-queue-b55.test.ts` · `npm run test:sync-queue`
 
-> **Próximo:** **#9 — Bloco 3** · **B35** após push de B32–B34 + F21–F23 (`[%]` local).
+> **Próximo:** **#12 — Bloco 2f** · **B72e** (worker hospedado + smoke na URL) após push/aprovação de **B72a–d** `[%]` — mirror SQLite→Postgres validado live.
 
 #### B56 — Pipeline no worker `[x]`
 
@@ -1863,7 +1882,7 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 8. **Próximo passo do roadmap:** informe **depois do push** (tasks em `[@]` ou `[x]`). Com commits locais só `[%]`, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v3](#ordem-oficial-de-execução-v3) — **Bloco 2 (sync) antes do Bloco 6 (Supabase)**. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy **após** sync validado; RLS ✅ **6c** (antes do PIX). Marco “site no ar p/ testes gerais” → [final do TASKS.md](#marco--site-no-ar-para-testes-gerais).
-11. **Próximo passo:** **#12 — Bloco 2f** — ⚠️ **bloqueador de produção** (sync real no Postgres antes de deployar F21–F23). **B72a** `[%]` (Write Port + adapter SQLite); na sequência `B72b → B72c → B72d → B72e` (após push/aprovação do B72a). *(#9 B35 fica após B72.)*
+11. **Próximo passo:** **#12 — Bloco 2f** — **B72a–d** `[%]` (mirror SQLite→Postgres validado live com conta real; Supabase populado). Falta **B72e** (worker hospedado + dispatch cloud + smoke na URL) após push/aprovação de a–d. Deploy **F21–F23** liberado no mesmo push. *(#9 B35 fica após B72e.)*
 12. **Integralização:** CH concluída = `historico` + PPC (`computeChDoneFromDisciplinas`); portal SIGAA só % / total currículo; matérias já passadas = **B30** ✅.
 13. **Gift + painel dev:** **B68–B71** ✅ · **F39–F41** ✅ — painel sem senha SIGAA (`credentialSaved` + `accountRef`).
 14. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial. **Polish em task `[x]`** (ex.: F38, dashboard) também exige nota no TASKS no mesmo ciclo do push.
@@ -1874,11 +1893,11 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 
 ## Marco — site no ar para testes gerais
 
-> **🌐 Mínimo funcional beta (jul/2026):** **6b** ✅ · **6c** ✅ — cadastro, login CPF, trial, gate, RLS/isolamento por conta. Sync SIGAA na nuvem = worker **B54–B56** — ⚠️ **escrita ainda stub** (só SQLite); dados reais no Postgres dependem de **[B72](#12--bloco-2f--sync-real-postgres-b72)**.
+> **🌐 Mínimo funcional beta (jul/2026):** **6b** ✅ · **6c** ✅ — cadastro, login CPF, trial, gate, RLS/isolamento por conta. Sync SIGAA → Postgres = **[B72a–d](#12--bloco-2f--sync-real-postgres-b72)** `[%]` (mirror validado live; Supabase populado com dados reais). Sincronizar **na URL pública** depende do worker hospedado **B72e**.
 
-> **🌐 Beta aberto:** URL pública com **cadastro + login CPF + trial + gate** (**F29** ✅). Sync SIGAA na nuvem: worker **B54–B56** grava só SQLite → escrita Postgres real = **[B72](#12--bloco-2f--sync-real-postgres-b72)** (bloqueador antes de F21–F23).
+> **🌐 Beta aberto:** URL pública com **cadastro + login CPF + trial + gate** (**F29** ✅) e **dados SIGAA reais no Supabase** (via `npm run sync:mirror` do dev/worker local até **B72e** hospedar o worker).
 
-> **🌐 O que isso NÃO significa:** **não** é todas as páginas/feature na nuvem iguais ao dev local. **Sync SIGAA real na cloud** depende do **worker (B54–B56)** — hoje **stub** no Postgres. **Dados isolados por conta** ✅ **6c** (RLS). **PIX / planos pagos** ✅ **#7**. Telas do Bloco 1 **abrem** na URL; experiência acadêmica **completa** com dados SIGAA hoje = **dev local (SQLite)** + rotas cloud ainda parciais.
+> **🌐 O que isso NÃO significa:** o botão Sincronizar **na URL** ainda é stub (Cloudflare não roda Playwright) — vira dispatch ao worker em **B72e**. **Dados isolados por conta** ✅ **6c** (RLS). **PIX / planos pagos** ✅ **#7**. Dashboard/simulador/mapa na URL exibem os dados espelhados no Postgres após cada sync do worker/dev local.
 
 ### Fases até o go-live comercial
 

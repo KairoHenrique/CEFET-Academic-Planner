@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { apiErrorResponse, apiSuccess } from "@/lib/api/response";
 import { parseSyncRequest } from "@/lib/api/validate";
+import { runWithScraperSqlite } from "@/lib/db/backend/sqlite-guard";
 import { ensureDbReady } from "@/lib/db/bootstrap";
 import { runWithUserDb } from "@/lib/db/connection-manager";
 import { runCalendarioSync } from "@/lib/sync/run-calendario-sync";
@@ -20,20 +21,22 @@ export const POST = async (request: Request) => {
       typeof body === "object" &&
       (body as Record<string, unknown>).force === true;
 
-    return await runWithUserDb(credentials.username, async () => {
-      ensureDbReady();
-      const result = await withSyncLock(() =>
-        runCalendarioSync(credentials, { force })
-      );
+    return await runWithScraperSqlite(() =>
+      runWithUserDb(credentials.username, async () => {
+        ensureDbReady();
+        const result = await withSyncLock(() =>
+          runCalendarioSync(credentials, { force })
+        );
 
-      return apiSuccess({
-        ok: result.ok,
-        skipped: result.skipped,
-        partial: result.partial || undefined,
-        rowsWritten: result.rowsWritten,
-        message: result.message,
-      });
-    });
+        return apiSuccess({
+          ok: result.ok,
+          skipped: result.skipped,
+          partial: result.partial || undefined,
+          rowsWritten: result.rowsWritten,
+          message: result.message,
+        });
+      })
+    );
   } catch (error) {
     if (error instanceof ApiError) {
       return apiErrorResponse(error);

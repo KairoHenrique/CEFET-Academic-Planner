@@ -1,4 +1,4 @@
-import { resolvePlannerDatabaseBackend } from "@/lib/db/backend/config";
+import { isSqliteAllowed } from "@/lib/db/backend/sqlite-guard";
 import { sqliteWritePort } from "./sqlite-write-port";
 import type { PlannerWritePort } from "./types";
 
@@ -8,21 +8,19 @@ export type {
 } from "./types";
 
 /**
- * Resolve o adapter de escrita conforme o backend ativo (`PLANNER_DATABASE`).
+ * Resolve o adapter de escrita do pipeline de sync (B72).
  *
- * - `sqlite`  → adapter local (dev / testes).
- * - `postgres`→ adapter Supabase (**B72b** — ainda não implementado).
- *
- * O acesso ao SQLite só ocorre quando um método é chamado (proxy em
- * `db/index.ts`), então importar este módulo em modo cloud é seguro.
+ * Arquitetura B72b: o scraper SEMPRE grava no staging SQLite (regras de
+ * negócio intactas) e o mirror pós-sync replica ao Postgres
+ * (`lib/sync-mirror`). Em modo postgres local/worker, o staging é liberado
+ * via `runWithScraperSqlite`. Só o deploy Cloudflare (sem fs) não escreve —
+ * lá o sync é delegado ao worker externo (B72e).
  */
 export function resolvePlannerWritePort(): PlannerWritePort {
-  const backend = resolvePlannerDatabaseBackend();
-
-  if (backend === "postgres") {
+  if (!isSqliteAllowed()) {
     throw new Error(
-      "Write port Postgres ainda não implementado (B72b). " +
-        "Sync real de escrita no Supabase pendente — ver docs/TASKS.md #12 Bloco 2f."
+      "Escrita de sync indisponível no deploy cloud — o scraper roda no " +
+        "worker externo com mirror Postgres (B72e). Ver docs/TASKS.md #12 Bloco 2f."
     );
   }
 

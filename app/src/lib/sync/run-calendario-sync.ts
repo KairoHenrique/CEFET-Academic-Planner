@@ -10,6 +10,7 @@ import { persistCalendarioSnapshot } from "@/lib/sync/persist-calendario-snapsho
 import { recordCalendarioSyncedAt } from "@/lib/sync/sync-preferences";
 import { getCalendarioAcademico, purgeInvalidCalendarioAcademico } from "@/lib/db/queries";
 import { resolveSyncCredentialsSync, type ResolvedSyncCredentials } from "@/lib/sync/resolve-credentials";
+import { runMirrorAfterSync } from "@/lib/sync-mirror/run-mirror-after-sync";
 import type { SyncRequest } from "@/lib/types/sync";
 
 export interface RunCalendarioSyncOptions {
@@ -155,5 +156,11 @@ export async function runCalendarioSync(
     `[sync:calendario] modo=${SIGAA_SCRAPER_MOCK ? "MOCK" : "LIVE"} user=${credentials.username}`
   );
 
-  return executeCalendarioRobot(credentials, options);
+  const result = await executeCalendarioRobot(credentials, options);
+
+  if (result.rowsWritten > 0) {
+    await runMirrorAfterSync(credentials.username);
+  }
+
+  return result;
 }
