@@ -23,4 +23,10 @@ export const queryKeys = {
   billingAccount: () => [...queryKeys.all, "billing", "account"] as const,
   billingPayment: (paymentId: string) =>
     [...queryKeys.all, "billing", "payment", paymentId] as const,
+  simuladorChoques: (turmaSigaaIdsKey: string) =>
+    [...queryKeys.all, "simulador", "choques", turmaSigaaIdsKey] as const,
+  simuladorSimulacoes: () =>
+    [...queryKeys.all, "simulador", "simulacoes"] as const,
+  simuladorSimulacao: (id: string) =>
+    [...queryKeys.all, "simulador", "simulacao", id] as const,
 };

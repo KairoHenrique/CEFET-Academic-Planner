@@ -4577,6 +4577,35 @@ a:hover {
   cursor: pointer;
 }
 
+.schedule-slot-drop-target {
+  border-color: var(--gold-400) !important;
+  background: rgba(212, 168, 67, 0.16) !important;
+  box-shadow: 0 0 0 2px rgba(212, 168, 67, 0.35);
+  transform: scale(1.02);
+}
+
+.schedule-slot-conflict {
+  box-shadow:
+    0 0 0 2px rgba(244, 112, 103, 0.55),
+    inset 0 0 0 1px rgba(244, 112, 103, 0.35) !important;
+  animation: schedule-slot-conflict-pulse 1.6s ease-in-out infinite;
+}
+
+.schedule-slot-conflict-zone {
+  box-shadow: 0 0 0 2px rgba(244, 112, 103, 0.28);
+}
+
+@keyframes schedule-slot-conflict-pulse {
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+
+  50% {
+    filter: brightness(1.12);
+  }
+}
+
 .schedule-slot-variant-preview {
   border-style: dashed;
   border-width: 2px;
@@ -7493,7 +7522,7 @@ a:hover {
 
 .enrollment-schedule-head-spacer {
   flex-shrink: 0;
-  width: 11.5rem;
+  width: 22rem;
   height: 1px;
 }
 
@@ -7721,6 +7750,165 @@ a:hover {
 .enrollment-clear-btn:focus-visible {
   outline: 2px solid var(--gold-400);
   outline-offset: 2px;
+}
+
+.enrollment-eligibility-filter.filter-bar {
+  gap: var(--space-1);
+}
+
+.enrollment-course--draggable {
+  cursor: grab;
+}
+
+.enrollment-course--draggable:active,
+.enrollment-course--dragging {
+  cursor: grabbing;
+}
+
+.enrollment-course--dragging {
+  opacity: 0.72;
+  transform: scale(0.98);
+}
+
+.enrollment-course.schedule-choque-highlight,
+.enrollment-course-slot-chip.schedule-choque-highlight {
+  box-shadow: inset 0 0 0 1px rgba(244, 112, 103, 0.45);
+}
+
+.enrollment-schedule-conflict-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(244, 112, 103, 0.35);
+  background: rgba(244, 112, 103, 0.08);
+  color: var(--text-primary);
+}
+
+.enrollment-schedule-conflict-banner-copy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.enrollment-schedule-conflict-banner-title {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #f7b4ae;
+}
+
+.enrollment-schedule-conflict-banner-hint {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+.enrollment-simulacoes-menu {
+  position: relative;
+}
+
+.enrollment-simulacoes-popover {
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  right: 0;
+  z-index: 12;
+  width: min(18rem, 88vw);
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-default);
+  background: var(--surface-elevated, #151821);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+}
+
+.enrollment-simulacoes-empty {
+  margin: 0;
+  padding: var(--space-2);
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.enrollment-simulacoes-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  max-height: 14rem;
+  overflow: auto;
+}
+
+.enrollment-simulacoes-item {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-1);
+}
+
+.enrollment-simulacoes-load {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease;
+}
+
+.enrollment-simulacoes-load:hover {
+  border-color: rgba(212, 168, 67, 0.35);
+  background: rgba(212, 168, 67, 0.08);
+}
+
+.enrollment-simulacoes-load-title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.enrollment-simulacoes-load-meta {
+  font-size: 0.6875rem;
+  color: var(--text-secondary);
+}
+
+.enrollment-simulacoes-delete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-default);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    color 160ms ease,
+    background 160ms ease;
+}
+
+.enrollment-simulacoes-delete:hover:not(:disabled) {
+  color: #f7b4ae;
+  border-color: rgba(244, 112, 103, 0.45);
+  background: rgba(244, 112, 103, 0.08);
 }
 
 .enrollment-schedule-legend {

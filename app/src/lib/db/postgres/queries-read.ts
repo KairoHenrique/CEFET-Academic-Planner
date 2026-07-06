@@ -12,6 +12,7 @@ import type {
   SemestreAtualWithDisciplina,
   RequisitoRow,
   TarefaRow,
+  TurmaOfertadaRow,
 } from "@/lib/types/db";
 
 const cursoId = () => resolveQueryCursoId();
@@ -332,4 +333,62 @@ export async function pgGetNotasByDisciplina(
       row.nota_override != null ? Number(row.nota_override) : undefined,
     nota_extra: row.nota_extra != null ? Number(row.nota_extra) : undefined,
   }));
+}
+
+function mapTurmaOfertadaRow(row: Record<string, unknown>): TurmaOfertadaRow {
+  return {
+    id: Number(row.id),
+    turma_sigaa_id: String(row.turma_sigaa_id),
+    sigaa_componente:
+      row.sigaa_componente != null ? String(row.sigaa_componente) : null,
+    codigo_disciplina: String(row.codigo_disciplina),
+    nome: String(row.nome),
+    turma_codigo: row.turma_codigo != null ? String(row.turma_codigo) : null,
+    semestre: String(row.semestre),
+    codigo_horario:
+      row.codigo_horario != null ? String(row.codigo_horario) : null,
+    horario_exibicao:
+      row.horario_exibicao != null ? String(row.horario_exibicao) : null,
+    local: row.local != null ? String(row.local) : null,
+    professor: row.professor != null ? String(row.professor) : null,
+    vagas: row.vagas != null ? Number(row.vagas) : null,
+    vagas_ocupadas:
+      row.vagas_ocupadas != null ? Number(row.vagas_ocupadas) : null,
+    carga_horaria:
+      row.carga_horaria != null ? Number(row.carga_horaria) : null,
+    situacao: String(row.situacao ?? "atendida"),
+    tipo_turma: row.tipo_turma != null ? String(row.tipo_turma) : null,
+    departamento: row.departamento != null ? String(row.departamento) : null,
+    horario_indefinido: Number(row.horario_indefinido ?? 0),
+    categoria: row.categoria != null ? String(row.categoria) : null,
+    curso_id: row.curso_id != null ? String(row.curso_id) : null,
+    synced_at: row.synced_at != null ? String(row.synced_at) : null,
+  };
+}
+
+export async function pgGetTurmasOfertadas(
+  semestre?: string
+): Promise<TurmaOfertadaRow[]> {
+  const pool = getPostgresPool();
+  const trimmed = semestre?.trim();
+
+  if (trimmed) {
+    const result = await pool.query(
+      `SELECT *
+       FROM turmas_ofertadas
+       WHERE curso_id = $1 AND semestre = $2
+       ORDER BY nome, turma_codigo`,
+      [cursoId(), trimmed]
+    );
+    return result.rows.map((row) => mapTurmaOfertadaRow(row));
+  }
+
+  const result = await pool.query(
+    `SELECT *
+     FROM turmas_ofertadas
+     WHERE curso_id = $1
+     ORDER BY semestre DESC, nome, turma_codigo`,
+    [cursoId()]
+  );
+  return result.rows.map((row) => mapTurmaOfertadaRow(row));
 }
