@@ -41,7 +41,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ## Roadmap detalhado — ordem de execução (#0 → #11)
 
-> **Próximo oficial:** **#7 — PIX** — **B51** webhook PIX *(B50 ✅)*.
+> **Próximo oficial:** **#7 — PIX** — **B52** gate middleware *(B51 ✅)*.
 > **Regra:** siga **#0 → #11** · dentro de cada bloco → **BACK (B) antes de FRONT (F)**. Checklist espelho: [Checklist mestre](#checklist-mestre-ordem-de-execução).
 
 ### #0 — Planejamento `✅`
@@ -235,7 +235,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ---
 
-### #7 — Bloco 7 · Assinatura PIX `🟡 4/15`
+### #7 — Bloco 7 · Assinatura PIX `🟡 5/15`
 
 > **Só após #6e.** Preços v1: R$ 50 (3m) · R$ 85 (6m) · R$ 150 (12m) · R$ 700 (5a). Gift keys + endurecimento credenciais incluídos neste bloco.
 
@@ -663,7 +663,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 ---
 
-### #7 — Bloco 7 · Assinatura PIX `🟡 4/15`
+### #7 — Bloco 7 · Assinatura PIX `🟡 5/15`
 
 > Preços v1 definidos. **Só após #6e.**
 

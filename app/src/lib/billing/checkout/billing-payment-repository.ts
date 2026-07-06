@@ -165,6 +165,64 @@ export async function updatePaymentAfterPixCharge(input: {
   return mapPaymentRow(row);
 }
 
+export async function findPaymentByExternalReference(
+  externalReference: string
+): Promise<PaymentRow | null> {
+  const pool = getPostgresPool();
+  const result = await pool.query<PaymentDbRow>(
+    `${PAYMENT_SELECT}
+     WHERE external_reference = $1
+     LIMIT 1`,
+    [externalReference]
+  );
+
+  const row = result.rows[0];
+  return row ? mapPaymentRow(row) : null;
+}
+
+export async function findPaymentByGatewayPaymentId(
+  gateway: PaymentGateway,
+  gatewayPaymentId: string
+): Promise<PaymentRow | null> {
+  const pool = getPostgresPool();
+  const result = await pool.query<PaymentDbRow>(
+    `${PAYMENT_SELECT}
+     WHERE gateway = $1 AND gateway_payment_id = $2
+     LIMIT 1`,
+    [gateway, gatewayPaymentId]
+  );
+
+  const row = result.rows[0];
+  return row ? mapPaymentRow(row) : null;
+}
+
+export async function updatePaymentStatus(input: {
+  paymentId: string;
+  status: PaymentStatus;
+  paidAt?: string | null;
+}): Promise<PaymentRow> {
+  const pool = getPostgresPool();
+  const result = await pool.query<PaymentDbRow>(
+    `UPDATE payments
+     SET status = $2,
+         paid_at = COALESCE($3::timestamptz, paid_at),
+         updated_at = now()
+     WHERE id = $1
+     RETURNING id, user_id, subscription_id, plan_id, amount_cents, currency,
+               status, gateway, gateway_payment_id, external_reference,
+               idempotency_key, payer_cpf, qr_code, expires_at, paid_at,
+               metadata, created_at, updated_at`,
+    [input.paymentId, input.status, input.paidAt ?? null]
+  );
+
+  const row = result.rows[0];
+  if (!row) {
+    throw new Error("Pagamento não encontrado para atualização de status.");
+  }
+
+  return mapPaymentRow(row);
+}
+
 export async function markPaymentRejected(paymentId: string): Promise<void> {
   const pool = getPostgresPool();
   await pool.query(
