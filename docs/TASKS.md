@@ -41,7 +41,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ## Roadmap detalhado — ordem de execução (#0 → #11)
 
-> **Próximo oficial:** **#7 — PIX** — **F31** cadastro + plano *(B69 ✅ · BACK #7 completo)*.
+> **Próximo oficial:** **#7 — PIX** — **L1** (termos + LGPD) · depois **B71** (endurecimento credenciais).
 > **Regra:** siga **#0 → #11** · dentro de cada bloco → **BACK (B) antes de FRONT (F)**. Checklist espelho: [Checklist mestre](#checklist-mestre-ordem-de-execução).
 
 ### #0 — Planejamento `✅`
@@ -235,7 +235,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ---
 
-### #7 — Bloco 7 · Assinatura PIX `🟡 8/15`
+### #7 — Bloco 7 · Assinatura PIX `🟡 13/15`
 
 > **Só após #6e.** Preços v1: R$ 50 (3m) · R$ 85 (6m) · R$ 150 (12m) · R$ 700 (5a). Gift keys + endurecimento credenciais incluídos neste bloco.
 
@@ -247,15 +247,17 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 - [x] **BACK:** B52 *(gate middleware — bloqueia trial_expired/pending/expired → PIX)*
 - [x] **BACK:** B53 *(renovação — novo PIX + grace period · `BILLING_GRACE_PERIOD_DAYS` default 3)*
 - [x] **BACK:** B69 *(chaves gift — gerar 8 chars + resgate único + `POST /api/billing/redeem-key`)*
-- [ ] **FRONT:** F31 *(cadastro + plano — após trial ou CPF já usado)*
-- [ ] **FRONT:** F32 *(tela PIX — QR + copia-e-cola + aguardando)*
-- [ ] **FRONT:** F33 *(renovação — assinatura expirada)*
-- [ ] **FRONT:** F34 *(minha assinatura — plano, validade, histórico)*
-- [ ] **FRONT:** F40 *(resgate chave plano — 8 chars em login/cadastro/`/planos`)*
+- [x] **FRONT:** F31 *(cadastro + plano — pós-auth redirect · guard assinatura · checkout PIX em `/planos` · handoff `/planos/pix`)*
+- [x] **FRONT:** F32 *(tela PIX — QR + copia-e-cola + polling `GET /api/billing/payments/[id]`)*
+- [x] **FRONT:** F33 *(renovação — grace period · alerta em `/planos`)*
+- [x] **FRONT:** F34 *(minha assinatura — perfil + histórico via `GET /api/billing/account`)*
+- [x] **FRONT:** F40 *(resgate chave — login/cadastro/`/planos` · `POST /api/billing/redeem-key`)*
 - [ ] **LEGAL:** L1 *(termos + LGPD — política de privacidade)*
 - [ ] **BACK:** B71 *(endurecimento credenciais — **última pré-go-live**; ocultar senhas no `/dev`)*
 
 **Ordem #7:** `B47 → B48` → `B49 → B50 → B51 → B52 → B53` → `B69` → `F31 → F32 → F33 → F34` → `F40` → `L1` → **`B71`**
+
+> **#7 Mapa:** **F31–F40** ✅ — checkout + PIX QR + renovação/grace + perfil/histórico + gift key · APIs aux. `GET /api/billing/payments/[id]` · `GET /api/billing/account` · próximo **L1**.
 
 > **Painel dev:** **B70/F41** = [#6e](#6e--painel-dev--policy-pré-pix) *(fora desta ordem — vem antes)*.
 
@@ -396,7 +398,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ### 1.4 API e Integração UI ↔ SQLite
 
-> **Progresso:** Bloco 1 ✅ · **Bloco 2a/2b** ✅ · **Bloco 6a** ✅ **8/8** · **6b** ✅ **8/8** · **6c** ✅ **2/2** · **#6d** ✅ **6/6** · **#6e** ✅ **2/2** · **#7** **8/15** (BACK B47–B69 ✅) · URL **`https://acme-hub.khfm.workers.dev`**.
+> **Progresso:** Bloco 1 ✅ · **Bloco 2a/2b** ✅ · **Bloco 6a** ✅ **8/8** · **6b** ✅ **8/8** · **6c** ✅ **2/2** · **#6d** ✅ **6/6** · **#6e** ✅ **2/2** · **#7** **13/15** (BACK B47–B69 ✅ · **F31–F40** ✅ · **L1** + **B71** pendentes) · URL **`https://acme-hub.khfm.workers.dev`**.
 
 Roadmap detalhado: ver **[Roadmap #0→#11 no topo](#roadmap-detalhado--ordem-de-execução-0--11)** · [Ordem oficial v3](#ordem-oficial-de-execução-v3). **F19** simulador (2a) `[x]` · **B67** `[x]`.
 
@@ -516,7 +518,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | **#6** | 6c | RLS multi-tenant | ✅ **Concluído** | 2/2 |
 | **#6d** | 2c | Orquestração sync + catálogo global | ✅ **6/6** · policy **§6.6** | 6/6 |
 | **#6e** | 2e | Painel dev + policy (B70 → F41) | ✅ **2/2** | 2/2 |
-| **#7** | 7 | Assinatura PIX | **F31** cadastro + plano | 8/15 |
+| **#7** | 7 | Assinatura PIX | **L1** → **B71** | 13/15 |
 | **#9** | 3 | Inteligência acadêmica | Depois de #7 (dados reais + PIX) · **antes do mobile** | 0/11 |
 | **#10** | 4 | Polimento UX + site mobile (**F28**) | **Antes do mobile (#8)** | 0/4 |
 | **#8** | 8 | Mobile Android (Expo Go) | Depois de **#6d** + **#7** + **#9** + **#10** · **sem Play/App Store** | 0/10 |
@@ -583,7 +585,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 **Contagem 8/8:** só os 8 primeiros grupos até **`F37`** · **`F38` · `B66` · `B67` · `F19`** = extras (fora do 8/8) · polish `04887c9`/`5923e9c` · modulação dashboard · fix mapa/histórico/notificações (jun/2026)
 
-**Próximo:** **#7 — PIX** — **F31** cadastro + plano *(BACK completo)*.
+**Próximo:** **#7 — PIX** — **L1** (termos + LGPD) · depois **B71**.
 
 ---
 
@@ -663,13 +665,13 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 ---
 
-### #7 — Bloco 7 · Assinatura PIX `🟡 8/15`
+### #7 — Bloco 7 · Assinatura PIX `🟡 13/15`
 
 > Preços v1 definidos. **Só após #6e.**
 
 - [x] **PLAN:** B47 → [x] **PLAN:** B48
 - [x] **BACK:**  B49 → [x] B50 → [x] B51 → [x] B52 → [x] B53 → [x] B69
-- [ ] **FRONT:** F31 → F32 → F33 → F34 → F40
+- [x] **FRONT:** F31 → F32 → F33 → F34 → F40
 - [ ] **LEGAL:** L1
 - [ ] **BACK:**  B71 *(última pré-go-live)*
 
@@ -971,7 +973,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] `worker/Dockerfile` (Playwright jammy) · `worker/README.md`
 - [x] Testes `tests/worker-b54.test.ts`
 
-> **Próximo:** **#7 — PIX** — **F31** cadastro + plano *(BACK completo)*.
+> **Próximo:** **#7 — PIX** — **L1** (termos + LGPD) · depois **B71**.
 
 #### B55 — API fila sync `[x]`
 
@@ -981,7 +983,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Dispatcher assíncrono → worker B54 (`SIGAA_WORKER_URL`) ou **inline** (`SYNC_QUEUE_DISPATCH=inline`)
 - [x] Testes `tests/sync-queue-b55.test.ts` · `npm run test:sync-queue`
 
-> **Próximo:** **#7 — PIX** — **F31** cadastro + plano *(BACK completo)*.
+> **Próximo:** **#7 — PIX** — **L1** (termos + LGPD) · depois **B71**.
 
 #### B56 — Pipeline no worker `[x]`
 
@@ -1172,11 +1174,11 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | B53 | Back | Renovação | Grace 3d (`BILLING_GRACE_PERIOD_DAYS`) · checkout `renewal` · stack período | [x] |
 | B69 | Back | Chaves gift | `plan_gift_keys` · dev CRUD · `POST /api/billing/redeem-key` | [x] |
 | B71 | Back | **Endurecimento credenciais** | **Última task pré-go-live:** ocultar senhas no `/dev`, cifragem plena, zero leak API/logs | [ ] |
-| F31 | Front | Cadastro + plano | Após trial ou CPF já usado: escolha semestre/ano + PIX | [ ] |
-| F32 | Front | Tela PIX | QR + copia-e-cola + aguardando | [ ] |
-| F33 | Front | Renovação | Assinatura expirada | [ ] |
-| F34 | Front | Minha assinatura | Plano, validade, histórico | [ ] |
-| F40 | Front | Resgate chave plano | Campo 8 chars em login/cadastro/`/planos`; feedback uso único | [ ] |
+| F31 | Front | Cadastro + plano | Pós-auth redirect · `ACCOUNT_EXISTS` → login · guard cloud · checkout `POST /api/billing/checkout` · handoff `/planos/pix` | [x] |
+| F32 | Front | Tela PIX | `/planos/pix` — QR base64 · copia-e-cola · polling status · redirect pós-aprovado | [x] |
+| F33 | Front | Renovação | `PlanosStatusAlert` — grace 3d · copy acumula período | [x] |
+| F34 | Front | Minha assinatura | Modal perfil — plano · validade · histórico PIX | [x] |
+| F40 | Front | Resgate chave plano | 8 chars — login/cadastro (defer) + `/planos` · feedback uso único | [x] |
 | L1 | Legal | Termos + LGPD | Política de privacidade | [ ] |
 
 **Ordem #7:** `B47 → B48` → `B49 → B50 → B51 → B52 → B53` → `B69` → `F31 → F32 → F33 → F34` → `F40` → `L1` → **`B71`** *(última — imediatamente antes do go-live público)*
@@ -1293,7 +1295,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 #6d Bloco 2c  Orquestração sync (B68-orq)     policy §6.6 · ✅ 6/6
 #6e Bloco 2e  Painel dev + policy (B70/F41)        ✅ 2/2
       ↓
-#7  Bloco 7   Assinatura PIX                   8/15
+#7  Bloco 7   Assinatura PIX                   13/15
       ↓
 #9  Bloco 3   Inteligência acadêmica        ← site antes mobile
 #10 Bloco 4   Polimento UX + site mobile (F28) ← gráficos / ajustes web
@@ -1434,6 +1436,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Sino de notificações in-app — tarefas/notas novas + lembretes 24h/1h (**F38**); polish `04887c9` (baseline pré-sync, nota obtida/máxima no painel)
 - [x] Cadastro produção: e-mail, telefone, CPF, **curso (Comp/Meca/Moda)**, senha — **F29** ✅ (`POST /api/auth/register` · tabs Entrar/Criar conta)
 - [x] Login produção: **apenas CPF + senha** — **F29** ✅ (`POST /api/auth/login` · Bearer + `X-Planner-Sigaa-User`)
+- [x] `/planos` checkout PIX + gift key + renovação (**F31–F33**, **F40**) · `/planos/pix` QR + polling (**F32**) · perfil histórico (**F34**)
 - [x] PATCH contato na **cloud** (`app_profiles`) — **B61** ✅ (`PATCH /api/perfil` · UI **F37**)
 
 ### 3.2 Dashboard Central
@@ -1643,7 +1646,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 ## Apêndice — Chaves gift e painel dev (jun/2026)
 
 > **Escopo fechado** em `SCOPE.md` §2.1.1, §6.1.1, §10 e `SCOPE-CLOUD.md` §3.6, §8.  
-> **Implementação:** produção **B69** ✅ (back) · **F40/F41** UI resgate/listagem gift pendente.
+> **Implementação:** produção **B69** ✅ (back) · **F40** ✅ UI resgate aluno · listagem gift = **F41** `[x]` painel dev.
 
 ### Chaves de plano (gift card)
 
@@ -1734,7 +1737,7 @@ Rota **`/dev`** — invisível ao aluno.
 - [x] **Orquestração sync** — formulário policy §6.6 (botão lite, TTLs, global R2/R3, batch noturno, `max_concurrent`, **Restaurar padrões**)
 - [x] Feedback inline por robô (resultados + erros)
 - [x] **Sem navbar aluno** — rota `/dev` isolada (`AuthGate` + `AppShell` + `DevNavbar`)
-- [ ] Chaves gift / promoções — **F40/F41** UI *(API **B69** ✅ · `GET/POST /api/dev/gift-keys`)*
+- [x] Chaves gift / promoções — **F41** painel dev *(API **B69** ✅)* · **F40** ✅ resgate aluno
 
 #### Fora de escopo (v1 painel dev)
 
@@ -1768,7 +1771,7 @@ B68 + F39 (simulação mapa — pode paralelizar ao Bloco 1 pós-F12)
 
 ### Dev local (antes da cloud)
 
-- Billing **B47–B69** ✅ (PIX + gift keys) · front checkout **F31–F34** · resgate UI **F40** · **L1** · **B71**.
+- Billing **B47–B69** ✅ · **F31–F40** ✅ · **L1** · **B71**.
 - Painel dev SQLite/cloud: rota **`/dev`** com login operador, navbar, robôs modulares R1/R2/R3 e policy §6.6 — **F41** `[x]`.
 
 ---
@@ -1834,7 +1837,7 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 8. **Próximo passo do roadmap:** informe **depois do push** (tasks em `[@]` ou `[x]`). Com commits locais só `[%]`, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v3](#ordem-oficial-de-execução-v3) — **Bloco 2 (sync) antes do Bloco 6 (Supabase)**. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy **após** sync validado; RLS ✅ **6c** (antes do PIX). Marco “site no ar p/ testes gerais” → [final do TASKS.md](#marco--site-no-ar-para-testes-gerais).
-11. **Próximo passo:** **#7 — PIX** — **F31** cadastro + plano *(BACK B47–B69 ✅)*.
+11. **Próximo passo:** **#7 — PIX** — **L1** (termos + LGPD) · depois **B71** (endurecimento credenciais).
 12. **Integralização:** CH concluída = `historico` + PPC (`computeChDoneFromDisciplinas`); portal SIGAA só % / total currículo; matérias já passadas = **B30** ✅.
 13. **Gift + painel dev + simulação mapa:** escopo em `SCOPE.md` §10.7, §6.1.1 · `SCOPE-CLOUD` §6.6 — tasks **B68–B71**, **F39–F41**. Painel: robôs modulares R1/R2/R3 + **Orquestração sync** (TTLs/data fixa/batch). **B71** = ocultar senhas SIGAA.
 14. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial. **Polish em task `[x]`** (ex.: F38, dashboard) também exige nota no TASKS no mesmo ciclo do push.

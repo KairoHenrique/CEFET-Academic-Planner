@@ -7,6 +7,7 @@ import { PasswordInput } from "@/components/ui/PasswordInput";
 import { PlannerSelect } from "@/components/ui/PlannerSelect";
 import { AuthTrialBanner } from "@/components/auth/AuthTrialBanner";
 import { AuthSubmitButton } from "@/components/auth/AuthSubmitButton";
+import { RegisterAccountExistsNotice } from "@/components/auth/RegisterAccountExistsNotice";
 import { PlannerNotice } from "@/components/ui/PlannerNotice";
 import { ApiClientError, postAuthRegister } from "@/lib/api/client";
 import type { AppCursoId } from "@/lib/auth/account/types";
@@ -22,6 +23,8 @@ import {
   formatPhoneInput,
 } from "@/lib/auth/account/format-auth-fields";
 import { persistCloudAuthSession } from "@/lib/auth/persist-cloud-session";
+import { resolvePostAuthRedirect } from "@/lib/billing/post-auth-redirect";
+import { redeemPendingGiftKeyAfterAuth } from "@/lib/billing/gift-keys/redeem-pending-gift-key-after-auth";
 import type { AuthCursoOption } from "@/lib/types/auth-api";
 
 interface RegisterFormProps {
@@ -40,6 +43,7 @@ export function RegisterForm({ cursos }: RegisterFormProps) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [errorEpoch, setErrorEpoch] = useState(0);
   const [submitting, setSubmitting] = useState(false);
+  const [accountExists, setAccountExists] = useState(false);
 
   const cursoOptions = useMemo(
     () => cursos.map((curso) => ({ value: curso.id, label: curso.label })),
@@ -54,6 +58,7 @@ export function RegisterForm({ cursos }: RegisterFormProps) {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setErrorMessage(null);
+    setAccountExists(false);
 
     const normalizedEmail = normalizeEmail(email);
     const normalizedPhone = normalizeTelefone(telefone);
@@ -86,9 +91,16 @@ export function RegisterForm({ cursos }: RegisterFormProps) {
         password,
       });
       persistCloudAuthSession(result);
-      router.push("/");
+      const giftRedeem = await redeemPendingGiftKeyAfterAuth();
+      router.push(
+        giftRedeem.redeemed ? "/" : resolvePostAuthRedirect(result.subscription)
+      );
       router.refresh();
     } catch (error) {
+      if (error instanceof ApiClientError && error.code === "ACCOUNT_EXISTS") {
+        setAccountExists(true);
+        return;
+      }
       showError(
         error instanceof ApiClientError
           ? error.message
@@ -165,17 +177,23 @@ export function RegisterForm({ cursos }: RegisterFormProps) {
 
       <AuthTrialBanner />
 
-      <div className="login-actions">
-        <AuthSubmitButton variant="register" loading={submitting} />
-      </div>
+      {accountExists ? <RegisterAccountExistsNotice /> : null}
 
-      <PlannerNotice
-        open={Boolean(errorMessage)}
-        message={errorMessage}
-        noticeKey={errorEpoch}
-        kicker="Verifique os dados"
-        onDismiss={() => setErrorMessage(null)}
-      />
+      {!accountExists ? (
+        <div className="login-actions">
+          <AuthSubmitButton variant="register" loading={submitting} />
+        </div>
+      ) : null}
+
+      {!accountExists ? (
+        <PlannerNotice
+          open={Boolean(errorMessage)}
+          message={errorMessage}
+          noticeKey={errorEpoch}
+          kicker="Verifique os dados"
+          onDismiss={() => setErrorMessage(null)}
+        />
+      ) : null}
     </form>
   );
 }

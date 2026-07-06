@@ -30,6 +30,8 @@ export interface PerfilSubscription {
   expiresAt: string;
   daysRemaining: number;
   renewHref: string;
+  inGracePeriod?: boolean;
+  renewalEligible?: boolean;
 }
 
 export interface PerfilSyncStatus {

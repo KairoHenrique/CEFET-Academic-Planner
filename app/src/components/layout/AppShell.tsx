@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
 import { AuthGate } from "@/components/auth/AuthGate";
+import { SubscriptionAccessGuard } from "@/components/auth/SubscriptionAccessGuard";
 import { AutoSyncRunner } from "@/components/profile/AutoSyncRunner";
 import { SessionActivityTracker } from "@/components/auth/SessionActivityTracker";
 import { QueryProvider } from "@/components/providers/QueryProvider";
@@ -26,16 +27,18 @@ export function AppShell({ children }: AppShellProps) {
     <QueryProvider>
       <SyncQueueProvider>
         <AuthGate>
-          {showStudentChrome && <SessionActivityTracker />}
-          {showStudentChrome && <AutoSyncRunner />}
-          {showStudentChrome && <Navbar />}
-          <main
-            className={`main-content ${
-              isLogin ? "main-content-login" : ""
-            } ${isDevPanel ? "main-content-dev" : ""}`}
-          >
-            {children}
-          </main>
+          <SubscriptionAccessGuard>
+            {showStudentChrome && <SessionActivityTracker />}
+            {showStudentChrome && <AutoSyncRunner />}
+            {showStudentChrome && <Navbar />}
+            <main
+              className={`main-content ${
+                isLogin ? "main-content-login" : ""
+              } ${isDevPanel ? "main-content-dev" : ""}`}
+            >
+              {children}
+            </main>
+          </SubscriptionAccessGuard>
         </AuthGate>
       </SyncQueueProvider>
     </QueryProvider>

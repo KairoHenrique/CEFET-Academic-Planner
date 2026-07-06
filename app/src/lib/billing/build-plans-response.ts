@@ -54,25 +54,25 @@ export function buildBillingPlansResponse(): BillingPlansResponse {
       monthCents,
       3,
       quarterCents,
-      "3 mensais"
+      "três mensalidades"
     ),
     semesterSavings: computeBundleSavings(
       quarterCents,
       2,
       semesterCents,
-      "2 trimestres"
+      "dois trimestres"
     ),
     yearSavings: computeBundleSavings(
       semesterCents,
       2,
       yearCents,
-      "2 semestres"
+      "dois semestres"
     ),
     fiveYearSavings: computeBundleSavings(
       yearCents,
       5,
       fiveYearCents,
-      "5 anuais"
+      "cinco anos no plano anual"
     ),
   };
 }

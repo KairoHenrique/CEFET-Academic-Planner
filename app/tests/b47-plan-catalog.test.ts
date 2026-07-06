@@ -75,15 +75,15 @@ describe("B47 — preços base e override via env", () => {
 });
 
 describe("B47 — economia entre pacotes", () => {
-  it("trimestre economiza vs. 3 mensais (R$ 40)", () => {
-    const savings = computeBundleSavings(3000, 3, 5000, "3 mensais");
+  it("trimestre economiza em relação a três mensalidades (R$ 40)", () => {
+    const savings = computeBundleSavings(3000, 3, 5000, "três mensalidades");
     assert.ok(savings);
     assert.equal(savings?.percent, 44);
     assert.match(savings?.label ?? "", /40,00/);
   });
 
-  it("semestre economiza vs. 2 trimestres (R$ 15)", () => {
-    const savings = computeBundleSavings(5000, 2, 8500, "2 trimestres");
+  it("semestre economiza em relação a dois trimestres (R$ 15)", () => {
+    const savings = computeBundleSavings(5000, 2, 8500, "dois trimestres");
     assert.equal(savings?.percent, 15);
   });
 });

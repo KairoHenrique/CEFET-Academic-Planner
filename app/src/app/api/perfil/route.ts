@@ -36,9 +36,13 @@ async function resolveCloudProfile(request: Request) {
 export const GET = withDb(async (request) => {
   if (isPostgresBackend()) {
     const profile = await resolveCloudProfile(request);
-    if (profile) {
-      return apiSuccess(await buildPerfilCloud(profile));
+    if (!profile) {
+      throw unauthorizedError(
+        "Sessão ausente ou inválida. Faça login com CPF e senha."
+      );
     }
+
+    return apiSuccess(await buildPerfilCloud(profile));
   }
 
   return apiSuccess(buildPerfil());

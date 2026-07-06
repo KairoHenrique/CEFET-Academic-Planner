@@ -232,3 +232,35 @@ export async function markPaymentRejected(paymentId: string): Promise<void> {
     [paymentId]
   );
 }
+
+export async function findPaymentByIdForUser(
+  paymentId: string,
+  userId: string
+): Promise<PaymentRow | null> {
+  const pool = getPostgresPool();
+  const result = await pool.query<PaymentDbRow>(
+    `${PAYMENT_SELECT}
+     WHERE id = $1 AND user_id = $2
+     LIMIT 1`,
+    [paymentId, userId]
+  );
+
+  const row = result.rows[0];
+  return row ? mapPaymentRow(row) : null;
+}
+
+export async function listPaymentsForUser(
+  userId: string,
+  limit = 20
+): Promise<PaymentRow[]> {
+  const pool = getPostgresPool();
+  const result = await pool.query<PaymentDbRow>(
+    `${PAYMENT_SELECT}
+     WHERE user_id = $1
+     ORDER BY created_at DESC
+     LIMIT $2`,
+    [userId, limit]
+  );
+
+  return result.rows.map(mapPaymentRow);
+}

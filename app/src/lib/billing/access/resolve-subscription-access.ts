@@ -115,11 +115,7 @@ export async function resolveSubscriptionAccessForCpf(
   };
 }
 
-export function isSubscriptionAccessAllowed(
-  status: PerfilSubscriptionStatus
-): boolean {
-  return status === "trial_active" || status === "active";
-}
+export { isSubscriptionAccessAllowed } from "@/lib/billing/access/subscription-access-rules";
 
 export async function isCheckoutRenewalForUser(
   cpf: string,
