@@ -1,6 +1,5 @@
 import { getAluno } from "@/lib/db/queries";
-import { resolveTrialSubscriptionForCpf } from "@/lib/auth/trial/trial-service";
-import { BILLING_RENEW_HREF } from "@/lib/auth/trial/constants";
+import { resolveSubscriptionAccessForCpf } from "@/lib/billing/access/resolve-subscription-access";
 import type { AppProfileRecord } from "@/lib/auth/account/types";
 import { getNotificationPreferences } from "@/lib/notifications/notification-preferences";
 import { buildInitials } from "@/lib/perfil/build-initials";
@@ -11,25 +10,15 @@ import {
 } from "@/lib/sync/sync-preferences";
 
 async function buildCloudSubscription(cpf: string): Promise<PerfilSubscription> {
-  const trial = await resolveTrialSubscriptionForCpf(cpf);
-  if (trial) {
-    return {
-      planId: trial.planId,
-      planLabel: trial.planLabel,
-      status: trial.status,
-      expiresAt: trial.expiresAt,
-      daysRemaining: trial.daysRemaining,
-      renewHref: trial.renewHref,
-    };
-  }
+  const access = await resolveSubscriptionAccessForCpf(cpf);
 
   return {
-    planId: "trial",
-    planLabel: "Trial gratuito",
-    status: "trial_expired",
-    expiresAt: new Date(0).toISOString(),
-    daysRemaining: 0,
-    renewHref: BILLING_RENEW_HREF,
+    planId: access.planId,
+    planLabel: access.planLabel,
+    status: access.status,
+    expiresAt: access.expiresAt ?? new Date(0).toISOString(),
+    daysRemaining: access.daysRemaining,
+    renewHref: access.renewHref,
   };
 }
 

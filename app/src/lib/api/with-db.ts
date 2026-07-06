@@ -6,7 +6,7 @@ import { runWithQueryCursoId } from "@/lib/auth/account/query-curso-context";
 import { runWithTenantUserId } from "@/lib/db/postgres/tenant-context";
 import { resolveProfileFromAuthorization } from "@/lib/auth/account/resolve-profile-from-request";
 import {
-  enforceAppAccessGate,
+  enforceSubscriptionAccessGate,
   shouldEnforceAccessGate,
 } from "@/lib/auth/access/access-gate";
 import { apiErrorResponse } from "./response";
@@ -52,7 +52,7 @@ export function withDb<TContext = unknown>(
 
       if (shouldEnforceAccessGate(request)) {
         try {
-          await enforceAppAccessGate(profile);
+          await enforceSubscriptionAccessGate(profile);
         } catch (error) {
           return apiErrorResponse(error);
         }
