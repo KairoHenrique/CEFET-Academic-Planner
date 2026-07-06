@@ -2,9 +2,11 @@ import { BILLING_RENEW_HREF } from "@/lib/auth/trial/constants";
 import { resolveTrialSubscriptionForCpf } from "@/lib/auth/trial/trial-service";
 import { resolvePlanLabel } from "@/lib/billing/plan-catalog";
 import {
+  expireSubscriptionsPastGraceForCpf,
   findActiveSubscriptionByCpf,
   findLatestExpiredPaidSubscriptionByCpf,
   findPendingPaymentSubscriptionByCpf,
+  resolveAccessExpiryMetrics,
 } from "@/lib/billing/access/subscription-access-repository";
 import type { PerfilSubscriptionStatus } from "@/lib/types/perfil-api";
 
@@ -15,19 +17,7 @@ export interface ResolvedSubscriptionAccess {
   expiresAt: string | null;
   daysRemaining: number;
   renewHref: string;
-}
-
-function computeDaysRemaining(expiresAt: string | null, now: Date): number {
-  if (!expiresAt) {
-    return 0;
-  }
-
-  const msRemaining = Date.parse(expiresAt) - now.getTime();
-  if (msRemaining <= 0) {
-    return 0;
-  }
-
-  return Math.ceil(msRemaining / (24 * 60 * 60 * 1000));
+  inGracePeriod: boolean;
 }
 
 function fromPaidSubscription(
@@ -38,16 +28,16 @@ function fromPaidSubscription(
   },
   now: Date
 ): ResolvedSubscriptionAccess {
-  const expiresAt = subscription.expires_at;
-  const daysRemaining = computeDaysRemaining(expiresAt, now);
+  const metrics = resolveAccessExpiryMetrics(subscription.expires_at, now);
 
   return {
     planId: subscription.plan_id,
     planLabel: resolvePlanLabel(subscription.plan_id),
-    status: subscription.status,
-    expiresAt,
-    daysRemaining,
+    status: metrics.inGracePeriod ? "active" : subscription.status,
+    expiresAt: metrics.expiresAt,
+    daysRemaining: metrics.daysRemaining,
     renewHref: BILLING_RENEW_HREF,
+    inGracePeriod: metrics.inGracePeriod,
   };
 }
 
@@ -55,6 +45,8 @@ export async function resolveSubscriptionAccessForCpf(
   cpf: string,
   now = new Date()
 ): Promise<ResolvedSubscriptionAccess> {
+  await expireSubscriptionsPastGraceForCpf(cpf, now);
+
   const active = await findActiveSubscriptionByCpf(cpf, now);
   if (active) {
     return fromPaidSubscription(
@@ -84,6 +76,7 @@ export async function resolveSubscriptionAccessForCpf(
       expiresAt: trial.expiresAt,
       daysRemaining: trial.daysRemaining,
       renewHref: trial.renewHref,
+      inGracePeriod: false,
     };
   }
 
@@ -107,6 +100,7 @@ export async function resolveSubscriptionAccessForCpf(
       expiresAt: trial.expiresAt,
       daysRemaining: 0,
       renewHref: trial.renewHref,
+      inGracePeriod: false,
     };
   }
 
@@ -117,6 +111,7 @@ export async function resolveSubscriptionAccessForCpf(
     expiresAt: null,
     daysRemaining: 0,
     renewHref: BILLING_RENEW_HREF,
+    inGracePeriod: false,
   };
 }
 
@@ -124,4 +119,18 @@ export function isSubscriptionAccessAllowed(
   status: PerfilSubscriptionStatus
 ): boolean {
   return status === "trial_active" || status === "active";
+}
+
+export async function isCheckoutRenewalForUser(
+  cpf: string,
+  now = new Date()
+): Promise<boolean> {
+  await expireSubscriptionsPastGraceForCpf(cpf, now);
+  const active = await findActiveSubscriptionByCpf(cpf, now);
+  if (active) {
+    return true;
+  }
+
+  const expired = await findLatestExpiredPaidSubscriptionByCpf(cpf, now);
+  return expired != null;
 }

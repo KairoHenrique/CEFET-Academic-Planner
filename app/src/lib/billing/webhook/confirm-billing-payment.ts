@@ -97,6 +97,7 @@ export async function confirmBillingPayment(
   const durationDays = await findPlanDurationDays(payment.plan_id);
   const subscription = await activateSubscriptionAfterPayment({
     subscriptionId: payment.subscription_id,
+    userId: payment.user_id,
     durationDays,
   });
 
