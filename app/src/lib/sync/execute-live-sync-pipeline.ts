@@ -113,6 +113,7 @@ async function runHistoricoStage(
 async function runTurmaStage(
   page: Page,
   portalSnapshot: PortalDiscenteSnapshot | null,
+  mode: SyncMode,
   steps: SyncStep[],
   stages: SyncStageResult[]
 ): Promise<void> {
@@ -196,7 +197,7 @@ export async function executeLiveSyncPipeline(
       });
     }
 
-    await runTurmaStage(page, portalSnapshot, steps, stages);
+    await runTurmaStage(page, portalSnapshot, mode, steps, stages);
     assertPipelineViable(mode, stages);
 
     const partial = stages.some((stage) => stage.outcome === "warning");

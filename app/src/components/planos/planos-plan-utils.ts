@@ -25,9 +25,9 @@ export function resolveDefaultPaidPlanId(
     (plan) => plan.kind === "paid" && plan.featured
   );
   if (featured?.kind === "paid") {
-    return featured.id;
+    return featured.id as PaidPlanId;
   }
 
   const firstPaid = catalog.plans.find((plan) => plan.kind === "paid");
-  return firstPaid?.kind === "paid" ? firstPaid.id : "month";
+  return firstPaid?.kind === "paid" ? (firstPaid.id as PaidPlanId) : "month";
 }

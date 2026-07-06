@@ -32,6 +32,7 @@ import {
   resolvePlanDurationDays,
   resolvePlanLabel,
 } from "@/lib/billing/plan-catalog";
+import { resolveBillingPriceCents } from "@/lib/billing/resolve-plan-prices";
 import { isCheckoutRenewalForUser } from "@/lib/billing/access/resolve-subscription-access";
 import type { PaymentRow } from "@/lib/billing/schema/billing-row-types";
 import type { SubscriptionRow } from "@/lib/billing/schema/billing-row-types";

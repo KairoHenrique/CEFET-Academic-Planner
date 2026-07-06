@@ -1,5 +1,5 @@
 import { ApiError } from "@/lib/api/errors";
-import type { CreatePixChargeParams, PixGatewayProvider } from "../types";
+import type { CreatePixChargeParams, PixChargeResult, PixGatewayProvider } from "../types";
 
 /** Adapter reservado — implementação completa pós-go-live se necessário. */
 export class AsaasPixGateway implements PixGatewayProvider {
@@ -15,7 +15,7 @@ export class AsaasPixGateway implements PixGatewayProvider {
     }
   }
 
-  async createPixCharge(_params: CreatePixChargeParams) {
+  async createPixCharge(_params: CreatePixChargeParams): Promise<PixChargeResult> {
     throw new ApiError(
       "INTERNAL_ERROR",
       "Gateway Asaas reservado — use mercadopago ou mock na v1.",

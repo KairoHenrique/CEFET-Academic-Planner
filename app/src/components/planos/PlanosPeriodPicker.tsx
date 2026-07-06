@@ -31,7 +31,7 @@ export function PlanosPeriodPicker({
             className={`planos-picker-btn${isActive ? " is-active" : ""}${
               plan.featured ? " is-featured" : ""
             }`}
-            onClick={() => onSelect(plan.id)}
+            onClick={() => onSelect(plan.id as PaidPlanId)}
           >
             <span className="planos-picker-label">{plan.shortLabel}</span>
             <span className="planos-picker-price">{plan.priceLabel}</span>

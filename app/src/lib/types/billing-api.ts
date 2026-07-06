@@ -1,3 +1,8 @@
+import type {
+  BillingPaymentHistoryItem,
+  BillingPaymentStatusView,
+} from "@/lib/billing/payments/payment-view";
+
 export type {
   BillingPlanId,
   BillingPlanSavings,
@@ -14,10 +19,7 @@ export type {
 
 export type { BillingAccountResponse } from "@/lib/billing/account/build-billing-account-response";
 
-export type {
-  BillingPaymentHistoryItem,
-  BillingPaymentStatusView,
-} from "@/lib/billing/payments/payment-view";
+export type { BillingPaymentHistoryItem, BillingPaymentStatusView };
 
 export interface BillingPaymentStatusResponse {
   ok: true;

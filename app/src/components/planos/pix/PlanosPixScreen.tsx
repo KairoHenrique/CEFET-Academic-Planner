@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { PlanosPageShell } from "@/components/planos/PlanosPageShell";
-import { PageHeader } from "@/components/layout/PageHeader";
 import { PixCopyCodeField } from "@/components/planos/pix/PixCopyCodeField";
 import { PixPaymentStatusBanner } from "@/components/planos/pix/PixPaymentStatusBanner";
 import { PixQrCodePanel } from "@/components/planos/pix/PixQrCodePanel";
