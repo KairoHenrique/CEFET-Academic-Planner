@@ -74,3 +74,43 @@ export async function insertPendingPixSubscription(input: {
 
   return mapSubscriptionRow(row);
 }
+
+export async function activateSubscriptionAfterPayment(input: {
+  subscriptionId: string;
+  durationDays: number;
+}): Promise<SubscriptionRow> {
+  const pool = getPostgresPool();
+  const result = await pool.query<SubscriptionDbRow>(
+    `UPDATE subscriptions
+     SET status = 'active',
+         started_at = now(),
+         expires_at = now() + ($2 || ' days')::interval,
+         updated_at = now()
+     WHERE id = $1
+     RETURNING id, user_id, plan_id, status, source, started_at, expires_at,
+               created_at, updated_at`,
+    [input.subscriptionId, String(input.durationDays)]
+  );
+
+  const row = result.rows[0];
+  if (!row) {
+    throw new Error("Assinatura não encontrada para ativação.");
+  }
+
+  return mapSubscriptionRow(row);
+}
+
+export async function findPlanDurationDays(planId: PaidPlanId): Promise<number> {
+  const pool = getPostgresPool();
+  const result = await pool.query<{ duration_days: number }>(
+    `SELECT duration_days FROM plans WHERE id = $1 LIMIT 1`,
+    [planId]
+  );
+
+  const duration = result.rows[0]?.duration_days;
+  if (!duration || duration <= 0) {
+    throw new Error(`Plano ${planId} não encontrado no catálogo persistido.`);
+  }
+
+  return duration;
+}
