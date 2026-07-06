@@ -32,7 +32,7 @@ import {
   resolvePlanDurationDays,
   resolvePlanLabel,
 } from "@/lib/billing/plan-catalog";
-import { resolveBillingPriceCents } from "@/lib/billing/resolve-plan-prices";
+import { isCheckoutRenewalForUser } from "@/lib/billing/access/resolve-subscription-access";
 import type { PaymentRow } from "@/lib/billing/schema/billing-row-types";
 import type { SubscriptionRow } from "@/lib/billing/schema/billing-row-types";
 
@@ -106,7 +106,8 @@ async function mapSubscriptionView(
 
 async function buildResponseFromPayment(
   payment: PaymentRow,
-  reused: boolean
+  reused: boolean,
+  renewal: boolean
 ): Promise<BillingCheckoutResponse> {
   if (!payment.subscription_id) {
     throw internalError("Pagamento sem assinatura vinculada.");
@@ -115,6 +116,7 @@ async function buildResponseFromPayment(
   return {
     ok: true,
     reused,
+    renewal,
     payment: mapPaymentView(payment),
     subscription: await mapSubscriptionView(payment.subscription_id),
   };
@@ -122,6 +124,7 @@ async function buildResponseFromPayment(
 
 async function resolveIdempotentPayment(
   userId: string,
+  cpf: string,
   idempotencyKey: string
 ): Promise<BillingCheckoutResponse | null> {
   const existing = await findPaymentByIdempotencyKey(userId, idempotencyKey);
@@ -129,8 +132,10 @@ async function resolveIdempotentPayment(
     return null;
   }
 
+  const renewal = await isCheckoutRenewalForUser(cpf);
+
   if (isPaymentStillPending(existing) && existing.qr_code) {
-    return buildResponseFromPayment(existing, true);
+    return buildResponseFromPayment(existing, true, renewal);
   }
 
   if (existing.status === "approved") {
@@ -152,6 +157,7 @@ async function createNewPixCheckout(
     });
   }
 
+  const renewal = await isCheckoutRenewalForUser(input.cpf);
   const amountCents = resolveBillingPriceCents(input.planId);
   const durationDays = resolvePlanDurationDays(input.planId);
   const gatewayId = resolvePixGatewayId();
@@ -190,7 +196,7 @@ async function createNewPixCheckout(
         input.idempotencyKey
       );
       if (existing) {
-        return buildResponseFromPayment(existing, true);
+        return buildResponseFromPayment(existing, true, renewal);
       }
     }
 
@@ -227,7 +233,7 @@ async function createNewPixCheckout(
     throw internalError("Pagamento não encontrado após checkout.");
   }
 
-  return buildResponseFromPayment(refreshed, false);
+  return buildResponseFromPayment(refreshed, false, renewal);
 }
 
 export async function createBillingCheckout(
@@ -237,6 +243,7 @@ export async function createBillingCheckout(
 
   const idempotent = await resolveIdempotentPayment(
     input.userId,
+    input.cpf,
     input.idempotencyKey
   );
   if (idempotent) {

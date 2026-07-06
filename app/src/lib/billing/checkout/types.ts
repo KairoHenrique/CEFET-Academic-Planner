@@ -36,6 +36,7 @@ export interface BillingCheckoutSubscriptionView {
 export interface BillingCheckoutResponse {
   ok: true;
   reused: boolean;
+  renewal: boolean;
   payment: BillingCheckoutPaymentView;
   subscription: BillingCheckoutSubscriptionView;
 }
