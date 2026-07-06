@@ -254,7 +254,7 @@ describe("B67 — persistência e API", () => {
     const snapshot = parseTurmasOfertadasHtml(CEFET_SOLICITACAO_HTML, {
       semestreAlvo: "2024.2",
     });
-    persistTurmasOfertadasSnapshot(snapshot);
+    await persistTurmasOfertadasSnapshot(snapshot);
 
     const response = buildTurmasOfertadasResponse(new Date("2024-07-03T12:00:00"));
     assert.equal(response.empty, false);

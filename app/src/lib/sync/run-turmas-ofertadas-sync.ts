@@ -38,10 +38,10 @@ function buildSkippedResult(message: string): TurmasOfertadasSyncResult {
   };
 }
 
-function tryFallbackTurmasMock(
+async function tryFallbackTurmasMock(
   options: RunTurmasOfertadasSyncOptions,
   reason?: string
-): TurmasOfertadasSyncResult {
+): Promise<TurmasOfertadasSyncResult> {
   const referenceDate = options.referenceDate ?? new Date();
   const semestreAlvo = resolveNextAcademicSemesterLabel(referenceDate);
   const existing = getTurmasOfertadas(semestreAlvo);
@@ -59,7 +59,7 @@ function tryFallbackTurmasMock(
   }
 
   const mockSnapshot = scrapeTurmasOfertadasMock(referenceDate);
-  const mockResult = persistTurmasOfertadasSnapshot(mockSnapshot);
+  const mockResult = await persistTurmasOfertadasSnapshot(mockSnapshot);
 
   if (!mockResult.persisted) {
     return {
@@ -91,7 +91,7 @@ async function executeTurmasRobot(
 ): Promise<TurmasOfertadasSyncResult> {
   if (SIGAA_SCRAPER_MOCK) {
     const snapshot = scrapeTurmasOfertadasMock(options.referenceDate);
-    const result = persistTurmasOfertadasSnapshot(snapshot);
+    const result = await persistTurmasOfertadasSnapshot(snapshot);
     if (!result.persisted) {
       return {
         ok: false,
@@ -119,7 +119,7 @@ async function executeTurmasRobot(
       skipPortalGoto: false,
       referenceDate: options.referenceDate,
     });
-    const result = persistTurmasOfertadasSnapshot(snapshot);
+    const result = await persistTurmasOfertadasSnapshot(snapshot);
 
     if (!result.persisted) {
       return tryFallbackTurmasMock(options, result.reason);
