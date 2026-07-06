@@ -1,9 +1,5 @@
-import {
-  clearTurmasOfertadasForSemestre,
-  getDisciplinas,
-  getTurmasOfertadas,
-  saveTurmaOfertada,
-} from "@/lib/db/queries";
+import { getDisciplinas, getTurmasOfertadas } from "@/lib/db/queries";
+import { resolvePlannerWritePort } from "@/lib/db/write-port";
 import type { TurmasOfertadasSnapshot } from "@/lib/scraper/types/turmas-ofertadas";
 import { classifyTurmaCategoria } from "@/lib/turmas-ofertadas/classify-turma-categoria";
 import { findDisciplinaForTurmaOffer } from "@/lib/turmas-ofertadas/find-disciplina-for-turma-offer";
@@ -16,9 +12,9 @@ export interface PersistTurmasOfertadasResult {
   reason?: string;
 }
 
-export function persistTurmasOfertadasSnapshot(
+export async function persistTurmasOfertadasSnapshot(
   snapshot: TurmasOfertadasSnapshot
-): PersistTurmasOfertadasResult {
+): Promise<PersistTurmasOfertadasResult> {
   if (!isTurmasOfertadasSnapshotPersistable(snapshot)) {
     const remaining = getTurmasOfertadas(snapshot.semestreAlvo).length;
     return {
@@ -32,7 +28,8 @@ export function persistTurmasOfertadasSnapshot(
     };
   }
 
-  clearTurmasOfertadasForSemestre(snapshot.semestreAlvo);
+  const writePort = resolvePlannerWritePort();
+  await writePort.turmasOfertadas.clearForSemestre(snapshot.semestreAlvo);
   const disciplinas = getDisciplinas();
   const turmas = dedupeTurmasOfertadasItemsByResolvedCode(
     snapshot.turmas,
@@ -52,7 +49,7 @@ export function persistTurmasOfertadasSnapshot(
     );
     const categoria = classifyTurmaCategoria(disciplina);
 
-    saveTurmaOfertada({
+    await writePort.turmasOfertadas.save({
       turma_sigaa_id: turma.turmaSigaaId,
       sigaa_componente: turma.sigaaComponente,
       codigo_disciplina: turma.codigoDisciplina,

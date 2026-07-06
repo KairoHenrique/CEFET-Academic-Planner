@@ -10,6 +10,8 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
 > - **Ordem de execução:** [§ Ordem oficial](#ordem-oficial-de-execução-v3)
 > - **Modo testes:** deploy global após sync validado; RLS na fase 6c (antes do PIX)
 > **Pré-mobile (#8):** **#6d** ✅ + **#6e** ✅ + **#7** + **#9 + #10** (site maduro + **F28**) · policy **§6.6** · **B68a–f** ✅
+>
+> **⚠️ Bloqueador de produção (jul/2026) — [Bloco 2f · B72](#12--bloco-2f--sync-real-postgres-b72):** o scraper/worker só possui caminho de **escrita SQLite**. Em cloud (`PLANNER_DATABASE=postgres`) o `/api/sync` é **stub** → `turmas_ofertadas`, `historico`, notas etc. ficam **vazios** no Supabase. **B72 (a–e)** cria o *Write Port + adapter Postgres* para o site rodar completo na nuvem igual ao local. **Prioridade: antes do deploy de F21–F23.**
 
 **Navegação rápida:** [Roadmap detalhado (#0→#11)](#roadmap-detalhado--ordem-de-execução-0--11) · [Sequência #0→#11](#sequência-completa--o-que-fazer-e-em-qual-ordem) · [Ordem oficial v3](#ordem-oficial-de-execução-v3) · [Checklist BACK→FRONT](#checklist-mestre-ordem-de-execução) · [Detalhe por bloco](#detalhe-dos-blocos) · [#6d orquestração sync](#6d--orquestração-sync--catálogo-global-pré-mobile) · [#6e painel dev](#6e--painel-dev--policy-pré-pix) · [Escopo cloud](./SCOPE-CLOUD.md) · [Marco testes gerais](#marco--site-no-ar-para-testes-gerais) · [Apêndice escopo futuro](#apêndice--escopo-futuro-fora-da-ordem-011) · [Apêndice B65 dev](#apêndice--b65-sync-automático-dev-remover-antes-de-produção) · [Apêndice gift + painel dev](#apêndice--chaves-gift-e-painel-dev-jun2026)
 
@@ -41,7 +43,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ## Roadmap detalhado — ordem de execução (#0 → #11)
 
-> **Próximo oficial:** **#9 — Bloco 3** · Inteligência acadêmica (B32 — motor elegibilidade).
+> **Próximo oficial:** **#9 — Bloco 3** · **B35** após push de B32–B34 + F21–F23 (`[%]` local).
 > **Regra:** siga **#0 → #11** · dentro de cada bloco → **BACK (B) antes de FRONT (F)**. Checklist espelho: [Checklist mestre](#checklist-mestre-ordem-de-execução).
 
 ### #0 — Planejamento `✅`
@@ -263,16 +265,16 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ---
 
-### #9 — Bloco 3 · Inteligência acadêmica `⬜ 0/11`
+### #9 — Bloco 3 · Inteligência acadêmica `🟡 6/11`
 
 > Depende de dados reais do Bloco 2. **Executar antes do mobile (#8).**
 
-- [ ] **BACK:** B32 *(motor elegibilidade — histórico + pré-requisitos → pode cursar?)*
-- [ ] **BACK:** B33 *(choque de horários — API detecta sobreposição na grade)*
-- [ ] **BACK:** B34 *(persistir simulação — salvar/exportar grade montada)*
-- [ ] **FRONT:** F21 *(simulador elegível — filtro + drag-and-drop na grade)*
-- [ ] **FRONT:** F22 *(alerta choque — destaque visual de conflito)*
-- [ ] **FRONT:** F23 *(salvar simulação — botões salvar/exportar matrícula)*
+- [%] **BACK:** B32 *(motor elegibilidade — `GET /api/simulador/elegibilidade`)*
+- [%] **BACK:** B33 *(choque de horários — `POST /api/simulador/choques`)*
+- [%] **BACK:** B34 *(persistir simulação — `GET/POST /api/simulador/simulacoes` + export)*
+- [%] **FRONT:** F21 *(simulador elegível — filtro + drag-and-drop na grade)*
+- [%] **FRONT:** F22 *(alerta choque — destaque visual de conflito)*
+- [%] **FRONT:** F23 *(salvar simulação — botões salvar/exportar matrícula)*
 - [ ] **BACK:** B35 *(`GET /api/mapa/grafo` — nós e arestas para react-flow)*
 - [ ] **FRONT:** F20 *(grafo react-flow — zoom, pan, setas sólidas/pontilhadas)*
 - [ ] **BACK:** B36 *(alertas integralização — limiar por categoria de CH)*
@@ -280,6 +282,22 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 - [ ] **FRONT:** F24 *(alertas na UI — banners integralização + calendário)*
 
 **Ordem Bloco 3:** `B32–B34` → `F21–F23` → `B35` → `F20` → `B36–B37` → `F24`
+
+---
+
+### #12 — Bloco 2f · Sync real Postgres (B72) `🟡 1/5`
+
+> **Bloqueador de produção.** Fecha o gap de escrita: hoje o scraper/worker grava **só no SQLite** e o `/api/sync` em cloud é **stub**. **B72** cria o *Write Port + adapter Postgres* para o site rodar completo no Supabase/Cloudflare **igual ao local**. **Executar antes de deployar F21–F23** (senão simulador/dashboard ficam vazios na URL).
+>
+> **Padrão:** Repository Port + Adapter (Clean Architecture) — a leitura já é dual (`queries.ts` SQLite · `queries-read.ts` Postgres); B72 torna a **escrita** dual também. Um pipeline, dois adapters, resolvidos por `PLANNER_DATABASE`.
+
+- [%] **BACK:** B72a *(`PlannerWritePort` — interface de escrita por entidade + adapter SQLite embrulhando `queries.ts`; sem mudar comportamento local · vertical de referência: turmas ofertadas async)*
+- [ ] **BACK:** B72b *(adapter Postgres — UPSERT idempotente: `turmas_ofertadas`, `aluno`, `historico`, `notas`, `faltas`, `tarefas`, `disciplinas_portal`, `calendario`; `curso_id` + `user_id` tenant)*
+- [ ] **BACK:** B72c *(pipeline persist assíncrono + tenant context no worker — resolve `user_id` via CPF→`app_profiles` antes de gravar; `ensurePostgresReady` no worker em modo cloud)*
+- [ ] **BACK:** B72d *(desstub `/api/sync` + `/api/sync/queue` — fila `sync_jobs` no Postgres · idempotency key · lock otimista · dispatch worker `SIGAA_WORKER_URL`)*
+- [ ] **OPS:** B72e *(worker hospedado + cron popula catálogo global · smoke end-to-end: login→sync→turmas→simulador na URL pública)*
+
+**Ordem Bloco 2f:** `B72a → B72b → B72c → B72d → B72e` → **então** deploy `F21–F23`
 
 ---
 
@@ -398,7 +416,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ### 1.4 API e Integração UI ↔ SQLite
 
-> **Progresso:** Bloco 1 ✅ · **Bloco 2a/2b** ✅ · **Bloco 6a** ✅ **8/8** · **6b** ✅ **8/8** · **6c** ✅ **2/2** · **#6d** ✅ **6/6** · **#6e** ✅ **2/2** · **#7** ✅ **15/15** · URL **`https://acme-hub.khfm.workers.dev`**.
+> **Progresso:** Bloco 1 ✅ · **Bloco 2a/2b** ✅ · **Bloco 6a** ✅ **8/8** · **6b** ✅ **8/8** · **6c** ✅ **2/2** · **#6d** ✅ **6/6** · **#6e** ✅ **2/2** · **#7** ✅ **15/15** · **#9** B32–B34 + F21–F23 `[%]` · URL **`https://acme-hub.khfm.workers.dev`**.
 
 Roadmap detalhado: ver **[Roadmap #0→#11 no topo](#roadmap-detalhado--ordem-de-execução-0--11)** · [Ordem oficial v3](#ordem-oficial-de-execução-v3). **F19** simulador (2a) `[x]` · **B67** `[x]`.
 
@@ -444,6 +462,7 @@ FASE G   Bloco 9             Multi-PPC (Mecatrônica, Moda) 🔒 só após mobil
 | **6d** | B | **2c** | Orquestração sync + catálogo global (**B68-orq**) | ✅ **6/6** — policy §6.6 |
 | **6e** | B/F | **2e** | Painel dev + policy §6.6 (**B70** → **F41**) | ✅ **2/2** |
 | **7** | D | **7** | PIX + gate de acesso | ✅ **15/15** · monetização |
+| **12** | B | **2f** | **Sync real Postgres (B72)** — Write Port + adapter PG | ⚠️ **Bloqueador** · site completo na nuvem **antes** de deployar F21–F23 |
 | **9** | F | **3** | Grafo, matrícula, alertas | **Depois de #7** · **antes do mobile (#8)** |
 | **10** | F | **4** | Skeletons, transições, favicon, **site mobile (F28)** | **Antes do mobile (#8)** |
 | **#8** | E | **8** | Mobile Android (Expo Go) | **Depois de #9 + #10** + **#6d + #6e + #7** · **sem lojas** |
@@ -481,6 +500,7 @@ Estratégia: **fatias verticais** — backend primeiro, depois frontend.
 | **2** | #2–3 | Scraper SIGAA — **prioridade pós-Bloco 1** |
 | **6** | #4–6 | Cloud Supabase — **após sync validado** |
 | **2e** | #6e | Painel dev + policy (B70/F41 ✅) |
+| **2f** | #12 | **Sync real Postgres (B72)** — ⚠️ bloqueador antes de F21–F23 |
 | **7** | #7 | Assinatura PIX |
 | **3** | #9 | Inteligência acadêmica *(antes do mobile)* |
 | **4** | #10 | Polimento UX + **site mobile (F28)** *(antes do mobile)* |
@@ -519,7 +539,8 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | **#6d** | 2c | Orquestração sync + catálogo global | ✅ **6/6** · policy **§6.6** | 6/6 |
 | **#6e** | 2e | Painel dev + policy (B70 → F41) | ✅ **2/2** | 2/2 |
 | **#7** | 7 | Assinatura PIX | ✅ **Concluído** | 15/15 |
-| **#9** | 3 | Inteligência acadêmica | Depois de #7 (dados reais + PIX) · **antes do mobile** | 0/11 |
+| **#12** | 2f | **Sync real Postgres (B72)** | ⚠️ **Bloqueador** · B72a `[%]` (Write Port + SQLite) · **antes** do deploy F21–F23 | 1/5 |
+| **#9** | 3 | Inteligência acadêmica | B32–B34 + F21–F23 `[%]` · **B72** antes de deployar F21–F23 | 6/11 |
 | **#10** | 4 | Polimento UX + site mobile (**F28**) | **Antes do mobile (#8)** | 0/4 |
 | **#8** | 8 | Mobile Android (Expo Go) | Depois de **#6d** + **#7** + **#9** + **#10** · **sem Play/App Store** | 0/10 |
 | **#11** | 9 | Multi-PPC (Mecatrônica, Moda) | **🔒 Só após #8** | 0/4 |
@@ -585,7 +606,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 **Contagem 8/8:** só os 8 primeiros grupos até **`F37`** · **`F38` · `B66` · `B67` · `F19`** = extras (fora do 8/8) · polish `04887c9`/`5923e9c` · modulação dashboard · fix mapa/histórico/notificações (jun/2026)
 
-**Próximo:** **#9 — Bloco 3** · **B32** (motor elegibilidade).
+**Próximo:** **#9 — Bloco 3** · **B35** após push de B32–B34 + F21–F23 (`[%]` local).
 
 ---
 
@@ -679,12 +700,12 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 ---
 
-### #9 — Bloco 3 · Inteligência acadêmica `⬜ 0/11`
+### #9 — Bloco 3 · Inteligência acadêmica `🟡 6/11`
 
 > Depende de dados reais do Bloco 2. **Executar antes do mobile (#8).**
 
-- [ ] **BACK:**  B32 → B33 → B34
-- [ ] **FRONT:** F21 → F22 → F23
+- [%] **BACK:**  B32 → B33 → B34
+- [%] **FRONT:** F21 → F22 → F23
 - [ ] **BACK:**  B35
 - [ ] **FRONT:** F20
 - [ ] **BACK:**  B36 → B37
@@ -746,7 +767,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | **#6d** | **2c — Orquestração sync** | ✅ | 6 / 6 |
 | **#6e** | **2e — Painel dev** | ✅ | 2 / 2 |
 | #7 | 7 — Assinatura PIX | 🟡 | 2 / 15 |
-| #9 | 3 — Inteligência | ⬜ *(antes mobile)* | 0 / 11 |
+| #9 | 3 — Inteligência | 🟡 B32–B34 + F21–F23 `[%]` | 6 / 11 |
 | #10 | 4 — Polimento + site mobile | ⬜ *(antes mobile · incl. F28)* | 0 / 4 |
 | #8 | 8 — Mobile Android | ⬜ *(após #9 + #10 · sem lojas)* | 0 / 10 |
 | #11 | 9 — Multi-PPC | 🔒 *(após #8)* | 0 / 4 |
@@ -973,7 +994,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] `worker/Dockerfile` (Playwright jammy) · `worker/README.md`
 - [x] Testes `tests/worker-b54.test.ts`
 
-> **Próximo:** **#9 — Bloco 3** · **B32** (motor elegibilidade).
+> **Próximo:** **#9 — Bloco 3** · **B35** após push de B32–B34 + F21–F23 (`[%]` local).
 
 #### B55 — API fila sync `[x]`
 
@@ -983,7 +1004,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Dispatcher assíncrono → worker B54 (`SIGAA_WORKER_URL`) ou **inline** (`SYNC_QUEUE_DISPATCH=inline`)
 - [x] Testes `tests/sync-queue-b55.test.ts` · `npm run test:sync-queue`
 
-> **Próximo:** **#9 — Bloco 3** · **B32** (motor elegibilidade).
+> **Próximo:** **#9 — Bloco 3** · **B35** após push de B32–B34 + F21–F23 (`[%]` local).
 
 #### B56 — Pipeline no worker `[x]`
 
@@ -1203,16 +1224,16 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 | # | Tipo | Task | Resumo | Fase | Status |
 |---|------|------|--------|------|--------|
-| B32 | Back | Motor elegibilidade | Histórico + pré-requisitos → pode cursar? | 5.3 | [ ] |
-| B33 | Back | Choque de horários | API detecta sobreposição na grade | 5.3 | [ ] |
-| B34 | Back | Persistir simulação | Salvar/exportar grade montada | 5.3 | [ ] |
+| B32 | Back | Motor elegibilidade | `GET /api/simulador/elegibilidade` · histórico + pré-requisitos | 5.3 | [%] |
+| B33 | Back | Choque de horários | `POST /api/simulador/choques` · sobreposição na grade | 5.3 | [%] |
+| B34 | Back | Persistir simulação | `GET/POST/DELETE /api/simulador/simulacoes` · export JSON | 5.3 | [%] |
 | B35 | Back | `GET /api/mapa/grafo` | Nós e arestas para react-flow | 5.2 | [ ] |
 | B36 | Back | Alertas integralização | Limiar por categoria de CH | 5.4 | [ ] |
 | B37 | Back | Alertas calendário | Datas acadêmicas próximas | 5.5 | [ ] |
 | F20 | Front | Grafo react-flow | Zoom, pan, setas sólidas/pontilhadas | 5.2 | [ ] |
-| F21 | Front | Simulador elegível | Filtro + drag-and-drop na grade | 5.3 | [ ] |
-| F22 | Front | Alerta choque | Destaque visual de conflito | 5.3 | [ ] |
-| F23 | Front | Salvar simulação | Botões salvar/exportar matrícula | 5.3 | [ ] |
+| F21 | Front | Simulador elegível | Filtro + drag-and-drop na grade | 5.3 | [%] |
+| F22 | Front | Alerta choque | Destaque visual de conflito | 5.3 | [%] |
+| F23 | Front | Salvar simulação | Botões salvar/exportar matrícula | 5.3 | [%] |
 | F24 | Front | Alertas na UI | Banners integralização + calendário | 5.4–5.5 | [ ] |
 
 **Ordem:** `B32 → B33 → B34` → `F21 → F22 → F23` → `B35 → F20` → `B36 → B37 → F24`
@@ -1575,10 +1596,13 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Lista de matérias com ícones: Desbloqueada / Trancada (template mock)
 - [x] Alocar matéria desbloqueada em horário vazio da grade (clique — template)
 - [x] Clique em aula da grade abre modal com detalhes e opção de remover
-- [ ] Drag-and-drop de matérias para a grade semanal
-- [ ] Detecção automática de choque de horários (alerta visual)
-- [ ] Botão "Salvar Simulação" para referência futura
-- [ ] Botão "Exportar" para levar na hora da matrícula
+- [%] API elegibilidade — **B32** (`GET /api/simulador/elegibilidade`)
+- [%] API choque de horários — **B33** (`POST /api/simulador/choques`)
+- [%] API salvar/exportar simulação — **B34** (`/api/simulador/simulacoes`)
+- [x] Drag-and-drop de matérias para a grade semanal — **F21** `[%]`
+- [x] Detecção automática de choque de horários (alerta visual) — **F22** `[%]`
+- [x] Botão "Salvar Simulação" para referência futura — **F23** `[%]`
+- [x] Botão "Exportar" para levar na hora da matrícula — **F23** `[%]`
 
 ### 5.4 Gestão de Integralização (Horas)
 - [x] Tabela com tipos de CH, total, concluído, pendente — **via API** (F11)
@@ -1839,7 +1863,7 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 8. **Próximo passo do roadmap:** informe **depois do push** (tasks em `[@]` ou `[x]`). Com commits locais só `[%]`, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v3](#ordem-oficial-de-execução-v3) — **Bloco 2 (sync) antes do Bloco 6 (Supabase)**. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy **após** sync validado; RLS ✅ **6c** (antes do PIX). Marco “site no ar p/ testes gerais” → [final do TASKS.md](#marco--site-no-ar-para-testes-gerais).
-11. **Próximo passo:** **#9 — Bloco 3** · **B32** (motor elegibilidade).
+11. **Próximo passo:** **#12 — Bloco 2f** — ⚠️ **bloqueador de produção** (sync real no Postgres antes de deployar F21–F23). **B72a** `[%]` (Write Port + adapter SQLite); na sequência `B72b → B72c → B72d → B72e` (após push/aprovação do B72a). *(#9 B35 fica após B72.)*
 12. **Integralização:** CH concluída = `historico` + PPC (`computeChDoneFromDisciplinas`); portal SIGAA só % / total currículo; matérias já passadas = **B30** ✅.
 13. **Gift + painel dev:** **B68–B71** ✅ · **F39–F41** ✅ — painel sem senha SIGAA (`credentialSaved` + `accountRef`).
 14. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial. **Polish em task `[x]`** (ex.: F38, dashboard) também exige nota no TASKS no mesmo ciclo do push.
@@ -1850,9 +1874,9 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 
 ## Marco — site no ar para testes gerais
 
-> **🌐 Mínimo funcional beta (jul/2026):** **6b** ✅ · **6c** ✅ — cadastro, login CPF, trial, gate, RLS/isolamento por conta. Sync SIGAA na nuvem = worker **B54–B56** (stub).
+> **🌐 Mínimo funcional beta (jul/2026):** **6b** ✅ · **6c** ✅ — cadastro, login CPF, trial, gate, RLS/isolamento por conta. Sync SIGAA na nuvem = worker **B54–B56** — ⚠️ **escrita ainda stub** (só SQLite); dados reais no Postgres dependem de **[B72](#12--bloco-2f--sync-real-postgres-b72)**.
 
-> **🌐 Beta aberto:** URL pública com **cadastro + login CPF + trial + gate** (**F29** ✅). Sync SIGAA na nuvem ainda = worker **B54–B56** (stub).
+> **🌐 Beta aberto:** URL pública com **cadastro + login CPF + trial + gate** (**F29** ✅). Sync SIGAA na nuvem: worker **B54–B56** grava só SQLite → escrita Postgres real = **[B72](#12--bloco-2f--sync-real-postgres-b72)** (bloqueador antes de F21–F23).
 
 > **🌐 O que isso NÃO significa:** **não** é todas as páginas/feature na nuvem iguais ao dev local. **Sync SIGAA real na cloud** depende do **worker (B54–B56)** — hoje **stub** no Postgres. **Dados isolados por conta** ✅ **6c** (RLS). **PIX / planos pagos** ✅ **#7**. Telas do Bloco 1 **abrem** na URL; experiência acadêmica **completa** com dados SIGAA hoje = **dev local (SQLite)** + rotas cloud ainda parciais.
 
