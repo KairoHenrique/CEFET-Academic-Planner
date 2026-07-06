@@ -11,12 +11,19 @@ const ACCESS_GATE_EXEMPT_PATHS = new Set([
   "/api/perfil",
 ]);
 
+function isBillingRoute(pathname: string): boolean {
+  return pathname.startsWith("/api/billing/");
+}
+
 export function shouldEnforceAccessGate(request: Request): boolean {
   const pathname = new URL(request.url).pathname;
   if (pathname.startsWith("/api/auth/")) {
     return false;
   }
   if (ACCESS_GATE_EXEMPT_PATHS.has(pathname)) {
+    return false;
+  }
+  if (isBillingRoute(pathname)) {
     return false;
   }
   return pathname.startsWith("/api/");
