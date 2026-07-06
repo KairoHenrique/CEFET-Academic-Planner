@@ -1,16 +1,20 @@
-import { getAluno } from "@/lib/db/queries";
-import { resolveSubscriptionAccessForCpf } from "@/lib/billing/access/resolve-subscription-access";
-import type { AppProfileRecord } from "@/lib/auth/account/types";
-import { getNotificationPreferences } from "@/lib/notifications/notification-preferences";
-import { buildInitials } from "@/lib/perfil/build-initials";
-import type { PerfilResponse, PerfilSubscription } from "@/lib/types/perfil-api";
 import {
-  getSyncAutoIntervalMinutes,
-  getSyncLastAt,
-} from "@/lib/sync/sync-preferences";
+  isCheckoutRenewalForUser,
+  resolveSubscriptionAccessForCpf,
+} from "@/lib/billing/access/resolve-subscription-access";
+import type { AppProfileRecord } from "@/lib/auth/account/types";
+import { buildInitials } from "@/lib/perfil/build-initials";
+import {
+  resolveCloudNotificationPreferences,
+  resolveCloudPerfilAluno,
+  resolveCloudSyncIntervalMinutes,
+  resolveCloudSyncLastAt,
+} from "@/lib/perfil/build-perfil-cloud-data";
+import type { PerfilResponse, PerfilSubscription } from "@/lib/types/perfil-api";
 
 async function buildCloudSubscription(cpf: string): Promise<PerfilSubscription> {
   const access = await resolveSubscriptionAccessForCpf(cpf);
+  const renewalEligible = await isCheckoutRenewalForUser(cpf);
 
   return {
     planId: access.planId,
@@ -19,13 +23,15 @@ async function buildCloudSubscription(cpf: string): Promise<PerfilSubscription> 
     expiresAt: access.expiresAt ?? new Date(0).toISOString(),
     daysRemaining: access.daysRemaining,
     renewHref: access.renewHref,
+    inGracePeriod: access.inGracePeriod,
+    renewalEligible,
   };
 }
 
 export async function buildPerfilCloud(
   profile: AppProfileRecord
 ): Promise<PerfilResponse> {
-  const aluno = getAluno();
+  const aluno = await resolveCloudPerfilAluno();
 
   return {
     profile: aluno
@@ -47,9 +53,9 @@ export async function buildPerfilCloud(
     subscription: await buildCloudSubscription(profile.cpf),
     sync: {
       automatic: true,
-      intervalMinutes: getSyncAutoIntervalMinutes(),
-      lastSyncAt: getSyncLastAt(),
+      intervalMinutes: resolveCloudSyncIntervalMinutes(),
+      lastSyncAt: resolveCloudSyncLastAt(),
     },
-    notifications: getNotificationPreferences(),
+    notifications: resolveCloudNotificationPreferences(),
   };
 }

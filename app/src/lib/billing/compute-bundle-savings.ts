@@ -22,6 +22,6 @@ export function computeBundleSavings(
 
   return {
     percent,
-    label: `Economize ${formatBrlCents(savingsCents)} vs. ${compareLabel}`,
+    label: `Economize ${formatBrlCents(savingsCents)} em relação a ${compareLabel}`,
   };
 }

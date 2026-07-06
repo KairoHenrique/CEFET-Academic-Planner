@@ -1,23 +1,8 @@
-import Link from "next/link";
 import type { PerfilResponse } from "@/lib/types/perfil-api";
-import { formatDateTime, formatRemainingDays } from "@/lib/perfil/format-profile-value";
 import { ProfileAccountSection } from "@/components/profile/ProfileAccountSection";
 import { ProfileNotificationSection } from "@/components/profile/ProfileNotificationSection";
+import { ProfileSubscriptionBlock } from "@/components/profile/ProfileSubscriptionBlock";
 import { ProfileSyncFooter } from "@/components/profile/ProfileSyncFooter";
-
-function subscriptionStatusLabel(
-  status: PerfilResponse["subscription"]["status"]
-): string {
-  const labels: Record<PerfilResponse["subscription"]["status"], string> = {
-    trial_active: "Trial ativo",
-    trial_expired: "Trial expirado",
-    pending_payment: "Aguardando pagamento",
-    active: "Assinatura ativa",
-    expired: "Assinatura expirada",
-    cancelled: "Assinatura cancelada",
-  };
-  return labels[status];
-}
 
 interface ProfileModalBodyProps {
   data: PerfilResponse;
@@ -66,34 +51,7 @@ export function ProfileModalBody({
         onSaveContact={onSaveContact}
       />
 
-      <section
-        className="profile-modal-section profile-plan-section"
-        aria-labelledby="profile-plano-title"
-      >
-        <h3 id="profile-plano-title" className="profile-modal-section-title">
-          Plano
-        </h3>
-        <div className="profile-plan-card">
-          <div className="profile-plan-card-head">
-            <span className="profile-plan-name">{subscription.planLabel}</span>
-            <span
-              className={`profile-plan-status profile-plan-status--${subscription.status}`}
-            >
-              {subscriptionStatusLabel(subscription.status)}
-            </span>
-          </div>
-          <p className="profile-plan-remaining">
-            {formatRemainingDays(subscription.daysRemaining)}
-          </p>
-          <p className="profile-plan-expires">
-            Válido até{" "}
-            {formatDateTime(subscription.expiresAt).split(",")[0] ?? "—"}
-          </p>
-          <Link href={subscription.renewHref} className="btn-gold btn-sm profile-plan-renew">
-            Renovar ou assinar plano
-          </Link>
-        </div>
-      </section>
+      <ProfileSubscriptionBlock subscription={subscription} />
 
       <ProfileNotificationSection
         preferences={notifications}

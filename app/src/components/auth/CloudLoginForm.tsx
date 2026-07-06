@@ -10,6 +10,8 @@ import { ApiClientError, postAuthLogin } from "@/lib/api/client";
 import { normalizeCpf, isValidCpf } from "@/lib/auth/account/cpf";
 import { formatCpfInput } from "@/lib/auth/account/format-auth-fields";
 import { persistCloudAuthSession } from "@/lib/auth/persist-cloud-session";
+import { resolvePostAuthRedirect } from "@/lib/billing/post-auth-redirect";
+import { redeemPendingGiftKeyAfterAuth } from "@/lib/billing/gift-keys/redeem-pending-gift-key-after-auth";
 
 export function CloudLoginForm() {
   const router = useRouter();
@@ -41,7 +43,10 @@ export function CloudLoginForm() {
         password,
       });
       persistCloudAuthSession(result);
-      router.push("/");
+      const giftRedeem = await redeemPendingGiftKeyAfterAuth();
+      router.push(
+        giftRedeem.redeemed ? "/" : resolvePostAuthRedirect(result.subscription)
+      );
       router.refresh();
     } catch (error) {
       showError(

@@ -54,6 +54,15 @@ import type {
   TurmasOfertadasResponse,
   TurmasOfertadasSyncResponse,
 } from "@/lib/types/turmas-ofertadas-api";
+import type {
+  BillingAccountResponse,
+  BillingCheckoutRequestBody,
+  BillingCheckoutResponse,
+  BillingPaymentStatusResponse,
+  BillingPlansResponse,
+  RedeemGiftKeyRequestBody,
+  RedeemGiftKeyResponse,
+} from "@/lib/types/billing-api";
 
 export type ClientErrorCode =
   | "VALIDATION_ERROR"
@@ -431,6 +440,49 @@ export async function getSchedule(): Promise<ScheduleApiResponse> {
 
 export async function getNotifications(): Promise<NotificationsSnapshotResponse> {
   return requestJson<NotificationsSnapshotResponse>("/api/notifications");
+}
+
+export async function getBillingPlans(): Promise<BillingPlansResponse> {
+  return requestJson<BillingPlansResponse>("/api/billing/plans");
+}
+
+export async function postBillingCheckout(
+  body: BillingCheckoutRequestBody
+): Promise<BillingCheckoutResponse> {
+  const idempotencyKey =
+    body.idempotencyKey?.trim() || crypto.randomUUID().replace(/-/g, "");
+
+  return requestJson<BillingCheckoutResponse>("/api/billing/checkout", {
+    method: "POST",
+    headers: {
+      "Idempotency-Key": idempotencyKey,
+    },
+    body: JSON.stringify({
+      planId: body.planId,
+      idempotencyKey,
+    }),
+  });
+}
+
+export async function getBillingPaymentStatus(
+  paymentId: string
+): Promise<BillingPaymentStatusResponse> {
+  return requestJson<BillingPaymentStatusResponse>(
+    `/api/billing/payments/${encodeURIComponent(paymentId)}`
+  );
+}
+
+export async function getBillingAccount(): Promise<BillingAccountResponse> {
+  return requestJson<BillingAccountResponse>("/api/billing/account");
+}
+
+export async function postBillingRedeemKey(
+  body: RedeemGiftKeyRequestBody
+): Promise<RedeemGiftKeyResponse> {
+  return requestJson<RedeemGiftKeyResponse>("/api/billing/redeem-key", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
 }
 
 export const SYNC_COMPLETE_EVENT = "planner:sync-complete";
