@@ -6,6 +6,7 @@ import {
   pgSetAppConfigJson,
 } from "@/lib/sync-policy/app-config-store";
 import type { DevAuditEntry } from "@/lib/dev-panel/types";
+import { sanitizeAuditDetail } from "@/lib/dev-panel/sanitize-audit-detail";
 import { newDevAuditId } from "@/lib/dev-panel/operator-session";
 
 const AUDIT_KEY = "dev.audit_log";
@@ -65,7 +66,7 @@ export async function appendDevAuditLog(input: {
     at: new Date().toISOString(),
     operatorEmail: input.operatorEmail.toLowerCase(),
     action: input.action,
-    detail: input.detail ?? {},
+    detail: sanitizeAuditDetail(input.detail ?? {}),
   };
 
   if (isPostgresBackend()) {

@@ -26,7 +26,7 @@ export async function runDevRobots(
 ): Promise<DevRobotRunResult> {
   const cpfs = await listDevTargetCpfs({
     scope: input.scope,
-    cpf: input.cpf,
+    accountRef: input.accountRef,
   });
 
   if (cpfs.length === 0) {

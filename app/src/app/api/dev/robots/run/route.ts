@@ -22,7 +22,7 @@ export async function POST(request: Request) {
         scope: input.scope,
         robots: input.robots,
         mode: input.mode,
-        cpfLast4: input.cpf?.slice(-4),
+        accountRef: input.accountRef,
         outcomes: result.results.map((item) => ({
           robot: item.robot,
           status: item.status,

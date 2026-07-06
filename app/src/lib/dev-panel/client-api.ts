@@ -1,6 +1,6 @@
 import { ApiClientError, type ClientErrorCode } from "@/lib/api/client";
 import type {
-  DevAccountView,
+  DevAccountPublicView,
   DevAuditEntry,
   DevRobotRunRequest,
   DevRobotRunResult,
@@ -82,7 +82,7 @@ export async function getDevSession(): Promise<{ ok: true; email: string }> {
 
 export async function getDevAccounts(
   query?: string
-): Promise<{ ok: true; accounts: DevAccountView[] }> {
+): Promise<{ ok: true; accounts: DevAccountPublicView[] }> {
   const params = query?.trim()
     ? `?q=${encodeURIComponent(query.trim())}`
     : "";

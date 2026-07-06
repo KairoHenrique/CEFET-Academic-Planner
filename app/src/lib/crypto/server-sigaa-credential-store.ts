@@ -10,6 +10,7 @@ import {
   isCredentialEncryptionConfigured,
 } from "@/lib/crypto/aes-gcm";
 import type { StoredSigaaCredentials } from "@/lib/crypto/sigaa-credential-store";
+import { logSafeError } from "@/lib/security/safe-log";
 
 export function assertServerCredentialEncryptionReady(): void {
   if (!isCredentialEncryptionConfigured()) {
@@ -59,7 +60,7 @@ export async function loadServerSigaaCredentials(
       password: openServerSigaaPassword(encrypted),
     };
   } catch (error) {
-    console.error("[crypto] falha ao decifrar credencial server-side", error);
+    logSafeError("[crypto] falha ao decifrar credencial server-side", error);
     return null;
   }
 }

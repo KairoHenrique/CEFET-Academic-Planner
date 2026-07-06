@@ -30,7 +30,7 @@ export async function PATCH(request: Request, context: RouteContext) {
     appendDevAuditLog({
       action: "gift_keys.revoke",
       operatorEmail: session.email,
-      details: { code },
+      detail: { code },
     });
 
     return apiSuccess({ ok: true as const, key: revoked });

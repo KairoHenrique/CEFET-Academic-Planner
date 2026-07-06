@@ -43,6 +43,32 @@ export async function findProfileByEmail(
   return row ? mapProfileRow(row) : null;
 }
 
+export async function findCpfByUserId(userId: string): Promise<string | null> {
+  const pool = getPostgresPool();
+  const result = await pool.query<{ cpf: string }>(
+    `SELECT cpf FROM app_profiles WHERE user_id = $1 LIMIT 1`,
+    [userId]
+  );
+
+  return result.rows[0]?.cpf ?? null;
+}
+
+export async function hasEncryptedPasswordByCpf(cpf: string): Promise<boolean> {
+  const pool = getPostgresPool();
+  const result = await pool.query<{ has_password: boolean }>(
+    `SELECT (
+       sigaa_password_enc IS NOT NULL
+       AND length(trim(sigaa_password_enc)) > 0
+     ) AS has_password
+     FROM app_profiles
+     WHERE cpf = $1
+     LIMIT 1`,
+    [cpf]
+  );
+
+  return Boolean(result.rows[0]?.has_password);
+}
+
 export async function findEncryptedPasswordByCpf(
   cpf: string
 ): Promise<string | null> {

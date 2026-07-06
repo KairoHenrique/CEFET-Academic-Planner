@@ -136,11 +136,11 @@ describe("B70 — parse de requests", () => {
   it("parseDevRobotRunRequest valida escopo e robôs", () => {
     const individual = parseDevRobotRunRequest({
       scope: "individual",
-      cpf: "123.456.789-01",
+      accountRef: "11111111-1111-4111-8111-111111111111",
       robots: { r1: true, r2: false, r3: false },
     });
     assert.equal(individual.scope, "individual");
-    assert.equal(individual.cpf, "12345678901");
+    assert.equal(individual.accountRef, "11111111-1111-4111-8111-111111111111");
     assert.equal(individual.mode, "deep");
 
     assert.throws(
