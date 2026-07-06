@@ -1,3 +1,6 @@
+/** 1 mês — plano de entrada. */
+export const MONTH_DURATION_DAYS = 30;
+
 /** 3 meses — plano base (preço de referência). */
 export const QUARTER_DURATION_DAYS = 91;
 

@@ -18,6 +18,9 @@ export function PlanosGrid({ catalog }: PlanosGridProps) {
             {plan.kind === "paid" ? (
               <p className="planos-card-price">{plan.priceLabel}</p>
             ) : null}
+            {plan.id === "quarter" && catalog.quarterSavings?.label ? (
+              <p className="planos-card-savings">{catalog.quarterSavings.label}</p>
+            ) : null}
             {plan.id === "semester" && catalog.semesterSavings?.label ? (
               <p className="planos-card-savings">{catalog.semesterSavings.label}</p>
             ) : null}

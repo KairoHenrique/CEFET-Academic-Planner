@@ -33,6 +33,7 @@ function buildPlanView(
 
 export function buildBillingPlansResponse(): BillingPlansResponse {
   const plans = BILLING_PLAN_DEFINITIONS.map(buildPlanView);
+  const monthCents = resolveBillingPriceCents("month");
   const quarterCents = resolveBillingPriceCents("quarter");
   const semesterCents = resolveBillingPriceCents("semester");
   const yearCents = resolveBillingPriceCents("year");
@@ -48,6 +49,12 @@ export function buildBillingPlansResponse(): BillingPlansResponse {
       label: TRIAL_PLAN_LABEL,
     },
     plans,
+    quarterSavings: computeBundleSavings(
+      monthCents,
+      3,
+      quarterCents,
+      "3 mensais"
+    ),
     semesterSavings: computeBundleSavings(
       quarterCents,
       2,

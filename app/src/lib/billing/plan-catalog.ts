@@ -5,6 +5,7 @@ import {
 } from "@/lib/auth/trial/constants";
 import {
   FIVE_YEAR_DURATION_DAYS,
+  MONTH_DURATION_DAYS,
   QUARTER_DURATION_DAYS,
   SEMESTER_DURATION_DAYS,
   YEAR_DURATION_DAYS,
@@ -12,6 +13,7 @@ import {
 import type { BillingPlanDefinition, BillingPlanId, PaidPlanId } from "./types";
 
 export const PAID_PLAN_IDS: readonly PaidPlanId[] = [
+  "month",
   "quarter",
   "semester",
   "year",
@@ -33,13 +35,26 @@ export const BILLING_PLAN_DEFINITIONS: readonly BillingPlanDefinition[] = [
     ctaLabel: "Incluído no cadastro",
   },
   {
+    id: "month",
+    kind: "paid",
+    label: "Plano mensal",
+    shortLabel: "1 mês",
+    durationDays: MONTH_DURATION_DAYS,
+    durationLabel: "30 dias",
+    description: "Entrada flexível — ideal para continuar após o trial.",
+    purchasable: true,
+    oncePerCpf: false,
+    featured: false,
+    ctaLabel: "Assinar via PIX",
+  },
+  {
     id: "quarter",
     kind: "paid",
     label: "Plano trimestre",
     shortLabel: "3 meses",
     durationDays: QUARTER_DURATION_DAYS,
     durationLabel: "3 meses",
-    description: "Plano base — ideal para continuar após o trial.",
+    description: "Desconto vs. 3 planos mensais.",
     purchasable: true,
     oncePerCpf: false,
     featured: false,
@@ -100,6 +115,10 @@ export function resolvePlanDurationDays(planId: string): number {
   const plan = getBillingPlanDefinition(planId as BillingPlanId);
   if (plan) {
     return plan.durationDays;
+  }
+
+  if (planId === "month") {
+    return MONTH_DURATION_DAYS;
   }
 
   if (planId === "quarter") {
