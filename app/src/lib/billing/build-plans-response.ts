@@ -15,6 +15,8 @@ function buildPlanView(
   if (definition.kind !== "paid") {
     return {
       ...definition,
+      kind: "trial",
+      id: "trial",
       priceCents: null,
       priceLabel: resolvePriceLabel(null),
       configured: false,
@@ -26,6 +28,8 @@ function buildPlanView(
 
   return {
     ...definition,
+    kind: "paid",
+    id: planId,
     priceCents,
     priceLabel: resolvePriceLabel(priceCents),
     configured: isBillingPriceConfiguredViaEnv(planId),

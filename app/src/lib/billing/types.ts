@@ -24,7 +24,11 @@ export interface BillingPlanPrice {
   configured: boolean;
 }
 
-export interface BillingPlanView extends BillingPlanDefinition, BillingPlanPrice {}
+type BillingPlanBase = Omit<BillingPlanDefinition, "id" | "kind"> & BillingPlanPrice;
+
+export type BillingPlanView =
+  | (BillingPlanBase & { kind: "trial"; id: "trial" })
+  | (BillingPlanBase & { kind: "paid"; id: PaidPlanId });
 
 export interface BillingPlanSavings {
   percent: number | null;

@@ -63,7 +63,7 @@ export function PlanosGrid({
                   className={plan.featured ? "btn-gold planos-card-cta" : "btn-outline planos-card-cta"}
                   disabled={checkoutDisabled}
                   aria-busy={isSelecting}
-                  onClick={() => onSelectPlan?.(plan.id)}
+                  onClick={() => onSelectPlan?.(plan.id as PaidPlanId)}
                 >
                   {isSelecting
                     ? "Gerando PIX…"
