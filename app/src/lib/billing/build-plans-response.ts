@@ -5,6 +5,7 @@ import {
   isBillingPriceConfiguredViaEnv,
   resolveBillingPriceCents,
 } from "./resolve-plan-prices";
+import { resolvePixGatewayConfig } from "./gateway/resolve-pix-gateway-config";
 import type { BillingPlanView, BillingPlansResponse, PaidPlanId } from "./types";
 import { TRIAL_DURATION_DAYS, TRIAL_PLAN_LABEL } from "@/lib/auth/trial/constants";
 
@@ -42,7 +43,7 @@ export function buildBillingPlansResponse(): BillingPlansResponse {
   return {
     ok: true,
     currency: "BRL",
-    checkoutEnabled: false,
+    checkoutEnabled: resolvePixGatewayConfig().checkoutReady,
     trialPolicy: {
       durationDays: TRIAL_DURATION_DAYS,
       oncePerCpf: true,
