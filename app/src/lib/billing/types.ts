@@ -1,6 +1,6 @@
 export type BillingPlanKind = "trial" | "paid";
 
-export type PaidPlanId = "quarter" | "semester" | "year" | "five_year";
+export type PaidPlanId = "month" | "quarter" | "semester" | "year" | "five_year";
 
 export type BillingPlanId = "trial" | PaidPlanId;
 
@@ -41,7 +41,9 @@ export interface BillingPlansResponse {
     label: string;
   };
   plans: BillingPlanView[];
-  /** Semestre vs. 2× trimestre (R$ 50 base). */
+  /** Trimestre vs. 3× mensal (R$ 30 base). */
+  quarterSavings: BillingPlanSavings | null;
+  /** Semestre vs. 2× trimestre. */
   semesterSavings: BillingPlanSavings | null;
   /** Anual vs. 2× semestre. */
   yearSavings: BillingPlanSavings | null;

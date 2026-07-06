@@ -2,6 +2,7 @@ import { DEFAULT_BILLING_PRICES_CENTS } from "./default-plan-prices";
 import type { PaidPlanId } from "./types";
 
 const PRICE_ENV_KEYS: Record<PaidPlanId, string> = {
+  month: "BILLING_PRICE_MONTH_CENTS",
   quarter: "BILLING_PRICE_QUARTER_CENTS",
   semester: "BILLING_PRICE_SEMESTER_CENTS",
   year: "BILLING_PRICE_YEAR_CENTS",

@@ -72,7 +72,8 @@ Assinatura **por período de acesso** (v1):
 | Plano | Duração | Observação |
 |---|---|---|
 | **Trial** | **7 dias** | **Uma vez por CPF** (login SIGAA); ver `SCOPE.md` §2.1 |
-| **Trimestre** | **3 meses** | Plano base — **R$ 50** (v1) |
+| **Mensal** | **30 dias** | **R$ 30** (v1) |
+| **Trimestre** | **3 meses** | **R$ 50** — desconto vs. 3 mensais |
 | **Semestre** | **6 meses** | **R$ 85** — desconto vs. 2 trimestres |
 | **Ano** | **12 meses** | **R$ 150** — desconto vs. 2 semestres |
 | **5 anos** | **60 meses** | **R$ 700** — desconto vs. 5 anuais |
@@ -118,6 +119,8 @@ Critérios para escolha (fase de implementação):
 - Suporte a PIX estático ou dinâmico
 
 **Candidatos (não decidido):** Mercado Pago, Asaas, AbacatePay, Stripe (PIX BR).
+
+**Decisão v1 (B48):** **Mercado Pago** — ver [`docs/plan/b48-pix-gateway.md`](./plan/b48-pix-gateway.md). Adapter `app/src/lib/billing/gateway/` · `GET /api/billing/gateway/status`. Asaas reservado (stub).
 
 ### 3.5 O que **não** entra na v1 de billing
 
@@ -663,8 +666,8 @@ Durante beta/testes com URL pública:
 ## 12. Decisões em aberto (TBD)
 
 - [x] **Catálogo canônico de planos** (trial / trimestre / semestre / ano) — `app/src/lib/billing/` + `GET /api/billing/plans` (**B47**)
-- [x] **Preços base v1:** R$ 50 (3m) · R$ 85 (6m) · R$ 150 (12m) · R$ 700 (5a) — override via `BILLING_PRICE_*` env
-- [ ] Gateway PIX definitivo
+- [x] **Preços base v1:** R$ 30 (1m) · R$ 50 (3m) · R$ 85 (6m) · R$ 150 (12m) · R$ 700 (5a) — override via `BILLING_PRICE_*` env
+- [x] Gateway PIX v1 — **Mercado Pago** + mock dev (`docs/plan/b48-pix-gateway.md`, **B48**)
 
 - [ ] **Orquestração sync + catálogo global** — policy **§6.6** (jul/2026); implementar **B68d–f** + worker **B54–B56**; painel policy **B70/F41**
 - [ ] Onde hospedar worker Playwright (Railway / Fly.io / VPS — ver §6.3 fila 1×)
