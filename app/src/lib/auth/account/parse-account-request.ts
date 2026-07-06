@@ -8,6 +8,7 @@ import {
   normalizeTelefone,
 } from "@/lib/auth/account/contact-fields";
 import type { LoginAccountInput, RegisterAccountInput } from "@/lib/auth/account/types";
+import { parseLegalConsent } from "@/lib/legal/parse-legal-consent";
 
 function readStringField(
   body: Record<string, unknown>,
@@ -60,12 +61,15 @@ export function parseRegisterAccountRequest(
     throw validationError("Senha SIGAA muito curta.");
   }
 
+  const legalConsent = parseLegalConsent(payload);
+
   return {
     email,
     telefone,
     cpf,
     cursoId: cursoIdRaw,
     password,
+    legalConsent,
   };
 }
 

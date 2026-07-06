@@ -1,18 +1,15 @@
 import type { PerfilSubscriptionStatus } from "@/lib/types/perfil-api";
 import { isSubscriptionBlocked } from "@/lib/billing/access/subscription-access-rules";
+import { isPublicAppPath } from "@/lib/routing/public-paths";
 
 export type PlanosFlow = "welcome" | "renew" | "pending" | "exists";
 
 export function isSubscriptionExemptPath(pathname: string): boolean {
-  if (pathname === "/login") {
+  if (isPublicAppPath(pathname)) {
     return true;
   }
 
   if (pathname === "/planos" || pathname.startsWith("/planos/")) {
-    return true;
-  }
-
-  if (pathname === "/dev" || pathname.startsWith("/dev/")) {
     return true;
   }
 

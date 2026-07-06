@@ -7,6 +7,7 @@ import { CloudLoginForm } from "@/components/auth/CloudLoginForm";
 import { LoginCard } from "@/components/auth/LoginCard";
 import { RegisterForm } from "@/components/auth/RegisterForm";
 import { GiftKeyRedeemForm } from "@/components/billing/GiftKeyRedeemForm";
+import { LegalFooterLinks } from "@/components/legal/LegalFooterLinks";
 import type { AuthCursoOption } from "@/lib/types/auth-api";
 
 interface CloudAuthScreenProps {
@@ -31,7 +32,7 @@ export function CloudAuthScreen({ cursos }: CloudAuthScreenProps) {
       : "Entre com CPF e senha do SIGAA.";
 
   return (
-    <LoginCard subtitle={subtitle}>
+    <LoginCard subtitle={subtitle} foot={<LegalFooterLinks />}>
       <AuthModeTabs mode={panel} onChange={setPanel} />
       {panel === "login" ? (
         <CloudLoginForm />

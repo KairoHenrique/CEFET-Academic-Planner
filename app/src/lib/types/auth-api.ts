@@ -29,6 +29,12 @@ export interface RegisterAccountBody {
   cpf: string;
   cursoId: AppCursoId;
   password: string;
+  acceptedLegal: {
+    terms: boolean;
+    privacy: boolean;
+    termsVersion: string;
+    privacyVersion: string;
+  };
 }
 
 export interface LoginAccountBody {

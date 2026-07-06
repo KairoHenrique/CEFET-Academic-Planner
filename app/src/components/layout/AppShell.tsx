@@ -8,6 +8,7 @@ import { AutoSyncRunner } from "@/components/profile/AutoSyncRunner";
 import { SessionActivityTracker } from "@/components/auth/SessionActivityTracker";
 import { QueryProvider } from "@/components/providers/QueryProvider";
 import { SyncQueueProvider } from "@/components/providers/SyncQueueProvider";
+import { isLegalDocumentPath } from "@/lib/routing/public-paths";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -21,7 +22,8 @@ export function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
   const isLogin = pathname === "/login";
   const isDevPanel = isDevPanelRoute(pathname);
-  const showStudentChrome = !isLogin && !isDevPanel;
+  const isLegalPage = isLegalDocumentPath(pathname);
+  const showStudentChrome = !isLogin && !isDevPanel && !isLegalPage;
 
   return (
     <QueryProvider>
@@ -34,7 +36,9 @@ export function AppShell({ children }: AppShellProps) {
             <main
               className={`main-content ${
                 isLogin ? "main-content-login" : ""
-              } ${isDevPanel ? "main-content-dev" : ""}`}
+              } ${isDevPanel ? "main-content-dev" : ""} ${
+                isLegalPage ? "main-content-legal" : ""
+              }`}
             >
               {children}
             </main>

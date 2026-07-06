@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { GiftKeyRedeemForm } from "@/components/billing/GiftKeyRedeemForm";
+import { LegalFooterLinks } from "@/components/legal/LegalFooterLinks";
 import { PlanosCheckoutPanel } from "@/components/planos/PlanosCheckoutPanel";
 import { PlanosHero } from "@/components/planos/PlanosHero";
 import { PlanosPageShell } from "@/components/planos/PlanosPageShell";
@@ -113,6 +114,7 @@ export function PlanosPageClient() {
       ) : null}
 
       <footer className="planos-footer">
+        <LegalFooterLinks className="planos-legal-links" />
         <GiftKeyRedeemForm variant="compact" />
         {showDashboardLink ? (
           <p className="planos-back">
