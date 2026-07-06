@@ -252,12 +252,12 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 - [x] **FRONT:** F33 *(renovação — grace period · alerta em `/planos`)*
 - [x] **FRONT:** F34 *(minha assinatura — perfil + histórico via `GET /api/billing/account`)*
 - [x] **FRONT:** F40 *(resgate chave — login/cadastro/`/planos` · `POST /api/billing/redeem-key`)*
-- [%] **LEGAL:** L1 *(termos + LGPD — `/termos` · `/privacidade` · consent cadastro · `GET /api/legal/meta` · migration consent)*
-- [%] **BACK:** B71 *(endurecimento credenciais — accountRef opaco · credentialSaved · logs/audit sanitizados · gate produção)*
+- [x] **LEGAL:** L1 *(termos + LGPD — `/termos` · `/privacidade` · consent cadastro · `GET /api/legal/meta` · migration consent)*
+- [x] **BACK:** B71 *(endurecimento credenciais — accountRef opaco · credentialSaved · logs/audit sanitizados · gate produção)*
 
 **Ordem #7:** `B47 → B48` → `B49 → B50 → B51 → B52 → B53` → `B69` → `F31 → F32 → F33 → F34` → `F40` → `L1` → **`B71`**
 
-> **#7 Mapa:** **F31–F40** ✅ · **L1** `[%]` · **B71** `[%]` — bloco **#7** fechado (pré-go-live PIX).
+> **#7 Mapa:** **F31–F40** ✅ · **L1** ✅ · **B71** ✅ — bloco **#7** fechado (pré-go-live PIX).
 
 > **Painel dev:** **B70/F41** = [#6e](#6e--painel-dev--policy-pré-pix) *(fora desta ordem — vem antes)*.
 
@@ -398,7 +398,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ### 1.4 API e Integração UI ↔ SQLite
 
-> **Progresso:** Bloco 1 ✅ · **Bloco 2a/2b** ✅ · **Bloco 6a** ✅ **8/8** · **6b** ✅ **8/8** · **6c** ✅ **2/2** · **#6d** ✅ **6/6** · **#6e** ✅ **2/2** · **#7** ✅ **15/15** (L1 `[%]` · B71 `[%]` — aguardando push/aprovação) · URL **`https://acme-hub.khfm.workers.dev`**.
+> **Progresso:** Bloco 1 ✅ · **Bloco 2a/2b** ✅ · **Bloco 6a** ✅ **8/8** · **6b** ✅ **8/8** · **6c** ✅ **2/2** · **#6d** ✅ **6/6** · **#6e** ✅ **2/2** · **#7** ✅ **15/15** · URL **`https://acme-hub.khfm.workers.dev`**.
 
 Roadmap detalhado: ver **[Roadmap #0→#11 no topo](#roadmap-detalhado--ordem-de-execução-0--11)** · [Ordem oficial v3](#ordem-oficial-de-execução-v3). **F19** simulador (2a) `[x]` · **B67** `[x]`.
 
@@ -422,7 +422,7 @@ FASE C   Bloco 6a            Supabase + deploy global (seed, sem RLS rígido)
          Bloco 2c ✅          Orquestração sync + global (B68-orq) — policy §6.6
          Bloco 2e ✅          Painel dev + policy (B70/F41)
     ↓
-FASE D   Bloco 7             Assinatura PIX
+FASE D   Bloco 7 ✅           Assinatura PIX
     ↓
 FASE F   Bloco 3             Inteligência acadêmica (web)
          Bloco 4             Polimento UX + site mobile (**F28**)
@@ -443,7 +443,7 @@ FASE G   Bloco 9             Multi-PPC (Mecatrônica, Moda) 🔒 só após mobil
 | **6** | C | **6c** | RLS por usuário | Segurança antes de abrir pagamento |
 | **6d** | B | **2c** | Orquestração sync + catálogo global (**B68-orq**) | ✅ **6/6** — policy §6.6 |
 | **6e** | B/F | **2e** | Painel dev + policy §6.6 (**B70** → **F41**) | ✅ **2/2** |
-| **7** | D | **7** | PIX + gate de acesso | Monetização · **após #6e** |
+| **7** | D | **7** | PIX + gate de acesso | ✅ **15/15** · monetização |
 | **9** | F | **3** | Grafo, matrícula, alertas | **Depois de #7** · **antes do mobile (#8)** |
 | **10** | F | **4** | Skeletons, transições, favicon, **site mobile (F28)** | **Antes do mobile (#8)** |
 | **#8** | E | **8** | Mobile Android (Expo Go) | **Depois de #9 + #10** + **#6d + #6e + #7** · **sem lojas** |
@@ -672,8 +672,8 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] **PLAN:** B47 → [x] **PLAN:** B48
 - [x] **BACK:**  B49 → [x] B50 → [x] B51 → [x] B52 → [x] B53 → [x] B69
 - [x] **FRONT:** F31 → F32 → F33 → F34 → F40
-- [%] **LEGAL:** L1
-- [%] **BACK:**  B71 *(endurecimento credenciais)*
+- [x] **LEGAL:** L1
+- [x] **BACK:**  B71 *(endurecimento credenciais)*
 
 **Ordem #7:** `B47 → B48` → `B49 → B50 → B51 → B52 → B53` → `B69` → `F31 → F32 → F33 → F34` → `F40` → `L1` → **`B71`**
 
@@ -1173,13 +1173,13 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | B52 | Back | Gate middleware | `subscriptions` + trial · bloqueia pending/expired → `/planos` | [x] |
 | B53 | Back | Renovação | Grace 3d (`BILLING_GRACE_PERIOD_DAYS`) · checkout `renewal` · stack período | [x] |
 | B69 | Back | Chaves gift | `plan_gift_keys` · dev CRUD · `POST /api/billing/redeem-key` | [x] |
-| B71 | Back | **Endurecimento credenciais** | accountRef opaco · credentialSaved · audit/log sanitizados · gate `CREDENTIALS_ENCRYPTION_KEY` prod | [%] |
+| B71 | Back | **Endurecimento credenciais** | accountRef opaco · credentialSaved · audit/log sanitizados · gate `CREDENTIALS_ENCRYPTION_KEY` prod | [x] |
 | F31 | Front | Cadastro + plano | Pós-auth redirect · `ACCOUNT_EXISTS` → login · guard cloud · checkout `POST /api/billing/checkout` · handoff `/planos/pix` | [x] |
 | F32 | Front | Tela PIX | `/planos/pix` — QR base64 · copia-e-cola · polling status · redirect pós-aprovado | [x] |
 | F33 | Front | Renovação | `PlanosStatusAlert` — grace 3d · copy acumula período | [x] |
 | F34 | Front | Minha assinatura | Modal perfil — plano · validade · histórico PIX | [x] |
 | F40 | Front | Resgate chave plano | 8 chars — login/cadastro (defer) + `/planos` · feedback uso único | [x] |
-| L1 | Legal | Termos + LGPD | `/termos` · `/privacidade` · consent cadastro · `GET /api/legal/meta` | [%] |
+| L1 | Legal | Termos + LGPD | `/termos` · `/privacidade` · consent cadastro · `GET /api/legal/meta` | [x] |
 
 **Ordem #7:** `B47 → B48` → `B49 → B50 → B51 → B52 → B53` → `B69` → `F31 → F32 → F33 → F34` → `F40` → `L1` → **`B71`** *(última — imediatamente antes do go-live público)*
 
@@ -1437,8 +1437,8 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Cadastro produção: e-mail, telefone, CPF, **curso (Comp/Meca/Moda)**, senha — **F29** ✅ (`POST /api/auth/register` · tabs Entrar/Criar conta)
 - [x] Login produção: **apenas CPF + senha** — **F29** ✅ (`POST /api/auth/login` · Bearer + `X-Planner-Sigaa-User`)
 - [x] `/planos` checkout PIX + gift key + renovação (**F31–F33**, **F40**) · `/planos/pix` QR + polling (**F32**) · perfil histórico (**F34**)
-- [%] Termos + Privacidade LGPD — **L1** (`/termos` · `/privacidade` · consent no cadastro · links login/planos)
-- [%] Endurecimento credenciais — **B71** (`accountRef` · `safe-log` · audit sanitizado)
+- [x] Termos + Privacidade LGPD — **L1** (`/termos` · `/privacidade` · consent no cadastro · links login/planos)
+- [x] Endurecimento credenciais — **B71** (`accountRef` · `safe-log` · audit sanitizado)
 - [x] PATCH contato na **cloud** (`app_profiles`) — **B61** ✅ (`PATCH /api/perfil` · UI **F37**)
 
 ### 3.2 Dashboard Central
@@ -1693,13 +1693,13 @@ Rota **`/dev`** — invisível ao aluno.
 |---|---|
 | Contas | Listar CPF, matrícula, curso, assinatura, trial, último sync |
 | **Robôs (ops manual)** | Lista **nome + CPF** com busca; **chavinhas** (toggle dourado) por robô — **R1** sync principal · **R2** calendário (**B66**) · **R3** turmas (**B67**); disparo **individual** (1 conta) ou **global** (todas/filtradas); usa **CPF + senha já persistidos**; **sem cooldown** B65/O3 |
-| Credenciais | **B71** `[%]` — painel dev só `credentialSaved` + `accountRef` opaco; senha nunca na API/logs |
+| Credenciais | **B71** ✅ — painel dev só `credentialSaved` + `accountRef` opaco; senha nunca na API/logs |
 | Chaves | Criar (lote), listar, revogar, ver quem resgatou |
 | Promoções | Toggle global + banners `/planos` |
 | Simulação | Forçar expiração/renovação de plano; sync forçado; reset dados (confirmação dupla) |
 | Auditoria | Log de ações sensíveis |
 
-**Tasks:** **B70** (API + middleware + robôs ops) · **F41** (UI + chavinhas + lista) · **B71** (endurecimento — **última antes de produção**)
+**Tasks:** **B70** (API + middleware + robôs ops) · **F41** (UI + chavinhas + lista) · **B71** ✅
 
 ### Painel robôs — ops manual (escopo fechado p/ **B70** + **F41**)
 
@@ -1748,9 +1748,9 @@ Rota **`/dev`** — invisível ao aluno.
 
 > **Nota:** cron/fila worker (**B68e**, **B54–B56**) **consome** a policy gravada aqui; o painel **configura** cadências — disparo manual continua **sem cooldown**.
 
-**Tasks:** **B70** (API) · **F41** (UI) · **B71** `[%]` (endurecimento credenciais)
+**Tasks:** **B70** (API) · **F41** (UI) · **B71** ✅ (endurecimento credenciais)
 
-### Endurecimento credenciais (B71) `[%]`
+### Endurecimento credenciais (B71) ✅
 
 | Entrega | Detalhe |
 |---|---|
@@ -1758,7 +1758,7 @@ Rota **`/dev`** — invisível ao aluno.
 | Storage | `CREDENTIALS_ENCRYPTION_KEY` obrigatória em produção |
 | API | Nenhum endpoint aluno devolve credencial |
 | Logs | `safe-log` + audit sanitizado |
-| Gate | Bloco **#7** fechado — go-live após push/aprovação L1+B71 |
+| Gate | Bloco **#7** ✅ — go-live com L1+B71 aprovados |
 
 **Ordem:** roda **depois** de tudo (sync, billing, painel dev) — ver Bloco 7.
 
@@ -1773,7 +1773,7 @@ B68 + F39 (simulação mapa — pode paralelizar ao Bloco 1 pós-F12)
 
 ### Dev local (antes da cloud)
 
-- Billing **B47–B69** ✅ · **F31–F40** ✅ · **L1** `[%]` · **B71** `[%]`.
+- Billing **B47–B69** ✅ · **F31–F40** ✅ · **L1** ✅ · **B71** ✅.
 - Painel dev SQLite/cloud: rota **`/dev`** com login operador, navbar, robôs modulares R1/R2/R3 e policy §6.6 — **F41** `[x]`.
 
 ---
@@ -1841,7 +1841,7 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 10. **Modo testes global (6a):** deploy **após** sync validado; RLS ✅ **6c** (antes do PIX). Marco “site no ar p/ testes gerais” → [final do TASKS.md](#marco--site-no-ar-para-testes-gerais).
 11. **Próximo passo:** **#9 — Bloco 3** · **B32** (motor elegibilidade).
 12. **Integralização:** CH concluída = `historico` + PPC (`computeChDoneFromDisciplinas`); portal SIGAA só % / total currículo; matérias já passadas = **B30** ✅.
-13. **Gift + painel dev:** **B68–B71** `[%]` · **F39–F41** ✅ — painel sem senha SIGAA (`credentialSaved` + `accountRef`).
+13. **Gift + painel dev:** **B68–B71** ✅ · **F39–F41** ✅ — painel sem senha SIGAA (`credentialSaved` + `accountRef`).
 14. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial. **Polish em task `[x]`** (ex.: F38, dashboard) também exige nota no TASKS no mesmo ciclo do push.
 15. **Credenciais SIGAA:** sync **sem** o aluno no site exige senha **cifrada no servidor** (dev: B25 opcional + `useAutoSync` no client; produção: **B45** + worker **B56**). Ver `SCOPE.md` §2 · `SCOPE-CLOUD.md` §4–§6.
 16. **Código frontend** está em `app/src/` (não na raiz `src/`). Mock data em `app/src/config/mock/`.
@@ -1854,7 +1854,7 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 
 > **🌐 Beta aberto:** URL pública com **cadastro + login CPF + trial + gate** (**F29** ✅). Sync SIGAA na nuvem ainda = worker **B54–B56** (stub).
 
-> **🌐 O que isso NÃO significa:** **não** é todas as páginas/feature na nuvem iguais ao dev local. **Sync SIGAA real na cloud** depende do **worker (B54–B56)** — hoje **stub** no Postgres. **Dados isolados por conta** ✅ **6c** (RLS). **PIX / planos pagos** ✅ **#7** (L1+B71 `[%]` local). Telas do Bloco 1 **abrem** na URL; experiência acadêmica **completa** com dados SIGAA hoje = **dev local (SQLite)** + rotas cloud ainda parciais.
+> **🌐 O que isso NÃO significa:** **não** é todas as páginas/feature na nuvem iguais ao dev local. **Sync SIGAA real na cloud** depende do **worker (B54–B56)** — hoje **stub** no Postgres. **Dados isolados por conta** ✅ **6c** (RLS). **PIX / planos pagos** ✅ **#7**. Telas do Bloco 1 **abrem** na URL; experiência acadêmica **completa** com dados SIGAA hoje = **dev local (SQLite)** + rotas cloud ainda parciais.
 
 ### Fases até o go-live comercial
 
@@ -1863,7 +1863,7 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 | **6a** ✅ | URL + Postgres + health/PPC; **sem** login cloud completo | Time / smoke técnico | Sync cloud = stub |
 | **6b** ✅ | **Conta aberta:** cadastro, login CPF, trial, gate, telas carregam | **Qualquer pessoa** (beta aberto; **≠** lançamento comercial) | Sync na nuvem = worker **B54–B56** |
 | **6c** ✅ | RLS + isolamento por `user_id` | Continua beta | Dashboard cloud ainda parcial (SQLite em `getConfig`) |
-| **Bloco 7** | PIX + planos + endurecimento | Público com assinatura | **#7** ✅ `[%]` local |
+| **Bloco 7** | PIX + planos + endurecimento | Público com assinatura | **#7** ✅ |
 
 ### O que **não** está incluído neste marco (6b)
 
@@ -1880,4 +1880,4 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 
 ### Go-live comercial oficial
 
-**Bloco 7** ✅ — PIX + planos + **L1** + **B71** `[%]` (commits locais — aguardando push/aprovação).
+**Bloco 7** ✅ — PIX + planos + **L1** + **B71** aprovados.
