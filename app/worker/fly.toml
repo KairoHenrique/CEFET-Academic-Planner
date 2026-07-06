@@ -1,0 +1,52 @@
+# B72e — Worker Playwright hospedado (Fly.io).
+#
+# Deploy (a partir de app/):
+#   fly launch --no-deploy -c worker/fly.toml   # 1ª vez: cria o app
+#   fly secrets set -c worker/fly.toml \
+#     WORKER_SHARED_SECRET=... \
+#     CREDENTIALS_ENCRYPTION_KEY=... \
+#     DATABASE_URL=postgresql://...
+#   fly deploy -c worker/fly.toml
+#
+# Secrets obrigatórios: WORKER_SHARED_SECRET (mesmo valor do app cloud),
+# CREDENTIALS_ENCRYPTION_KEY (mesma chave do app — decripta passwordEnc),
+# DATABASE_URL (Supabase session pooler).
+
+app = "planner-sigaa-worker"
+primary_region = "gru"
+
+# Rodar sempre a partir de app/ (contexto do build = app/).
+[build]
+  dockerfile = "worker/Dockerfile"
+
+[env]
+  NODE_ENV = "production"
+  SIGAA_HEADLESS = "true"
+  SIGAA_SCRAPER_MOCK = "false"
+  WORKER_PORT = "8787"
+  SIGAA_WORKER_MAX_CONCURRENT = "1"
+  SYNC_MIRROR_POSTGRES = "true"
+  PLANNER_DATA_ROOT = "/data"
+
+[[mounts]]
+  source = "planner_worker_data"
+  destination = "/data"
+
+[http_service]
+  internal_port = 8787
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [[http_service.checks]]
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "20s"
+    method = "GET"
+    path = "/health"
+
+[[vm]]
+  memory = "1gb"
+  cpu_kind = "shared"
+  cpus = 1

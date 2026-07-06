@@ -7,6 +7,11 @@ import { runWithScraperSqlite } from "@/lib/db/backend/sqlite-guard";
 import { ensureDbReady } from "@/lib/db/bootstrap";
 import { runWithUserDb } from "@/lib/db/connection-manager";
 import { buildCloudSyncQueueStubResponse } from "@/lib/sync/cloud-sync-queue-stub";
+import {
+  enqueueCloudSyncJob,
+  isCloudSyncWorkerConfigured,
+  parseCloudEnqueueRequest,
+} from "@/lib/sync-queue/cloud-sync-queue";
 import { enqueueSyncJob } from "@/lib/sync-queue/enqueue-sync-job";
 import { kickSyncQueueDispatcher } from "@/lib/sync-queue/sync-queue-dispatcher";
 import { parseEnqueueSyncQueueRequest } from "@/lib/sync-queue/validate-enqueue-request";
@@ -15,10 +20,20 @@ export const runtime = "nodejs";
 
 export const POST = async (request: Request) => {
   try {
-    // Cloudflare: fila roda no worker externo (B72e). Node local/worker: fila
-    // SQLite liberada mesmo em modo postgres — mirror replica ao final (B72d).
+    // Cloudflare: fila Postgres + dispatch ao worker hospedado (B72e).
+    // Sem worker configurado, mantém o stub informativo.
     if (isCloudDeployment()) {
-      return buildCloudSyncQueueStubResponse();
+      if (!isCloudSyncWorkerConfigured()) {
+        return buildCloudSyncQueueStubResponse();
+      }
+
+      const input = parseCloudEnqueueRequest(await request.json());
+      const result = await enqueueCloudSyncJob(input);
+
+      return apiSuccess(
+        { ok: true as const, reused: result.reused, job: result.job },
+        result.reused ? 200 : 202
+      );
     }
 
     const body = await request.json();

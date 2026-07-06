@@ -24,10 +24,20 @@ export function parseWorkerJobRequest(body: unknown): WorkerJobRequest {
     throw validationError("Informe passwordEnc (preferido) ou password.");
   }
 
-  const robot = record.robot === "r1" ? "r1" : null;
+  const robot =
+    record.robot === "r1" ||
+    record.robot === "turmas" ||
+    record.robot === "calendario"
+      ? record.robot
+      : null;
   if (!robot) {
-    throw validationError('Campo robot deve ser "r1" (B54).');
+    throw validationError(
+      'Campo robot deve ser "r1", "turmas" ou "calendario" (B54/B72e).'
+    );
   }
+
+  const execution =
+    record.execution === "async" ? ("async" as const) : ("sync" as const);
 
   const mode =
     typeof record.mode === "string"
@@ -46,5 +56,6 @@ export function parseWorkerJobRequest(body: unknown): WorkerJobRequest {
     passwordEnc,
     mode,
     savePassword: record.savePassword === true,
+    execution,
   };
 }

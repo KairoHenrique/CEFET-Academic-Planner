@@ -48,6 +48,7 @@
     "worker:dev": "tsx worker/main.ts",
     "worker:start": "tsx worker/main.ts",
     "sync:mirror": "tsx --env-file=.env.local scripts/sync-and-mirror.ts",
+    "smoke:cloud-sync": "node scripts/smoke-cloud-sync.mjs",
     "test:scraper:live": "tsx --test tests/scraper-live.test.ts"
   },
   "dependencies": {
