@@ -1,6 +1,10 @@
 import { isPostgresBackend } from "@/lib/db/backend/config";
 import { getPostgresPool } from "@/lib/db/postgres/pool";
 import { isSqliteAllowed } from "@/lib/db/backend/sqlite-guard";
+import {
+  enqueueCloudSyncJob,
+  isCloudSyncWorkerConfigured,
+} from "@/lib/sync-queue/cloud-sync-queue";
 import { kickSyncQueueDispatcher } from "@/lib/sync-queue/sync-queue-dispatcher";
 import { enqueueSyncJob } from "@/lib/sync-queue/enqueue-sync-job";
 import {
@@ -64,6 +68,64 @@ async function listEligibleCpfsForDeepSync(): Promise<string[]> {
   return result.rows.map((row) => row.cpf);
 }
 
+/**
+ * B72e — cloud sem SQLite: catálogo global e deep sync viram jobs async no
+ * worker hospedado, usando a credencial selada de um CPF elegível.
+ */
+async function dispatchGlobalActionToWorker(
+  robot: "turmas" | "calendario",
+  credentialCpf: string | undefined,
+  idempotencyKey: string
+): Promise<boolean> {
+  if (!credentialCpf || !isCloudSyncWorkerConfigured()) {
+    return false;
+  }
+
+  try {
+    await enqueueCloudSyncJob({
+      username: credentialCpf,
+      mode: "lite",
+      lane: "normal",
+      trigger: "auto",
+      robot,
+      idempotencyKey,
+    });
+    return true;
+  } catch (error) {
+    console.error(
+      `[orchestrator] Dispatch ${robot} ao worker falhou:`,
+      error instanceof Error ? error.message : error
+    );
+    return false;
+  }
+}
+
+async function dispatchDeepSyncToWorker(
+  cpf: string,
+  idempotencyKey: string
+): Promise<boolean> {
+  if (!isCloudSyncWorkerConfigured()) {
+    return false;
+  }
+
+  try {
+    const result = await enqueueCloudSyncJob({
+      username: cpf,
+      mode: "deep",
+      lane: "normal",
+      trigger: "auto",
+      idempotencyKey,
+    });
+    return !result.reused;
+  } catch (error) {
+    console.error(
+      "[orchestrator] Dispatch deep sync ao worker falhou:",
+      error instanceof Error ? error.message : error
+    );
+    return false;
+  }
+}
+
 async function markGlobalActionDone(
   actionType: "run_global_calendario" | "run_global_turmas",
   cursoId: string | null,
@@ -99,18 +161,53 @@ export async function runSyncOrchestratorTick(options?: {
   });
 
   const executed: OrchestratorTickResult["executed"] = [];
+  const cloudMode = !isSqliteAllowed();
+  const credentialCpf = eligibleCpfs[0];
+  const dayKey = plan.now.slice(0, 10);
 
   for (const action of plan.actions) {
     if (action.type === "run_global_calendario") {
+      const dispatched = cloudMode
+        ? await dispatchGlobalActionToWorker(
+            "calendario",
+            credentialCpf,
+            `orchestrator-calendario:${dayKey}`
+          )
+        : false;
+
+      if (cloudMode && !dispatched) {
+        executed.push({
+          action: `global_calendario:${action.reason}`,
+          status: "skipped",
+        });
+        continue;
+      }
+
       await markGlobalActionDone("run_global_calendario", null, plan.now);
       executed.push({
         action: `global_calendario:${action.reason}`,
-        status: "done",
+        status: dispatched ? "queued" : "done",
       });
       continue;
     }
 
     if (action.type === "run_global_turmas") {
+      const dispatched = cloudMode
+        ? await dispatchGlobalActionToWorker(
+            "turmas",
+            credentialCpf,
+            `orchestrator-turmas:${action.cursoId}:${dayKey}`
+          )
+        : false;
+
+      if (cloudMode && !dispatched) {
+        executed.push({
+          action: `global_turmas:${action.cursoId}:${action.reason}`,
+          status: "skipped",
+        });
+        continue;
+      }
+
       await markGlobalActionDone(
         "run_global_turmas",
         action.cursoId,
@@ -118,16 +215,20 @@ export async function runSyncOrchestratorTick(options?: {
       );
       executed.push({
         action: `global_turmas:${action.cursoId}:${action.reason}`,
-        status: "done",
+        status: dispatched ? "queued" : "done",
       });
       continue;
     }
 
     if (action.type === "enqueue_r1_deep") {
       if (!isSqliteAllowed()) {
+        const dispatched = await dispatchDeepSyncToWorker(
+          action.cpf,
+          `orchestrator-deep:${action.cpf}:${dayKey}`
+        );
         executed.push({
           action: `enqueue_deep:${action.cpf}`,
-          status: "skipped",
+          status: dispatched ? "queued" : "skipped",
         });
         continue;
       }

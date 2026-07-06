@@ -11,6 +11,10 @@ import { runQueuedSync } from "@/lib/sync-queue/run-queued-sync";
 import { evaluateSyncReadiness } from "@/lib/sync/sync-readiness";
 import { resolveSyncTrigger } from "@/lib/sync/resolve-sync-trigger";
 import { buildPostgresSyncStubResponse } from "@/lib/sync/postgres-sync-stub";
+import {
+  isCloudSyncWorkerConfigured,
+  runCloudSyncDirect,
+} from "@/lib/sync-queue/cloud-sync-queue";
 
 export const runtime = "nodejs";
 /** Turma virtual live pode levar ~5 min (várias disciplinas × subpáginas). */
@@ -22,10 +26,26 @@ export const POST = async (request: Request) => {
     const credentials = parseSyncRequest(body);
     const mode = credentials.mode ?? "full";
 
-    // Cloud (Cloudflare): sem Playwright/fs — sync roda no worker externo (B72e).
+    // Cloud (Cloudflare): sem Playwright/fs — dispatch síncrono ao worker
+    // hospedado (B72e). Sem worker configurado, mantém o stub informativo.
     // Local/worker Node em modo postgres: staging SQLite liberado + mirror (B72d).
     if (isCloudDeployment()) {
-      return buildPostgresSyncStubResponse();
+      if (!isCloudSyncWorkerConfigured()) {
+        return buildPostgresSyncStubResponse();
+      }
+
+      const result = await runCloudSyncDirect({
+        username: credentials.username,
+        password: credentials.password || undefined,
+        mode,
+      });
+
+      return apiSuccess({
+        ok: true as const,
+        steps: result.steps,
+        partial: result.partial || undefined,
+        jobId: result.jobId,
+      });
     }
 
     return await runWithScraperSqlite(() =>

@@ -10,7 +10,8 @@ ENV WORKER_PORT=8787
 ENV SIGAA_WORKER_MAX_CONCURRENT=1
 
 COPY package.json package-lock.json ./
-RUN npm ci
+# --include=dev: tsx/pg vivem em devDependencies e o worker roda via tsx.
+RUN npm ci --include=dev
 
 COPY tsconfig.json ./
 COPY worker ./worker

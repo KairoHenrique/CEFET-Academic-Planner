@@ -1,7 +1,9 @@
 import { ApiError } from "@/lib/api/errors";
 import { ensureDbReady } from "@/lib/db/bootstrap";
 import { runWithUserDb } from "@/lib/db/connection-manager";
+import { runCalendarioSync } from "@/lib/sync/run-calendario-sync";
 import { runSync } from "@/lib/sync/run-sync";
+import { runTurmasOfertadasSync } from "@/lib/sync/run-turmas-ofertadas-sync";
 import type { BrowserJobSlot } from "@/lib/worker/browser-job-slot";
 import type {
   WorkerJobFailure,
@@ -10,6 +12,11 @@ import type {
 } from "@/lib/worker/job-types";
 import { resolveWorkerJobPassword } from "@/lib/worker/resolve-worker-password";
 import type { WorkerRuntimeState } from "@/lib/worker/worker-runtime-state";
+
+interface WorkerPipelineOutcome {
+  partial: boolean;
+  steps: Array<{ label: string; progress: number }>;
+}
 
 function mapJobError(error: unknown): WorkerJobFailure["error"] {
   if (error instanceof ApiError) {
@@ -52,6 +59,39 @@ function withTimeout<T>(
   });
 }
 
+async function runRobotPipeline(
+  request: WorkerJobRequest,
+  password: string
+): Promise<WorkerPipelineOutcome> {
+  const credentials = {
+    username: request.username,
+    password,
+    savePassword: request.savePassword,
+    mode: request.mode,
+  };
+
+  if (request.robot === "turmas") {
+    const result = await runTurmasOfertadasSync(credentials, { force: true });
+    return {
+      partial: result.partial,
+      steps: [{ label: result.message, progress: 100 }],
+    };
+  }
+
+  if (request.robot === "calendario") {
+    const result = await runCalendarioSync(credentials, { force: true });
+    return {
+      partial: result.partial,
+      steps: [{ label: result.message, progress: 100 }],
+    };
+  }
+
+  const pipeline = await runSync(credentials, {
+    mode: request.mode ?? "full",
+  });
+  return { partial: pipeline.partial, steps: pipeline.steps };
+}
+
 export async function runWorkerSyncJob(
   request: WorkerJobRequest,
   slot: BrowserJobSlot,
@@ -68,15 +108,7 @@ export async function runWorkerSyncJob(
       withTimeout(
         runWithUserDb(request.username, () => {
           ensureDbReady();
-          return runSync(
-            {
-              username: request.username,
-              password,
-              savePassword: request.savePassword,
-              mode: request.mode,
-            },
-            { mode: request.mode ?? "full" }
-          );
+          return runRobotPipeline(request, password);
         }),
         jobTimeoutMs,
         request.jobId

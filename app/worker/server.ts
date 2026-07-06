@@ -4,6 +4,10 @@ import { ApiError } from "@/lib/api/errors";
 import { BrowserJobSlot } from "@/lib/worker/browser-job-slot";
 import { loadWorkerConfig, type WorkerConfig } from "@/lib/worker/config";
 import type { WorkerJobResult, WorkerStatusResponse } from "@/lib/worker/job-types";
+import {
+  assertAsyncExecutionAvailable,
+  startWorkerAsyncJob,
+} from "@/lib/worker/run-async-job";
 import { runWorkerSyncJob } from "@/lib/worker/run-sync-job";
 import { parseWorkerJobRequest } from "@/lib/worker/validate-job-request";
 import { WorkerRuntimeState } from "@/lib/worker/worker-runtime-state";
@@ -124,6 +128,19 @@ export function createWorkerServer(options?: {
 
         const body = await readJsonBody(request);
         const jobRequest = parseWorkerJobRequest(body);
+
+        // B72e — dispatch cloud: 202 imediato, status vai para a fila Postgres.
+        if (jobRequest.execution === "async") {
+          assertAsyncExecutionAvailable();
+          startWorkerAsyncJob(jobRequest, slot, runtime, config.jobTimeoutMs);
+          sendJson(response, 202, {
+            ok: true,
+            jobId: jobRequest.jobId,
+            status: "queued",
+          });
+          return;
+        }
+
         const result: WorkerJobResult = await runWorkerSyncJob(
           jobRequest,
           slot,
