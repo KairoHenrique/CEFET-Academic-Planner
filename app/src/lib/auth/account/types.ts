@@ -20,6 +20,10 @@ export interface RegisterAccountInput {
   cpf: string;
   cursoId: AppCursoId;
   password: string;
+  legalConsent: {
+    termsVersion: string;
+    privacyVersion: string;
+  };
 }
 
 export interface LoginAccountInput {

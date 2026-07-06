@@ -8,6 +8,10 @@ import { PlannerSelect } from "@/components/ui/PlannerSelect";
 import { AuthTrialBanner } from "@/components/auth/AuthTrialBanner";
 import { AuthSubmitButton } from "@/components/auth/AuthSubmitButton";
 import { RegisterAccountExistsNotice } from "@/components/auth/RegisterAccountExistsNotice";
+import {
+  buildLegalConsentPayload,
+  LegalConsentField,
+} from "@/components/legal/LegalConsentField";
 import { PlannerNotice } from "@/components/ui/PlannerNotice";
 import { ApiClientError, postAuthRegister } from "@/lib/api/client";
 import type { AppCursoId } from "@/lib/auth/account/types";
@@ -40,6 +44,7 @@ export function RegisterForm({ cursos }: RegisterFormProps) {
   const [cpf, setCpf] = useState("");
   const [cursoId, setCursoId] = useState<AppCursoId>(defaultCursoId);
   const [password, setPassword] = useState("");
+  const [legalAccepted, setLegalAccepted] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [errorEpoch, setErrorEpoch] = useState(0);
   const [submitting, setSubmitting] = useState(false);
@@ -80,6 +85,12 @@ export function RegisterForm({ cursos }: RegisterFormProps) {
       showError("A senha do SIGAA deve ter ao menos 4 caracteres.");
       return;
     }
+    if (!legalAccepted) {
+      showError(
+        "Aceite os Termos de Uso e a Política de Privacidade para continuar."
+      );
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -89,6 +100,7 @@ export function RegisterForm({ cursos }: RegisterFormProps) {
         cpf: normalizedCpf,
         cursoId,
         password,
+        acceptedLegal: buildLegalConsentPayload(true),
       });
       persistCloudAuthSession(result);
       const giftRedeem = await redeemPendingGiftKeyAfterAuth();
@@ -176,6 +188,12 @@ export function RegisterForm({ cursos }: RegisterFormProps) {
       </div>
 
       <AuthTrialBanner />
+
+      <LegalConsentField
+        checked={legalAccepted}
+        disabled={submitting}
+        onChange={setLegalAccepted}
+      />
 
       {accountExists ? <RegisterAccountExistsNotice /> : null}
 

@@ -56,6 +56,12 @@ describe("B44 — conta do aluno", () => {
       cpf: "111.444.777-35",
       cursoId: "eng-computacao",
       password: "sigaa123",
+      acceptedLegal: {
+        terms: true,
+        privacy: true,
+        termsVersion: "2026-07-01",
+        privacyVersion: "2026-07-01",
+      },
     });
 
     assert.equal(parsed.cpf, "11144477735");

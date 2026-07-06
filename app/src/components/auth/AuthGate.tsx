@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { isAuthenticated } from "@/lib/auth/session";
+import { isPublicAppPath } from "@/lib/routing/public-paths";
 
 interface AuthGateProps {
   children: React.ReactNode;
@@ -15,10 +16,10 @@ export function AuthGate({ children }: AuthGateProps) {
 
   useEffect(() => {
     const onLoginPage = pathname === "/login";
-    const onDevPanel = pathname === "/dev" || pathname.startsWith("/dev/");
+    const isPublic = isPublicAppPath(pathname);
     const authed = isAuthenticated();
 
-    if (!authed && !onLoginPage && !onDevPanel) {
+    if (!authed && !isPublic) {
       router.replace("/login");
       return;
     }

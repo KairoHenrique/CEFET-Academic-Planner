@@ -115,6 +115,7 @@ export async function registerAccount(
       telefone: input.telefone,
       cursoId: input.cursoId,
       sigaaPasswordEnc: sealServerSigaaPassword(input.password),
+      legalConsent: input.legalConsent,
     });
 
     const subscription = await ensureTrialRecordForCpf(input.cpf);

@@ -7,12 +7,14 @@ export function apiSuccess<T>(data: T, status = 200): NextResponse<T> {
 
 export function apiErrorResponse(error: unknown): NextResponse {
   if (error instanceof ApiError) {
+    const exposeDetails = process.env.NODE_ENV !== "production";
+
     return NextResponse.json(
       {
         ok: false,
         code: error.code,
         message: error.message,
-        details: error.details,
+        details: exposeDetails ? error.details : undefined,
       },
       { status: error.status }
     );

@@ -114,12 +114,18 @@ export async function insertAppProfile(input: {
   telefone: string;
   cursoId: AppCursoId;
   sigaaPasswordEnc: string;
+  legalConsent: {
+    termsVersion: string;
+    privacyVersion: string;
+  };
 }): Promise<AppProfileRecord> {
   const pool = getPostgresPool();
+  const acceptedAt = new Date();
   const result = await pool.query<ProfileRow>(
     `INSERT INTO app_profiles (
-       user_id, cpf, email, telefone, curso_id, sigaa_password_enc
-     ) VALUES ($1, $2, $3, $4, $5, $6)
+       user_id, cpf, email, telefone, curso_id, sigaa_password_enc,
+       terms_version, terms_accepted_at, privacy_version, privacy_accepted_at
+     ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
      RETURNING user_id, cpf, email, telefone, curso_id, created_at`,
     [
       input.userId,
@@ -128,6 +134,10 @@ export async function insertAppProfile(input: {
       input.telefone,
       input.cursoId,
       input.sigaaPasswordEnc,
+      input.legalConsent.termsVersion,
+      acceptedAt,
+      input.legalConsent.privacyVersion,
+      acceptedAt,
     ]
   );
 
