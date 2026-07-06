@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { apiErrorResponse, apiSuccess } from "@/lib/api/response";
 import { validationError } from "@/lib/api/errors";
-import { parseSyncRequest } from "@/lib/api/validate";
+import { runWithScraperSqlite } from "@/lib/db/backend/sqlite-guard";
 import { ensureDbReady } from "@/lib/db/bootstrap";
 import { runWithUserDb } from "@/lib/db/connection-manager";
 import { evaluateSyncReadiness } from "@/lib/sync/sync-readiness";
@@ -16,15 +16,17 @@ export const GET = async (request: Request) => {
       throw validationError("Informe o usuário do SIGAA.");
     }
 
-    return await runWithUserDb(username, async () => {
-      ensureDbReady();
-      const readiness = evaluateSyncReadiness(username);
+    return await runWithScraperSqlite(() =>
+      runWithUserDb(username, async () => {
+        ensureDbReady();
+        const readiness = evaluateSyncReadiness(username);
 
-      return apiSuccess({
-        ok: true as const,
-        ...readiness,
-      });
-    });
+        return apiSuccess({
+          ok: true as const,
+          ...readiness,
+        });
+      })
+    );
   } catch (error) {
     return apiErrorResponse(error);
   }

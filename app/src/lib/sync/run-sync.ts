@@ -12,6 +12,7 @@ import {
   recordSyncedUsername,
 } from "@/lib/sync/sync-preferences";
 import { resolveSyncCredentialsSync, type ResolvedSyncCredentials } from "@/lib/sync/resolve-credentials";
+import { runMirrorAfterSync } from "@/lib/sync-mirror/run-mirror-after-sync";
 import type { SigaaSession } from "@/lib/scraper/types";
 import type { SyncMode, SyncPipelineResult } from "@/lib/types/sync-pipeline";
 import type { SyncRequest } from "@/lib/types/sync";
@@ -94,9 +95,11 @@ export async function runSync(
     `[sync] modo=${SIGAA_SCRAPER_MOCK ? "MOCK" : "LIVE"} pipeline=${mode} user=${credentials.username}`
   );
 
-  if (SIGAA_SCRAPER_MOCK) {
-    return runMockSync(credentials, mode);
-  }
+  const result = SIGAA_SCRAPER_MOCK
+    ? await runMockSync(credentials, mode)
+    : await runLiveSync(credentials, mode);
 
-  return runLiveSync(credentials, mode);
+  await runMirrorAfterSync(credentials.username);
+
+  return result;
 }

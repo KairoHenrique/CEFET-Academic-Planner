@@ -6,6 +6,7 @@ import {
   SIGAA_SCRAPER_MOCK,
 } from "@/lib/scraper/constants";
 import { ScraperError, mapUnknownScraperError } from "@/lib/scraper/errors";
+import { dumpScrapeHtml } from "@/lib/scraper/scrape-debug";
 import type { SigaaCredentials, SigaaSession } from "@/lib/scraper/types";
 
 const LOGIN_ERROR_PATTERN =
@@ -48,6 +49,88 @@ async function detectLoginFailure(page: Page): Promise<void> {
   }
 }
 
+const MAX_PENDING_NOTIFICATIONS = 5;
+
+async function isPendingNotificationPage(page: Page): Promise<boolean> {
+  if (page.url().includes("notificacoes_academicas")) return true;
+  return (
+    (await page
+      .locator('form[action*="notificacoes_pendentes"]')
+      .count()) > 0
+  );
+}
+
+/**
+ * O SIGAA pode interceptar o pós-login com "Notificações Acadêmicas"
+ * pendentes (avisos institucionais) que exigem confirmar a senha e
+ * "Confirmar Leitura" antes de liberar o Portal do Discente. Sem isso,
+ * toda navegação cai de volta no aviso e o scrape retorna vazio.
+ */
+async function dismissPendingNotifications(
+  page: Page,
+  credentials: SigaaCredentials
+): Promise<void> {
+  for (let attempt = 0; attempt < MAX_PENDING_NOTIFICATIONS; attempt++) {
+    if (!(await isPendingNotificationPage(page))) return;
+
+    console.info(
+      "[scraper:auth] Notificação acadêmica pendente — confirmando leitura."
+    );
+
+    // Submit JSF manual (equivalente ao jsfcljs do onclick): preenche a
+    // senha, injeta o parâmetro do botão e submete o form. O clique
+    // "actionable" do Playwright falha por overlays; onclick depende de
+    // helpers globais que podem não ter carregado.
+    const submitted = await page.evaluate((senha) => {
+      const form = document.querySelector<HTMLFormElement>(
+        'form[action*="notificacoes_pendentes"]'
+      );
+      if (!form) return false;
+
+      const senhaInput = form.querySelector<HTMLInputElement>(
+        'input[type="password"]'
+      );
+      if (senhaInput) senhaInput.value = senha;
+
+      const link = form.querySelector<HTMLAnchorElement>(
+        'a[id$="btnResponderQuestionario"]'
+      );
+      const paramName = link?.id;
+      if (paramName) {
+        const hidden = document.createElement("input");
+        hidden.type = "hidden";
+        hidden.name = paramName;
+        hidden.value = paramName;
+        form.appendChild(hidden);
+      }
+
+      form.submit();
+      return true;
+    }, credentials.password);
+
+    if (!submitted) return;
+
+    // Submit JSF pode demorar — espera o form sumir sem abortar o login.
+    await page
+      .waitForSelector('form[action*="notificacoes_pendentes"]', {
+        state: "detached",
+        timeout: SIGAA_NAVIGATION_TIMEOUT_MS,
+      })
+      .catch(() => undefined);
+    await page
+      .waitForLoadState("domcontentloaded", {
+        timeout: SIGAA_NAVIGATION_TIMEOUT_MS,
+      })
+      .catch(() => undefined);
+
+    dumpScrapeHtml(
+      "auth",
+      `notificacao-pos-submit-${attempt + 1}`,
+      await page.content().catch(() => "")
+    );
+  }
+}
+
 /**
  * Login no SIGAA usando uma page já aberta.
  * Após retornar, a page está logada e pronta para navegar.
@@ -77,6 +160,8 @@ export async function loginSigaaOnPage(
       await detectLoginFailure(page);
       throw ScraperError.authFailed("Login não concluído no SIGAA.");
     }
+
+    await dismissPendingNotifications(page, credentials);
   } catch (error) {
     if (error instanceof ScraperError) throw error;
     throw mapUnknownScraperError(error);

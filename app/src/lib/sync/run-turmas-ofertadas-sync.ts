@@ -11,6 +11,7 @@ import { persistTurmasOfertadasSnapshot } from "@/lib/sync/persist-turmas-oferta
 import { shouldRunTurmasOfertadasSync } from "@/lib/sync/turmas-ofertadas-sync-plan";
 import { recordTurmasOfertadasSyncedAt } from "@/lib/sync/sync-preferences";
 import { resolveSyncCredentialsSync, type ResolvedSyncCredentials } from "@/lib/sync/resolve-credentials";
+import { runMirrorAfterSync } from "@/lib/sync-mirror/run-mirror-after-sync";
 import type { SyncRequest } from "@/lib/types/sync";
 
 export interface RunTurmasOfertadasSyncOptions {
@@ -160,5 +161,11 @@ export async function runTurmasOfertadasSync(
     `[sync:turmas] modo=${SIGAA_SCRAPER_MOCK ? "MOCK" : "LIVE"} user=${credentials.username}`
   );
 
-  return executeTurmasRobot(credentials, options);
+  const result = await executeTurmasRobot(credentials, options);
+
+  if (result.rowsWritten > 0) {
+    await runMirrorAfterSync(credentials.username);
+  }
+
+  return result;
 }

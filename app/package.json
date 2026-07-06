@@ -47,6 +47,7 @@
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
     "worker:dev": "tsx worker/main.ts",
     "worker:start": "tsx worker/main.ts",
+    "sync:mirror": "tsx --env-file=.env.local scripts/sync-and-mirror.ts",
     "test:scraper:live": "tsx --test tests/scraper-live.test.ts"
   },
   "dependencies": {
