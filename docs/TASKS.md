@@ -41,7 +41,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ## Roadmap detalhado — ordem de execução (#0 → #11)
 
-> **Próximo oficial:** **#7 — PIX** — **B49** tabelas *(B48 ✅)*.
+> **Próximo oficial:** **#7 — PIX** — **B50** checkout PIX *(B49 ✅)*.
 > **Regra:** siga **#0 → #11** · dentro de cada bloco → **BACK (B) antes de FRONT (F)**. Checklist espelho: [Checklist mestre](#checklist-mestre-ordem-de-execução).
 
 ### #0 — Planejamento `✅`
@@ -235,13 +235,13 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ---
 
-### #7 — Bloco 7 · Assinatura PIX `🟡 2/15`
+### #7 — Bloco 7 · Assinatura PIX `🟡 3/15`
 
 > **Só após #6e.** Preços v1: R$ 50 (3m) · R$ 85 (6m) · R$ 150 (12m) · R$ 700 (5a). Gift keys + endurecimento credenciais incluídos neste bloco.
 
 - [x] **PLAN:** B47 *(planos e preços — trial + 3m/6m/12m/5a; R$ 50/85/150/700; trial 7d 1×/CPF)*
 - [x] **PLAN:** B48 *(gateway PIX — Mercado Pago v1 + mock; adapter `billing/gateway`)*
-- [ ] **BACK:** B49 *(tabelas billing — `plans`, `subscriptions`, `payments`)*
+- [x] **BACK:** B49 *(tabelas billing — `plans`, `subscriptions`, `payments`)*
 - [ ] **BACK:** B50 *(`POST /api/billing/checkout` — checkout PIX)*
 - [ ] **BACK:** B51 *(webhook — confirmação → `subscription.active`)*
 - [ ] **BACK:** B52 *(gate middleware — bloqueia trial_expired/pending/expired → PIX)*
@@ -396,7 +396,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ### 1.4 API e Integração UI ↔ SQLite
 
-> **Progresso:** Bloco 1 ✅ · **Bloco 2a/2b** ✅ · **Bloco 6a** ✅ **8/8** · **6b** ✅ **8/8** · **6c** ✅ **2/2** · **#6d** ✅ **6/6** · **#6e** ✅ **2/2** · **#7** **2/15** (B47 ✅ · B48 ✅) · URL **`https://acme-hub.khfm.workers.dev`**.
+> **Progresso:** Bloco 1 ✅ · **Bloco 2a/2b** ✅ · **Bloco 6a** ✅ **8/8** · **6b** ✅ **8/8** · **6c** ✅ **2/2** · **#6d** ✅ **6/6** · **#6e** ✅ **2/2** · **#7** **3/15** (B47 ✅ · B48 ✅ · B49 ✅) · URL **`https://acme-hub.khfm.workers.dev`**.
 
 Roadmap detalhado: ver **[Roadmap #0→#11 no topo](#roadmap-detalhado--ordem-de-execução-0--11)** · [Ordem oficial v3](#ordem-oficial-de-execução-v3). **F19** simulador (2a) `[x]` · **B67** `[x]`.
 
@@ -516,7 +516,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | **#6** | 6c | RLS multi-tenant | ✅ **Concluído** | 2/2 |
 | **#6d** | 2c | Orquestração sync + catálogo global | ✅ **6/6** · policy **§6.6** | 6/6 |
 | **#6e** | 2e | Painel dev + policy (B70 → F41) | ✅ **2/2** | 2/2 |
-| **#7** | 7 | Assinatura PIX | **B49** tabelas billing | 2/15 |
+| **#7** | 7 | Assinatura PIX | **B50** checkout PIX | 3/15 |
 | **#9** | 3 | Inteligência acadêmica | Depois de #7 (dados reais + PIX) · **antes do mobile** | 0/11 |
 | **#10** | 4 | Polimento UX + site mobile (**F28**) | **Antes do mobile (#8)** | 0/4 |
 | **#8** | 8 | Mobile Android (Expo Go) | Depois de **#6d** + **#7** + **#9** + **#10** · **sem Play/App Store** | 0/10 |
@@ -583,7 +583,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 **Contagem 8/8:** só os 8 primeiros grupos até **`F37`** · **`F38` · `B66` · `B67` · `F19`** = extras (fora do 8/8) · polish `04887c9`/`5923e9c` · modulação dashboard · fix mapa/histórico/notificações (jun/2026)
 
-**Próximo:** **#7 — PIX** — **B49** tabelas billing.
+**Próximo:** **#7 — PIX** — **B50** checkout PIX.
 
 ---
 
@@ -663,12 +663,12 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 ---
 
-### #7 — Bloco 7 · Assinatura PIX `🟡 2/15`
+### #7 — Bloco 7 · Assinatura PIX `🟡 3/15`
 
 > Preços v1 definidos. **Só após #6e.**
 
 - [x] **PLAN:** B47 → [x] **PLAN:** B48
-- [ ] **BACK:**  B49 → B50 → B51 → B52 → B53 → B69
+- [x] **BACK:**  B49 → [ ] B50 → B51 → B52 → B53 → B69
 - [ ] **FRONT:** F31 → F32 → F33 → F34 → F40
 - [ ] **LEGAL:** L1
 - [ ] **BACK:**  B71 *(última pré-go-live)*
@@ -971,7 +971,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] `worker/Dockerfile` (Playwright jammy) · `worker/README.md`
 - [x] Testes `tests/worker-b54.test.ts`
 
-> **Próximo:** **#7 — PIX** — **B49** tabelas billing.
+> **Próximo:** **#7 — PIX** — **B50** checkout PIX.
 
 #### B55 — API fila sync `[x]`
 
@@ -981,7 +981,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Dispatcher assíncrono → worker B54 (`SIGAA_WORKER_URL`) ou **inline** (`SYNC_QUEUE_DISPATCH=inline`)
 - [x] Testes `tests/sync-queue-b55.test.ts` · `npm run test:sync-queue`
 
-> **Próximo:** **#7 — PIX** — **B49** tabelas billing.
+> **Próximo:** **#7 — PIX** — **B50** checkout PIX.
 
 #### B56 — Pipeline no worker `[x]`
 
@@ -1165,7 +1165,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 |---|------|------|--------|--------|
 | B47 | Plan | Planos e preços | Trial + 3m/6m/12m/5a — **R$ 50 / 85 / 150 / 700**; trial 7d 1×/CPF | [x] |
 | B48 | Plan | Gateway PIX | **Mercado Pago v1** + mock · `GET /api/billing/gateway/status` | [x] |
-| B49 | Back | Tabelas billing | `plans`, `subscriptions`, `payments` | [ ] |
+| B49 | Back | Tabelas billing | `plans`, `subscriptions`, `payments` · migrations + RLS + catálogo schema | [x] |
 | B50 | Back | Checkout PIX | `POST /api/billing/checkout` | [ ] |
 | B51 | Back | Webhook | Confirmação → `subscription.active` | [ ] |
 | B52 | Back | Gate middleware | Bloqueia `trial_expired` / `pending_payment` / `expired` → PIX | [ ] |
@@ -1293,7 +1293,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 #6d Bloco 2c  Orquestração sync (B68-orq)     policy §6.6 · ✅ 6/6
 #6e Bloco 2e  Painel dev + policy (B70/F41)        ✅ 2/2
       ↓
-#7  Bloco 7   Assinatura PIX                   2/15
+#7  Bloco 7   Assinatura PIX                   3/15
       ↓
 #9  Bloco 3   Inteligência acadêmica        ← site antes mobile
 #10 Bloco 4   Polimento UX + site mobile (F28) ← gráficos / ajustes web
@@ -1768,7 +1768,7 @@ B68 + F39 (simulação mapa — pode paralelizar ao Bloco 1 pós-F12)
 
 ### Dev local (antes da cloud)
 
-- Catálogo **`app/src/lib/billing/`** (**B47** ✅) · gateway PIX Mercado Pago + mock (**B48** ✅) · `GET /api/billing/plans` + `/gateway/status`; checkout **B49–B50**; resgate chave **B69**.
+- Catálogo **`app/src/lib/billing/`** (**B47** ✅) · gateway PIX Mercado Pago + mock (**B48** ✅) · tabelas `plans`/`subscriptions`/`payments` (**B49** ✅) · `GET /api/billing/plans` + `/gateway/status`; checkout **B50**; resgate chave **B69**.
 - Painel dev SQLite/cloud: rota **`/dev`** com login operador, navbar, robôs modulares R1/R2/R3 e policy §6.6 — **F41** `[x]`.
 
 ---
@@ -1834,7 +1834,7 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 8. **Próximo passo do roadmap:** informe **depois do push** (tasks em `[@]` ou `[x]`). Com commits locais só `[%]`, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v3](#ordem-oficial-de-execução-v3) — **Bloco 2 (sync) antes do Bloco 6 (Supabase)**. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy **após** sync validado; RLS ✅ **6c** (antes do PIX). Marco “site no ar p/ testes gerais” → [final do TASKS.md](#marco--site-no-ar-para-testes-gerais).
-11. **Próximo passo:** **#7 — PIX** — **B49** tabelas billing *(B48 ✅)*.
+11. **Próximo passo:** **#7 — PIX** — **B50** `POST /api/billing/checkout` *(B49 ✅)*.
 12. **Integralização:** CH concluída = `historico` + PPC (`computeChDoneFromDisciplinas`); portal SIGAA só % / total currículo; matérias já passadas = **B30** ✅.
 13. **Gift + painel dev + simulação mapa:** escopo em `SCOPE.md` §10.7, §6.1.1 · `SCOPE-CLOUD` §6.6 — tasks **B68–B71**, **F39–F41**. Painel: robôs modulares R1/R2/R3 + **Orquestração sync** (TTLs/data fixa/batch). **B71** = ocultar senhas SIGAA.
 14. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial. **Polish em task `[x]`** (ex.: F38, dashboard) também exige nota no TASKS no mesmo ciclo do push.
