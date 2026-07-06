@@ -9,6 +9,9 @@ import { EnrollmentCorequisitoRollbackDialog } from "@/components/simulador/Enro
 import { EnrollmentSelectionFloat } from "@/components/simulador/EnrollmentSelectionFloat";
 import { EnrollmentSchedulePanel } from "@/components/simulador/EnrollmentSchedulePanel";
 import { EnrollmentSidebar } from "@/components/simulador/EnrollmentSidebar";
+import { useSimuladorChoques } from "@/hooks/useSimuladorChoques";
+import { useSimuladorSimulacoes } from "@/hooks/useSimuladorSimulacoes";
+import { buildScheduleFromTurmaIds } from "@/lib/simulador/build-schedule-from-simulation";
 import {
   buildTurmaShortLabelRegistry,
   filterSimuladorTurmas,
@@ -117,6 +120,30 @@ export function EnrollmentSimulator({ data }: EnrollmentSimulatorProps) {
   } | null>(null);
   const [corequisitoRollbackPrompt, setCorequisitoRollbackPrompt] =
     useState<CorequisitoRollbackPrompt | null>(null);
+  const [draggedTurmaId, setDraggedTurmaId] = useState<string | null>(null);
+
+  const scheduleStats = useMemo(
+    () => summarizePlacedSchedule(schedule, visible.courses),
+    [schedule, visible.courses]
+  );
+
+  const {
+    hasConflicts,
+    conflicts,
+    conflictCellKeys,
+    conflictTurmaIds,
+    checking: checkingConflicts,
+  } = useSimuladorChoques(scheduleStats.placedTurmaIds);
+
+  const {
+    items: savedSimulations,
+    loading: savedSimulationsLoading,
+    saving: savingSimulation,
+    deleting: deletingSimulation,
+    saveSimulation,
+    deleteSimulation,
+    loadSimulation,
+  } = useSimuladorSimulacoes();
 
   const corequisitoObligation = useMemo(
     () => resolveActiveCorequisitoObligation(schedule, placementContext),
@@ -186,13 +213,20 @@ export function EnrollmentSimulator({ data }: EnrollmentSimulatorProps) {
   }, [multiVariantPreview, selectedCourse, canPlaceSelectedCourse]);
 
   const highlightEmpty = Boolean(
-    (multiVariantPreview && multiVariantPreview.size > 0) || canPlaceSelectedCourse
+    (multiVariantPreview && multiVariantPreview.size > 0) ||
+      canPlaceSelectedCourse ||
+      draggedTurmaId
   );
 
-  const scheduleStats = useMemo(
-    () => summarizePlacedSchedule(schedule, visible.courses),
-    [schedule, visible.courses]
-  );
+  const draggedCourse = useMemo(() => {
+    if (!draggedTurmaId) return null;
+    return visible.courses.find((course) => course.turmaSigaaId === draggedTurmaId) ?? null;
+  }, [draggedTurmaId, visible.courses]);
+
+  const dragAllowedCells = useMemo(() => {
+    if (!draggedCourse) return null;
+    return buildAllowedEmptyCellKeys(draggedCourse);
+  }, [draggedCourse]);
 
   const availableCurso = useMemo(
     () => filterTurmasNotOnSchedule(visible.curso, schedule),
@@ -493,7 +527,90 @@ export function EnrollmentSimulator({ data }: EnrollmentSimulatorProps) {
     setConflictNotice(null);
     setDetail(null);
     setCorequisitoRollbackPrompt(null);
+    setDraggedTurmaId(null);
   };
+
+  const placeCourseAtCell = useCallback(
+    (course: TurmaOfertadaCourse, dayIdx: number, slotIdx: number) => {
+      if (!isAllowedPlacementCell(course, dayIdx, slotIdx)) return false;
+      if (!canPlaceTurmaOnSchedule(course, schedule, placementContext)) {
+        showConflictForCourse(course);
+        return false;
+      }
+
+      const { next, partner } = placeCourseOnSchedule(
+        course,
+        schedule,
+        placementContext,
+        visible.courses
+      );
+
+      setSchedule(next);
+      clearGroupPreview();
+      setSelectedCourse(partner);
+      setConflictNotice(null);
+      return true;
+    },
+    [
+      schedule,
+      placementContext,
+      visible.courses,
+      clearGroupPreview,
+      showConflictForCourse,
+    ]
+  );
+
+  const handleCourseDrop = useCallback(
+    (turmaSigaaId: string, dayIdx: number, slotIdx: number) => {
+      const course = visible.courses.find(
+        (item) => item.turmaSigaaId === turmaSigaaId
+      );
+      if (!course || !isTurmaSelectable(course)) return;
+
+      setSelectedCourse(course);
+      placeCourseAtCell(course, dayIdx, slotIdx);
+      setDraggedTurmaId(null);
+    },
+    [visible.courses, placeCourseAtCell]
+  );
+
+  const handleSaveSimulation = useCallback(
+    async (titulo: string) => {
+      await saveSimulation({
+        titulo,
+        turmaSigaaIds: scheduleStats.placedTurmaIds,
+        semestre: data.semestre,
+      });
+    },
+    [data.semestre, saveSimulation, scheduleStats.placedTurmaIds]
+  );
+
+  const handleLoadSimulation = useCallback(
+    async (id: string) => {
+      const simulation = await loadSimulation(id);
+      const nextSchedule = buildScheduleFromTurmaIds(
+        simulation.payload.turmaSigaaIds,
+        visible.courses,
+        placementContext
+      );
+
+      setSchedule(nextSchedule);
+      setSelectedCourse(null);
+      clearGroupPreview();
+      setConflictNotice(null);
+      setDetail(null);
+      setCorequisitoRollbackPrompt(null);
+      setDraggedTurmaId(null);
+    },
+    [clearGroupPreview, loadSimulation, placementContext, visible.courses]
+  );
+
+  const handleDeleteSimulation = useCallback(
+    async (id: string) => {
+      await deleteSimulation(id);
+    },
+    [deleteSimulation]
+  );
 
   return (
     <>
@@ -520,10 +637,22 @@ export function EnrollmentSimulator({ data }: EnrollmentSimulatorProps) {
             semestreLabel={data.semestre}
             highlightEmpty={highlightEmpty}
             allowedEmptyCells={allowedEmptyCells}
+            dragAllowedCells={dragAllowedCells}
+            conflictCellKeys={hasConflicts ? conflictCellKeys : undefined}
+            conflicts={conflicts}
+            checkingConflicts={checkingConflicts}
             previewCellLayers={previewCellLayers}
+            savedSimulations={savedSimulations}
+            savedSimulationsLoading={savedSimulationsLoading}
+            savingSimulation={savingSimulation}
+            deletingSimulation={deletingSimulation}
             onSlotClick={handleSlotClick}
             onEmptyClick={handleEmptyClick}
+            onCourseDrop={handleCourseDrop}
             onClearSchedule={handleClearSchedule}
+            onSaveSimulation={handleSaveSimulation}
+            onLoadSimulation={(id) => void handleLoadSimulation(id)}
+            onDeleteSimulation={(id) => void handleDeleteSimulation(id)}
           />
         </div>
 
@@ -536,8 +665,11 @@ export function EnrollmentSimulator({ data }: EnrollmentSimulatorProps) {
           corequisitoObligation={corequisitoObligation}
           selectedTurmaId={selectedCourse?.turmaSigaaId ?? null}
           selectedGroupId={selectedGroupId}
+          conflictTurmaIds={hasConflicts ? conflictTurmaIds : undefined}
           onSelect={handleCourseClick}
           onSelectGroup={handleGroupClick}
+          onCourseDragStart={setDraggedTurmaId}
+          onCourseDragEnd={() => setDraggedTurmaId(null)}
         />
       </div>
 

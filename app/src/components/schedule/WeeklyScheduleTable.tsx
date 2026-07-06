@@ -12,6 +12,10 @@ import {
 import { Modal } from "@/components/ui/Modal";
 import { ScheduleDetailContent } from "@/components/ui/ActivityDetail";
 import { EnrollmentPreviewEmptyCell } from "@/components/simulador/EnrollmentPreviewEmptyCell";
+import {
+  isEnrollmentDragEvent,
+  readEnrollmentDragTurmaId,
+} from "@/lib/simulador/enrollment-drag-drop";
 
 interface WeeklyScheduleTableProps {
   schedule?: ScheduleSlot[][];
@@ -30,9 +34,18 @@ interface WeeklyScheduleTableProps {
     slotIdx: number,
     clickMeta?: { clickOffsetX: number; elementWidth: number }
   ) => void;
+  onCourseDrop?: (
+    turmaSigaaId: string,
+    dayIdx: number,
+    slotIdx: number
+  ) => void;
   highlightEmpty?: boolean;
   /** Células vazias onde a turma selecionada pode ser alocada (`dayIdx:slotIdx`). */
   allowedEmptyCells?: ReadonlySet<string> | null;
+  /** Células permitidas durante drag-and-drop da sidebar. */
+  dragAllowedCells?: ReadonlySet<string> | null;
+  /** Células com choque de horário detectado pela API. */
+  conflictCellKeys?: ReadonlySet<string> | null;
   /** Cores de preview por célula (`dayIdx:slotIdx` → cores das opções). */
   previewCellLayers?: ReadonlyMap<string, readonly string[]> | null;
   selectedDay?: number | null;
@@ -46,8 +59,11 @@ export function WeeklyScheduleTable({
   interactive = true,
   onSlotClick,
   onEmptyClick,
+  onCourseDrop,
   highlightEmpty = false,
   allowedEmptyCells = null,
+  dragAllowedCells = null,
+  conflictCellKeys = null,
   previewCellLayers = null,
   selectedDay,
   selectedSlot,
@@ -59,6 +75,7 @@ export function WeeklyScheduleTable({
     dayIdx: number;
     slotIdx: number;
   } | null>(null);
+  const [dragOverCell, setDragOverCell] = useState<string | null>(null);
 
   const handleSlotClick = (
     slot: ScheduleSlotData,
@@ -72,6 +89,36 @@ export function WeeklyScheduleTable({
       return;
     }
     setDetail({ slot, day, time, dayIdx, slotIdx });
+  };
+
+  const effectiveAllowedCells = dragAllowedCells ?? allowedEmptyCells;
+  const effectiveHighlight =
+    highlightEmpty || Boolean(dragAllowedCells && dragAllowedCells.size > 0);
+
+  const handleDragOver = (
+    event: React.DragEvent<HTMLElement>,
+    cellKey: string,
+    canDrop: boolean
+  ) => {
+    if (!interactive || !onCourseDrop || !canDrop) return;
+    if (!isEnrollmentDragEvent(event)) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "copy";
+    setDragOverCell(cellKey);
+  };
+
+  const handleDrop = (
+    event: React.DragEvent<HTMLElement>,
+    dayIdx: number,
+    slotIdx: number,
+    canDrop: boolean
+  ) => {
+    if (!interactive || !onCourseDrop || !canDrop) return;
+    event.preventDefault();
+    setDragOverCell(null);
+    const turmaSigaaId = readEnrollmentDragTurmaId(event.dataTransfer);
+    if (!turmaSigaaId) return;
+    onCourseDrop(turmaSigaaId, dayIdx, slotIdx);
   };
 
   return (
@@ -109,25 +156,31 @@ export function WeeklyScheduleTable({
                     : undefined;
                   const hasPreviewLayers =
                     Boolean(previewColors) && previewColors!.length > 0;
+                  const isConflictCell = Boolean(conflictCellKeys?.has(cellKey));
                   const isAllowedEmpty =
-                    Boolean(hasPreviewLayers || allowedEmptyCells?.has(cellKey)) &&
+                    Boolean(hasPreviewLayers || effectiveAllowedCells?.has(cellKey)) &&
                     !slot;
                   const isForbiddenEmpty =
-                    highlightEmpty &&
-                    Boolean(allowedEmptyCells ?? previewCellLayers) &&
+                    effectiveHighlight &&
+                    Boolean(effectiveAllowedCells ?? previewCellLayers) &&
                     !slot &&
                     !isAllowedEmpty;
                   const isTarget =
-                    highlightEmpty &&
+                    effectiveHighlight &&
                     selectedDay === dayIdx &&
                     selectedSlot === slotIdx;
+                  const isDragTarget = dragOverCell === cellKey && isAllowedEmpty;
 
                   return (
                     <td key={slotIdx} className="schedule-cell">
                       {slot ? (
                         <button
                           type="button"
-                          className={["schedule-slot", "schedule-slot-btn"]
+                          className={[
+                            "schedule-slot",
+                            "schedule-slot-btn",
+                            isConflictCell ? "schedule-slot-conflict" : "",
+                          ]
                             .filter(Boolean)
                             .join(" ")}
                           style={
@@ -167,6 +220,8 @@ export function WeeklyScheduleTable({
                             isTarget ? "schedule-slot-target" : "",
                             isAllowedEmpty ? "schedule-slot-allowed" : "",
                             isForbiddenEmpty ? "schedule-slot-forbidden" : "",
+                            isDragTarget ? "schedule-slot-drop-target" : "",
+                            isConflictCell ? "schedule-slot-conflict-zone" : "",
                           ]
                             .filter(Boolean)
                             .join(" ")}
@@ -175,6 +230,20 @@ export function WeeklyScheduleTable({
                             if (!interactive || isForbiddenEmpty) return;
                             onEmptyClick?.(dayIdx, slotIdx);
                           }}
+                          onDragEnter={(event) =>
+                            handleDragOver(event, cellKey, isAllowedEmpty)
+                          }
+                          onDragOver={(event) =>
+                            handleDragOver(event, cellKey, isAllowedEmpty)
+                          }
+                          onDragLeave={() => {
+                            setDragOverCell((current) =>
+                              current === cellKey ? null : current
+                            );
+                          }}
+                          onDrop={(event) =>
+                            handleDrop(event, dayIdx, slotIdx, isAllowedEmpty)
+                          }
                           aria-label={`Horário vazio ${day} ${time}`}
                         />
                       )}

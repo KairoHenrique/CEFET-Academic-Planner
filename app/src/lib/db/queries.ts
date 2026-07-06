@@ -1122,6 +1122,54 @@ export function clearTurmasOfertadasForSemestre(semestre: string): void {
   db.prepare("DELETE FROM turmas_ofertadas WHERE semestre = ?").run(semestre);
 }
 
+// --- SIMULADOR (B34) ---
+export interface SimuladorSimulacaoRow {
+  id: string;
+  titulo: string;
+  semestre: string;
+  payload_json: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export function listSimuladorSimulacoes(): SimuladorSimulacaoRow[] {
+  return db
+    .prepare(
+      `SELECT id, titulo, semestre, payload_json, created_at, updated_at
+       FROM simulador_simulacoes
+       ORDER BY updated_at DESC`
+    )
+    .all() as SimuladorSimulacaoRow[];
+}
+
+export function getSimuladorSimulacaoById(
+  id: string
+): SimuladorSimulacaoRow | undefined {
+  return db
+    .prepare(
+      `SELECT id, titulo, semestre, payload_json, created_at, updated_at
+       FROM simulador_simulacoes WHERE id = ?`
+    )
+    .get(id) as SimuladorSimulacaoRow | undefined;
+}
+
+export function insertSimuladorSimulacao(row: SimuladorSimulacaoRow): void {
+  db.prepare(
+    `INSERT INTO simulador_simulacoes (
+      id, titulo, semestre, payload_json, created_at, updated_at
+    ) VALUES (
+      @id, @titulo, @semestre, @payload_json, @created_at, @updated_at
+    )`
+  ).run(row);
+}
+
+export function deleteSimuladorSimulacao(id: string): boolean {
+  const result = db
+    .prepare("DELETE FROM simulador_simulacoes WHERE id = ?")
+    .run(id);
+  return result.changes > 0;
+}
+
 // --- CALENDÁRIO (leitura) ---
 export function getTarefasForCalendar(): TarefaCalendarRow[] {
   return db

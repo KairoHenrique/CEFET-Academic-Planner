@@ -73,6 +73,7 @@ function runMigrations(database: ReturnType<typeof getActiveDatabase>): void {
   addColumnIfMissing(database, "eventos_calendario", "recorrencia_dias", "TEXT");
   migrateEventosCalendarioTypes(database);
   ensureTurmasOfertadasTable(database);
+  ensureSimuladorSimulacoesTable(database);
 }
 
 function ensureTurmasOfertadasTable(
@@ -116,6 +117,21 @@ function ensureTurmasOfertadasTable(
     "INTEGER NOT NULL DEFAULT 0"
   );
   addColumnIfMissing(database, "turmas_ofertadas", "categoria", "TEXT");
+}
+
+function ensureSimuladorSimulacoesTable(
+  database: ReturnType<typeof getActiveDatabase>
+): void {
+  database.exec(`
+    CREATE TABLE IF NOT EXISTS simulador_simulacoes (
+      id TEXT PRIMARY KEY,
+      titulo TEXT NOT NULL,
+      semestre TEXT NOT NULL,
+      payload_json TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+  `);
 }
 
 function migrateEventosCalendarioTypes(database: ReturnType<typeof getActiveDatabase>): void {
@@ -302,6 +318,15 @@ export function initDB(): void {
     CREATE TABLE IF NOT EXISTS configuracoes (
       chave TEXT PRIMARY KEY,
       valor TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS simulador_simulacoes (
+      id TEXT PRIMARY KEY,
+      titulo TEXT NOT NULL,
+      semestre TEXT NOT NULL,
+      payload_json TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
     );
   `);
 

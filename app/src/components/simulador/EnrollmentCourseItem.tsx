@@ -16,6 +16,7 @@ import {
 import type { CorequisitoObligation } from "@/lib/simulador/corequisito-cluster-viability";
 import type { SimuladorPlacementContext } from "@/lib/simulador/corequisito-schedule-policy";
 import type { ScheduleSlot } from "@/lib/types/schedule";
+import { bindEnrollmentCourseDragHandlers } from "@/lib/simulador/enrollment-course-drag-handlers";
 import type { TurmaOfertadaCourse } from "@/lib/types/turmas-ofertadas-api";
 
 export interface EnrollmentCourseItemProps {
@@ -26,7 +27,10 @@ export interface EnrollmentCourseItemProps {
   corequisitoObligation: CorequisitoObligation | null;
   selected: boolean;
   compact?: boolean;
+  conflictHighlight?: boolean;
   onSelect: (course: TurmaOfertadaCourse) => void;
+  onDragStart?: (turmaSigaaId: string) => void;
+  onDragEnd?: () => void;
 }
 
 function buildActiveCorequisitoCodes(course: TurmaOfertadaCourse): string[] {
@@ -42,7 +46,10 @@ export function EnrollmentCourseItem({
   corequisitoObligation,
   selected,
   compact = false,
+  conflictHighlight = false,
   onSelect,
+  onDragStart,
+  onDragEnd,
 }: EnrollmentCourseItemProps) {
   const state = resolveEnrollmentCourseSelectability(
     course,
@@ -62,11 +69,19 @@ export function EnrollmentCourseItem({
   const uncertainSchedule =
     Boolean(course.scheduleWarningMessage) && !course.scheduleBlocker;
   const conditionalPrereq = course.status === "conditional";
+  const canDrag = state.selectable && !state.timeLocked && !state.schedulePlaced;
+  const dragHandlers = bindEnrollmentCourseDragHandlers({
+    turmaSigaaId: course.turmaSigaaId,
+    draggable: canDrag,
+    onDragStart,
+    onDragEnd,
+  });
 
   return (
     <button
       type="button"
       disabled={!state.selectable && !state.timeLocked}
+      {...dragHandlers}
       className={[
         "enrollment-course",
         "enrollment-course-btn",
@@ -81,6 +96,8 @@ export function EnrollmentCourseItem({
         conditionalPrereq ? "prereq-conditional" : "",
         hasCorequisitos ? "has-corequisitos" : "",
         state.coreqLockHighlight ? "coreq-lock-highlight" : "",
+        conflictHighlight ? "schedule-choque-highlight" : "",
+        canDrag ? "enrollment-course--draggable" : "",
         selected ? "selected" : "",
       ]
         .filter(Boolean)

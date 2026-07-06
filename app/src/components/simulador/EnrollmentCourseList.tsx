@@ -17,8 +17,11 @@ interface EnrollmentCourseListProps {
   corequisitoObligation: CorequisitoObligation | null;
   selectedTurmaId: string | null;
   selectedGroupId?: string | null;
+  conflictTurmaIds?: ReadonlySet<string>;
   onSelect: (course: TurmaOfertadaCourse) => void;
   onSelectGroup?: (group: EnrollmentCourseGroup) => void;
+  onCourseDragStart?: (turmaSigaaId: string) => void;
+  onCourseDragEnd?: () => void;
 }
 
 export function EnrollmentCourseList({
@@ -30,8 +33,11 @@ export function EnrollmentCourseList({
   corequisitoObligation,
   selectedTurmaId,
   selectedGroupId = null,
+  conflictTurmaIds,
   onSelect,
   onSelectGroup,
+  onCourseDragStart,
+  onCourseDragEnd,
 }: EnrollmentCourseListProps) {
   const groups = useMemo(() => groupEnrollmentCourses(courses), [courses]);
 
@@ -57,8 +63,11 @@ export function EnrollmentCourseList({
               corequisitoObligation={corequisitoObligation}
               selectedTurmaId={selectedTurmaId}
               selectedGroupId={selectedGroupId}
+              conflictTurmaIds={conflictTurmaIds}
               onSelect={onSelect}
               onSelectGroup={onSelectGroup}
+              onCourseDragStart={onCourseDragStart}
+              onCourseDragEnd={onCourseDragEnd}
             />
           ))}
         </ul>

@@ -63,6 +63,14 @@ import type {
   RedeemGiftKeyRequestBody,
   RedeemGiftKeyResponse,
 } from "@/lib/types/billing-api";
+import type {
+  SimuladorChoquesRequestBody,
+  SimuladorChoquesResponse,
+  SimuladorSaveSimulationRequestBody,
+  SimuladorSaveSimulationResponse,
+  SimuladorSimulationDetail,
+  SimuladorSimulacoesListResponse,
+} from "@/lib/types/simulador-api";
 
 export type ClientErrorCode =
   | "VALIDATION_ERROR"
@@ -284,6 +292,50 @@ export async function postTurmasOfertadasSync(
 
 export async function getTurmasOfertadas(): Promise<TurmasOfertadasResponse> {
   return requestJson<TurmasOfertadasResponse>("/api/turmas-ofertadas");
+}
+
+export async function postSimuladorChoques(
+  body: SimuladorChoquesRequestBody
+): Promise<SimuladorChoquesResponse> {
+  return requestJson<SimuladorChoquesResponse>("/api/simulador/choques", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function getSimuladorSimulacoes(): Promise<SimuladorSimulacoesListResponse> {
+  return requestJson<SimuladorSimulacoesListResponse>(
+    "/api/simulador/simulacoes"
+  );
+}
+
+export async function getSimuladorSimulacao(
+  id: string
+): Promise<{ ok: true; simulation: SimuladorSimulationDetail }> {
+  return requestJson<{ ok: true; simulation: SimuladorSimulationDetail }>(
+    `/api/simulador/simulacoes/${encodeURIComponent(id)}`
+  );
+}
+
+export async function postSimuladorSimulacao(
+  body: SimuladorSaveSimulationRequestBody
+): Promise<SimuladorSaveSimulationResponse> {
+  return requestJson<SimuladorSaveSimulationResponse>(
+    "/api/simulador/simulacoes",
+    {
+      method: "POST",
+      body: JSON.stringify(body),
+    }
+  );
+}
+
+export async function deleteSimuladorSimulacao(
+  id: string
+): Promise<{ ok: true; deleted: true }> {
+  return requestJson<{ ok: true; deleted: true }>(
+    `/api/simulador/simulacoes/${encodeURIComponent(id)}`,
+    { method: "DELETE" }
+  );
 }
 
 export async function getDashboard(): Promise<DashboardResponse> {

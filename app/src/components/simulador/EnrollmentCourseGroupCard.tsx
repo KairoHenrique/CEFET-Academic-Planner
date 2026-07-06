@@ -30,8 +30,11 @@ interface EnrollmentCourseGroupCardProps {
   corequisitoObligation: CorequisitoObligation | null;
   selectedTurmaId: string | null;
   selectedGroupId?: string | null;
+  conflictTurmaIds?: ReadonlySet<string>;
   onSelect: (course: TurmaOfertadaCourse) => void;
   onSelectGroup?: (group: EnrollmentCourseGroup) => void;
+  onCourseDragStart?: (turmaSigaaId: string) => void;
+  onCourseDragEnd?: () => void;
 }
 
 function buildActiveCorequisitoCodes(course: TurmaOfertadaCourse): string[] {
@@ -47,8 +50,11 @@ export function EnrollmentCourseGroupCard({
   corequisitoObligation,
   selectedTurmaId,
   selectedGroupId = null,
+  conflictTurmaIds,
   onSelect,
   onSelectGroup,
+  onCourseDragStart,
+  onCourseDragEnd,
 }: EnrollmentCourseGroupCardProps) {
   const placedVariant = useMemo(
     () => group.variants.find((variant) => isTurmaPlacedOnSchedule(variant, schedule)),
@@ -96,7 +102,10 @@ export function EnrollmentCourseGroupCard({
           placementContext={placementContext}
           corequisitoObligation={corequisitoObligation}
           selected={selectedTurmaId === course.turmaSigaaId}
+          conflictHighlight={Boolean(conflictTurmaIds?.has(course.turmaSigaaId))}
           onSelect={onSelect}
+          onDragStart={onCourseDragStart}
+          onDragEnd={onCourseDragEnd}
         />
       </li>
     );
@@ -182,7 +191,12 @@ export function EnrollmentCourseGroupCard({
                 placementContext={placementContext}
                 corequisitoObligation={corequisitoObligation}
                 selected={selectedTurmaId === variant.turmaSigaaId}
+                conflictHighlight={Boolean(
+                  conflictTurmaIds?.has(variant.turmaSigaaId)
+                )}
                 onSelect={onSelect}
+                onDragStart={onCourseDragStart}
+                onDragEnd={onCourseDragEnd}
               />
             ))}
           </div>
