@@ -11,6 +11,8 @@ export type MapaGrafoEdgeKind = "pre" | "co";
 
 export interface MapaGrafoNodeData extends CourseMapNode {
   period: number;
+  /** Índice de assinatura exigido pelo @xyflow/react (`Record<string, unknown>`). */
+  [key: string]: unknown;
 }
 
 export interface MapaGrafoNode {

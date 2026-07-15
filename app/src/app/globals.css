@@ -6743,6 +6743,103 @@ a:hover {
   line-height: 1.5;
 }
 
+.mapa-view-toggle {
+  display: inline-flex;
+  gap: 0;
+  padding: 3px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+  background: rgba(0, 32, 72, 0.45);
+  width: fit-content;
+}
+
+.mapa-view-toggle button {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted, #9db0c7);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  padding: 0.45rem 1rem;
+  border-radius: calc(var(--radius-md) - 2px);
+  cursor: pointer;
+}
+
+.mapa-view-toggle button.is-active {
+  background: rgba(0, 96, 177, 0.55);
+  color: var(--text-primary, #f4f7fb);
+}
+
+.course-map-flow-card {
+  overflow: hidden;
+}
+
+.course-map-flow-canvas {
+  height: min(72vh, 720px);
+  min-height: 420px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+  background: rgba(2, 18, 40, 0.55);
+}
+
+.course-map-flow-canvas .react-flow__controls {
+  box-shadow: none;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.course-map-flow-canvas .react-flow__controls-button {
+  background: rgba(0, 32, 72, 0.9);
+  border-bottom-color: var(--border-default);
+  fill: #dce7f5;
+}
+
+.course-map-flow-canvas .react-flow__minimap {
+  background: rgba(0, 24, 56, 0.92);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+}
+
+.course-flow-node {
+  width: 200px;
+  cursor: grab;
+}
+
+.course-flow-node-link {
+  display: contents;
+  color: inherit;
+  text-decoration: none;
+}
+
+.course-flow-handle {
+  width: 8px !important;
+  height: 8px !important;
+  background: var(--gold-300, #d4a843) !important;
+  border: 1px solid rgba(255, 255, 255, 0.35) !important;
+}
+
+.course-flow-edge-legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  color: var(--text-muted, #9db0c7);
+}
+
+.course-flow-edge-legend::before {
+  content: "";
+  width: 22px;
+  height: 0;
+  border-top: 2px solid var(--jersey-light, #4a9fd4);
+}
+
+.course-flow-edge-legend.dashed::before {
+  border-top-style: dashed;
+  border-top-color: var(--gold-300, #d4a843);
+}
+
 .course-node-list {
   list-style: none;
   display: flex;

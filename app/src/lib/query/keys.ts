@@ -10,6 +10,7 @@ export const queryKeys = {
   calendar: () => [...queryKeys.all, "calendar"] as const,
   integralizacao: () => [...queryKeys.all, "integralizacao"] as const,
   mapa: () => [...queryKeys.all, "mapa"] as const,
+  mapaGrafo: () => [...queryKeys.all, "mapa", "grafo"] as const,
   schedule: () => [...queryKeys.all, "schedule"] as const,
   turmasOfertadas: () => [...queryKeys.all, "turmas-ofertadas"] as const,
   notifications: () => [...queryKeys.all, "notifications"] as const,
