@@ -41,6 +41,7 @@ import type {
   PostIntegralizacaoBody,
 } from "@/lib/types/integralizacao-api";
 import type { MapaResponse } from "@/lib/types/mapa-api";
+import type { MapaGrafoResponse } from "@/lib/types/mapa-grafo-api";
 import type { NotificationsSnapshotResponse } from "@/lib/types/notifications-api";
 import type { PerfilResponse, PatchPerfilBody } from "@/lib/types/perfil-api";
 import type { ScheduleApiResponse } from "@/lib/types/schedule-api";
@@ -484,6 +485,11 @@ export async function postIntegralizacaoHours(
 
 export async function getMapa(): Promise<MapaResponse> {
   return requestJson<MapaResponse>("/api/mapa");
+}
+
+/** B35 — nós + arestas (pre solid / co dashed) para o grafo react-flow (F20). */
+export async function getMapaGrafo(): Promise<MapaGrafoResponse> {
+  return requestJson<MapaGrafoResponse>("/api/mapa/grafo");
 }
 
 export async function getSchedule(): Promise<ScheduleApiResponse> {
