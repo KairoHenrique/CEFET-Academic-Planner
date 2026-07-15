@@ -43,7 +43,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ## Roadmap detalhado — ordem de execução (#0 → #11)
 
-> **Próximo oficial:** **#9 — F20** `[ ]` (grafo react-flow) → B36–B37 → F24 (site local SQLite). **B35** `[%]` entregue. **B72** ops worker público = **adiado**.
+> **Próximo oficial:** **#9 — B36** `[ ]` (alertas integralização) → B37 → F24 (site local). **F20** `[%]` + **B35** `[%]` entregues. **B72** ops = **adiado**.
 > **Regra:** siga **#0 → #11** · dentro de cada bloco → **BACK (B) antes de FRONT (F)**. Checklist espelho: [Checklist mestre](#checklist-mestre-ordem-de-execução).
 
 ### #0 — Planejamento `✅`
@@ -265,7 +265,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ---
 
-### #9 — Bloco 3 · Inteligência acadêmica `🟡 7/11`
+### #9 — Bloco 3 · Inteligência acadêmica `🟡 8/11`
 
 > Depende de dados reais do Bloco 2. **Executar antes do mobile (#8).**
 
@@ -276,7 +276,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 - [%] **FRONT:** F22 *(alerta choque — destaque visual de conflito)*
 - [%] **FRONT:** F23 *(salvar simulação — botões salvar/exportar matrícula)*
 - [%] **BACK:** B35 *(`GET /api/mapa/grafo` — nós e arestas para react-flow)*
-- [ ] **FRONT:** F20 *(grafo react-flow — zoom, pan, setas sólidas/pontilhadas)*
+- [%] **FRONT:** F20 *(grafo react-flow — zoom, pan, setas sólidas/pontilhadas)*
 - [ ] **BACK:** B36 *(alertas integralização — limiar por categoria de CH)*
 - [ ] **BACK:** B37 *(alertas calendário — datas acadêmicas próximas)*
 - [ ] **FRONT:** F24 *(alertas na UI — banners integralização + calendário)*
@@ -420,7 +420,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ### 1.4 API e Integração UI ↔ SQLite
 
-> **Progresso:** Bloco 1 ✅ · **Bloco 2a/2b** ✅ · **Bloco 6a** ✅ **8/8** · **6b** ✅ **8/8** · **6c** ✅ **2/2** · **#6d** ✅ **6/6** · **#6e** ✅ **2/2** · **#7** ✅ **15/15** · **#12** B72a–e `[%]` **5/5** (código ok; **ops worker público adiado**) · **#9** B32–B34 + F21–F23 `[%]` · **B35** `[%]` · próximo **F20** (site local) · URL **`https://acme-hub.khfm.workers.dev`** (sync cloud depois).
+> **Progresso:** Bloco 1 ✅ · **Bloco 2a/2b** ✅ · **Bloco 6a** ✅ **8/8** · **6b** ✅ **8/8** · **6c** ✅ **2/2** · **#6d** ✅ **6/6** · **#6e** ✅ **2/2** · **#7** ✅ **15/15** · **#12** B72a–e `[%]` **5/5** (código ok; **ops worker público adiado**) · **#9** B32–B34 + F21–F23 `[%]` · **B35**/**F20** `[%]` · próximo **B36** (site local) · URL **`https://acme-hub.khfm.workers.dev`** (sync cloud depois).
 
 Roadmap detalhado: ver **[Roadmap #0→#11 no topo](#roadmap-detalhado--ordem-de-execução-0--11)** · [Ordem oficial v3](#ordem-oficial-de-execução-v3). **F19** simulador (2a) `[x]` · **B67** `[x]`.
 
@@ -546,7 +546,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | **#6e** | 2e | Painel dev + policy (B70 → F41) | ✅ **2/2** | 2/2 |
 | **#7** | 7 | Assinatura PIX | ✅ **Concluído** | 15/15 |
 | **#12** | 2f | **Sync real Postgres (B72)** | 🟡 B72a–e `[%]` · **ops worker público adiado** | 5/5 |
-| **#9** | 3 | Inteligência acadêmica | B32–B34 + F21–F23 + **B35** `[%]` · próximo **F20** | 7/11 |
+| **#9** | 3 | Inteligência acadêmica | B32–B34 + F21–F23 + **B35**/**F20** `[%]` · próximo **B36** | 8/11 |
 | **#10** | 4 | Polimento UX + site mobile (**F28**) | **Antes do mobile (#8)** | 0/4 |
 | **#8** | 8 | Mobile Android (Expo Go) | Depois de **#6d** + **#7** + **#9** + **#10** · **sem Play/App Store** | 0/10 |
 | **#11** | 9 | Multi-PPC (Mecatrônica, Moda) | **🔒 Só após #8** | 0/4 |
@@ -612,7 +612,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 **Contagem 8/8:** só os 8 primeiros grupos até **`F37`** · **`F38` · `B66` · `B67` · `F19`** = extras (fora do 8/8) · polish `04887c9`/`5923e9c` · modulação dashboard · fix mapa/histórico/notificações (jun/2026)
 
-**Próximo:** **F20** — grafo react-flow (consome B35 `[%]`). **B72** ops **adiado**.
+**Próximo:** **B36** — alertas integralização. **F20** `[%]`. **B72** ops **adiado**.
 
 ---
 
@@ -720,14 +720,14 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 ---
 
-### #9 — Bloco 3 · Inteligência acadêmica `🟡 7/11`
+### #9 — Bloco 3 · Inteligência acadêmica `🟡 8/11`
 
 > Depende de dados reais do Bloco 2. **Executar antes do mobile (#8).** Desenvolvimento **local (SQLite)** agora; deploy cloud não bloqueia B35+.
 
 - [%] **BACK:**  B32 → B33 → B34
 - [%] **FRONT:** F21 → F22 → F23
 - [%] **BACK:**  B35
-- [ ] **FRONT:** F20
+- [%] **FRONT:** F20
 - [ ] **BACK:**  B36 → B37
 - [ ] **FRONT:** F24
 
@@ -788,7 +788,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | **#6e** | **2e — Painel dev** | ✅ | 2 / 2 |
 | #7 | 7 — Assinatura PIX | ✅ | 15 / 15 |
 | **#12** | **2f — Sync real Postgres (B72)** | 🟡 B72a–e `[%]` · **ops worker público adiado** | 5 / 5 |
-| #9 | 3 — Inteligência | 🟡 B32–B34 + F21–F23 + **B35** `[%]` · próximo **F20** | 7 / 11 |
+| #9 | 3 — Inteligência | 🟡 B32–B34 + F21–F23 + **B35**/**F20** `[%]` · próximo **B36** | 8 / 11 |
 | #10 | 4 — Polimento + site mobile | ⬜ *(antes mobile · incl. F28)* | 0 / 4 |
 | #8 | 8 — Mobile Android | ⬜ *(após #9 + #10 · sem lojas)* | 0 / 10 |
 | #11 | 9 — Multi-PPC | 🔒 *(após #8)* | 0 / 4 |
@@ -1015,7 +1015,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] `worker/Dockerfile` (Playwright jammy) · `worker/README.md`
 - [x] Testes `tests/worker-b54.test.ts`
 
-> **Próximo (produto):** **F20** (B35 `[%]`) · **B72** ops adiado.
+> **Próximo (produto):** **B36** · **F20** `[%]` · **B72** ops adiado.
 
 #### B55 — API fila sync `[x]`
 
@@ -1025,7 +1025,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Dispatcher assíncrono → worker B54 (`SIGAA_WORKER_URL`) ou **inline** (`SYNC_QUEUE_DISPATCH=inline`)
 - [x] Testes `tests/sync-queue-b55.test.ts` · `npm run test:sync-queue`
 
-> **Próximo (produto):** **F20** (B35 `[%]`) · **B72** ops adiado.
+> **Próximo (produto):** **B36** · **F20** `[%]` · **B72** ops adiado.
 
 #### B56 — Pipeline no worker `[x]`
 
@@ -1251,7 +1251,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | B35 | Back | `GET /api/mapa/grafo` | Nós e arestas para react-flow | 5.2 | [%] |
 | B36 | Back | Alertas integralização | Limiar por categoria de CH | 5.4 | [ ] |
 | B37 | Back | Alertas calendário | Datas acadêmicas próximas | 5.5 | [ ] |
-| F20 | Front | Grafo react-flow | Zoom, pan, setas sólidas/pontilhadas | 5.2 | [ ] |
+| F20 | Front | Grafo react-flow | Zoom, pan, setas sólidas/pontilhadas | 5.2 | [%] |
 | F21 | Front | Simulador elegível | Filtro + drag-and-drop na grade | 5.3 | [%] |
 | F22 | Front | Alerta choque | Destaque visual de conflito | 5.3 | [%] |
 | F23 | Front | Salvar simulação | Botões salvar/exportar matrícula | 5.3 | [%] |
@@ -1607,9 +1607,9 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Cores dos nós por status: Concluída, Cursando, Desbloqueada, Trancada
 - [x] Clique no nó navega para página da disciplina
 - [%] API grafo — **B35** `GET /api/mapa/grafo` (nós + arestas pre/co p/ react-flow)
-- [ ] Renderizar grafo interativo (usar biblioteca como `react-flow` ou `d3.js`) — **F20**
-- [ ] Setas sólidas para pré-requisitos, pontilhadas para co-requisitos — **F20**
-- [ ] Zoom e pan para navegação — **F20**
+- [%] Renderizar grafo interativo (`@xyflow/react`) — **F20**
+- [%] Setas sólidas para pré-requisitos, pontilhadas para co-requisitos — **F20**
+- [%] Zoom e pan para navegação — **F20**
 
 ### 5.3 Simulador de Matrícula (Pré-horário)
 - [x] Página dedicada apenas ao simulador de horários/matrícula (`/simulador` — Montar Grade)
@@ -1885,7 +1885,7 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 8. **Próximo passo do roadmap:** informe **depois do push** (tasks em `[@]` ou `[x]`). Com commits locais só `[%]`, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v3](#ordem-oficial-de-execução-v3) — **Bloco 2 (sync) antes do Bloco 6 (Supabase)**. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy **após** sync validado; RLS ✅ **6c** (antes do PIX). Marco “site no ar p/ testes gerais” → [final do TASKS.md](#marco--site-no-ar-para-testes-gerais).
-11. **Próximo passo:** **#9 — F20** — grafo react-flow no `/mapa` (consome **B35** `[%]` `GET /api/mapa/grafo`). Depois B36–B37 → F24 → **#10**. **B72** ops worker público = **adiado**. Dev diário: `PLANNER_DATABASE=sqlite`, sem `SIGAA_WORKER_URL`.
+11. **Próximo passo:** **#9 — B36** — alertas de integralização (limiar CH). **F20** `[%]` (grafo `@xyflow/react` em `/mapa`). Depois B37 → F24 → **#10**. **B72** ops = **adiado**. Dev: `PLANNER_DATABASE=sqlite`.
 12. **Integralização:** CH concluída = `historico` + PPC (`computeChDoneFromDisciplinas`); portal SIGAA só % / total currículo; matérias já passadas = **B30** ✅.
 13. **Gift + painel dev:** **B68–B71** ✅ · **F39–F41** ✅ — painel sem senha SIGAA (`credentialSaved` + `accountRef`).
 14. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial. **Polish em task `[x]`** (ex.: F38, dashboard) também exige nota no TASKS no mesmo ciclo do push.
