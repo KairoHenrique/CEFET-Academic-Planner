@@ -2,10 +2,7 @@
 
 import Link from "next/link";
 import type { PerfilSubscription } from "@/lib/types/perfil-api";
-import type { BillingPaymentHistoryItem } from "@/lib/types/billing-api";
 import { formatDateTime, formatRemainingDays } from "@/lib/perfil/format-profile-value";
-import { paymentStatusLabel, paymentStatusTone } from "@/lib/billing/payments/payment-status-labels";
-import { resolvePriceLabel } from "@/lib/billing/format-brl-cents";
 
 function subscriptionStatusLabel(
   status: PerfilSubscription["status"]
@@ -23,14 +20,10 @@ function subscriptionStatusLabel(
 
 interface ProfileSubscriptionSectionProps {
   subscription: PerfilSubscription;
-  payments: BillingPaymentHistoryItem[];
-  paymentsLoading?: boolean;
 }
 
 export function ProfileSubscriptionSection({
   subscription,
-  payments,
-  paymentsLoading = false,
 }: ProfileSubscriptionSectionProps) {
   return (
     <section
@@ -67,40 +60,6 @@ export function ProfileSubscriptionSection({
         <Link href={subscription.renewHref} className="btn-gold btn-sm profile-plan-renew">
           Renovar ou assinar plano
         </Link>
-      </div>
-
-      <div className="profile-payment-history">
-        <h4 className="profile-payment-history-title">Histórico de pagamentos</h4>
-        {paymentsLoading ? (
-          <p className="profile-payment-history-empty">Carregando histórico…</p>
-        ) : payments.length === 0 ? (
-          <p className="profile-payment-history-empty">
-            Nenhum pagamento PIX registrado ainda.
-          </p>
-        ) : (
-          <ul className="profile-payment-history-list">
-            {payments.map((payment) => (
-              <li key={payment.id} className="profile-payment-history-item">
-                <div className="profile-payment-history-main">
-                  <span className="profile-payment-history-plan">
-                    {payment.planLabel}
-                  </span>
-                  <span className="profile-payment-history-amount">
-                    {resolvePriceLabel(payment.amountCents)}
-                  </span>
-                </div>
-                <div className="profile-payment-history-meta">
-                  <span
-                    className={`profile-payment-status profile-payment-status--${paymentStatusTone(payment.status)}`}
-                  >
-                    {paymentStatusLabel(payment.status)}
-                  </span>
-                  <span>{formatDateTime(payment.createdAt)}</span>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
       </div>
     </section>
   );

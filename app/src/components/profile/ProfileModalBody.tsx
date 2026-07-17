@@ -1,7 +1,7 @@
 import type { PerfilResponse } from "@/lib/types/perfil-api";
 import { ProfileAccountSection } from "@/components/profile/ProfileAccountSection";
 import { ProfileNotificationSection } from "@/components/profile/ProfileNotificationSection";
-import { ProfileSubscriptionBlock } from "@/components/profile/ProfileSubscriptionBlock";
+import { ProfileSubscriptionSection } from "@/components/profile/ProfileSubscriptionSection";
 import { ProfileSyncFooter } from "@/components/profile/ProfileSyncFooter";
 
 interface ProfileModalBodyProps {
@@ -51,7 +51,7 @@ export function ProfileModalBody({
         onSaveContact={onSaveContact}
       />
 
-      <ProfileSubscriptionBlock subscription={subscription} />
+      <ProfileSubscriptionSection subscription={subscription} />
 
       <ProfileNotificationSection
         preferences={notifications}
