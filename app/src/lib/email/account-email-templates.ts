@@ -1,38 +1,49 @@
 import type { AccountEmailKind } from "@/lib/email/account-email-types";
+import { buildGreeting } from "@/lib/email/greeting-name";
+import { resolveAppUrl } from "@/lib/email/email-links";
 
 interface WelcomeTemplateInput {
-  contactEmail: string;
+  firstNames?: string | null;
 }
 
 interface TrialEndedTemplateInput {
   renewHref: string;
+  firstNames?: string | null;
 }
 
 interface PlanExpiringTemplateInput {
   planLabel: string;
   daysRemaining: number;
   renewHref: string;
+  firstNames?: string | null;
 }
 
 interface PlanEndedTemplateInput {
   renewHref: string;
+  firstNames?: string | null;
 }
 
 interface PromotionTemplateInput {
   headline: string;
   message: string;
+  firstNames?: string | null;
 }
 
 export function buildWelcomeEmail(input: WelcomeTemplateInput) {
+  const startHref = resolveAppUrl("/dashboard");
+
   return {
     subject: "Bem-vindo ao ACME HUB",
     bodyText: [
-      "Olá!",
+      buildGreeting(input.firstNames ?? null),
       "",
-      "Sua conta no ACME HUB foi criada com sucesso.",
-      `E-mail de contato: ${input.contactEmail}`,
+      "Sua conta no ACME HUB foi criada com sucesso. Seu planejador acadêmico integrado ao SIGAA do CEFET-MG já está pronto.",
       "",
-      "Você tem 7 dias de trial gratuito para explorar o planejador acadêmico.",
+      "Você já pode acompanhar notas e faltas, montar sua grade, ver o mapa de pré-requisitos e a integralização do curso.",
+      "",
+      "Você tem 7 dias de acesso gratuito para explorar tudo.",
+      "",
+      `Comece agora: ${startHref}`,
       "",
       "Equipe ACME HUB",
     ].join("\n"),
@@ -41,12 +52,15 @@ export function buildWelcomeEmail(input: WelcomeTemplateInput) {
 
 export function buildTrialEndedEmail(input: TrialEndedTemplateInput) {
   return {
-    subject: "Seu trial gratuito terminou",
+    subject: "Seu acesso gratuito ao ACME HUB terminou",
     bodyText: [
-      "Olá!",
+      buildGreeting(input.firstNames ?? null),
       "",
-      "Os 7 dias de trial do ACME HUB chegaram ao fim.",
-      `Renove seu acesso em: ${input.renewHref}`,
+      "Seus 7 dias de acesso gratuito ao ACME HUB chegaram ao fim.",
+      "",
+      "Para continuar acompanhando notas, faltas, grade e integralização, escolha um plano:",
+      "",
+      input.renewHref,
       "",
       "Equipe ACME HUB",
     ].join("\n"),
@@ -54,13 +68,18 @@ export function buildTrialEndedEmail(input: TrialEndedTemplateInput) {
 }
 
 export function buildPlanExpiringEmail(input: PlanExpiringTemplateInput) {
+  const dayLabel = input.daysRemaining === 1 ? "1 dia" : `${input.daysRemaining} dias`;
+
   return {
-    subject: `Seu ${input.planLabel} expira em ${input.daysRemaining} dia(s)`,
+    subject: `Seu ${input.planLabel} expira em ${dayLabel}`,
     bodyText: [
-      "Olá!",
+      buildGreeting(input.firstNames ?? null),
       "",
-      `Seu ${input.planLabel} no ACME HUB expira em ${input.daysRemaining} dia(s).`,
-      `Renove em: ${input.renewHref}`,
+      `Seu ${input.planLabel} no ACME HUB expira em ${dayLabel}.`,
+      "",
+      "Renove para não perder o acesso:",
+      "",
+      input.renewHref,
       "",
       "Equipe ACME HUB",
     ].join("\n"),
@@ -69,12 +88,15 @@ export function buildPlanExpiringEmail(input: PlanExpiringTemplateInput) {
 
 export function buildPlanEndedEmail(input: PlanEndedTemplateInput) {
   return {
-    subject: "Seu plano ACME HUB foi encerrado",
+    subject: "Seu plano no ACME HUB foi encerrado",
     bodyText: [
-      "Olá!",
+      buildGreeting(input.firstNames ?? null),
       "",
       "Seu plano no ACME HUB foi encerrado.",
-      `Renove em: ${input.renewHref}`,
+      "",
+      "Renove quando quiser para retomar o acesso completo:",
+      "",
+      input.renewHref,
       "",
       "Equipe ACME HUB",
     ].join("\n"),
@@ -82,11 +104,11 @@ export function buildPlanEndedEmail(input: PlanEndedTemplateInput) {
 }
 
 export function buildPromotionEmail(input: PromotionTemplateInput) {
+  const greeting = buildGreeting(input.firstNames ?? null);
+
   return {
     subject: input.headline,
-    bodyText: [input.headline, "", input.message, "", "Equipe ACME HUB"].join(
-      "\n"
-    ),
+    bodyText: [greeting, "", input.message, "", "Equipe ACME HUB"].join("\n"),
   };
 }
 

@@ -3,6 +3,7 @@ import { PAID_PLAN_IDS } from "@/lib/billing/plan-catalog";
 import type { PaidPlanId } from "@/lib/billing/types";
 import type {
   DevGrantSubscriptionRequest,
+  DevPromotionRequest,
   DevRobotRunRequest,
   DevRobotsSelection,
 } from "@/lib/dev-panel/types";
@@ -10,6 +11,19 @@ import type { SyncPolicyOverrides } from "@/lib/sync-policy/types";
 
 /** Limite defensivo: ~100 anos, evita overflow de data mantendo liberdade. */
 const MAX_GRANT_DAYS = 36_500;
+
+const PROMO_HEADLINE_MIN = 3;
+const PROMO_HEADLINE_MAX = 120;
+const PROMO_MESSAGE_MIN = 3;
+const PROMO_MESSAGE_MAX = 2_000;
+
+/** Remove caracteres de controle (exceto quebras de linha) do conteúdo do e-mail. */
+function sanitizePromotionText(value: string): string {
+  return value
+    // eslint-disable-next-line no-control-regex
+    .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, "")
+    .trim();
+}
 
 function parseRobots(value: unknown): DevRobotsSelection {
   if (!value || typeof value !== "object") {
@@ -92,6 +106,47 @@ export function parseDevGrantSubscriptionRequest(
   }
 
   return { accountRef, planId: planId as PaidPlanId, days };
+}
+
+export function parseDevPromotionRequest(body: unknown): DevPromotionRequest {
+  if (!body || typeof body !== "object") {
+    throw validationError("Corpo da requisição inválido.");
+  }
+
+  const record = body as Record<string, unknown>;
+
+  const scope = record.scope;
+  if (scope !== "individual" && scope !== "global") {
+    throw validationError('Campo scope deve ser "individual" ou "global".');
+  }
+
+  const accountRef =
+    typeof record.accountRef === "string" ? record.accountRef.trim() : undefined;
+  if (scope === "individual" && !accountRef) {
+    throw validationError("Selecione uma conta para o disparo individual.");
+  }
+
+  const headline =
+    typeof record.headline === "string"
+      ? sanitizePromotionText(record.headline)
+      : "";
+  if (headline.length < PROMO_HEADLINE_MIN || headline.length > PROMO_HEADLINE_MAX) {
+    throw validationError(
+      `Título deve ter entre ${PROMO_HEADLINE_MIN} e ${PROMO_HEADLINE_MAX} caracteres.`
+    );
+  }
+
+  const message =
+    typeof record.message === "string"
+      ? sanitizePromotionText(record.message)
+      : "";
+  if (message.length < PROMO_MESSAGE_MIN || message.length > PROMO_MESSAGE_MAX) {
+    throw validationError(
+      `Mensagem deve ter entre ${PROMO_MESSAGE_MIN} e ${PROMO_MESSAGE_MAX} caracteres.`
+    );
+  }
+
+  return { scope, accountRef, headline, message };
 }
 
 export function parseDevLoginRequest(body: unknown): {

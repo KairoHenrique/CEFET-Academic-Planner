@@ -196,8 +196,9 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 - [x] **BACK:** B61 *(PATCH `/api/perfil` → `app_profiles` no Postgres — UI **F37** ✅)*
 - [x] **BACK:** B62 *(fila e-mail — promoções sempre + ciclo conta: cadastro, fim trial, plano perto de acabar, plano encerrado)*
 - [@] **BACK:** B62b *(provedor transacional — **Brevo** grátis/sem domínio, fallback **Resend**; envio real via REST `fetch`, HTML anti-XSS + retry backoff; stub de log quando sem secret · deploy jul/2026, teste real ok)*
+- [%] **BACK:** B62c *(conteúdo + ativação — saudação com 2 primeiros nomes, link `/planos` absoluto, agenda plano expirando 7/3/1 + encerrado, disparo de promoção no `/dev`)*
 
-**Ordem 6b:** `B44 → B45 → B58 → B63` → `B59` → `F29` → `B61 → B62 → B62b`
+**Ordem 6b:** `B44 → B45 → B58 → B63` → `B59` → `F29` → `B61 → B62 → B62b → B62c`
 
 ---
 
@@ -1173,8 +1174,9 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | F29 | Front | Cadastro + login | Cadastro: e-mail, tel, CPF, curso, senha · Login: **só CPF + senha** · tabs cloud + Bearer | [x] |
 | B62 | Back | E-mails conta/promo | Fila: promoções (**sempre**) + cadastro, fim trial, plano perto de acabar, plano encerrado | [x] |
 | B62b | Back | Provedor e-mail | **Brevo** (grátis/sem domínio) → Resend fallback · REST `fetch` · HTML anti-XSS · retry backoff · stub sem secret · **deploy+teste ok** | [@] |
+| B62c | Back | Conteúdo + ativação e-mail | Saudação 2 primeiros nomes · link `/planos` absoluto · agenda plano expirando (7/3/1) + encerrado · disparo de promoção no `/dev` | [%] |
 
-**Ordem 6b:** `B44 → B45 → B58 → B63` → `B59` → `F29` → `B61 → B62 → B62b`
+**Ordem 6b:** `B44 → B45 → B58 → B63` → `B59` → `F29` → `B61 → B62 → B62b → B62c`
 
 > **Fora do 6b:** pagamento PIX e planos pagos = **Bloco 7** (B47–B53). Dev local Bloco 1–2 mantém login SIGAA simples até cloud.
 
@@ -1778,6 +1780,23 @@ Rota **`/dev`** — invisível ao aluno.
 **Fora do escopo desta rodada:** robôs por camada (histórico/notificações/calendário como robôs separados) — R1-deep já cobre; exige refatorar o pipeline para expor runners por camada.
 
 **Status:** `[x]` aprovado 100% (push jul/2026).
+
+#### B62c — conteúdo + ativação dos e-mails (jul/2026) `[%]`
+
+> Fecha o conteúdo/ativação da fila de e-mail (sobre **B62/B62b**). Sem novo bloco.
+
+| # | Entrega | Arquivos-chave |
+|---|---|---|
+| 1 | **Saudação personalizada** — só os 2 primeiros nomes (LGPD); fallback "Olá!" sem nome | `email/greeting-name.ts`, `email/account-email-templates.ts` |
+| 2 | **Link absoluto** — `/planos` e `/dashboard` viram URL completa (base `PLANNER_APP_URL` → fallback prod) | `email/email-links.ts`, `email/enqueue-account-email.ts` |
+| 3 | **Copy sem travessão** — textos revisados (welcome, fim trial, expirando, encerrado) | `email/account-email-templates.ts` |
+| 4 | **Plano expirando** — agenda faixas 7/3/1 dias (dedupe por janela) | `email/schedule-account-lifecycle-emails.ts` |
+| 5 | **Plano encerrado** — dispara na virada (janela 3d, ignora quem já renovou) | `email/schedule-account-lifecycle-emails.ts` |
+| 6 | **Disparo de promoção no `/dev`** — card na aba Robôs (global/individual) + flush imediato da fila | `POST /api/dev/promotions`, `dev-panel/dispatch-promotion.ts`, `dev-panel/promotion-targets.ts`, `components/dev/DevPromotionCard.tsx` |
+
+**Ativação:** sem novo secret (Brevo já configurado). Ciclo de plano pago passa a rodar automaticamente pelo cron (`run-account-email-cron` já chama os dois schedulers) após o deploy. **Welcome** segue genérico no cadastro (nome só existe após 1º sync); demais e-mails já saem personalizados.
+
+**Status:** `[%]` commit local — aguardando push/aprovação.
 
 ### Painel robôs — ops manual (escopo fechado p/ **B70** + **F41**)
 

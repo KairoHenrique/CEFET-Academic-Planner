@@ -166,6 +166,22 @@ export interface DevRevokeSubscriptionResult {
   cancelled: number;
 }
 
+export interface DevPromotionRequest {
+  scope: DevRobotScope;
+  accountRef?: string;
+  headline: string;
+  message: string;
+}
+
+export interface DevPromotionResult {
+  campaignId: string;
+  targets: number;
+  queued: number;
+  sent: number;
+  failed: number;
+  provider: string;
+}
+
 export interface DevOpsActionResult {
   ok: true;
   message: string;

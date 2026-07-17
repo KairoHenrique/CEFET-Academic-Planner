@@ -14,6 +14,7 @@ import {
   patchDevSyncPolicy,
   postDevAccountEmailsCron,
   postDevCreateGiftKeys,
+  postDevDispatchPromotion,
   postDevGrantSubscription,
   postDevLogin,
   postDevLogout,
@@ -25,6 +26,7 @@ import {
 } from "@/lib/dev-panel/client-api";
 import type {
   DevGrantSubscriptionRequest,
+  DevPromotionRequest,
   DevRobotRunRequest,
 } from "@/lib/dev-panel/types";
 import type { SyncPolicyOverrides } from "@/lib/sync-policy/types";
@@ -129,6 +131,17 @@ export function useDevGrantSubscription() {
       postDevGrantSubscription(body),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.devAccounts("") });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.devAuditLog() });
+    },
+  });
+}
+
+export function useDevDispatchPromotion() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (body: DevPromotionRequest) => postDevDispatchPromotion(body),
+    onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.devAuditLog() });
     },
   });
