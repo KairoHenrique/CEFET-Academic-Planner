@@ -21,9 +21,9 @@ describe("Calendário — datas institucionais expandidas", () => {
     ]);
 
     assert.equal(events.length, 2);
-    assert.equal(events[0]?.title, "Rematrícula — Início");
+    assert.equal(events[0]?.title, "Matrícula Fase 2 — Início");
     assert.equal(events[0]?.date, "2026-01-29");
-    assert.equal(events[1]?.title, "Rematrícula — Fim");
+    assert.equal(events[1]?.title, "Matrícula Fase 2 — Fim");
     assert.equal(events[1]?.date, "2026-02-01");
     assert.match(events[0]?.description ?? "", /29\/01\/26/);
     assert.match(events[0]?.description ?? "", /29\/01\/26 – 01\/02\/26/);

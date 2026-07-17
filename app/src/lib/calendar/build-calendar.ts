@@ -7,6 +7,7 @@ import {
 } from "@/lib/db/queries";
 import { buildAcademicDateDisplayGroups } from "@/lib/calendar/group-academic-dates";
 import { expandAcademicRowsToCalendarEvents } from "@/lib/calendar/expand-academic-calendar-events";
+import { mergeKnownInstitutionalDates } from "@/lib/calendar/known-institutional-dates";
 import { expandClassSessionEvents } from "@/lib/calendar/expand-class-session-events";
 import { expandManualCalendarEvents } from "@/lib/calendar/expand-manual-calendar-events";
 import {
@@ -38,7 +39,8 @@ function sortCalendarEvents(events: CalendarEvent[]): CalendarEvent[] {
 
 /** Núcleo backend-agnóstico: monta o calendário a partir dos dados carregados. */
 export function buildCalendarFromData(data: CalendarSourceData): CalendarResponse {
-  const { academicRows, semestreRows } = data;
+  const { semestreRows } = data;
+  const academicRows = mergeKnownInstitutionalDates(data.academicRows);
   const academicDateGroups = buildAcademicDateDisplayGroups(academicRows);
 
   const baseEvents = mapCalendarRowsToEvents({
