@@ -43,7 +43,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ## Roadmap detalhado — ordem de execução (#0 → #11)
 
-> **Próximo oficial:** **#9 — B36** (alertas integralização) → **B37** → **F24**. Bloco **2f (B72a–e)**, **#9 B32–B34/F21–F23** e **B35/F20** `[x]` (push jul/2026). Migração cloud→Postgres (rotas SQLite-only) e painel dev (conceder assinatura / gift key + robô R1 cloud) entregues no mesmo push.
+> **Próximo oficial:** **#10 — Bloco 4** (Polimento UX + site mobile, **F28**). **#9 fechado:** **B36/B37** `[@]` (alertas no sino, push jul/2026) · **F24 descartado** (banners removidos — alertas ficam só no sino) · demais #9 `[x]`. Bloco **2f (B72a–e)** `[x]`. **Fix jul/2026:** login rápido normaliza CPF no `sync-readiness` (CPF formatado não força mais re-sync de 1º acesso).
 > **Regra:** siga **#0 → #11** · dentro de cada bloco → **BACK (B) antes de FRONT (F)**. Checklist espelho: [Checklist mestre](#checklist-mestre-ordem-de-execução).
 
 ### #0 — Planejamento `✅`
@@ -281,9 +281,9 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 - [x] **FRONT:** F23 *(salvar simulação — botões salvar/exportar matrícula)*
 - [x] **BACK:** B35 *(`GET /api/mapa/grafo` — nós e arestas para react-flow)*
 - [x] **FRONT:** F20 *(grafo react-flow — zoom, pan, setas sólidas/pontilhadas)* · **polish jul/2026:** grafo também em **Montar Grade** (abaixo do simulador) + botão **Expandir** (popup em top-layer `<dialog>`, sem blur) via `ExpandableStage` reutilizável — aplicado ao grafo e à grade.
-- [%] **BACK:** B36 *(alertas integralização — limiar por categoria de CH)* — marcos `50/80/100%` por categoria no sino (kind `integralizacao-alert`)
-- [%] **BACK:** B37 *(alertas calendário — datas acadêmicas próximas)* — janela 14 dias no sino (kind `calendar-date-alert`)
-- [%] **FRONT:** F24 *(alertas na UI — banners integralização + calendário)* — banners no Dashboard (com CTA), Integralização e Calendário, reusando alertas B36/B37 via cache das notificações
+- [@] **BACK:** B36 *(alertas integralização — limiar por categoria de CH)* — marcos `50/80/100%` por categoria no sino (kind `integralizacao-alert`)
+- [@] **BACK:** B37 *(alertas calendário — datas acadêmicas próximas)* — janela 14 dias no sino (kind `calendar-date-alert`)
+- [-] **FRONT:** F24 *(alertas na UI)* — **descartado** por decisão do produto: alertas de integralização/calendário ficam **só no sino** (B36/B37); banners de página removidos
 
 **Ordem Bloco 3:** `B32–B34` → `F21–F23` → `B35` → `F20` → `B36–B37` → `F24`
 
@@ -554,7 +554,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | **#6e** | 2e | Painel dev + policy (B70 → F41) | ✅ **2/2** | 2/2 |
 | **#7** | 7 | Assinatura PIX | ✅ **Concluído** | 15/15 |
 | **#12** | 2f | **Sync real Postgres (B72)** | ✅ B72a–e `[x]` · **ops = PC + cloudflared** | 5/5 |
-| **#9** | 3 | Inteligência acadêmica | B32–B34 + F21–F23 + **B35**/**F20** `[x]` · próximo **B36** | 8/11 |
+| **#9** | 3 | Inteligência acadêmica | **B36/B37** `[@]` (sino) · **F24 descartado** · demais `[x]` · próximo **#10** | 10/10 |
 | **#10** | 4 | Polimento UX + site mobile (**F28**) | **Antes do mobile (#8)** | 0/4 |
 | **#8** | 8 | Mobile Android (Expo Go) | Depois de **#6d** + **#7** + **#9** + **#10** · **sem Play/App Store** | 0/10 |
 | **#11** | 9 | Multi-PPC (Mecatrônica, Moda) | **🔒 Só após #8** | 0/4 |
@@ -622,7 +622,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 > **Calendário — rótulos e datas (jul/2026, sobre B66) `[x]`:** renomeação **só na exibição** (nome bruto do SIGAA segue no banco): `Matrícula OnLine → Matrícula Fase 1`, `Rematrícula → Matrícula Fase 2`, `Processamento de Matrícula/Rematrícula → Resultado Matrícula Fase 1/2` (`event-label-overrides.ts`). Scraper passa a captar os eventos de "processamento" (`calendario-event-filter.ts`) e há fallback de datas institucionais conhecidas sem duplicar quando o SIGAA publica (`known-institutional-dates.ts`).
 
-**Próximo:** **B36** — alertas integralização → **B37** → **F24**. Bloco **2f/B72** e **B35/F20** `[x]` (push jul/2026).
+**Próximo:** **#10 — Bloco 4** (Polimento UX + site mobile, F28). **B36/B37** `[@]` (sino) · **F24 descartado**. Bloco **2f/B72** e **B35/F20** `[x]` (push jul/2026).
 
 ---
 
@@ -738,8 +738,8 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] **FRONT:** F21 → F22 → F23
 - [x] **BACK:**  B35
 - [x] **FRONT:** F20
-- [%] **BACK:**  B36 → B37
-- [%] **FRONT:** F24
+- [@] **BACK:**  B36 → B37
+- [-] **FRONT:** F24 *(descartado — alertas só no sino)*
 
 **Ordem Bloco 3:** `B32–B34` → `F21–F23` → `B35` → `F20` → `B36–B37` → `F24`
 
@@ -798,7 +798,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | **#6e** | **2e — Painel dev** | ✅ | 2 / 2 |
 | #7 | 7 — Assinatura PIX | ✅ | 15 / 15 |
 | **#12** | **2f — Sync real Postgres (B72)** | ✅ B72a–e `[x]` · **ops = PC + cloudflared** | 5 / 5 |
-| #9 | 3 — Inteligência | 🟡 B32–B34 + F21–F23 + **B35**/**F20** `[x]` · próximo **B36** | 8 / 11 |
+| #9 | 3 — Inteligência | ✅ **B36/B37** `[@]` (sino) · **F24 descartado** · próximo **#10** | 10 / 10 |
 | #10 | 4 — Polimento + site mobile | ⬜ *(antes mobile · incl. F28)* | 0 / 4 |
 | #8 | 8 — Mobile Android | ⬜ *(após #9 + #10 · sem lojas)* | 0 / 10 |
 | #11 | 9 — Multi-PPC | 🔒 *(após #8)* | 0 / 4 |
@@ -1025,7 +1025,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] `worker/Dockerfile` (Playwright jammy) · `worker/README.md`
 - [x] Testes `tests/worker-b54.test.ts`
 
-> **Próximo (produto):** **B36** → **B37** → **F24**. Bloco **2f/B72** e **F20** `[x]` (push jul/2026).
+> **Próximo (produto):** **#10 — Bloco 4** (Polimento UX + site mobile, F28). **B36/B37** `[@]` (sino) · **F24 descartado**. Bloco **2f/B72** e **F20** `[x]` (push jul/2026).
 
 #### B55 — API fila sync `[x]`
 
@@ -1035,7 +1035,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Dispatcher assíncrono → worker B54 (`SIGAA_WORKER_URL`) ou **inline** (`SYNC_QUEUE_DISPATCH=inline`)
 - [x] Testes `tests/sync-queue-b55.test.ts` · `npm run test:sync-queue`
 
-> **Próximo (produto):** **B36** → **B37** → **F24**. Bloco **2f/B72** e **F20** `[x]` (push jul/2026).
+> **Próximo (produto):** **#10 — Bloco 4** (Polimento UX + site mobile, F28). **B36/B37** `[@]` (sino) · **F24 descartado**. Bloco **2f/B72** e **F20** `[x]` (push jul/2026).
 
 #### B56 — Pipeline no worker `[x]`
 
@@ -1260,13 +1260,13 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | B33 | Back | Choque de horários | `POST /api/simulador/choques` · sobreposição na grade | 5.3 | [x] |
 | B34 | Back | Persistir simulação | `GET/POST/DELETE /api/simulador/simulacoes` · export JSON | 5.3 | [x] |
 | B35 | Back | `GET /api/mapa/grafo` | Nós e arestas para react-flow | 5.2 | [x] |
-| B36 | Back | Alertas integralização | Limiar por categoria de CH | 5.4 | [%] |
-| B37 | Back | Alertas calendário | Datas acadêmicas próximas | 5.5 | [%] |
+| B36 | Back | Alertas integralização | Limiar por categoria de CH (sino) | 5.4 | [@] |
+| B37 | Back | Alertas calendário | Datas acadêmicas próximas (sino) | 5.5 | [@] |
 | F20 | Front | Grafo react-flow | Zoom, pan, setas sólidas/pontilhadas | 5.2 | [x] |
 | F21 | Front | Simulador elegível | Filtro + drag-and-drop na grade | 5.3 | [x] |
 | F22 | Front | Alerta choque | Destaque visual de conflito | 5.3 | [x] |
 | F23 | Front | Salvar simulação | Botões salvar/exportar matrícula | 5.3 | [x] |
-| F24 | Front | Alertas na UI | Banners integralização + calendário | 5.4–5.5 | [%] |
+| F24 | Front | Alertas na UI | ~~Banners~~ descartado — alertas só no sino | 5.4–5.5 | [-] |
 
 **Ordem:** `B32 → B33 → B34` → `F21 → F22 → F23` → `B35 → F20` → `B36 → B37 → F24`
 
@@ -1646,12 +1646,12 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Barras de progresso douradas unificadas no app
 - [x] Documentar glossário de tipos de CH no `SCOPE.md` §6.4 (implementação → **F11b**)
 - [x] Glossário **“Entenda suas horas”** na UI (obrigatória, eletiva, complementar, extensão, flexibilizada) — F11b
-- [%] Alerta quando estiver perto de concluir uma categoria — **B36** no sino (marcos `50/80/100%` por categoria de CH, `build-integralizacao-alert-items.ts`) + **F24** banner (Dashboard/Integralização, faixa ≥80%); commit local
+- [@] Alerta quando estiver perto de concluir uma categoria — **B36** no sino (marcos `50/80/100%` por categoria de CH, `build-integralizacao-alert-items.ts`); **F24 descartado** (sem banner na UI — alerta só no sino)
 
 ### 5.5 Calendário Acadêmico
 - [x] Tela com datas do semestre via `GET /api/calendar` + painel acadêmico (seed/mock em dev; **B66** popula `calendario_academico` via sync isolado)
 - [x] Painel dual-semestre: corrente + próximo; rotação na véspera do Período Letivo; divisor visual; vazio por coluna
-- [%] Alertas/notificações para datas próximas — lembretes de **tarefa** 24h/1h via sino (**F38** ✅); datas acadêmicas institucionais via **B37** (sino, janela 14 dias) + **F24** banner (Dashboard/Calendário); commit local
+- [@] Alertas/notificações para datas próximas — lembretes de **tarefa** 24h/1h via sino (**F38** ✅); datas acadêmicas institucionais via **B37** (sino, janela 14 dias); **F24 descartado** (sem banner na UI — alerta só no sino)
 - [x] Verificação periódica de novas datas — `shouldRunCalendarioSync` + TTL 7d + disparo background pós-sync (**B66**)
 
 ---
@@ -1915,7 +1915,7 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 8. **Próximo passo do roadmap:** informe **depois do push** (tasks em `[@]` ou `[x]`). Com commits locais só `[x]`, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v3](#ordem-oficial-de-execução-v3) — **Bloco 2 (sync) antes do Bloco 6 (Supabase)**. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy **após** sync validado; RLS ✅ **6c** (antes do PIX). Marco “site no ar p/ testes gerais” → [final do TASKS.md](#marco--site-no-ar-para-testes-gerais).
-11. **Próximo passo:** **#9 — B36** (alertas integralização) → **B37** → **F24**. Bloco **2f/B72a–e** e **#9 até F20** `[x]` (push jul/2026). Ops sync = PC home server (`npm run worker:home` + `npm run worker:tunnel` + secrets CF; dev scraper `SIGAA_BROWSER_CHANNEL=chrome`).
+11. **Próximo passo:** **#10 — Bloco 4** (Polimento UX + site mobile, F28). **#9 fechado:** **B36/B37** `[@]` (alertas no sino) · **F24 descartado** (banners removidos — só sino) · demais `[x]` (push jul/2026). Ops sync = PC home server (`npm run worker:home` + `npm run worker:tunnel` + secrets CF; dev scraper `SIGAA_BROWSER_CHANNEL=chrome`).
 12. **Integralização:** CH concluída = `historico` + PPC (`computeChDoneFromDisciplinas`); portal SIGAA só % / total currículo; matérias já passadas = **B30** ✅.
 13. **Gift + painel dev:** **B68–B71** ✅ · **F39–F41** ✅ — painel sem senha SIGAA (`credentialSaved` + `accountRef`).
 14. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial. **Polish em task `[x]`** (ex.: F38, dashboard) também exige nota no TASKS no mesmo ciclo do push.
