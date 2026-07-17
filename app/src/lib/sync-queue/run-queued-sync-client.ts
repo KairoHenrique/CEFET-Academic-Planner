@@ -56,8 +56,7 @@ export interface RunQueuedSyncClientOptions {
 export async function runQueuedSyncClient(
   options: RunQueuedSyncClientOptions
 ): Promise<void> {
-  const { creds, mode, trigger, background, onJobUpdate, onUiStep, signal } =
-    options;
+  const { creds, mode, trigger, onJobUpdate, onUiStep, signal } = options;
 
   await captureNotificationBaselineBeforeSync();
 
@@ -71,17 +70,14 @@ export async function runQueuedSyncClient(
   });
 
   onJobUpdate(enqueue.job);
-
-  if (!background) {
-    onUiStep(queueJobToUiStep(enqueue.job));
-  }
+  // O progresso é sempre exibido (inclusive em background); `background` só
+  // silencia erros — nunca esconde o indicador de sincronização.
+  onUiStep(queueJobToUiStep(enqueue.job));
 
   const finished = await pollSyncJobUntilDone(enqueue.job.jobId, {
     onUpdate: (job) => {
       onJobUpdate(job);
-      if (!background) {
-        onUiStep(queueJobToUiStep(job));
-      }
+      onUiStep(queueJobToUiStep(job));
     },
     signal,
     sigaaUsername: creds.username,
@@ -89,7 +85,7 @@ export async function runQueuedSyncClient(
 
   onJobUpdate(finished);
 
-  if (!background && finished.result?.steps?.length) {
+  if (finished.result?.steps?.length) {
     await playSyncSteps(finished.result.steps, onUiStep);
   }
 
