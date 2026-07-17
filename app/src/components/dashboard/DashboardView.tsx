@@ -10,6 +10,8 @@ import { WeeklySchedulePreview } from "@/components/dashboard/WeeklySchedulePrev
 import { IntegrationProgress } from "@/components/dashboard/IntegrationProgress";
 import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton";
 import { DashboardStateCard } from "@/components/dashboard/DashboardStateCard";
+import { CalendarAlertBanner } from "@/components/alerts/CalendarAlertBanner";
+import { IntegralizacaoAlertBanner } from "@/components/alerts/IntegralizacaoAlertBanner";
 import { useDashboard } from "@/hooks/useDashboard";
 
 function getGreeting(): string {
@@ -71,6 +73,9 @@ export function DashboardView() {
         subtitle={`${data.aluno.curso} · CEFET-MG Divinópolis`}
         tutorial="dashboard"
       />
+
+      <CalendarAlertBanner showCta />
+      <IntegralizacaoAlertBanner showCta />
 
       <div className="col-12">
         <StatsRow stats={data.stats} />
