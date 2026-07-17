@@ -1049,6 +1049,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] `SyncQueueProvider` — contexto global (`AppShell`); `useSync` enfileira + poll
 - [x] `POST /api/sync/queue` + `GET /api/sync/queue/[jobId]` no client (`postSyncQueue`, `pollSyncJobUntilDone`)
 - [x] Progresso foreground: posição na fila · ETA · steps do job concluído
+- [x] **fix jul/2026:** progresso agora aparece também no sync de entrada/auto (background) — antes travava em `0%`. `background` passou a significar só "silencia erros"; `onUiStep` roda sempre (`run-queued-sync-client`), provider inicializa progresso, e `queueJobToUiStep` guarda contra job nulo.
 - [x] Auto-sync (`useAutoSync`) enfileira com `trigger: auto` (cooldown O3 no servidor)
 - [x] **F37** — `ProfileSyncFooter` mostra fila ao vivo ou intervalo (`3 h` / `30 min`)
 - [x] Removido `postCalendarioSync` pós-sync no client (R2 global = **B68e**)

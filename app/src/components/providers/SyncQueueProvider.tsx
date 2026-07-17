@@ -25,7 +25,10 @@ import type {
 
 export interface StartSyncOptions {
   mode?: SyncMode;
-  /** Não bloqueia a UI com painel de progresso (sync em background). */
+  /**
+   * Sync automático: silencia erros (falhas não interrompem a navegação e não
+   * mostram alerta). O indicador de progresso continua sendo exibido.
+   */
   background?: boolean;
   trigger?: SyncJobTrigger;
 }
@@ -84,14 +87,9 @@ export function SyncQueueProvider({ children }: { children: ReactNode }) {
 
       setSyncing(true);
       setActiveJob(null);
-
-      if (!background) {
-        setError(null);
-        setProgress(0);
-        setStepLabel("Iniciando sincronização…");
-      } else {
-        setError(null);
-      }
+      setError(null);
+      setProgress(0);
+      setStepLabel("Iniciando sincronização…");
 
       const onUiStep = (step: SyncStep) => {
         setStepLabel(step.label);

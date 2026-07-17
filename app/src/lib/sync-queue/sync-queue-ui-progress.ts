@@ -12,7 +12,11 @@ function pendingLabelForProgress(progress: number): string {
   return "Autenticando no SIGAA…";
 }
 
-export function queueJobToUiStep(job: SyncQueueJobView): SyncStep {
+export function queueJobToUiStep(job: SyncQueueJobView | null): SyncStep {
+  if (!job) {
+    return { label: "Iniciando sincronização…", progress: 5 };
+  }
+
   if (job.status === "queued") {
     const progress = Math.min(22, 8 + Math.max(0, 14 - job.position * 3));
     const label =
