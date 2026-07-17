@@ -1,12 +1,15 @@
 import { brand } from "@/config/brand";
+import { resolveLegalContactEmail } from "@/lib/legal/constants";
 import type { LegalSection } from "@/lib/legal/content/terms-sections";
+
+const CONTACT_EMAIL = resolveLegalContactEmail();
 
 export const PRIVACY_SECTIONS: LegalSection[] = [
   {
     id: "controlador",
     title: "1. Controlador e contato",
     paragraphs: [
-      `O controlador dos dados pessoais tratados no ${brand.name} é o responsável pelo produto ACME HUB. Para exercer direitos previstos na LGPD (Lei nº 13.709/2018), utilize o canal indicado no rodapé desta página.`,
+      `O controlador dos dados pessoais tratados no ${brand.name} é o responsável pelo produto ACME HUB. Para exercer direitos previstos na LGPD (Lei nº 13.709/2018), utilize o canal de contato: ${CONTACT_EMAIL} (também indicado no rodapé desta página).`,
     ],
   },
   {

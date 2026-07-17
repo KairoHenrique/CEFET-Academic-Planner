@@ -1,9 +1,13 @@
+import { resolveLegalContactEmail } from "@/lib/legal/constants";
+
 export interface LegalSection {
   id: string;
   title: string;
   paragraphs: string[];
   bullets?: string[];
 }
+
+const CONTACT_EMAIL = resolveLegalContactEmail();
 
 export const TERMS_SECTIONS: LegalSection[] = [
   {
@@ -72,6 +76,13 @@ export const TERMS_SECTIONS: LegalSection[] = [
     paragraphs: [
       "Estes Termos podem ser atualizados. Mudanças relevantes serão comunicadas por e-mail ou aviso no aplicativo. A versão vigente está indicada no rodapé desta página.",
       "O uso continuado após a publicação de nova versão constitui aceite, salvo quando a lei exigir novo consentimento explícito.",
+    ],
+  },
+  {
+    id: "contato",
+    title: "9. Contato",
+    paragraphs: [
+      `Dúvidas sobre estes Termos, sobre a Política de Privacidade ou solicitações relacionadas à sua conta podem ser enviadas para o e-mail de suporte: ${CONTACT_EMAIL}.`,
     ],
   },
 ];

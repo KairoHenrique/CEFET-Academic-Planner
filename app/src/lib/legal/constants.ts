@@ -6,9 +6,11 @@ export const LEGAL_ROUTES = {
   privacy: "/privacidade",
 } as const;
 
+export const LEGAL_CONTACT_EMAIL_DEFAULT = "acme.hubsuporte@gmail.com";
+
 export function resolveLegalContactEmail(): string {
   const fromEnv = process.env.LEGAL_CONTACT_EMAIL?.trim();
-  return fromEnv || "privacidade@acme-hub.app";
+  return fromEnv || LEGAL_CONTACT_EMAIL_DEFAULT;
 }
 
 export function buildLegalMeta() {
