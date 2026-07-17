@@ -2,6 +2,8 @@ import { ApiClientError, type ClientErrorCode } from "@/lib/api/client";
 import type {
   DevAccountPublicView,
   DevAuditEntry,
+  DevGrantSubscriptionRequest,
+  DevGrantSubscriptionResult,
   DevRobotRunRequest,
   DevRobotRunResult,
   DevSyncPolicyResponse,
@@ -119,6 +121,55 @@ export async function postDevRobotsRun(
     method: "POST",
     body: JSON.stringify(body),
   });
+}
+
+export async function postDevGrantSubscription(
+  body: DevGrantSubscriptionRequest
+): Promise<{ ok: true } & DevGrantSubscriptionResult> {
+  return devRequestJson("/api/dev/subscriptions/grant", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export interface DevGiftKeyCreated {
+  code: string;
+  planId: string;
+  durationDays: number;
+}
+
+/** Gera um código de plano (gift key) sem conta, para resgate no cadastro. */
+export async function postDevCreateGiftKey(body: {
+  planId: string;
+  days: number;
+}): Promise<DevGiftKeyCreated> {
+  const response = await devRequestJson<{
+    ok: true;
+    count: number;
+    keys: Array<{ code: string; plan_id: string; duration_days: number }>;
+  }>("/api/dev/gift-keys", {
+    method: "POST",
+    body: JSON.stringify({
+      planId: body.planId,
+      durationDays: body.days,
+      count: 1,
+    }),
+  });
+
+  const key = response.keys[0];
+  if (!key) {
+    throw new ApiClientError(
+      "Nenhum código foi gerado.",
+      "INTERNAL_ERROR",
+      500
+    );
+  }
+
+  return {
+    code: key.code,
+    planId: key.plan_id,
+    durationDays: key.duration_days,
+  };
 }
 
 export async function getDevSyncStatus(): Promise<

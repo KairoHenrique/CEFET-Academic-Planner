@@ -30,6 +30,7 @@ export interface DevAccountRecord {
   cpfMasked: string;
   cpfLast4: string;
   displayName: string;
+  matricula: string | null;
   cursoId: AppCursoId | string;
   email: string | null;
   credentialSaved: boolean;
@@ -43,6 +44,7 @@ export interface DevAccountPublicView {
   cpfMasked: string;
   cpfLast4: string;
   displayName: string;
+  matricula: string | null;
   cursoId: AppCursoId | string;
   email: string | null;
   credentialSaved: boolean;
@@ -116,6 +118,24 @@ export interface DevRobotTargetResult {
 export interface DevRobotRunResult {
   scope: DevRobotScope;
   results: DevRobotTargetResult[];
+}
+
+export interface DevGrantSubscriptionRequest {
+  accountRef: string;
+  planId: string;
+  days: number;
+}
+
+export interface DevGrantSubscriptionResult {
+  planId: string;
+  planLabel: string;
+  cpfLast4: string;
+  subscription: {
+    id: string;
+    status: "active";
+    expiresAt: string;
+    daysGranted: number;
+  };
 }
 
 export interface DevSyncPolicyResponse {

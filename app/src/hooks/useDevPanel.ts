@@ -9,12 +9,17 @@ import {
   getDevSyncPolicy,
   getDevSyncStatus,
   patchDevSyncPolicy,
+  postDevCreateGiftKey,
+  postDevGrantSubscription,
   postDevLogin,
   postDevLogout,
   postDevRobotsRun,
   resetDevSyncPolicy,
 } from "@/lib/dev-panel/client-api";
-import type { DevRobotRunRequest } from "@/lib/dev-panel/types";
+import type {
+  DevGrantSubscriptionRequest,
+  DevRobotRunRequest,
+} from "@/lib/dev-panel/types";
 import type { SyncPolicyOverrides } from "@/lib/sync-policy/types";
 import { queryKeys } from "@/lib/query/keys";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
@@ -105,6 +110,31 @@ export function useDevRunRobots() {
       void queryClient.invalidateQueries({ queryKey: queryKeys.devAuditLog() });
       void queryClient.invalidateQueries({ queryKey: queryKeys.devAccounts("") });
       void queryClient.invalidateQueries({ queryKey: queryKeys.devSyncStatus() });
+    },
+  });
+}
+
+export function useDevGrantSubscription() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (body: DevGrantSubscriptionRequest) =>
+      postDevGrantSubscription(body),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.devAccounts("") });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.devAuditLog() });
+    },
+  });
+}
+
+export function useDevCreateGiftKey() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (body: { planId: string; days: number }) =>
+      postDevCreateGiftKey(body),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.devAuditLog() });
     },
   });
 }

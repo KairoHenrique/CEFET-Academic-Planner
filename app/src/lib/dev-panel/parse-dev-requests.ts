@@ -1,9 +1,15 @@
 import { validationError } from "@/lib/api/errors";
+import { PAID_PLAN_IDS } from "@/lib/billing/plan-catalog";
+import type { PaidPlanId } from "@/lib/billing/types";
 import type {
+  DevGrantSubscriptionRequest,
   DevRobotRunRequest,
   DevRobotsSelection,
 } from "@/lib/dev-panel/types";
 import type { SyncPolicyOverrides } from "@/lib/sync-policy/types";
+
+/** Limite defensivo: ~100 anos, evita overflow de data mantendo liberdade. */
+const MAX_GRANT_DAYS = 36_500;
 
 function parseRobots(value: unknown): DevRobotsSelection {
   if (!value || typeof value !== "object") {
@@ -55,6 +61,37 @@ export function parseDevRobotRunRequest(body: unknown): DevRobotRunRequest {
     robots: parseRobots(record.robots),
     mode,
   };
+}
+
+export function parseDevGrantSubscriptionRequest(
+  body: unknown
+): DevGrantSubscriptionRequest {
+  if (!body || typeof body !== "object") {
+    throw validationError("Corpo da requisição inválido.");
+  }
+
+  const record = body as Record<string, unknown>;
+
+  const accountRef =
+    typeof record.accountRef === "string" ? record.accountRef.trim() : "";
+  if (!accountRef) {
+    throw validationError("Selecione uma conta para conceder o plano.");
+  }
+
+  const planId =
+    typeof record.planId === "string" ? record.planId.trim() : "";
+  if (!(PAID_PLAN_IDS as readonly string[]).includes(planId)) {
+    throw validationError("Plano inválido.", { planId });
+  }
+
+  const days = Number(record.days);
+  if (!Number.isInteger(days) || days < 1 || days > MAX_GRANT_DAYS) {
+    throw validationError(
+      `Dias deve ser inteiro entre 1 e ${MAX_GRANT_DAYS}.`
+    );
+  }
+
+  return { accountRef, planId: planId as PaidPlanId, days };
 }
 
 export function parseDevLoginRequest(body: unknown): {

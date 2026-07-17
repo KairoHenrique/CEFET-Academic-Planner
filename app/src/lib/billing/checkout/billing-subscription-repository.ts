@@ -178,6 +178,36 @@ export async function insertActiveGiftSubscription(input: {
   return mapSubscriptionRow(row);
 }
 
+export async function insertActiveManualSubscription(input: {
+  userId: string;
+  planId: PaidPlanId;
+  expiresAt: Date;
+}): Promise<SubscriptionRow> {
+  const pool = getPostgresPool();
+  const result = await pool.query<SubscriptionDbRow>(
+    `INSERT INTO subscriptions (
+       user_id, plan_id, status, source, expires_at
+     ) VALUES (
+       $1, $2, 'active', 'manual', $3
+     )
+     RETURNING id, user_id, plan_id, status, source, started_at, expires_at,
+               created_at, updated_at`,
+    [input.userId, input.planId, input.expiresAt.toISOString()]
+  );
+
+  const row = result.rows[0];
+  if (!row) {
+    throw new Error("Falha ao criar assinatura manual.");
+  }
+
+  await expireOtherActiveSubscriptions({
+    userId: input.userId,
+    keepSubscriptionId: row.id,
+  });
+
+  return mapSubscriptionRow(row);
+}
+
 export async function findPlanDurationDays(planId: PaidPlanId): Promise<number> {
   const pool = getPostgresPool();
   const result = await pool.query<{ duration_days: number }>(
