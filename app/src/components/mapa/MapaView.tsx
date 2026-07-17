@@ -20,8 +20,7 @@ export function MapaView() {
 
   const loading = mapa.loading || (mode === "grafo" && grafo.loading);
   const needsSync = mapa.needsSync || (mode === "grafo" && grafo.needsSync);
-  const error =
-    mode === "grafo" ? grafo.error ?? mapa.error : mapa.error;
+  const error = mode === "grafo" ? grafo.error ?? mapa.error : mapa.error;
 
   if (loading && !mapa.data) {
     return (

@@ -18,6 +18,10 @@ import { CourseFlowNode } from "@/components/mapa/CourseFlowNode";
 import { PeriodLabelNode } from "@/components/mapa/PeriodLabelNode";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import {
+  ExpandableStage,
+  ExpandToggleButton,
+} from "@/components/ui/ExpandableStage";
+import {
   applyEdgeFocus,
   applyNodeFocus,
   buildCourseNodes,
@@ -54,6 +58,17 @@ function FitViewOnData({ nodeCount }: { nodeCount: number }) {
 
 function CourseMapFlowGraphInner({ grafo }: { grafo: MapaGrafoResponse }) {
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState(false);
+  const { fitView } = useReactFlow();
+
+  // Ao alternar inline <-> popup o container muda de tamanho: reajusta o
+  // enquadramento para o grafo preencher o novo espaço sem cortar nós.
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void fitView({ padding: 0.16, duration: 320 });
+    }, 90);
+    return () => window.clearTimeout(timer);
+  }, [expanded, fitView]);
 
   const baseNodes = useMemo(
     () => [...buildPeriodLabelNodes(grafo), ...buildCourseNodes(grafo)],
@@ -108,8 +123,24 @@ function CourseMapFlowGraphInner({ grafo }: { grafo: MapaGrafoResponse }) {
   const statusOrder = Object.keys(grafo.statusLabels) as CourseMapStatus[];
 
   return (
-    <div className="card course-map-flow-card" data-tutorial-id="tutorial-mapa-grafo">
-      <SectionHeader title="Grafo de Pré-requisitos" icon="map" />
+    <ExpandableStage
+      expanded={expanded}
+      onCollapse={() => setExpanded(false)}
+      title="Grafo de Pré-requisitos"
+    >
+    <div
+      className="card course-map-flow-card"
+      data-tutorial-id="tutorial-mapa-grafo"
+      data-expanded={expanded || undefined}
+    >
+      <div className="expandable-head">
+        <SectionHeader title="Grafo de Pré-requisitos" icon="map" />
+        <ExpandToggleButton
+          expanded={expanded}
+          onToggle={() => setExpanded((value) => !value)}
+          label="grafo"
+        />
+      </div>
 
       <div className="cmap-legend" role="list" aria-label="Legenda do grafo">
         {statusOrder.map((status) => (
@@ -169,6 +200,7 @@ function CourseMapFlowGraphInner({ grafo }: { grafo: MapaGrafoResponse }) {
         </ReactFlow>
       </div>
     </div>
+    </ExpandableStage>
   );
 }
 
