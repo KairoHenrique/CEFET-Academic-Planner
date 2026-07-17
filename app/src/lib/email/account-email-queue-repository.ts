@@ -115,3 +115,25 @@ export async function markAccountEmailFailed(
     [id, errorMessage.slice(0, 500)]
   );
 }
+
+/**
+ * Re-agenda uma mensagem para nova tentativa (falha transitória). Volta para
+ * `pending` com `scheduled_for` no futuro (backoff). `attempts` já foi
+ * incrementado no claim, então o teto de tentativas é respeitado no processador.
+ */
+export async function rescheduleAccountEmailForRetry(
+  id: string,
+  delaySeconds: number,
+  errorMessage: string
+): Promise<void> {
+  const pool = getPostgresPool();
+  const safeDelay = Math.max(1, Math.floor(delaySeconds));
+  await pool.query(
+    `UPDATE account_email_queue
+     SET status = 'pending',
+         scheduled_for = now() + make_interval(secs => $2),
+         last_error = $3
+     WHERE id = $1`,
+    [id, safeDelay, errorMessage.slice(0, 500)]
+  );
+}
