@@ -20,6 +20,11 @@ import {
   computeQueuePosition,
   estimateQueueEtaSeconds,
 } from "@/lib/sync-queue/estimate-queue-eta";
+import {
+  pgListSyncJobsByStatus,
+  type PgSyncJobRow,
+} from "@/lib/sync-queue/pg-sync-jobs-store";
+import { SYNC_QUEUE_DEFAULT_ETA_SECONDS } from "@/lib/sync-queue/types";
 import type { SyncQueueJobRecord } from "@/lib/sync-queue/types";
 
 function toDevQueueJobView(record: SyncQueueJobRecord): DevQueueJobView {
@@ -34,6 +39,67 @@ function toDevQueueJobView(record: SyncQueueJobRecord): DevQueueJobView {
     etaSeconds: estimateQueueEtaSeconds(record),
     createdAt: record.createdAt,
     startedAt: record.startedAt,
+  };
+}
+
+function toIso(value: string | null): string | null {
+  if (!value) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? value : date.toISOString();
+}
+
+function pgRowToDevQueueJobView(row: PgSyncJobRow): DevQueueJobView {
+  const position =
+    row.status === "queued" ? Number(row.queue_position ?? 0) + 1 : 0;
+  return {
+    jobId: row.id,
+    cpfMasked: maskCpf(row.username),
+    lane: row.lane,
+    trigger: row.trigger_source,
+    mode: row.mode,
+    status: row.status,
+    position,
+    etaSeconds:
+      row.status === "queued" || row.status === "running"
+        ? SYNC_QUEUE_DEFAULT_ETA_SECONDS * Math.max(position, 1)
+        : 0,
+    createdAt: toIso(row.created_at) ?? row.created_at,
+    startedAt: toIso(row.started_at),
+    finishedAt: toIso(row.finished_at),
+    robot: row.robot,
+    errorCode: row.error_code,
+    errorMessage: row.error_message,
+  };
+}
+
+async function loadCloudQueue(): Promise<{
+  running: DevQueueJobView[];
+  queued: DevQueueJobView[];
+  failed: DevQueueJobView[];
+}> {
+  const pool = getPostgresPool();
+  const [running, queued, failed] = await Promise.all([
+    pgListSyncJobsByStatus(pool, {
+      statuses: ["running"],
+      limit: 50,
+      order: "started_asc",
+    }),
+    pgListSyncJobsByStatus(pool, {
+      statuses: ["queued"],
+      limit: 50,
+      order: "created_asc",
+    }),
+    pgListSyncJobsByStatus(pool, {
+      statuses: ["failed"],
+      limit: 20,
+      order: "finished_desc",
+    }),
+  ]);
+
+  return {
+    running: running.map(pgRowToDevQueueJobView),
+    queued: queued.map(pgRowToDevQueueJobView),
+    failed: failed.map(pgRowToDevQueueJobView),
   };
 }
 
@@ -101,11 +167,16 @@ export async function getDevSyncStatus(): Promise<DevSyncStatusResponse> {
     })
   );
 
-  const running = listRunningSyncJobs().map(toDevQueueJobView);
-  const queued = listQueuedSyncJobsOrdered().map(toDevQueueJobView);
+  const queue = isPostgresBackend()
+    ? await loadCloudQueue()
+    : {
+        running: listRunningSyncJobs().map(toDevQueueJobView),
+        queued: listQueuedSyncJobsOrdered().map(toDevQueueJobView),
+        failed: [] as DevQueueJobView[],
+      };
 
   return {
-    queue: { running, queued },
+    queue,
     orchestrator: {
       inNightlyWindow: plan.inNightlyWindow,
       lastTickAt: state.lastTickAt,

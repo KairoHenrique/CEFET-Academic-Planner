@@ -66,6 +66,10 @@ export interface DevQueueJobView {
   etaSeconds: number;
   createdAt: string;
   startedAt: string | null;
+  finishedAt?: string | null;
+  robot?: string;
+  errorCode?: string | null;
+  errorMessage?: string | null;
 }
 
 export interface DevOrchestratorPlanItem {
@@ -78,6 +82,7 @@ export interface DevSyncStatusResponse {
   queue: {
     running: DevQueueJobView[];
     queued: DevQueueJobView[];
+    failed: DevQueueJobView[];
   };
   orchestrator: {
     inNightlyWindow: boolean;
@@ -136,6 +141,54 @@ export interface DevGrantSubscriptionResult {
     expiresAt: string;
     daysGranted: number;
   };
+}
+
+export interface DevSubscriptionHistoryItem {
+  id: string;
+  planId: string;
+  planLabel: string;
+  status: string;
+  source: string;
+  startedAt: string;
+  expiresAt: string;
+  createdAt: string;
+}
+
+export interface DevSubscriptionHistoryResponse {
+  accountRef: string;
+  cpfLast4: string;
+  subscriptions: DevSubscriptionHistoryItem[];
+}
+
+export interface DevRevokeSubscriptionResult {
+  accountRef: string;
+  cpfLast4: string;
+  cancelled: number;
+}
+
+export interface DevOpsActionResult {
+  ok: true;
+  message: string;
+  detail?: Record<string, unknown>;
+}
+
+export interface DevSyncJobRetryResult {
+  ok: true;
+  jobId: string;
+  reused: boolean;
+  message: string;
+}
+
+export interface DevGiftKeyView {
+  code: string;
+  planId: string;
+  durationDays: number;
+  status: string;
+  keyExpiresAt: string | null;
+  redeemedByCpf: string | null;
+  redeemedAt: string | null;
+  internalLabel: string | null;
+  createdAt: string;
 }
 
 export interface DevSyncPolicyResponse {

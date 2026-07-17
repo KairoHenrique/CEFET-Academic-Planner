@@ -37,9 +37,11 @@ export function CloudAuthScreen({ cursos }: CloudAuthScreenProps) {
       {panel === "login" ? (
         <CloudLoginForm />
       ) : (
-        <RegisterForm cursos={cursos} />
+        <>
+          <RegisterForm cursos={cursos} />
+          <GiftKeyRedeemForm variant="inline" deferUntilAuth />
+        </>
       )}
-      <GiftKeyRedeemForm variant="inline" deferUntilAuth />
     </LoginCard>
   );
 }

@@ -4,6 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { PageGrid } from "@/components/layout/PageGrid";
 import { DevAuditSection } from "@/components/dev/DevAuditSection";
+import { DevGiftKeysSection } from "@/components/dev/DevGiftKeysSection";
 import { DevNavbar } from "@/components/dev/DevNavbar";
 import { DevRobotsSection } from "@/components/dev/DevRobotsSection";
 import { DevSyncQueueSection } from "@/components/dev/DevSyncQueueSection";
@@ -66,6 +67,10 @@ export function DevPanelShell({ operatorEmail, onLogout }: DevPanelShellProps) {
             data={syncStatusQuery.data}
             loading={syncStatusQuery.isLoading}
           />
+        ) : null}
+
+        {activeView === "chaves" ? (
+          <DevGiftKeysSection />
         ) : null}
 
         {activeView === "policy" ? (

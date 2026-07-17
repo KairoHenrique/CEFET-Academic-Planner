@@ -2,10 +2,15 @@ import { ApiClientError, type ClientErrorCode } from "@/lib/api/client";
 import type {
   DevAccountPublicView,
   DevAuditEntry,
+  DevGiftKeyView,
   DevGrantSubscriptionRequest,
   DevGrantSubscriptionResult,
+  DevOpsActionResult,
+  DevRevokeSubscriptionResult,
   DevRobotRunRequest,
   DevRobotRunResult,
+  DevSubscriptionHistoryResponse,
+  DevSyncJobRetryResult,
   DevSyncPolicyResponse,
   DevSyncStatusResponse,
 } from "@/lib/dev-panel/types";
@@ -132,44 +137,105 @@ export async function postDevGrantSubscription(
   });
 }
 
-export interface DevGiftKeyCreated {
+interface GiftKeyApiRow {
   code: string;
-  planId: string;
-  durationDays: number;
+  plan_id: string;
+  duration_days: number;
+  status: string;
+  key_expires_at: string | null;
+  redeemed_by_cpf: string | null;
+  redeemed_at: string | null;
+  internal_label: string | null;
+  created_at: string;
 }
 
-/** Gera um código de plano (gift key) sem conta, para resgate no cadastro. */
-export async function postDevCreateGiftKey(body: {
+function mapGiftKeyRowToView(row: GiftKeyApiRow): DevGiftKeyView {
+  return {
+    code: row.code,
+    planId: row.plan_id,
+    durationDays: row.duration_days,
+    status: row.status,
+    keyExpiresAt: row.key_expires_at,
+    redeemedByCpf: row.redeemed_by_cpf,
+    redeemedAt: row.redeemed_at,
+    internalLabel: row.internal_label,
+    createdAt: row.created_at,
+  };
+}
+
+export async function getDevGiftKeys(limit = 100): Promise<DevGiftKeyView[]> {
+  const response = await devRequestJson<{ ok: true; keys: GiftKeyApiRow[] }>(
+    `/api/dev/gift-keys?limit=${limit}`
+  );
+  return response.keys.map(mapGiftKeyRowToView);
+}
+
+/** Gera 1..N códigos de plano (gift keys) com rótulo interno opcional. */
+export async function postDevCreateGiftKeys(body: {
   planId: string;
   days: number;
-}): Promise<DevGiftKeyCreated> {
+  count: number;
+  label?: string;
+}): Promise<DevGiftKeyView[]> {
   const response = await devRequestJson<{
     ok: true;
     count: number;
-    keys: Array<{ code: string; plan_id: string; duration_days: number }>;
+    keys: GiftKeyApiRow[];
   }>("/api/dev/gift-keys", {
     method: "POST",
     body: JSON.stringify({
       planId: body.planId,
       durationDays: body.days,
-      count: 1,
+      count: body.count,
+      internalLabel: body.label?.trim() || undefined,
     }),
   });
 
-  const key = response.keys[0];
-  if (!key) {
-    throw new ApiClientError(
-      "Nenhum código foi gerado.",
-      "INTERNAL_ERROR",
-      500
-    );
-  }
+  return response.keys.map(mapGiftKeyRowToView);
+}
 
-  return {
-    code: key.code,
-    planId: key.plan_id,
-    durationDays: key.duration_days,
-  };
+export async function patchDevRevokeGiftKey(
+  code: string
+): Promise<DevGiftKeyView> {
+  const response = await devRequestJson<{ ok: true; key: GiftKeyApiRow }>(
+    `/api/dev/gift-keys/${encodeURIComponent(code)}`,
+    { method: "PATCH" }
+  );
+  return mapGiftKeyRowToView(response.key);
+}
+
+export async function postDevOrchestratorTick(): Promise<DevOpsActionResult> {
+  return devRequestJson("/api/dev/orchestrator/tick", { method: "POST" });
+}
+
+export async function postDevAccountEmailsCron(): Promise<DevOpsActionResult> {
+  return devRequestJson("/api/dev/cron/account-emails", { method: "POST" });
+}
+
+export async function postDevRetrySyncJob(
+  jobId: string
+): Promise<DevSyncJobRetryResult> {
+  return devRequestJson("/api/dev/sync-jobs/retry", {
+    method: "POST",
+    body: JSON.stringify({ jobId }),
+  });
+}
+
+export async function getDevSubscriptions(
+  accountRef: string
+): Promise<{ ok: true } & DevSubscriptionHistoryResponse> {
+  return devRequestJson(
+    `/api/dev/subscriptions?accountRef=${encodeURIComponent(accountRef)}`
+  );
+}
+
+export async function postDevRevokeSubscription(
+  accountRef: string
+): Promise<{ ok: true } & DevRevokeSubscriptionResult> {
+  return devRequestJson("/api/dev/subscriptions/revoke", {
+    method: "POST",
+    body: JSON.stringify({ accountRef }),
+  });
 }
 
 export async function getDevSyncStatus(): Promise<

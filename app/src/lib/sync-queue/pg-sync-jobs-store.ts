@@ -118,6 +118,37 @@ export function pgSyncJobRowToView(row: PgSyncJobRow): SyncQueueJobView {
   return view;
 }
 
+const SYNC_JOB_ORDER_SQL: Record<
+  "created_asc" | "started_asc" | "finished_desc",
+  string
+> = {
+  created_asc: "ORDER BY j.created_at ASC",
+  started_asc: "ORDER BY j.started_at ASC NULLS LAST",
+  finished_desc: "ORDER BY COALESCE(j.finished_at, j.created_at) DESC",
+};
+
+/** Lista jobs por status (fila cloud) — usado pelo painel dev. */
+export async function pgListSyncJobsByStatus(
+  pool: pg.Pool,
+  options: {
+    statuses: SyncJobStatus[];
+    limit: number;
+    order?: keyof typeof SYNC_JOB_ORDER_SQL;
+  }
+): Promise<PgSyncJobRow[]> {
+  if (options.statuses.length === 0) return [];
+  const capped = Math.min(Math.max(options.limit, 1), 200);
+  const orderClause = SYNC_JOB_ORDER_SQL[options.order ?? "created_asc"];
+  const result = await pool.query<PgSyncJobRow>(
+    `${SELECT_JOB_SQL}
+     WHERE j.status = ANY($1::text[])
+     ${orderClause}
+     LIMIT $2`,
+    [options.statuses, capped]
+  );
+  return result.rows;
+}
+
 export async function pgFindSyncJobById(
   pool: pg.Pool,
   jobId: string
