@@ -263,6 +263,8 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 > **Correção pós-go-live (jul/2026) — bugfix B51 `[x]`:** ativação de assinatura paga estava quebrada — a `UPDATE subscriptions` usava `$3` com só 2 parâmetros (erro Postgres `42P18`), então o pagamento era **aprovado** mas o plano ficava preso em `pending_payment`. **Fix:** parâmetro corrigido (`$2`) + `confirmBillingPayment` idempotente/auto-corretivo (reconcilia a ativação mesmo com pagamento já aprovado; só ativa `pending_payment`) + webhook responde `200` p/ pagamento inexistente (evita retries do MP). Preço de teste (R$1) revertido → **R$30/mês**. PIX aprovado → redirect `/` (Dashboard) já garantido por **F32** (poll 4s).
 
+> **Ajuste UI (jul/2026, sobre F34) `[%]`:** removido o bloco **"Histórico de pagamentos"** do modal de perfil (`ProfileSubscriptionSection`); `ProfileSubscriptionBlock` apagado e `ProfileModalBody` passa a renderizar a section direto — elimina a chamada `GET /api/billing/account` no perfil (o endpoint segue existindo p/ `/planos`).
+
 > **Painel dev:** **B70/F41** = [#6e](#6e--painel-dev--policy-pré-pix) *(fora desta ordem — vem antes)*.
 
 ---
