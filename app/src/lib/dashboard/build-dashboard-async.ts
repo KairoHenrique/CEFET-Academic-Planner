@@ -5,7 +5,8 @@ import {
 import { notFoundError } from "@/lib/api/errors";
 import type { DashboardResponse } from "@/lib/types/dashboard";
 import type { AcademicTask } from "@/lib/types/task";
-import { buildSubjectSummary } from "@/lib/disciplinas/build-subject";
+import { buildSubjectSummary, buildSubjectSummaryCore } from "@/lib/disciplinas/build-subject";
+import { SubjectSourceIndex } from "@/lib/disciplinas/build-subject-source";
 import { mapTarefaToAcademicTask } from "@/lib/disciplinas/mappers";
 import { shouldHideTaskFromDashboard } from "@/lib/tasks/dates";
 import { toIntegrationCategories } from "@/lib/integralizacao/build-integralizacao";
@@ -21,7 +22,23 @@ export async function buildDashboardFromQueries(
   }
 
   const semestreRows = await deps.getSemestreAtual();
-  const disciplinas = semestreRows.map(buildSubjectSummary);
+  const allTarefas = await deps.getTarefas();
+
+  // Bulk (cloud/postgres): monta o índice de notas/faltas/tarefas 1x e resolve
+  // cada card em O(1). Fallback SQLite (dev/PC) usa `buildSubjectSummary`.
+  let disciplinas;
+  if (deps.getAllNotas && deps.getAllFaltas) {
+    const [notas, faltas] = await Promise.all([
+      deps.getAllNotas(),
+      deps.getAllFaltas(),
+    ]);
+    const index = new SubjectSourceIndex(notas, faltas, allTarefas);
+    disciplinas = semestreRows.map((semestre) =>
+      buildSubjectSummaryCore(semestre, index.resolve(semestre.disciplina_id))
+    );
+  } else {
+    disciplinas = semestreRows.map(buildSubjectSummary);
+  }
 
   const integralizacaoPayload = await buildIntegralizacaoFromQueries(deps);
   const categories = toIntegrationCategories(integralizacaoPayload);
@@ -32,7 +49,7 @@ export async function buildDashboardFromQueries(
     semestreRows.map((row) => row.disciplina_id.toLowerCase())
   );
 
-  const tarefasDb = (await deps.getTarefas()).filter((row) =>
+  const tarefasDb = allTarefas.filter((row) =>
     activeDisciplinaIds.has(row.disciplina_id.toLowerCase())
   );
   const colorByCode = new Map(

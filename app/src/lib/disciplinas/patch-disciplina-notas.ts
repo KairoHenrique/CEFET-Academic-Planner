@@ -1,30 +1,30 @@
 import { notFoundError, validationError } from "@/lib/api/errors";
 import {
-  deleteNota,
-  getNotaById,
-  getNotasByDisciplina,
-  getSemestreAtualByCodigo,
-  notaNomeExists,
-  saveNota,
-  updateNotaFields,
-  updateNotaScore,
-} from "@/lib/db/queries";
+  mDeleteNota,
+  mGetNotaById,
+  mGetNotasByDisciplina,
+  mGetSemestreAtualByCodigo,
+  mInsertNota,
+  mNotaNomeExists,
+  mUpdateNotaFields,
+  mUpdateNotaScore,
+} from "@/lib/db/mutations/mutation-ports";
 import type {
   PatchNotasBody,
   PatchNotasResponse,
 } from "@/lib/types/disciplinas-api";
-import { computeGrade } from "./grade";
+import { computeGradeFromNotas } from "./grade";
 import { mapNotasToEvaluations } from "./mappers";
 import { SUBJECT_DISPLAY_GRADE_MAX } from "@/lib/disciplinas/grade-display";
 import { computeRemainingDistributionBudget } from "@/lib/disciplinas/grade-risk";
 
-function validateNotaScore(
+async function validateNotaScore(
   score: number | null | undefined,
   max: number,
   extra: boolean,
   disciplinaId: string,
   notaId?: number
-): void {
+): Promise<void> {
   if (score === null || score === undefined) return;
   if (score < 0) {
     throw validationError("Nota obtida não pode ser negativa.");
@@ -35,7 +35,7 @@ function validateNotaScore(
   }
 
   if (extra) {
-    const notas = getNotasByDisciplina(disciplinaId);
+    const notas = await mGetNotasByDisciplina(disciplinaId);
     const othersTotal = notas
       .filter((nota) => nota.id !== notaId)
       .reduce((acc, nota) => acc + (nota.nota_obtida ?? 0), 0);
@@ -49,15 +49,15 @@ function validateNotaScore(
   }
 }
 
-function validateDistributionBudget(
+async function validateDistributionBudget(
   disciplinaId: string,
   newMax: number,
   isExtra: boolean,
   excludeNotaId?: number
-): void {
+): Promise<void> {
   if (isExtra) return;
 
-  const notas = getNotasByDisciplina(disciplinaId);
+  const notas = await mGetNotasByDisciplina(disciplinaId);
   const evaluations = mapNotasToEvaluations(notas);
   const budget = computeRemainingDistributionBudget(evaluations, SUBJECT_DISPLAY_GRADE_MAX, {
     excludeEvaluationId: excludeNotaId,
@@ -72,16 +72,16 @@ function validateDistributionBudget(
   }
 }
 
-function assertDisciplinaSemestre(code: string) {
-  const semestre = getSemestreAtualByCodigo(code);
+async function assertDisciplinaSemestre(code: string) {
+  const semestre = await mGetSemestreAtualByCodigo(code);
   if (!semestre) {
     throw notFoundError("Disciplina não encontrada no semestre atual.");
   }
   return semestre;
 }
 
-function assertNotaDisciplina(notaId: number, disciplinaId: string) {
-  const nota = getNotaById(notaId);
+async function assertNotaDisciplina(notaId: number, disciplinaId: string) {
+  const nota = await mGetNotaById(notaId);
   if (
     !nota ||
     nota.disciplina_id.toLowerCase() !== disciplinaId.toLowerCase()
@@ -91,10 +91,10 @@ function assertNotaDisciplina(notaId: number, disciplinaId: string) {
   return nota;
 }
 
-function addManualNota(
+async function addManualNota(
   disciplinaId: string,
   body: Extract<PatchNotasBody, { action: "add" }>
-): void {
+): Promise<void> {
   const nome = body.avaliacao_nome.trim();
   if (!nome) {
     throw validationError("Nome da avaliação é obrigatório.");
@@ -102,22 +102,22 @@ function addManualNota(
   if (body.nota_maxima <= 0) {
     throw validationError("Nota máxima deve ser maior que zero.");
   }
-  if (notaNomeExists(disciplinaId, nome)) {
+  if (await mNotaNomeExists(disciplinaId, nome)) {
     throw validationError("Já existe uma avaliação com este nome.");
   }
-  validateDistributionBudget(
+  await validateDistributionBudget(
     disciplinaId,
     body.nota_maxima,
     body.nota_extra ?? false
   );
-  validateNotaScore(
+  await validateNotaScore(
     body.nota_obtida,
     body.nota_maxima,
     body.nota_extra ?? false,
     disciplinaId
   );
 
-  saveNota({
+  await mInsertNota({
     disciplina_id: disciplinaId,
     avaliacao_nome: nome,
     nota_maxima: body.nota_maxima,
@@ -128,32 +128,32 @@ function addManualNota(
   });
 }
 
-function updateNotaScoreEntry(
+async function updateNotaScoreEntry(
   disciplinaId: string,
   body: Extract<PatchNotasBody, { action: "update" }>
-): void {
-  const nota = assertNotaDisciplina(body.id, disciplinaId);
+): Promise<void> {
+  const nota = await assertNotaDisciplina(body.id, disciplinaId);
   const max = nota.nota_maxima ?? 0;
   const extra = nota.nota_extra === 1;
-  validateNotaScore(body.nota_obtida, max, extra, disciplinaId, body.id);
+  await validateNotaScore(body.nota_obtida, max, extra, disciplinaId, body.id);
 
-  const changes = updateNotaScore(body.id, body.nota_obtida);
+  const changes = await mUpdateNotaScore(body.id, body.nota_obtida);
   if (changes === 0) {
     throw validationError("Não foi possível atualizar a avaliação.");
   }
 }
 
-function updateNotaEntry(
+async function updateNotaEntry(
   disciplinaId: string,
   body: Extract<PatchNotasBody, { action: "update_manual" }>
-): void {
-  const nota = assertNotaDisciplina(body.id, disciplinaId);
+): Promise<void> {
+  const nota = await assertNotaDisciplina(body.id, disciplinaId);
 
   const nome = body.avaliacao_nome?.trim();
   if (body.avaliacao_nome !== undefined && !nome) {
     throw validationError("Nome da avaliação é obrigatório.");
   }
-  if (nome && notaNomeExists(disciplinaId, nome, body.id)) {
+  if (nome && (await mNotaNomeExists(disciplinaId, nome, body.id))) {
     throw validationError("Já existe uma avaliação com este nome.");
   }
   if (body.nota_maxima !== undefined && body.nota_maxima <= 0) {
@@ -165,12 +165,12 @@ function updateNotaEntry(
     body.nota_extra !== undefined ? body.nota_extra : nota.nota_extra === 1;
 
   if (body.nota_maxima !== undefined) {
-    validateDistributionBudget(disciplinaId, body.nota_maxima, extra, body.id);
+    await validateDistributionBudget(disciplinaId, body.nota_maxima, extra, body.id);
   }
 
-  validateNotaScore(body.nota_obtida, max, extra, disciplinaId, body.id);
+  await validateNotaScore(body.nota_obtida, max, extra, disciplinaId, body.id);
 
-  const changes = updateNotaFields(body.id, {
+  const changes = await mUpdateNotaFields(body.id, {
     avaliacao_nome: nome,
     nota_maxima: body.nota_maxima,
     nota_obtida: body.nota_obtida,
@@ -184,43 +184,43 @@ function updateNotaEntry(
   }
 }
 
-function deleteNotaEntry(
+async function deleteNotaEntry(
   disciplinaId: string,
   body: Extract<PatchNotasBody, { action: "delete" }>
-): void {
-  assertNotaDisciplina(body.id, disciplinaId);
+): Promise<void> {
+  await assertNotaDisciplina(body.id, disciplinaId);
 
-  const changes = deleteNota(body.id);
+  const changes = await mDeleteNota(body.id);
   if (changes === 0) {
     throw validationError("Não foi possível excluir a avaliação.");
   }
 }
 
-export function patchDisciplinaNotas(
+export async function patchDisciplinaNotas(
   code: string,
   body: PatchNotasBody
-): PatchNotasResponse {
-  const semestre = assertDisciplinaSemestre(code);
+): Promise<PatchNotasResponse> {
+  const semestre = await assertDisciplinaSemestre(code);
   const disciplinaId = semestre.disciplina_id;
 
   switch (body.action) {
     case "add":
-      addManualNota(disciplinaId, body);
+      await addManualNota(disciplinaId, body);
       break;
     case "update":
-      updateNotaScoreEntry(disciplinaId, body);
+      await updateNotaScoreEntry(disciplinaId, body);
       break;
     case "update_manual":
-      updateNotaEntry(disciplinaId, body);
+      await updateNotaEntry(disciplinaId, body);
       break;
     case "delete":
-      deleteNotaEntry(disciplinaId, body);
+      await deleteNotaEntry(disciplinaId, body);
       break;
   }
 
-  const notas = getNotasByDisciplina(disciplinaId);
+  const notas = await mGetNotasByDisciplina(disciplinaId);
   return {
     evaluations: mapNotasToEvaluations(notas),
-    grade: computeGrade(disciplinaId),
+    grade: computeGradeFromNotas(notas),
   };
 }

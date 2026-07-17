@@ -1,20 +1,17 @@
 import { notFoundError, validationError } from "@/lib/api/errors";
 import {
-  deleteTarefa,
-  getSemestreAtualByCodigo,
-  getTarefaById,
-  getTarefasByDisciplina,
-  saveTarefa,
-  updateTarefaFields,
-} from "@/lib/db/queries";
+  mGetSemestreAtualByCodigo,
+  mGetTarefaById,
+  mInsertTarefa,
+} from "@/lib/db/mutations/mutation-ports";
 import type { CreateTarefaBody } from "@/lib/types/disciplinas-api";
 import { mapTarefaToAcademicTask } from "./mappers";
 
-export function createDisciplinaTarefa(
+export async function createDisciplinaTarefa(
   code: string,
   body: CreateTarefaBody
-): ReturnType<typeof mapTarefaToAcademicTask> {
-  const semestre = getSemestreAtualByCodigo(code);
+): Promise<ReturnType<typeof mapTarefaToAcademicTask>> {
+  const semestre = await mGetSemestreAtualByCodigo(code);
   if (!semestre) {
     throw notFoundError("Disciplina não encontrada no semestre atual.");
   }
@@ -27,7 +24,7 @@ export function createDisciplinaTarefa(
     throw validationError("Data de entrega é obrigatória.");
   }
 
-  saveTarefa({
+  const createdId = await mInsertTarefa({
     disciplina_id: semestre.disciplina_id,
     titulo,
     descricao: body.descricao?.trim() ?? "",
@@ -43,8 +40,7 @@ export function createDisciplinaTarefa(
     pontuacao_maxima: body.pontuacao_maxima ?? null,
   });
 
-  const rows = getTarefasByDisciplina(semestre.disciplina_id);
-  const created = rows[rows.length - 1];
+  const created = await mGetTarefaById(createdId);
   if (!created) {
     throw validationError("Não foi possível criar a tarefa.");
   }

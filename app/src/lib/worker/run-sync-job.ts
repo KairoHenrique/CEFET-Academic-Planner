@@ -1,4 +1,5 @@
 import { ApiError } from "@/lib/api/errors";
+import { runWithScraperSqlite } from "@/lib/db/backend/sqlite-guard";
 import { ensureDbReady } from "@/lib/db/bootstrap";
 import { runWithUserDb } from "@/lib/db/connection-manager";
 import { runCalendarioSync } from "@/lib/sync/run-calendario-sync";
@@ -104,12 +105,16 @@ export async function runWorkerSyncJob(
 
   try {
     const password = resolveWorkerJobPassword(request);
+    // Staging SQLite + mirror PG: mesmo override ALS das rotas locais (B72d).
+    // Sem isso, PLANNER_DATABASE=postgres no .env.local bloqueia o bootstrap.
     const pipeline = await slot.run(() =>
       withTimeout(
-        runWithUserDb(request.username, () => {
-          ensureDbReady();
-          return runRobotPipeline(request, password);
-        }),
+        runWithScraperSqlite(() =>
+          runWithUserDb(request.username, () => {
+            ensureDbReady();
+            return runRobotPipeline(request, password);
+          })
+        ),
         jobTimeoutMs,
         request.jobId
       )

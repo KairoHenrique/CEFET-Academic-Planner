@@ -6,6 +6,6 @@ import { createCalendarEvent } from "@/lib/calendar/create-calendar-event";
 
 export const POST = withDb(async (request) => {
   const body = parseCreateCalendarEventBody(await request.json());
-  const event = createCalendarEvent(body);
+  const event = await createCalendarEvent(body);
   return apiSuccess(event, 201);
 });

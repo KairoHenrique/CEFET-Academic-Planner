@@ -1,7 +1,7 @@
 import { notFoundError } from "@/lib/api/errors";
 import { resolveSubjectShortLabel } from "@/lib/disciplinas/subject-display-name";
 import { getAluno, getSemestreAtual } from "@/lib/db/queries";
-import type { SemestreAtualWithDisciplina } from "@/lib/types/db";
+import type { AlunoRow, SemestreAtualWithDisciplina } from "@/lib/types/db";
 import type {
   ScheduleApiResponse,
   ScheduleApiSlot,
@@ -74,15 +74,17 @@ function placeSubjectOnGrid(
   });
 }
 
-export function buildScheduleGrid(): ScheduleApiResponse {
-  const aluno = getAluno();
+/** Núcleo backend-agnóstico: monta a grade a partir dos dados já carregados. */
+export function buildScheduleGridFromData(
+  aluno: AlunoRow | undefined,
+  semestre: SemestreAtualWithDisciplina[]
+): ScheduleApiResponse {
   if (!aluno) {
     throw notFoundError(
       "Nenhum dado sincronizado. Faça login e sincronize com o SIGAA."
     );
   }
 
-  const semestre = getSemestreAtual();
   const grid: (ScheduleApiSlot | null)[][] = createEmptyScheduleGrid();
 
   for (const row of semestre) {
@@ -94,4 +96,8 @@ export function buildScheduleGrid(): ScheduleApiResponse {
     timeSlots: [...timeSlots],
     grid,
   };
+}
+
+export function buildScheduleGrid(): ScheduleApiResponse {
+  return buildScheduleGridFromData(getAluno(), getSemestreAtual());
 }

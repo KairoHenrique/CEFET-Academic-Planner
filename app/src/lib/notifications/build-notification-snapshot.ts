@@ -17,6 +17,13 @@ import {
 import { buildGradeNotificationSubtitle } from "@/lib/notifications/grade-notification-copy";
 import { normalizeTime } from "@/lib/tasks/dates";
 import type {
+  AlunoRow,
+  NotaRow,
+  SemestreAtualWithDisciplina,
+  TarefaRow,
+} from "@/lib/types/db";
+import type { NotificationPreferences } from "@/lib/types/perfil-api";
+import type {
   NotificationSnapshotItem,
   PendingCalendarReminderSource,
   PendingTaskReminderSource,
@@ -30,23 +37,38 @@ export function isTaskEligibleForNotification<
   return Boolean(row.data_fim?.trim());
 }
 
-export function buildNotificationSnapshot(): {
+export interface NotificationSnapshotData {
+  aluno: AlunoRow | undefined;
+  preferences: NotificationPreferences;
+  semestreRows: SemestreAtualWithDisciplina[];
+  tarefas: TarefaRow[];
+  notasSemestre: NotaRow[];
+  calendarSources: {
+    events: PendingCalendarReminderSource[];
+    classes: PendingCalendarReminderSource[];
+  };
+}
+
+export interface NotificationSnapshot {
   items: NotificationSnapshotItem[];
   pendingTasks: PendingTaskReminderSource[];
   pendingCalendarEvents: PendingCalendarReminderSource[];
   pendingClassSessions: PendingCalendarReminderSource[];
-  preferences: ReturnType<typeof getNotificationPreferences>;
+  preferences: NotificationPreferences;
   capturedAt: string;
-} {
-  const aluno = getAluno();
+}
+
+/** Núcleo puro — recebe dados já carregados (SQLite local ou Postgres cloud). */
+export function buildNotificationSnapshotFromData(
+  data: NotificationSnapshotData
+): NotificationSnapshot {
+  const { aluno, preferences, semestreRows, tarefas, notasSemestre } = data;
   if (!aluno) {
     throw notFoundError(
       "Nenhum dado sincronizado. Faça login e sincronize com o SIGAA."
     );
   }
 
-  const preferences = getNotificationPreferences();
-  const semestreRows = getSemestreAtual();
   const activeIds = new Set(
     semestreRows.map((row) => row.disciplina_id.toLowerCase())
   );
@@ -57,7 +79,7 @@ export function buildNotificationSnapshot(): {
   const items: NotificationSnapshotItem[] = [];
   const pendingTasks: PendingTaskReminderSource[] = [];
 
-  for (const row of getTarefas()) {
+  for (const row of tarefas) {
     if (!activeIds.has(row.disciplina_id.toLowerCase())) continue;
     if (!isTaskEligibleForNotification(row)) continue;
 
@@ -91,7 +113,7 @@ export function buildNotificationSnapshot(): {
   }
 
   if (isNotificationKindEnabled("grade", preferences)) {
-    for (const row of getNotasForSemestreAtual()) {
+    for (const row of notasSemestre) {
       if (row.nota_obtida === null) continue;
 
       const disciplinaNome =
@@ -126,14 +148,24 @@ export function buildNotificationSnapshot(): {
     return aDate.localeCompare(bDate);
   });
 
-  const calendarSources = buildPendingCalendarReminderSources();
-
   return {
     items,
     pendingTasks,
-    pendingCalendarEvents: calendarSources.events,
-    pendingClassSessions: calendarSources.classes,
+    pendingCalendarEvents: data.calendarSources.events,
+    pendingClassSessions: data.calendarSources.classes,
     preferences,
     capturedAt: new Date().toISOString(),
   };
+}
+
+/** Caminho SQLite (dev/PC) — carrega os dados e delega ao núcleo puro. */
+export function buildNotificationSnapshot(): NotificationSnapshot {
+  return buildNotificationSnapshotFromData({
+    aluno: getAluno(),
+    preferences: getNotificationPreferences(),
+    semestreRows: getSemestreAtual(),
+    tarefas: getTarefas(),
+    notasSemestre: getNotasForSemestreAtual(),
+    calendarSources: buildPendingCalendarReminderSources(),
+  });
 }

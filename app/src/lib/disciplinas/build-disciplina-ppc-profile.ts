@@ -14,9 +14,11 @@ import {
 
 export function buildDisciplinaPpcProfile(
   code: string,
-  disciplinaOverride?: DisciplinaRow
+  disciplinaOverride?: DisciplinaRow,
+  skipSqliteLookup = false
 ): SubjectDetailResponse {
-  const disciplina = disciplinaOverride ?? getDisciplinaByCodigo(code);
+  const disciplina =
+    disciplinaOverride ?? (skipSqliteLookup ? undefined : getDisciplinaByCodigo(code));
   if (!disciplina) {
     throw notFoundError("Disciplina não encontrada no PPC do curso.");
   }

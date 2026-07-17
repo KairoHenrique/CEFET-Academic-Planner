@@ -13,6 +13,6 @@ export const PATCH = withDb(async (request, context: RouteContext) => {
   const { id } = await context.params;
   const tarefaId = parsePositiveIntParam(id, "ID da tarefa");
   const body = parsePatchTarefaBody(await request.json());
-  const data = patchTarefa(tarefaId, body);
+  const data = await patchTarefa(tarefaId, body);
   return apiSuccess(data);
 });

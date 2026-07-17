@@ -36,13 +36,15 @@ export function buildIntegralizacao(): IntegralizacaoResponse {
     semestreAtual.map((entry) => entry.disciplina_id)
   );
 
+  const sigaaResumo = readSigaaIntegralizacaoResumo();
+
   const categories = aggregateIntegralizacaoCategories(
     rows,
     catalog,
-    computedByType
+    computedByType,
+    sigaaResumo.fromHistoricoPdf ?? false
   );
 
-  const sigaaResumo = readSigaaIntegralizacaoResumo();
   const totalHours = sigaaResumo.totalCurriculo ?? getIntegrationTotalHours();
   const totalDoneFromCategories = categories.reduce(
     (sum, category) => sum + category.done,

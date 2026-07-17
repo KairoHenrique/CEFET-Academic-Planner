@@ -1,9 +1,10 @@
 import { notFoundError, validationError } from "@/lib/api/errors";
 import { normalizeHexColor } from "@/lib/colors/palette";
 import {
-  getSemestreAtualByCodigo,
-  updateSemestreAtualAppearance,
-} from "@/lib/db/queries";
+  mGetSemestreAtualByCodigo,
+  mUpdateSemestreAtualAppearance,
+} from "@/lib/db/mutations/mutation-ports";
+import type { UpdateAppearanceFields } from "@/lib/db/postgres/queries-write";
 import {
   sanitizeSubjectDisplayName,
   sanitizeSubjectNickname,
@@ -23,16 +24,16 @@ function equalsIgnoringAccent(a: string, b: string): boolean {
   return a.localeCompare(b, "pt-BR", { sensitivity: "accent" }) === 0;
 }
 
-export function patchDisciplinaAppearance(
+export async function patchDisciplinaAppearance(
   code: string,
   body: PatchDisciplinaAppearanceBody
 ) {
-  const semestre = getSemestreAtualByCodigo(code);
+  const semestre = await mGetSemestreAtualByCodigo(code);
   if (!semestre) {
     throw notFoundError("Disciplina não encontrada no semestre atual.");
   }
 
-  const updates: Parameters<typeof updateSemestreAtualAppearance>[1] = {};
+  const updates: UpdateAppearanceFields = {};
 
   if (body.color !== undefined) {
     const color = normalizeHexColor(body.color);
@@ -126,7 +127,10 @@ export function patchDisciplinaAppearance(
     );
   }
 
-  const changes = updateSemestreAtualAppearance(semestre.disciplina_id, updates);
+  const changes = await mUpdateSemestreAtualAppearance(
+    semestre.disciplina_id,
+    updates
+  );
   if (changes === 0) {
     throw validationError("Não foi possível atualizar a aparência da disciplina.");
   }

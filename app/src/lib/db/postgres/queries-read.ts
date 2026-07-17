@@ -1,9 +1,15 @@
 import { resolveQueryCursoId } from "@/lib/db/resolve-query-curso-id";
 import { getPostgresPool } from "@/lib/db/postgres/pool";
 import { getActiveTenantUserId } from "@/lib/db/postgres/tenant-context";
+import {
+  isValidCalendarioEventoLabel,
+  isValidCalendarioIsoDate,
+} from "@/lib/scraper/calendario/calendario-event-filter";
 import type {
   AlunoRow,
+  CalendarioAcademicoRow,
   DisciplinaRow,
+  EventoCalendarioRow,
   FaltaRow,
   GrupoMembroRow,
   HistoricoRow,
@@ -12,6 +18,7 @@ import type {
   SemestreAtualWithDisciplina,
   RequisitoRow,
   TarefaRow,
+  TarefaCalendarRow,
   TurmaOfertadaRow,
 } from "@/lib/types/db";
 
@@ -273,7 +280,7 @@ export async function pgGetGrupoByDisciplina(
   }));
 }
 
-function mapTarefaRow(row: Record<string, unknown>): TarefaRow {
+export function mapTarefaRow(row: Record<string, unknown>): TarefaRow {
   return {
     id: Number(row.id),
     disciplina_id: String(row.disciplina_id),
@@ -295,7 +302,7 @@ function mapTarefaRow(row: Record<string, unknown>): TarefaRow {
   };
 }
 
-function mapFaltaRow(row: Record<string, unknown>): FaltaRow {
+export function mapFaltaRow(row: Record<string, unknown>): FaltaRow {
   return {
     id: Number(row.id),
     disciplina_id: String(row.disciplina_id),
@@ -305,6 +312,20 @@ function mapFaltaRow(row: Record<string, unknown>): FaltaRow {
     manual: row.manual != null ? Number(row.manual) : undefined,
     status_override:
       row.status_override != null ? Number(row.status_override) : undefined,
+  };
+}
+
+export function mapNotaRow(row: Record<string, unknown>): NotaRow {
+  return {
+    id: Number(row.id),
+    disciplina_id: String(row.disciplina_id),
+    avaliacao_nome: String(row.avaliacao_nome),
+    nota_maxima: row.nota_maxima != null ? Number(row.nota_maxima) : null,
+    nota_obtida: row.nota_obtida != null ? Number(row.nota_obtida) : null,
+    manual: Number(row.manual ?? 0),
+    nota_override:
+      row.nota_override != null ? Number(row.nota_override) : undefined,
+    nota_extra: row.nota_extra != null ? Number(row.nota_extra) : undefined,
   };
 }
 
@@ -322,17 +343,39 @@ export async function pgGetNotasByDisciplina(
      ORDER BY id`,
     [userId, cursoId(), disciplinaId]
   );
-  return result.rows.map((row) => ({
-    id: Number(row.id),
-    disciplina_id: String(row.disciplina_id),
-    avaliacao_nome: String(row.avaliacao_nome),
-    nota_maxima: row.nota_maxima != null ? Number(row.nota_maxima) : null,
-    nota_obtida: row.nota_obtida != null ? Number(row.nota_obtida) : null,
-    manual: Number(row.manual ?? 0),
-    nota_override:
-      row.nota_override != null ? Number(row.nota_override) : undefined,
-    nota_extra: row.nota_extra != null ? Number(row.nota_extra) : undefined,
-  }));
+  return result.rows.map(mapNotaRow);
+}
+
+/** Todas as notas do usuário no curso ativo (bulk — evita N+1 por disciplina). */
+export async function pgGetAllNotas(): Promise<NotaRow[]> {
+  const userId = tenantUserId();
+  if (!userId) {
+    return [];
+  }
+
+  const result = await getPostgresPool().query(
+    `SELECT * FROM notas
+     WHERE user_id = $1 AND curso_id = $2
+     ORDER BY disciplina_id, id`,
+    [userId, cursoId()]
+  );
+  return result.rows.map(mapNotaRow);
+}
+
+/** Todas as faltas do usuário no curso ativo (bulk — evita N+1 por disciplina). */
+export async function pgGetAllFaltas(): Promise<FaltaRow[]> {
+  const userId = tenantUserId();
+  if (!userId) {
+    return [];
+  }
+
+  const result = await getPostgresPool().query(
+    `SELECT * FROM faltas
+     WHERE user_id = $1 AND curso_id = $2
+     ORDER BY disciplina_id, data, id`,
+    [userId, cursoId()]
+  );
+  return result.rows.map(mapFaltaRow);
 }
 
 function mapTurmaOfertadaRow(row: Record<string, unknown>): TurmaOfertadaRow {
@@ -364,6 +407,115 @@ function mapTurmaOfertadaRow(row: Record<string, unknown>): TurmaOfertadaRow {
     curso_id: row.curso_id != null ? String(row.curso_id) : null,
     synced_at: row.synced_at != null ? String(row.synced_at) : null,
   };
+}
+
+export function mapTarefaCalendarRow(row: Record<string, unknown>): TarefaCalendarRow {
+  return {
+    ...mapTarefaRow(row),
+    disciplina_nome: String(row.disciplina_nome ?? ""),
+    disciplina_apelido:
+      row.disciplina_apelido != null ? String(row.disciplina_apelido) : null,
+    cor: row.cor != null ? String(row.cor) : null,
+  };
+}
+
+export function mapEventoCalendarioRow(
+  row: Record<string, unknown>
+): EventoCalendarioRow {
+  return {
+    id: Number(row.id),
+    titulo: String(row.titulo),
+    descricao: row.descricao != null ? String(row.descricao) : null,
+    data: String(row.data),
+    data_fim: row.data_fim != null ? String(row.data_fim) : null,
+    hora_inicio: row.hora_inicio != null ? String(row.hora_inicio) : null,
+    hora_fim: row.hora_fim != null ? String(row.hora_fim) : null,
+    recorrencia: (row.recorrencia != null
+      ? String(row.recorrencia)
+      : "none") as EventoCalendarioRow["recorrencia"],
+    recorrencia_ate:
+      row.recorrencia_ate != null ? String(row.recorrencia_ate) : null,
+    recorrencia_dias:
+      row.recorrencia_dias != null ? String(row.recorrencia_dias) : null,
+    tipo: String(row.tipo) as EventoCalendarioRow["tipo"],
+    disciplina_id: row.disciplina_id != null ? String(row.disciplina_id) : null,
+    cor: row.cor != null ? String(row.cor) : null,
+    concluida: Number(row.concluida ?? 0),
+    manual: Number(row.manual ?? 1),
+    disciplina_nome:
+      row.disciplina_nome != null ? String(row.disciplina_nome) : null,
+    disciplina_apelido:
+      row.disciplina_apelido != null ? String(row.disciplina_apelido) : null,
+  };
+}
+
+/** Calendário acadêmico global — filtra linhas inválidas (espelha o purge SQLite). */
+export async function pgGetCalendarioAcademico(): Promise<
+  CalendarioAcademicoRow[]
+> {
+  const result = await getPostgresPool().query(
+    `SELECT id, evento, data_inicio, data_fim, semestre
+     FROM calendario_academico
+     ORDER BY data_inicio`
+  );
+  return result.rows
+    .map((row) => ({
+      id: Number(row.id),
+      evento: String(row.evento),
+      data_inicio: String(row.data_inicio),
+      data_fim: row.data_fim != null ? String(row.data_fim) : null,
+      semestre: row.semestre != null ? String(row.semestre) : null,
+    }))
+    .filter(
+      (row) =>
+        isValidCalendarioEventoLabel(row.evento) &&
+        isValidCalendarioIsoDate(row.data_inicio) &&
+        (row.data_fim == null || isValidCalendarioIsoDate(row.data_fim))
+    );
+}
+
+export async function pgGetTarefasForCalendar(): Promise<TarefaCalendarRow[]> {
+  const userId = tenantUserId();
+  if (!userId) {
+    return [];
+  }
+
+  const result = await getPostgresPool().query(
+    `SELECT t.*, d.nome AS disciplina_nome, s.apelido AS disciplina_apelido,
+            s.cor AS cor
+     FROM tarefas t
+     JOIN disciplinas d
+       ON d.curso_id = t.curso_id AND d.codigo = t.disciplina_id
+     LEFT JOIN semestre_atual s
+       ON s.user_id = t.user_id AND s.curso_id = t.curso_id
+      AND s.disciplina_id = t.disciplina_id
+     WHERE t.user_id = $1 AND t.curso_id = $2
+       AND COALESCE(t.data_fim, t.data_inicio) IS NOT NULL
+     ORDER BY COALESCE(t.data_fim, t.data_inicio), t.id`,
+    [userId, cursoId()]
+  );
+  return result.rows.map(mapTarefaCalendarRow);
+}
+
+export async function pgGetEventosCalendario(): Promise<EventoCalendarioRow[]> {
+  const userId = tenantUserId();
+  if (!userId) {
+    return [];
+  }
+
+  const result = await getPostgresPool().query(
+    `SELECT e.*, d.nome AS disciplina_nome, s.apelido AS disciplina_apelido
+     FROM eventos_calendario e
+     LEFT JOIN disciplinas d
+       ON d.curso_id = e.curso_id AND d.codigo = e.disciplina_id
+     LEFT JOIN semestre_atual s
+       ON s.user_id = e.user_id AND s.curso_id = e.curso_id
+      AND s.disciplina_id = e.disciplina_id
+     WHERE e.user_id = $1 AND e.curso_id = $2
+     ORDER BY e.data, e.id`,
+    [userId, cursoId()]
+  );
+  return result.rows.map(mapEventoCalendarioRow);
 }
 
 export async function pgGetTurmasOfertadas(

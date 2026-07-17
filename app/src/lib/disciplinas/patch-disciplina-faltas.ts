@@ -1,11 +1,11 @@
 import { notFoundError, validationError } from "@/lib/api/errors";
 import {
-  countFaltasByDisciplina,
-  getFaltaById,
-  getFaltasByDisciplina,
-  getSemestreAtualByCodigo,
-  updateFaltaStatus,
-} from "@/lib/db/queries";
+  mGetFaltaById,
+  mGetFaltasByDisciplina,
+  mGetSemestreAtualByCodigo,
+  mUpdateFaltaStatus,
+} from "@/lib/db/mutations/mutation-ports";
+import { countFaltasFromRows } from "@/lib/disciplinas/build-subject-source";
 import type {
   PatchFaltaBody,
   PatchFaltaResponse,
@@ -14,17 +14,17 @@ import { buildAttendanceSummary } from "./attendance";
 
 const VALID_STATUS = new Set(["presente", "falta", "nao_registrada"]);
 
-export function patchDisciplinaFalta(
+export async function patchDisciplinaFalta(
   code: string,
   body: PatchFaltaBody
-): PatchFaltaResponse {
-  const semestre = getSemestreAtualByCodigo(code);
+): Promise<PatchFaltaResponse> {
+  const semestre = await mGetSemestreAtualByCodigo(code);
   if (!semestre) {
     throw notFoundError("Disciplina não encontrada no semestre atual.");
   }
 
   const disciplinaId = semestre.disciplina_id;
-  const falta = getFaltaById(body.id);
+  const falta = await mGetFaltaById(body.id);
 
   if (
     !falta ||
@@ -37,17 +37,17 @@ export function patchDisciplinaFalta(
     throw validationError("Status de frequência inválido.");
   }
 
-  const changes = updateFaltaStatus(body.id, body.status);
+  const changes = await mUpdateFaltaStatus(body.id, body.status);
   if (changes === 0) {
     throw validationError("Não foi possível atualizar a frequência.");
   }
 
-  const faltas = getFaltasByDisciplina(disciplinaId);
+  const faltas = await mGetFaltasByDisciplina(disciplinaId);
   const maxAbsences = semestre.max_faltas ?? 15;
   const attendance = buildAttendanceSummary(faltas, maxAbsences);
 
   return {
     attendance,
-    absences: countFaltasByDisciplina(disciplinaId),
+    absences: countFaltasFromRows(faltas),
   };
 }

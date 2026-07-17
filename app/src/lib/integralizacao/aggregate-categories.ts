@@ -61,7 +61,8 @@ function mapManualEntries(typeRows: IntegralizacaoRow[]): IntegralizacaoManualEn
 export function aggregateIntegralizacaoCategories(
   rows: IntegralizacaoRow[],
   catalog: readonly ChCatalogEntry[],
-  computedByType: Partial<Record<ChType, number>> = {}
+  computedByType: Partial<Record<ChType, number>> = {},
+  fromHistoricoPdf = false
 ): IntegralizacaoCategoryDetail[] {
   const grouped = groupRowsByTipo(rows);
 
@@ -72,7 +73,8 @@ export function aggregateIntegralizacaoCategories(
       entry.tipoCh,
       typeRows,
       computedByType[entry.tipoCh] ?? 0,
-      entry.totalRequired
+      entry.totalRequired,
+      fromHistoricoPdf
     );
     const pending = resolvePendingHours(typeRows, total, done);
 
