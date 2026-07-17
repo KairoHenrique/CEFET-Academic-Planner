@@ -17,10 +17,16 @@ interface MercadoPagoPaymentApiResponse {
 
 const MERCADOPAGO_API = "https://api.mercadopago.com/v1/payments";
 
+/**
+ * Consulta o pagamento no Mercado Pago.
+ * - `404` (pagamento inexistente, ex.: teste do painel MP) → retorna `null`
+ *   para que o webhook responda 200 (ack) sem processar e sem gerar retry.
+ * - Demais erros (5xx/rede) → lança 502 para o MP re-tentar a notificação.
+ */
 export async function fetchMercadoPagoPaymentDetails(
   gatewayPaymentId: string,
   accessToken: string
-): Promise<MercadoPagoPaymentDetails> {
+): Promise<MercadoPagoPaymentDetails | null> {
   const trimmedId = gatewayPaymentId.trim();
   if (!trimmedId) {
     throw new ApiError("VALIDATION_ERROR", "ID de pagamento Mercado Pago ausente.", 400);
@@ -32,6 +38,10 @@ export async function fetchMercadoPagoPaymentDetails(
       Authorization: `Bearer ${accessToken.trim()}`,
     },
   });
+
+  if (response.status === 404) {
+    return null;
+  }
 
   const payload = (await response.json()) as MercadoPagoPaymentApiResponse;
 
