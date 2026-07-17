@@ -1,3 +1,4 @@
+import { normalizeCpf } from "@/lib/auth/account/cpf";
 import { getAluno, getHistorico, getSemestreAtual, countDisciplinas } from "@/lib/db/queries";
 import {
   getSyncLastAt,
@@ -19,8 +20,12 @@ function hasSyncedAcademicData(): boolean {
  * Login rápido só se este CPF já concluiu ao menos um sync full com dados reais.
  */
 export function evaluateSyncReadiness(username: string): SyncReadiness {
-  const trimmed = username.trim();
-  if (!trimmed) {
+  // O CPF do usuário e o `sync.username` gravado podem estar em formatos
+  // diferentes (com/sem pontuação). Normalizamos para dígitos — a mesma regra
+  // que resolve o DB por usuário (connection-manager) — para não forçar um
+  // sync full de "primeiro acesso" em quem já sincronizou antes.
+  const normalizedUsername = normalizeCpf(username);
+  if (!normalizedUsername) {
     return { canFastLogin: false, reason: "no_data" };
   }
 
@@ -42,7 +47,7 @@ export function evaluateSyncReadiness(username: string): SyncReadiness {
   }
 
   const syncedUser = getSyncedUsername();
-  if (syncedUser && syncedUser !== trimmed) {
+  if (syncedUser && normalizeCpf(syncedUser) !== normalizedUsername) {
     return { canFastLogin: false, reason: "no_data" };
   }
 
