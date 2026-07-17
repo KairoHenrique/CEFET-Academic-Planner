@@ -10,6 +10,7 @@ import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Modal } from "@/components/ui/Modal";
 import { FilterBar } from "@/components/ui/FilterBar";
 import { EventDetailContent } from "@/components/ui/ActivityDetail";
+import { CalendarAlertBanner } from "@/components/alerts/CalendarAlertBanner";
 import type { CalendarEvent, EventTypeFilter } from "@/lib/types/calendar";
 import {
   CALENDAR_FILTER_OPTIONS,
@@ -100,6 +101,8 @@ export function CalendarioView() {
           </p>
         </div>
       )}
+
+      <CalendarAlertBanner />
 
       <div className="col-12 calendar-page-filters">
         <div className="calendar-filters-card card">
