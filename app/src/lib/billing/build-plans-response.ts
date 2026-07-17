@@ -54,6 +54,7 @@ export function buildBillingPlansResponse(): BillingPlansResponse {
       label: TRIAL_PLAN_LABEL,
     },
     plans,
+    promo: null,
     quarterSavings: computeBundleSavings(
       monthCents,
       3,

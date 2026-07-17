@@ -1272,6 +1272,122 @@ a:hover {
   color: var(--gold-200);
 }
 
+/* Banner de promoção ativa (F42) */
+.planos-promo {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3) var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  border-radius: var(--radius-lg, 16px);
+  border: 1px solid var(--border-gold);
+  background: linear-gradient(
+    135deg,
+    rgba(212, 175, 55, 0.16),
+    rgba(212, 175, 55, 0.04) 60%,
+    rgba(255, 255, 255, 0.02)
+  );
+  overflow: hidden;
+  isolation: isolate;
+  animation: planos-promo-in 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.planos-promo-glow {
+  position: absolute;
+  inset: -40% -10% auto auto;
+  width: 260px;
+  height: 260px;
+  border-radius: 999px;
+  background: radial-gradient(
+    circle,
+    rgba(212, 175, 55, 0.28),
+    transparent 70%
+  );
+  filter: blur(8px);
+  z-index: -1;
+  pointer-events: none;
+}
+
+.planos-promo-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: var(--space-1) var(--space-3);
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--bg-primary);
+  background: var(--gold-300);
+  box-shadow: 0 4px 14px rgba(212, 175, 55, 0.3);
+  white-space: nowrap;
+}
+
+.planos-promo-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1 1 260px;
+  min-width: 0;
+}
+
+.planos-promo-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--text-primary);
+}
+
+.planos-promo-copy {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.planos-promo-deadline {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-1) var(--space-3);
+  border-radius: 999px;
+  border: 1px solid var(--border-gold);
+  background: rgba(0, 0, 0, 0.18);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--gold-200);
+  white-space: nowrap;
+}
+
+@keyframes planos-promo-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 560px) {
+  .planos-promo {
+    padding: var(--space-4);
+  }
+  .planos-promo-deadline {
+    order: 3;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .planos-promo {
+    animation: none;
+  }
+}
+
 .planos-alert {
   display: flex;
   flex-direction: column;
@@ -1408,6 +1524,16 @@ a:hover {
   background: var(--gold-300);
 }
 
+.planos-showcase-badge--promo {
+  background: linear-gradient(135deg, #f5c542, var(--gold-300));
+  box-shadow: 0 6px 18px rgba(212, 175, 55, 0.35);
+}
+
+.planos-showcase--promo {
+  border-color: var(--border-gold);
+  box-shadow: 0 0 0 1px var(--border-gold), 0 18px 40px rgba(212, 175, 55, 0.12);
+}
+
 .planos-showcase-duration {
   margin: 0;
   font-size: 0.8125rem;
@@ -1421,6 +1547,15 @@ a:hover {
   font-size: 1.5rem;
   font-weight: 700;
   color: var(--text-primary);
+}
+
+.planos-showcase-base-price {
+  margin: var(--space-2) 0 -4px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-decoration: line-through;
+  text-decoration-color: var(--gold-400);
 }
 
 .planos-showcase-price {
@@ -11569,12 +11704,80 @@ a:hover {
 
 .dev-grant-actions {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   gap: var(--space-2);
   margin-top: var(--space-4);
 }
 
 .dev-grant-feedback {
   margin-top: var(--space-3);
+}
+
+.dev-promo-block {
+  margin-top: var(--space-5);
+}
+
+.dev-promo-preview {
+  margin-top: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-gold);
+  background: rgba(212, 175, 55, 0.08);
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.dev-promo-price-cell s {
+  opacity: 0.7;
+}
+
+.dev-active-promo {
+  margin-top: var(--space-3);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-gold);
+  background: linear-gradient(
+    135deg,
+    rgba(212, 175, 55, 0.14),
+    rgba(212, 175, 55, 0.03)
+  );
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.dev-active-promo-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.dev-active-promo-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-1) var(--space-3);
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  color: var(--bg-primary);
+  background: var(--gold-300);
+  white-space: nowrap;
+}
+
+.dev-active-promo-title {
+  margin: 0;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.dev-active-promo-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
 }
 
 @media (max-width: 1100px) {

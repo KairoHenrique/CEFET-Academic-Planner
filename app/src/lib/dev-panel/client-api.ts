@@ -8,6 +8,7 @@ import type {
   DevOpsActionResult,
   DevPromotionRequest,
   DevPromotionResult,
+  DevSitePromoClearResult,
   DevRevokeSubscriptionResult,
   DevRobotRunRequest,
   DevRobotRunResult,
@@ -213,6 +214,10 @@ export async function postDevDispatchPromotion(
     method: "POST",
     body: JSON.stringify(body),
   });
+}
+
+export async function deleteDevSitePromo(): Promise<DevSitePromoClearResult> {
+  return devRequestJson("/api/dev/promotions", { method: "DELETE" });
 }
 
 export async function postDevOrchestratorTick(): Promise<DevOpsActionResult> {

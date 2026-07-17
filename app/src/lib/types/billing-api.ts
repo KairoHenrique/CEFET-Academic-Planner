@@ -9,6 +9,7 @@ export type {
   BillingPlanView,
   BillingPlansResponse,
   PaidPlanId,
+  SitePromoPublic,
 } from "@/lib/billing/types";
 
 export type {

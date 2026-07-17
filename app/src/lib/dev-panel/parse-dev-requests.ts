@@ -12,18 +12,9 @@ import type { SyncPolicyOverrides } from "@/lib/sync-policy/types";
 /** Limite defensivo: ~100 anos, evita overflow de data mantendo liberdade. */
 const MAX_GRANT_DAYS = 36_500;
 
-const PROMO_HEADLINE_MIN = 3;
-const PROMO_HEADLINE_MAX = 120;
-const PROMO_MESSAGE_MIN = 3;
-const PROMO_MESSAGE_MAX = 2_000;
-
-/** Remove caracteres de controle (exceto quebras de linha) do conteúdo do e-mail. */
-function sanitizePromotionText(value: string): string {
-  return value
-    // eslint-disable-next-line no-control-regex
-    .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, "")
-    .trim();
-}
+/** Teto de preço promocional (R$ 100.000) — evita valores absurdos. */
+const MAX_PROMO_PRICE_CENTS = 10_000_000;
+const MAX_PROMO_DURATION_DAYS = 365;
 
 function parseRobots(value: unknown): DevRobotsSelection {
   if (!value || typeof value !== "object") {
@@ -115,38 +106,38 @@ export function parseDevPromotionRequest(body: unknown): DevPromotionRequest {
 
   const record = body as Record<string, unknown>;
 
-  const scope = record.scope;
-  if (scope !== "individual" && scope !== "global") {
-    throw validationError('Campo scope deve ser "individual" ou "global".');
+  const planId = typeof record.planId === "string" ? record.planId.trim() : "";
+  if (!(PAID_PLAN_IDS as readonly string[]).includes(planId)) {
+    throw validationError("Plano inválido.", { planId });
   }
 
-  const accountRef =
-    typeof record.accountRef === "string" ? record.accountRef.trim() : undefined;
-  if (scope === "individual" && !accountRef) {
-    throw validationError("Selecione uma conta para o disparo individual.");
-  }
-
-  const headline =
-    typeof record.headline === "string"
-      ? sanitizePromotionText(record.headline)
-      : "";
-  if (headline.length < PROMO_HEADLINE_MIN || headline.length > PROMO_HEADLINE_MAX) {
+  const promoPriceCents = Number(record.promoPriceCents);
+  if (
+    !Number.isInteger(promoPriceCents) ||
+    promoPriceCents < 1 ||
+    promoPriceCents > MAX_PROMO_PRICE_CENTS
+  ) {
     throw validationError(
-      `Título deve ter entre ${PROMO_HEADLINE_MIN} e ${PROMO_HEADLINE_MAX} caracteres.`
+      "Preço promocional deve ser um valor inteiro em centavos maior que zero."
     );
   }
 
-  const message =
-    typeof record.message === "string"
-      ? sanitizePromotionText(record.message)
-      : "";
-  if (message.length < PROMO_MESSAGE_MIN || message.length > PROMO_MESSAGE_MAX) {
+  const durationDays = Number(record.durationDays);
+  if (
+    !Number.isInteger(durationDays) ||
+    durationDays < 1 ||
+    durationDays > MAX_PROMO_DURATION_DAYS
+  ) {
     throw validationError(
-      `Mensagem deve ter entre ${PROMO_MESSAGE_MIN} e ${PROMO_MESSAGE_MAX} caracteres.`
+      `Duração deve ser inteiro entre 1 e ${MAX_PROMO_DURATION_DAYS} dias.`
     );
   }
 
-  return { scope, accountRef, headline, message };
+  return {
+    planId: planId as PaidPlanId,
+    promoPriceCents,
+    durationDays,
+  };
 }
 
 export function parseDevLoginRequest(body: unknown): {

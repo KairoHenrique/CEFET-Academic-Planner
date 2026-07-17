@@ -166,20 +166,33 @@ export interface DevRevokeSubscriptionResult {
   cancelled: number;
 }
 
+/**
+ * Publicação de promoção (sempre global): plano em oferta, preço promocional e
+ * duração. Texto e percentual são gerados pelo servidor.
+ */
 export interface DevPromotionRequest {
-  scope: DevRobotScope;
-  accountRef?: string;
-  headline: string;
-  message: string;
+  planId: string;
+  promoPriceCents: number;
+  durationDays: number;
 }
 
 export interface DevPromotionResult {
   campaignId: string;
+  planId: string;
+  basePriceCents: number;
+  promoPriceCents: number;
+  discountPercent: number;
+  expiresAt: string;
   targets: number;
   queued: number;
   sent: number;
   failed: number;
   provider: string;
+}
+
+export interface DevSitePromoClearResult {
+  ok: true;
+  cleared: true;
 }
 
 export interface DevOpsActionResult {

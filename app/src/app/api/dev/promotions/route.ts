@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import { apiErrorResponse, apiSuccess } from "@/lib/api/response";
+import { clearSitePromo } from "@/lib/billing/site-promo/site-promo-store";
 import { appendDevAuditLog } from "@/lib/dev-panel/dev-audit-log";
 import { dispatchPromotion } from "@/lib/dev-panel/dispatch-promotion";
 import { parseDevPromotionRequest } from "@/lib/dev-panel/parse-dev-requests";
@@ -19,7 +20,10 @@ export async function POST(request: Request) {
       operatorEmail: session.email,
       action: "dev.promotions.dispatch",
       detail: {
-        scope: input.scope,
+        planId: result.planId,
+        promoPriceCents: result.promoPriceCents,
+        discountPercent: result.discountPercent,
+        expiresAt: result.expiresAt,
         campaignId: result.campaignId,
         targets: result.targets,
         queued: result.queued,
@@ -29,6 +33,23 @@ export async function POST(request: Request) {
     });
 
     return apiSuccess({ ok: true as const, ...result });
+  } catch (error) {
+    return apiErrorResponse(error);
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const session = requireDevOperator(request);
+    await clearSitePromo();
+
+    await appendDevAuditLog({
+      operatorEmail: session.email,
+      action: "dev.promotions.clear_site",
+      detail: {},
+    });
+
+    return apiSuccess({ ok: true as const, cleared: true as const });
   } catch (error) {
     return apiErrorResponse(error);
   }

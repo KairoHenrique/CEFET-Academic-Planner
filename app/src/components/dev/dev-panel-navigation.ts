@@ -20,6 +20,12 @@ export const DEV_PANEL_VIEWS = [
     icon: "star" satisfies IconName,
   },
   {
+    id: "promocoes",
+    label: "Promoções",
+    description: "Oferta global — preço, duração e banner na /planos.",
+    icon: "calculator" satisfies IconName,
+  },
+  {
     id: "policy",
     label: "Policy",
     description: "Orquestração §6.6 — cron e worker.",
