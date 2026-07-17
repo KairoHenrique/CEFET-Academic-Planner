@@ -1,9 +1,14 @@
 import http from "node:http";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { ApiError } from "@/lib/api/errors";
+import {
+  resolveGmailSmtpConfig,
+  sendViaGmailSmtp,
+} from "@/lib/email/gmail-smtp-send";
 import { BrowserJobSlot } from "@/lib/worker/browser-job-slot";
 import { loadWorkerConfig, type WorkerConfig } from "@/lib/worker/config";
 import type { WorkerJobResult, WorkerStatusResponse } from "@/lib/worker/job-types";
+import { parseWorkerEmailSendRequest } from "@/lib/worker/parse-email-send-request";
 import {
   assertAsyncExecutionAvailable,
   startWorkerAsyncJob,
@@ -104,6 +109,44 @@ export function createWorkerServer(options?: {
 
       if (method === "GET" && url.pathname === "/status") {
         sendJson(response, 200, buildStatus(runtime, slot));
+        return;
+      }
+
+      if (method === "POST" && url.pathname === "/email/send") {
+        if (!isAuthorized(request, config)) {
+          sendJson(response, 401, {
+            ok: false,
+            code: "UNAUTHORIZED",
+            message: "Credencial do worker inválida.",
+          });
+          return;
+        }
+
+        const gmail = resolveGmailSmtpConfig();
+        if (!gmail) {
+          sendJson(response, 503, {
+            ok: false,
+            code: "GMAIL_SMTP_NOT_CONFIGURED",
+            message:
+              "Configure GMAIL_SMTP_USER e GMAIL_SMTP_APP_PASSWORD no .env.local do PC.",
+          });
+          return;
+        }
+
+        const emailRequest = parseWorkerEmailSendRequest(
+          await readJsonBody(request)
+        );
+        const result = await sendViaGmailSmtp(gmail, emailRequest);
+        if (!result.ok) {
+          sendJson(response, result.retryable === false ? 400 : 502, {
+            ok: false,
+            code: "GMAIL_SMTP_SEND_FAILED",
+            message: result.error ?? "Falha ao enviar.",
+          });
+          return;
+        }
+
+        sendJson(response, 200, { ok: true });
         return;
       }
 
