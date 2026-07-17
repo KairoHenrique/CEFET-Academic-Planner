@@ -2,6 +2,10 @@ import { ensurePostgresReady } from "@/lib/db/bootstrap-postgres";
 import { createBrevoAccountEmailSender } from "@/lib/email/brevo-account-email-sender";
 import { resolveBrevoConfig } from "@/lib/email/brevo-config";
 import {
+  createHomeWorkerEmailSender,
+  resolveHomeWorkerEmailDispatchConfig,
+} from "@/lib/email/home-worker-email-sender";
+import {
   processAccountEmailQueue,
   type AccountEmailSender,
 } from "@/lib/email/process-account-email-queue";
@@ -12,7 +16,11 @@ import {
   scheduleTrialLifecycleEmails,
 } from "@/lib/email/schedule-account-lifecycle-emails";
 
-export type AccountEmailProvider = "brevo" | "resend" | "stub";
+export type AccountEmailProvider =
+  | "home-gmail"
+  | "brevo"
+  | "resend"
+  | "stub";
 
 export interface AccountEmailCronResult {
   scheduled: number;
@@ -24,13 +32,21 @@ export interface AccountEmailCronResult {
 }
 
 /**
- * Seleciona o provedor conforme os secrets disponíveis: Brevo (grátis, sem
- * domínio) → Resend (requer domínio) → stub de log (dev/local sem secret).
+ * Prioridade: home-gmail (PC + SMTP Gmail, entrega real) → Brevo → Resend → stub.
+ * Home-gmail exige ACCOUNT_EMAIL_VIA_HOME_WORKER=true no cloud + Gmail no .env do PC.
  */
 function resolveAccountEmailSender(): {
   sender: AccountEmailSender | undefined;
   provider: AccountEmailProvider;
 } {
+  const home = resolveHomeWorkerEmailDispatchConfig();
+  if (home) {
+    return {
+      sender: createHomeWorkerEmailSender(home),
+      provider: "home-gmail",
+    };
+  }
+
   const brevo = resolveBrevoConfig();
   if (brevo) {
     return { sender: createBrevoAccountEmailSender(brevo), provider: "brevo" };
