@@ -1,4 +1,5 @@
 import { getDisciplinas } from "@/lib/db/queries";
+import type { DisciplinaRow } from "@/lib/types/db";
 
 export function normalizeDisciplinaNome(value: string): string {
   return value
@@ -27,8 +28,11 @@ function isLaboratorioNome(nome: string): boolean {
   return /^laboratorio\b/.test(normalized) || /^lab\b/.test(normalized);
 }
 
-function listPpcDisciplinaEntries(): Array<{ nome: string; codigo: string }> {
-  return getDisciplinas()
+function listPpcDisciplinaEntries(
+  disciplinas?: DisciplinaRow[]
+): Array<{ nome: string; codigo: string }> {
+  const source = disciplinas ?? getDisciplinas();
+  return source
     .filter((disciplina) => isPpcCanonicalCodigo(disciplina.codigo))
     .map((disciplina) => ({
       nome: disciplina.nome,
@@ -89,10 +93,18 @@ function bestDisciplinaCodigoByScore(
   return best && best.score >= 80 ? best.codigo : null;
 }
 
-/** Resolve código PPC a partir do nome exibido no portal SIGAA. */
-export function resolveDisciplinaCodigoByNome(nomeOuCodigo: string): string {
+/**
+ * Resolve código PPC a partir do nome exibido no portal SIGAA.
+ *
+ * `disciplinasSource` permite injetar o catálogo já carregado (ex.: Postgres),
+ * evitando leitura SQLite no deploy cloud e o fetch redundante por linha.
+ */
+export function resolveDisciplinaCodigoByNome(
+  nomeOuCodigo: string,
+  disciplinasSource?: DisciplinaRow[]
+): string {
   const trimmed = nomeOuCodigo.trim();
-  const ppcEntries = listPpcDisciplinaEntries();
+  const ppcEntries = listPpcDisciplinaEntries(disciplinasSource);
 
   if (isPpcCanonicalCodigo(trimmed)) {
     const ppc = ppcEntries.find((entry) => entry.codigo === trimmed);
@@ -109,7 +121,7 @@ export function resolveDisciplinaCodigoByNome(nomeOuCodigo: string): string {
   const scored = bestDisciplinaCodigoByScore(target, ppcEntries);
   if (scored) return scored;
 
-  const disciplinas = getDisciplinas();
+  const disciplinas = disciplinasSource ?? getDisciplinas();
   const alias = disciplinas.find(
     (disciplina) =>
       !isPpcCanonicalCodigo(disciplina.codigo) &&

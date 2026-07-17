@@ -124,14 +124,8 @@ function patchOpenNextWindowsTurbopackPaths() {
   }
 
   if (!source.includes("OPENNEXT_WIN_TURBOPACK_REQUIRE")) {
-    const requireNeedle =
-      'chunk.replace(/.*[\\\\/]\\.next[\\\\/]/, "")}": return require("${chunk}");`)';
-    const requireReplacement =
-      '/* OPENNEXT_WIN_TURBOPACK_REQUIRE */ chunk.replace(/.*[\\\\/]\\.next[\\\\/]/, "")}": return require("${chunk.replace(/\\\\/g, \\"/\\")}");`)';
-    if (source.includes(requireNeedle)) {
-      source = source.replace(requireNeedle, requireReplacement);
-      changed = true;
-    }
+    // Skip: patching the template-literal require() line is fragile and
+    // previously produced SyntaxError on Windows. PATHS + CHUNKS are enough.
   }
 
   if (changed) {

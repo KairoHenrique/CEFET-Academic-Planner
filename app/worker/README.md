@@ -1,14 +1,24 @@
-# Worker Playwright (B54 + B72e)
+# Worker Playwright (B54 + B72e) — PC home server
 
-Processo **separado** do Next.js — executa sync SIGAA com **1 browser por vez**
-(configurável via `SIGAA_WORKER_MAX_CONCURRENT`) e espelha o resultado no
-Supabase (**mirror B72**, `SYNC_MIRROR_POSTGRES=true`).
+Processo **separado** do Next.js / Cloudflare. Roda **neste PC**: Chrome/Playwright,
+sync de **todas as contas** (fila `sync_jobs`), staging SQLite local e **mirror → Supabase**.
+
+O app na Cloudflare **não** abre browser — só despacha `POST /jobs` para
+`SIGAA_WORKER_URL` (túnel público apontando para `localhost:8787`).
+
+```
+Cloudflare (acme-hub) ──HTTPS──► cloudflared (PC) ──► worker :8787
+                                      │
+                                      ├─ Chrome (SIGAA)
+                                      ├─ staging SQLite (.data/users/<cpf>/)
+                                      └─ mirror → Supabase (SYNC_MIRROR_POSTGRES)
+```
 
 ## Endpoints
 
 | Método | Rota | Auth | Descrição |
 |--------|------|------|-----------|
-| GET | `/health` | — | Health check (Docker/K8s/Fly) |
+| GET | `/health` | — | Health check |
 | GET | `/status` | — | Slots ativos, fila interna, job atual |
 | POST | `/jobs` | `Authorization: Bearer $WORKER_SHARED_SECRET` | Executa job (r1 / turmas / calendario) |
 
@@ -26,63 +36,63 @@ Supabase (**mirror B72**, `SYNC_MIRROR_POSTGRES=true`).
 }
 ```
 
-- `robot`: `r1` (pipeline por usuário) · `turmas` / `calendario` (catálogo global, B72e).
-- `execution`: `sync` (responde ao fim do job) · `async` (**202** imediato; status
-  publicado na fila Postgres `sync_jobs`, consultada pelo app cloud em
-  `GET /api/sync/queue/:id`). `async` exige `DATABASE_URL` + `SYNC_MIRROR_POSTGRES=true`.
-- `passwordEnc` é selada com AES-GCM usando `CREDENTIALS_ENCRYPTION_KEY` — a
-  **mesma chave** configurada no app cloud (que sela a senha do corpo ou usa a
-  guardada em `app_profiles.sigaa_password_enc`).
+- `robot`: `r1` (pipeline por usuário) · `turmas` / `calendario` (catálogo global).
+- `execution`: `sync` (espera o fim) · `async` (**202**; status na fila Postgres
+  `sync_jobs`). `async` exige `DATABASE_URL` + `SYNC_MIRROR_POSTGRES=true`.
+- `passwordEnc` com a **mesma** `CREDENTIALS_ENCRYPTION_KEY` do app cloud.
 
-## Dev local
+## Subir o worker neste PC (path oficial)
+
+### 1. `.env.local` (pasta `app/`)
+
+```env
+WORKER_SHARED_SECRET=...          # mín. 16 chars — mesmo valor no Cloudflare
+CREDENTIALS_ENCRYPTION_KEY=...    # mesma chave do app cloud
+DATABASE_URL=postgresql://...     # Supabase
+SYNC_MIRROR_POSTGRES=true
+WORKER_PORT=8787
+SIGAA_BROWSER_CHANNEL=chrome      # Chrome instalado no Windows
+SIGAA_SCRAPER_MOCK=false
+SIGAA_HEADLESS=true               # false = ver o Chrome durante o sync
+```
+
+### 2. Terminal A — worker
 
 ```bash
 cd app
-# .env.local: WORKER_SHARED_SECRET=... (mín. 16 chars)
-npm run worker:dev
+npm run worker:home
+# ou: npm run worker:dev
 ```
 
-## Docker (VPS / container)
+Smoke local: `curl http://127.0.0.1:8787/health` → `{ "ok": true, ... }`.
+
+### 3. Terminal B — túnel Cloudflare (cloudflared)
+
+Já instalado no PATH:
 
 ```bash
 cd app
-docker build -f worker/Dockerfile -t planner-sigaa-worker .
-docker run --rm -p 8787:8787 \
-  -e WORKER_SHARED_SECRET=... \
-  -e CREDENTIALS_ENCRYPTION_KEY=... \
-  -e DATABASE_URL=postgresql://... \
-  -e SYNC_MIRROR_POSTGRES=true \
-  -v "$(pwd)/.data:/app/.data" \
-  planner-sigaa-worker
+npm run worker:tunnel
 ```
 
-Monte `.data` para persistir o staging SQLite por CPF entre restarts
-(sem o volume o sync ainda funciona — apenas refaz o staging do zero).
+O cloudflared imprime uma URL `https://….trycloudflare.com`. Copie-a.
 
-## Fly.io (B72e)
+> URL de quick tunnel **muda** a cada restart. Para hostname estável, use um
+> [túnel nomeado](https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/)
+> (`cloudflared tunnel create planner-sigaa` + DNS no domínio).
+
+### 4. Secrets no app Cloudflare
 
 ```bash
 cd app
-fly launch --no-deploy -c worker/fly.toml     # 1ª vez
-fly secrets set -c worker/fly.toml \
-  WORKER_SHARED_SECRET=... \
-  CREDENTIALS_ENCRYPTION_KEY=... \
-  DATABASE_URL=postgresql://...
-fly deploy -c worker/fly.toml
+npx wrangler secret put SIGAA_WORKER_URL         # URL do túnel (https://…)
+npx wrangler secret put WORKER_SHARED_SECRET     # mesmo valor do .env.local
 ```
 
-## Ligando o app cloud ao worker
+Com os dois presentes, `/api/sync` e `/api/sync/queue` deixam de ser stub e
+despacham para **este PC**.
 
-No app Cloudflare (projeto OpenNext), configurar secrets:
-
-```bash
-cd app
-wrangler secret put SIGAA_WORKER_URL        # ex.: https://planner-sigaa-worker.fly.dev
-wrangler secret put WORKER_SHARED_SECRET    # mesmo valor do worker
-```
-
-Com os dois presentes, `/api/sync` e `/api/sync/queue` na URL pública deixam de
-ser stub e despacham para o worker. Smoke end-to-end:
+### 5. Smoke ponta a ponta
 
 ```bash
 cd app
@@ -90,16 +100,36 @@ PLANNER_APP_URL=https://acme-hub.khfm.workers.dev \
 SIGAA_CPF=... SIGAA_PASSWORD=... npm run smoke:cloud-sync
 ```
 
+Esperado: enqueue 202 → job `queued→running→completed` → linhas no Supabase.
+
+## Ligação local (só este PC, sem Cloudflare)
+
+```bash
+# Terminal 1
+npm run worker:dev
+
+# .env.local da API Next:
+# SIGAA_WORKER_URL=http://127.0.0.1:8787
+# SYNC_QUEUE_DISPATCH=  (não usar inline se quiser o processo worker)
+npm run dev
+```
+
+## Docker / Fly (alternativa — não é o path oficial deste repo)
+
+O path oficial é **PC + cloudflared**. Fly/Docker ficam como fallback se o PC
+não estiver online 24/7 — ver `worker/fly.toml` e `Dockerfile`.
+
 ## Variáveis
 
 | Var | Obrigatória | Uso |
 |-----|-------------|-----|
 | `WORKER_SHARED_SECRET` | ✅ | Bearer de `POST /jobs` (mín. 16 chars) |
-| `CREDENTIALS_ENCRYPTION_KEY` | ✅ (cloud) | Decripta `passwordEnc` (mesma chave do app) |
-| `DATABASE_URL` | ✅ (cloud) | Mirror B72 + fila `sync_jobs` (B72e) |
-| `SYNC_MIRROR_POSTGRES` | ✅ (cloud) | `true` liga o mirror pós-sync |
+| `CREDENTIALS_ENCRYPTION_KEY` | ✅ | Decripta `passwordEnc` (mesma do app) |
+| `DATABASE_URL` | ✅ | Mirror B72 + fila `sync_jobs` |
+| `SYNC_MIRROR_POSTGRES` | ✅ | `true` liga o mirror pós-sync |
+| `SIGAA_BROWSER_CHANNEL` | PC | `chrome` / `msedge` — browser do sistema |
 | `WORKER_PORT` | — | default `8787` |
-| `SIGAA_WORKER_MAX_CONCURRENT` | — | default `1` |
+| `SIGAA_WORKER_MAX_CONCURRENT` | — | default `1` (1 browser por vez) |
 | `SIGAA_WORKER_JOB_TIMEOUT_MS` | — | default `480000` |
 | `SIGAA_WORKER_SHUTDOWN_MS` | — | graceful shutdown, default `600000` |
 | `PLANNER_DATA_ROOT` | — | raiz do staging SQLite (default `.data`) |

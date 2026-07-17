@@ -3,5 +3,5 @@ interface PlanosPageShellProps {
 }
 
 export function PlanosPageShell({ children }: PlanosPageShellProps) {
-  return <div className="planos-page animate-fade-in">{children}</div>;
+  return <div className="planos-page">{children}</div>;
 }
