@@ -1577,6 +1577,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Exibir quanto falta em cada avaliação para atingir aprovação (coluna "Necessário")
 - [x] Simulador sem impacto de RG no semestre (removido `RgImpactLabel`)
 - [x] Ao simular: trigger mantém tamanho, menu em overlay, barra de risco permanece, campos pré-preenchidos com notas reais
+- [x] **polish jul/2026:** "Simular" 100% efêmero — snapshot das notas reais ao entrar; criar avaliação (`+ Avaliação`) e editar notas vivem só na simulação e somem ao sair (`Notas reais`), **sem** persistir no servidor. Nota total, barra e badge atualizam **ao vivo** via `computeGradeRisk` sobre o conjunto simulado; avaliações efêmeras têm botão remover. (`useGradeSimulation` reescrito, `SubjectGradesPanel` e `useSubjectGrades` desacoplado da simulação.)
 
 ### 4.4 Tela de Frequência
 - [x] Tabela cronológica de datas e status (Presente/Falta/Não Registrada)

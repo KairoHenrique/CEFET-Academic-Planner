@@ -56,6 +56,20 @@ function renderNecessarioCell(
   return "—";
 }
 
+/** Nota mínima nesta avaliação para atingir a aprovação, dado o resto das notas. */
+function evaluationMinimum(
+  rows: SubjectEvaluation[],
+  index: number,
+  passingGrade: number
+): number | null {
+  if (rows[index].extra) return null;
+  const othersTotal = rows.reduce<number>(
+    (acc, ev, idx) => (idx === index || ev.extra ? acc : acc + (ev.score ?? 0)),
+    0
+  );
+  return Math.min(rows[index].max, Math.max(0, passingGrade - othersTotal));
+}
+
 export function SubjectGradesPanel({ subject }: SubjectGradesPanelProps) {
   const grades = useSubjectGrades(subject);
   const { gradeRisk, recoveryScore, setRecoveryScore } = useSubjectRecovery(
@@ -76,16 +90,18 @@ export function SubjectGradesPanel({ subject }: SubjectGradesPanelProps) {
     evaluations,
     simulateMode,
     enterSimulation,
-    simulated,
-    simulatedTotal,
-    resolvedScores,
-    approved,
+    exitSimulation,
+    handleReset,
+    simRows,
+    simScores,
+    setSimScore,
+    addSimEvaluation,
+    removeSimEvaluation,
+    workingEvaluations,
+    simGradeRisk,
+    simDistributionBudget,
     pointsNeeded,
     pendingTeacherPoints,
-    getMinimumForEvaluation,
-    handleChange,
-    handleReset,
-    exitSimulation,
     addEvaluation,
     updateEvaluationScore,
     updateManualEvaluation,
@@ -93,6 +109,10 @@ export function SubjectGradesPanel({ subject }: SubjectGradesPanelProps) {
     isSaving,
     saveError,
   } = grades;
+
+  // Fora da simulação usa o risco real (com recuperação); dentro, o risco vivo
+  // derivado do conjunto simulado.
+  const displayRisk = simulateMode ? simGradeRisk : gradeRisk;
 
   const addDistributionBudget = useMemo(
     () =>
@@ -102,6 +122,12 @@ export function SubjectGradesPanel({ subject }: SubjectGradesPanelProps) {
       ),
     [evaluations]
   );
+
+  // Orçamento de distribuição do "+ Avaliação": no simular considera as
+  // avaliações efêmeras já adicionadas na sessão de simulação.
+  const activeAddBudget = simulateMode
+    ? simDistributionBudget
+    : addDistributionBudget;
 
   const editDistributionBudget = useMemo(() => {
     if (!editRow?.id) return addDistributionBudget;
@@ -118,11 +144,9 @@ export function SubjectGradesPanel({ subject }: SubjectGradesPanelProps) {
 
   useEffect(() => {
     if (addOpen && !newExtra) {
-      setNewMax((current) =>
-        clampEvaluationMaxDraft(current, addDistributionBudget)
-      );
+      setNewMax((current) => clampEvaluationMaxDraft(current, activeAddBudget));
     }
-  }, [addOpen, newExtra, addDistributionBudget]);
+  }, [addOpen, newExtra, activeAddBudget]);
 
   useEffect(() => {
     if (editRow && !editExtra) {
@@ -197,7 +221,7 @@ export function SubjectGradesPanel({ subject }: SubjectGradesPanelProps) {
       setNewMax(value);
       return;
     }
-    setNewMax(clampEvaluationMaxDraft(value, addDistributionBudget));
+    setNewMax(clampEvaluationMaxDraft(value, activeAddBudget));
   };
 
   const handleEditMaxChange = (value: string) => {
@@ -208,10 +232,24 @@ export function SubjectGradesPanel({ subject }: SubjectGradesPanelProps) {
     setEditMax(clampEvaluationMaxDraft(value, editDistributionBudget));
   };
 
+  const resetAddForm = () => {
+    setAddOpen(false);
+    setNewName("");
+    setNewMax("10");
+    setNewExtra(false);
+  };
+
   const handleAddEvaluation = async () => {
     const max = parseFloat(newMax);
     if (!newName.trim() || Number.isNaN(max) || max <= 0) return;
-    if (!newExtra && max > addDistributionBudget) return;
+    if (!newExtra && max > activeAddBudget) return;
+
+    // No simular a avaliação é efêmera — não toca o servidor e some ao sair.
+    if (simulateMode) {
+      addSimEvaluation({ name: newName.trim().toUpperCase(), max, extra: newExtra });
+      resetAddForm();
+      return;
+    }
 
     try {
       await addEvaluation({
@@ -221,10 +259,7 @@ export function SubjectGradesPanel({ subject }: SubjectGradesPanelProps) {
         manual: true,
         extra: newExtra,
       });
-      setAddOpen(false);
-      setNewName("");
-      setNewMax("10");
-      setNewExtra(false);
+      resetAddForm();
     } catch {
       // saveError surfaced via hook when mutation fails
     }
@@ -272,11 +307,11 @@ export function SubjectGradesPanel({ subject }: SubjectGradesPanelProps) {
   };
 
   const pendingLabel = formatGradePoints(pendingTeacherPoints);
-  const addBudgetLabel = formatGradePoints(addDistributionBudget);
+  const addBudgetLabel = formatGradePoints(activeAddBudget);
   const editBudgetLabel = formatGradePoints(editDistributionBudget);
 
   const addModalAside =
-    !newExtra && addDistributionBudget > 0 ? (
+    !newExtra && activeAddBudget > 0 ? (
       <>Faltam {addBudgetLabel} pts para distribuir</>
     ) : !newExtra ? (
       <>Distribuição completa</>
@@ -297,16 +332,14 @@ export function SubjectGradesPanel({ subject }: SubjectGradesPanelProps) {
             title="Notas"
             icon="chart"
             badge={
-              simulateMode ? (
-                <span className={`badge ${approved ? "success" : "danger"}`}>
-                  {approved ? "Aprovado" : "Reprovado"}
-                </span>
-              ) : gradeRisk.zone !== "unknown" ? (
+              displayRisk.zone !== "unknown" ? (
                 <span
-                  className={`badge ${gradeRisk.zone === "safe" ? "success" : gradeRisk.zone === "warning" ? "warning" : "danger"}`}
+                  className={`badge ${displayRisk.zone === "safe" ? "success" : displayRisk.zone === "warning" ? "warning" : "danger"}`}
                 >
-                  {gradeRisk.label}
+                  {displayRisk.label}
                 </span>
+              ) : simulateMode ? (
+                <span className="badge info">Simulando</span>
               ) : subject.grade !== null ? (
                 <span className="badge gold">{subject.grade} pts</span>
               ) : undefined
@@ -329,10 +362,10 @@ export function SubjectGradesPanel({ subject }: SubjectGradesPanelProps) {
           </div>
         </div>
 
-        {gradeRisk.zone !== "unknown" && (
+        {displayRisk.zone !== "unknown" && (
           <GradeRiskIndicator
-            grade={subject.grade}
-            gradeRisk={gradeRisk}
+            grade={simulateMode ? null : subject.grade}
+            gradeRisk={displayRisk}
             variant="panel"
             recoveryInteractive={!simulateMode}
             recoveryScore={recoveryScore}
@@ -352,116 +385,172 @@ export function SubjectGradesPanel({ subject }: SubjectGradesPanelProps) {
               </tr>
             </thead>
             <tbody>
-              {evaluations.map((row, index) => {
-                const minNeeded = getMinimumForEvaluation(index);
-                const isNext =
-                  !simulateMode &&
-                  !row.extra &&
-                  row.score === null &&
-                  evaluations
-                    .slice(0, index)
-                    .every((e) => e.extra || e.score !== null);
-                const canEditMeta = !simulateMode && row.id !== undefined;
-                const simulationEvaluations = evaluationsForScoreClamp(
-                  row,
-                  simulated[row.name]
-                );
+              {simulateMode
+                ? simRows.map((row, index) => {
+                    const minNeeded = evaluationMinimum(
+                      workingEvaluations,
+                      index,
+                      SUBJECT_DISPLAY_PASSING_GRADE
+                    );
+                    const resolved = workingEvaluations[index]?.score ?? null;
 
-                return (
-                  <tr
-                    key={row.id ?? `${row.name}-${index}`}
-                    className={isNext ? "grade-row-highlight" : ""}
-                  >
-                    <td
-                      className={canEditMeta ? "grades-name-cell" : undefined}
-                      onClick={canEditMeta ? () => openEdit(row) : undefined}
-                      role={canEditMeta ? "button" : undefined}
-                      tabIndex={canEditMeta ? 0 : undefined}
-                      onKeyDown={
-                        canEditMeta
-                          ? (e) => {
-                              if (e.key === "Enter" || e.key === " ") {
-                                e.preventDefault();
-                                openEdit(row);
-                              }
-                            }
-                          : undefined
-                      }
-                    >
-                      {row.name}
-                      {row.manual && (
-                        <span className="badge info grade-manual-badge">Manual</span>
-                      )}
-                      {row.extra && (
-                        <span className="badge gold grade-manual-badge">Extra</span>
-                      )}
-                    </td>
-                    <td className="grades-col-max">{row.max}</td>
-                    <td className="grades-score-cell">
-                      {simulateMode ? (
-                        <input
-                          type="text"
-                          inputMode="decimal"
-                          className="grades-score-input"
-                          placeholder="—"
-                          value={simulated[row.name] ?? ""}
-                          onChange={(e) => {
-                            const cleaned = sanitizeScoreInput(e.target.value);
-                            const clamped = clampEvaluationScoreDraft(
-                              cleaned,
-                              row,
-                              simulationEvaluations
-                            );
-                            handleChange(row.name, clamped);
-                          }}
-                        />
-                      ) : row.id !== undefined ? (
-                        <input
-                          type="text"
-                          inputMode="decimal"
-                          className="grades-score-input"
-                          placeholder="—"
-                          value={getScoreValue(row)}
-                          disabled={isSaving}
-                          onChange={(e) =>
-                            setScoreDrafts((prev) => ({
-                              ...prev,
-                              [row.id!]: sanitizeScoreInput(e.target.value),
-                            }))
+                    return (
+                      <tr key={row.simKey}>
+                        <td>
+                          {row.name}
+                          {row.manual && !row.ephemeral && (
+                            <span className="badge info grade-manual-badge">
+                              Manual
+                            </span>
+                          )}
+                          {row.extra && (
+                            <span className="badge gold grade-manual-badge">
+                              Extra
+                            </span>
+                          )}
+                          {row.ephemeral && (
+                            <button
+                              type="button"
+                              className="grade-sim-remove"
+                              onClick={() => removeSimEvaluation(row.simKey)}
+                              aria-label={`Remover ${row.name} da simulação`}
+                              title="Remover da simulação"
+                            >
+                              <Icon name="close" size={12} />
+                            </button>
+                          )}
+                        </td>
+                        <td className="grades-col-max">{row.max}</td>
+                        <td className="grades-score-cell">
+                          <input
+                            type="text"
+                            inputMode="decimal"
+                            className="grades-score-input"
+                            placeholder="—"
+                            value={simScores[row.simKey] ?? ""}
+                            onChange={(e) => {
+                              const cleaned = sanitizeScoreInput(e.target.value);
+                              const clamped = clampEvaluationScoreDraft(
+                                cleaned,
+                                row,
+                                workingEvaluations
+                              );
+                              setSimScore(row.simKey, clamped);
+                            }}
+                            aria-label={`Nota simulada de ${row.name}`}
+                          />
+                        </td>
+                        <td className="grades-min-cell grades-col-necessario">
+                          {renderNecessarioCell(
+                            row,
+                            minNeeded,
+                            pointsNeeded,
+                            resolved
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })
+                : evaluations.map((row, index) => {
+                    const minNeeded = evaluationMinimum(
+                      evaluations,
+                      index,
+                      SUBJECT_DISPLAY_PASSING_GRADE
+                    );
+                    const isNext =
+                      !row.extra &&
+                      row.score === null &&
+                      evaluations
+                        .slice(0, index)
+                        .every((e) => e.extra || e.score !== null);
+                    const canEditMeta = row.id !== undefined;
+
+                    return (
+                      <tr
+                        key={row.id ?? `${row.name}-${index}`}
+                        className={isNext ? "grade-row-highlight" : ""}
+                      >
+                        <td
+                          className={canEditMeta ? "grades-name-cell" : undefined}
+                          onClick={canEditMeta ? () => openEdit(row) : undefined}
+                          role={canEditMeta ? "button" : undefined}
+                          tabIndex={canEditMeta ? 0 : undefined}
+                          onKeyDown={
+                            canEditMeta
+                              ? (e) => {
+                                  if (e.key === "Enter" || e.key === " ") {
+                                    e.preventDefault();
+                                    openEdit(row);
+                                  }
+                                }
+                              : undefined
                           }
-                          onBlur={() => void handleScoreBlur(row)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              e.currentTarget.blur();
-                            }
-                          }}
-                          aria-label={`Nota de ${row.name}`}
-                        />
-                      ) : (
-                        "—"
-                      )}
-                    </td>
-                    <td className="grades-min-cell grades-col-necessario">
-                      {renderNecessarioCell(
-                        row,
-                        minNeeded,
-                        pointsNeeded,
-                        resolvedScores[index] ?? null
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
+                        >
+                          {row.name}
+                          {row.manual && (
+                            <span className="badge info grade-manual-badge">
+                              Manual
+                            </span>
+                          )}
+                          {row.extra && (
+                            <span className="badge gold grade-manual-badge">
+                              Extra
+                            </span>
+                          )}
+                        </td>
+                        <td className="grades-col-max">{row.max}</td>
+                        <td className="grades-score-cell">
+                          {row.id !== undefined ? (
+                            <input
+                              type="text"
+                              inputMode="decimal"
+                              className="grades-score-input"
+                              placeholder="—"
+                              value={getScoreValue(row)}
+                              disabled={isSaving}
+                              onChange={(e) =>
+                                setScoreDrafts((prev) => ({
+                                  ...prev,
+                                  [row.id!]: sanitizeScoreInput(e.target.value),
+                                }))
+                              }
+                              onBlur={() => void handleScoreBlur(row)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  e.currentTarget.blur();
+                                }
+                              }}
+                              aria-label={`Nota de ${row.name}`}
+                            />
+                          ) : (
+                            "—"
+                          )}
+                        </td>
+                        <td className="grades-min-cell grades-col-necessario">
+                          {renderNecessarioCell(
+                            row,
+                            minNeeded,
+                            gradeRisk.pointsNeeded,
+                            row.score
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
             </tbody>
           </table>
         </div>
 
         <p className="panel-footer-note">
-          {simulateMode && pointsNeeded > 0 ? (
-            <>
-              Faltam <strong>{pointsNeeded.toFixed(1)}</strong> pts para{" "}
-              <strong>{SUBJECT_DISPLAY_PASSING_GRADE}</strong>
-            </>
+          {simulateMode ? (
+            pointsNeeded > 0 ? (
+              <>
+                Simulação: faltam <strong>{pointsNeeded.toFixed(1)}</strong> pts
+                para <strong>{SUBJECT_DISPLAY_PASSING_GRADE}</strong>
+              </>
+            ) : (
+              <>Simulação: aprovado ✓ — nada disto é salvo</>
+            )
           ) : (
             <>
               Faltam <strong>{pendingLabel}</strong> pontos para o professor
@@ -504,13 +593,13 @@ export function SubjectGradesPanel({ subject }: SubjectGradesPanelProps) {
             label="Nota máxima"
             type="number"
             min={1}
-            max={newExtra ? undefined : addDistributionBudget || undefined}
+            max={newExtra ? undefined : activeAddBudget || undefined}
             value={newMax}
             onChange={(e) => handleNewMaxChange(e.target.value)}
             hint={
               newExtra
                 ? "Notas extras não entram no limite de distribuição."
-                : addDistributionBudget > 0
+                : activeAddBudget > 0
                   ? `Até ${addBudgetLabel} pts disponíveis nesta matéria.`
                   : "Não há pontos disponíveis para distribuir."
             }
@@ -534,12 +623,12 @@ export function SubjectGradesPanel({ subject }: SubjectGradesPanelProps) {
             className="btn-gold"
             onClick={() => void handleAddEvaluation()}
             disabled={
-              isSaving ||
-              (!newExtra && addDistributionBudget <= 0) ||
+              (!simulateMode && isSaving) ||
+              (!newExtra && activeAddBudget <= 0) ||
               !newName.trim()
             }
           >
-            {isSaving ? "Salvando..." : "Adicionar"}
+            {!simulateMode && isSaving ? "Salvando..." : "Adicionar"}
           </button>
           <button type="button" className="btn-outline" onClick={() => setAddOpen(false)}>
             Cancelar

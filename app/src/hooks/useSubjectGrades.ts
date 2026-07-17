@@ -147,11 +147,10 @@ export function useSubjectGrades(
   };
 
   const distributed = evaluations.reduce(
-    (acc, ev, index) => acc + (simulation.resolvedScores[index] ?? 0),
+    (acc, ev) => acc + (ev.score ?? 0),
     0
   );
-  const currentTotal =
-    subject.grade ?? roundFinalGradeTotal(distributed);
+  const currentTotal = subject.grade ?? roundFinalGradeTotal(distributed);
 
   return {
     evaluations,
