@@ -514,7 +514,7 @@ Estratégia: **fatias verticais** — backend primeiro, depois frontend.
 | **—** | #11 | Multi-PPC (Mecatrônica, Moda) 🔒 pós-mobile |
 
 **O que permanece no client (localStorage) durante o Bloco 1:**
-- Layout modular de módulos (`useModuleLayout`)
+- ~~Layout modular de módulos (`useModuleLayout`)~~ — **removido jul/2026** (dashboard fixo)
 - Extras na grade semanal (monitoria, estágio)
 - Simulação de notas (modo "Simular" na disciplina)
 - Prioridade de matérias e tarefas (`useStoredPriorities`)
@@ -1523,16 +1523,16 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Layout compartilhado (`PageHeader`, `PageGrid`) e mock data em `config/mock/`
 - [x] Componentes UI base: `Modal`, `FilterBar`, `ActivityDetail`, `SectionHeader`, `Icon`, `ToggleOption`, `PasswordInput`, `PlannerSelect`, `PrioritySelect`
 
-### 3.6 Layout Modular de Módulos
-- [x] Hook `useModuleLayout` com persistência em `localStorage`
-- [x] Reordenar módulos (↑ ↓) nas páginas calendário e simulador
-- [x] Ocultar / mostrar módulos e restaurar layout padrão
-- [x] Aplicar layout modular no dashboard e integralização (calendário e simulador já tinham)
-- [x] Arrastar e soltar módulos para reordenar (drag-and-drop)
+### 3.6 Layout Modular de Módulos — **REMOVIDO (jul/2026)**
+> **Recurso descontinuado.** A modularização (reordenar/ocultar/arrastar módulos) não faz mais sentido no produto. Removido do dashboard — único lugar que ainda usava. Apagados `useModuleLayout`, `ModuleGrid`, `ModuleLayout` + CSS `.module-*`; `DashboardView` passou a render fixo. Chave `localStorage` `module-layout:dashboard` fica órfã (inofensiva).
+- [x] ~~Hook `useModuleLayout` com persistência em `localStorage`~~ — removido
+- [x] ~~Reordenar módulos (↑ ↓)~~ — removido
+- [x] ~~Ocultar / mostrar módulos e restaurar layout padrão~~ — removido
+- [x] ~~Aplicar layout modular no dashboard~~ — removido (dashboard agora é fixo)
+- [x] ~~Arrastar e soltar módulos para reordenar (drag-and-drop)~~ — removido
 - [x] Corrigir modal centralizado na tela (calendário e demais páginas)
 - [x] Corrigir espaços vazios no calendário e integralização
 - [x] Filtros globais visíveis na página do calendário
-- [x] Aplicar layout modular em disciplinas e mapa
 
 ---
 
