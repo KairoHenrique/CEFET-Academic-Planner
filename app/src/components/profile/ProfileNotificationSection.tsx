@@ -13,6 +13,8 @@ const PREF_OPTIONS: Array<{
   { key: "taskReminders", label: "Prazos", hint: "24h e 1h antes" },
   { key: "calendarReminders", label: "Eventos", hint: "24h e 1h antes" },
   { key: "classReminders", label: "Aulas", hint: "30 min antes" },
+  { key: "integralizacaoAlerts", label: "Integralização", hint: "Marcos de CH" },
+  { key: "academicDateAlerts", label: "Datas acadêmicas", hint: "Próximos 14 dias" },
 ];
 
 interface ProfilePrefToggleProps {

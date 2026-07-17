@@ -7,6 +7,8 @@ export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
   taskReminders: true,
   calendarReminders: true,
   classReminders: false,
+  integralizacaoAlerts: true,
+  academicDateAlerts: true,
 };
 
 export function isNotificationKindEnabled(
@@ -24,6 +26,10 @@ export function isNotificationKindEnabled(
       return preferences.calendarReminders;
     case "class-reminder":
       return preferences.classReminders;
+    case "integralizacao-alert":
+      return preferences.integralizacaoAlerts;
+    case "calendar-date-alert":
+      return preferences.academicDateAlerts;
     default:
       return true;
   }

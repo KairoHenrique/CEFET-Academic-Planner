@@ -1,10 +1,14 @@
 import { notFoundError } from "@/lib/api/errors";
 import {
   getAluno,
+  getCalendarioAcademico,
   getNotasForSemestreAtual,
   getSemestreAtual,
   getTarefas,
 } from "@/lib/db/queries";
+import { buildIntegralizacao } from "@/lib/integralizacao/build-integralizacao";
+import { buildAcademicDateAlertItems } from "@/lib/notifications/build-academic-date-alert-items";
+import { buildIntegralizacaoAlertItems } from "@/lib/notifications/build-integralizacao-alert-items";
 import { buildPendingCalendarReminderSources } from "@/lib/notifications/build-pending-calendar-reminder-sources";
 import {
   buildGradeNotificationFingerprint,
@@ -18,10 +22,13 @@ import { buildGradeNotificationSubtitle } from "@/lib/notifications/grade-notifi
 import { normalizeTime } from "@/lib/tasks/dates";
 import type {
   AlunoRow,
+  CalendarioAcademicoRow,
   NotaRow,
   SemestreAtualWithDisciplina,
   TarefaRow,
 } from "@/lib/types/db";
+import type { IntegralizacaoResponse } from "@/lib/types/integralizacao-api";
+import type { NotificationKind } from "@/lib/types/notifications-api";
 import type { NotificationPreferences } from "@/lib/types/perfil-api";
 import type {
   NotificationSnapshotItem,
@@ -47,7 +54,22 @@ export interface NotificationSnapshotData {
     events: PendingCalendarReminderSource[];
     classes: PendingCalendarReminderSource[];
   };
+  /** B36 — integralização já calculada (marcos por categoria de CH). */
+  integralizacao: IntegralizacaoResponse | null;
+  /** B37 — linhas do calendário acadêmico (datas institucionais próximas). */
+  academicRows: CalendarioAcademicoRow[];
 }
+
+/** Tasks antes de notas; alertas derivados ao final, ordenados por data. */
+const KIND_DISPLAY_ORDER: Record<NotificationKind, number> = {
+  task: 0,
+  "task-reminder": 0,
+  grade: 1,
+  "calendar-event-reminder": 2,
+  "calendar-date-alert": 2,
+  "class-reminder": 2,
+  "integralizacao-alert": 3,
+};
 
 export interface NotificationSnapshot {
   items: NotificationSnapshotItem[];
@@ -141,11 +163,19 @@ export function buildNotificationSnapshotFromData(
     }
   }
 
+  if (isNotificationKindEnabled("integralizacao-alert", preferences)) {
+    items.push(...buildIntegralizacaoAlertItems(data.integralizacao));
+  }
+
+  if (isNotificationKindEnabled("calendar-date-alert", preferences)) {
+    items.push(...buildAcademicDateAlertItems(data.academicRows));
+  }
+
   items.sort((a, b) => {
-    if (a.kind !== b.kind) return a.kind === "task" ? -1 : 1;
-    const aDate = a.at ?? "";
-    const bDate = b.at ?? "";
-    return aDate.localeCompare(bDate);
+    const orderA = KIND_DISPLAY_ORDER[a.kind];
+    const orderB = KIND_DISPLAY_ORDER[b.kind];
+    if (orderA !== orderB) return orderA - orderB;
+    return (a.at ?? "").localeCompare(b.at ?? "");
   });
 
   return {
@@ -160,12 +190,16 @@ export function buildNotificationSnapshotFromData(
 
 /** Caminho SQLite (dev/PC) — carrega os dados e delega ao núcleo puro. */
 export function buildNotificationSnapshot(): NotificationSnapshot {
+  const aluno = getAluno();
+
   return buildNotificationSnapshotFromData({
-    aluno: getAluno(),
+    aluno,
     preferences: getNotificationPreferences(),
     semestreRows: getSemestreAtual(),
     tarefas: getTarefas(),
     notasSemestre: getNotasForSemestreAtual(),
     calendarSources: buildPendingCalendarReminderSources(),
+    integralizacao: aluno ? buildIntegralizacao() : null,
+    academicRows: aluno ? getCalendarioAcademico() : [],
   });
 }

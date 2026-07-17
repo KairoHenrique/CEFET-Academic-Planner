@@ -3,7 +3,11 @@ export type NotificationKind =
   | "grade"
   | "task-reminder"
   | "calendar-event-reminder"
-  | "class-reminder";
+  | "class-reminder"
+  /** B36 — marco de integralização (faixa por categoria de CH). */
+  | "integralizacao-alert"
+  /** B37 — data acadêmica institucional próxima. */
+  | "calendar-date-alert";
 
 export interface NotificationSnapshotItem {
   fingerprint: string;

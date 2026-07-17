@@ -244,7 +244,9 @@ export function useNotifications() {
   const newGrades = unread.filter((item) => item.kind === "grade").length;
   const newCalendarEvents = unread.filter(
     (item) =>
-      item.kind === "calendar-event-reminder" || item.kind === "class-reminder"
+      item.kind === "calendar-event-reminder" ||
+      item.kind === "class-reminder" ||
+      item.kind === "calendar-date-alert"
   ).length;
 
   return {
