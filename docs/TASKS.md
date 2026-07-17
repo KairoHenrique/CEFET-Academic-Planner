@@ -195,8 +195,8 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 - [x] **FRONT:** F29 *(cadastro + login produção — CPF explícito no login · `PlannerNotice` toast de erro)*
 - [x] **BACK:** B61 *(PATCH `/api/perfil` → `app_profiles` no Postgres — UI **F37** ✅)*
 - [x] **BACK:** B62 *(fila e-mail — promoções sempre + ciclo conta: cadastro, fim trial, plano perto de acabar, plano encerrado)*
-- [@] **BACK:** B62b *(provedor transacional — **Brevo** grátis/sem domínio, fallback **Resend**; envio real via REST `fetch`, HTML anti-XSS + retry backoff; stub de log quando sem secret · deploy jul/2026, teste real ok)*
-- [%] **BACK:** B62c *(conteúdo + ativação — saudação com 2 primeiros nomes, link `/planos` absoluto, agenda plano expirando 7/3/1 + encerrado, disparo de promoção no `/dev`)*
+- [x] **BACK:** B62b *(provedor transacional — **Brevo** grátis/sem domínio, fallback **Resend**; envio real via REST `fetch`, HTML anti-XSS + retry backoff; stub de log quando sem secret · deploy jul/2026, teste real ok · aprovado jul/2026)*
+- [x] **BACK:** B62c *(conteúdo + ativação — saudação com 2 primeiros nomes, link `/planos` absoluto, agenda plano expirando 7/3/1 + encerrado, disparo de promoção no `/dev` · push+aprovado jul/2026)*
 
 **Ordem 6b:** `B44 → B45 → B58 → B63` → `B59` → `F29` → `B61 → B62 → B62b → B62c`
 
@@ -1173,8 +1173,8 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | B61 | Back | Preferências contato | PATCH `/api/perfil` → `app_profiles` Postgres (UI **F37** ✅) | [x] |
 | F29 | Front | Cadastro + login | Cadastro: e-mail, tel, CPF, curso, senha · Login: **só CPF + senha** · tabs cloud + Bearer | [x] |
 | B62 | Back | E-mails conta/promo | Fila: promoções (**sempre**) + cadastro, fim trial, plano perto de acabar, plano encerrado | [x] |
-| B62b | Back | Provedor e-mail | **Brevo** (grátis/sem domínio) → Resend fallback · REST `fetch` · HTML anti-XSS · retry backoff · stub sem secret · **deploy+teste ok** | [@] |
-| B62c | Back | Conteúdo + ativação e-mail | Saudação 2 primeiros nomes · link `/planos` absoluto · agenda plano expirando (7/3/1) + encerrado · disparo de promoção no `/dev` | [%] |
+| B62b | Back | Provedor e-mail | **Brevo** (grátis/sem domínio) → Resend fallback · REST `fetch` · HTML anti-XSS · retry backoff · stub sem secret · **deploy+teste ok** | [x] |
+| B62c | Back | Conteúdo + ativação e-mail | Saudação 2 primeiros nomes · link `/planos` absoluto · agenda plano expirando (7/3/1) + encerrado · disparo de promoção no `/dev` | [x] |
 
 **Ordem 6b:** `B44 → B45 → B58 → B63` → `B59` → `F29` → `B61 → B62 → B62b → B62c`
 
@@ -1781,7 +1781,7 @@ Rota **`/dev`** — invisível ao aluno.
 
 **Status:** `[x]` aprovado 100% (push jul/2026).
 
-#### B62c — conteúdo + ativação dos e-mails (jul/2026) `[%]`
+#### B62c — conteúdo + ativação dos e-mails (jul/2026) `[x]`
 
 > Fecha o conteúdo/ativação da fila de e-mail (sobre **B62/B62b**). Sem novo bloco.
 
@@ -1796,7 +1796,9 @@ Rota **`/dev`** — invisível ao aluno.
 
 **Ativação:** sem novo secret (Brevo já configurado). Ciclo de plano pago passa a rodar automaticamente pelo cron (`run-account-email-cron` já chama os dois schedulers) após o deploy. **Welcome** segue genérico no cadastro (nome só existe após 1º sync); demais e-mails já saem personalizados.
 
-**Status:** `[%]` commit local — aguardando push/aprovação.
+**E-mail de contato/suporte:** `acme.hubsuporte@gmail.com` — fonte única em `legal/constants.ts`; explícito na seção 1 da privacidade e na seção 9 (Contato) dos termos, além do rodapé de `/termos` e `/privacidade`.
+
+**Status:** `[x]` push + aprovado jul/2026.
 
 ### Painel robôs — ops manual (escopo fechado p/ **B70** + **F41**)
 
