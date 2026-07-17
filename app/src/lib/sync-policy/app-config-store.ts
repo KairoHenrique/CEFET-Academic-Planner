@@ -110,6 +110,55 @@ export async function pgSetAppConfigJson(
   );
 }
 
+export async function pgDeleteAppConfig(chave: string): Promise<void> {
+  const pool = getPostgresPool();
+  await pool.query(`DELETE FROM app_config WHERE chave = $1`, [chave]);
+}
+
+/** Leitura genérica backend-aware (Postgres → app_config; local → arquivo/memória). */
+export async function getAppConfigJson(chave: string): Promise<JsonValue | null> {
+  if (isPostgresBackend()) {
+    return pgGetAppConfigJson(chave);
+  }
+  const store = activeStore();
+  return store.get(chave) ?? null;
+}
+
+/** Escrita genérica backend-aware. */
+export async function setAppConfigJson(
+  chave: string,
+  valor: JsonValue
+): Promise<void> {
+  if (isPostgresBackend()) {
+    await pgSetAppConfigJson(chave, valor);
+    return;
+  }
+
+  const store = activeStore();
+  store.set(chave, valor);
+  if (process.env.SYNC_POLICY_STORE === "memory") {
+    memoryStore = store;
+  } else {
+    writeLocalFileStore(store);
+  }
+}
+
+/** Remoção genérica backend-aware. */
+export async function deleteAppConfigJson(chave: string): Promise<void> {
+  if (isPostgresBackend()) {
+    await pgDeleteAppConfig(chave);
+    return;
+  }
+
+  const store = activeStore();
+  store.delete(chave);
+  if (process.env.SYNC_POLICY_STORE === "memory") {
+    memoryStore = store;
+  } else {
+    writeLocalFileStore(store);
+  }
+}
+
 export async function pgGetSyncPolicyOverrides(): Promise<SyncPolicyOverrides | null> {
   const raw = await pgGetAppConfigJson(SYNC_POLICY_OVERRIDES_KEY);
   if (raw === null) return null;

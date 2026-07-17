@@ -8,6 +8,7 @@ import { LegalFooterLinks } from "@/components/legal/LegalFooterLinks";
 import { PlanosCheckoutPanel } from "@/components/planos/PlanosCheckoutPanel";
 import { PlanosHero } from "@/components/planos/PlanosHero";
 import { PlanosPageShell } from "@/components/planos/PlanosPageShell";
+import { PlanosPromoBanner } from "@/components/planos/PlanosPromoBanner";
 import { PlanosStatusAlert } from "@/components/planos/PlanosStatusAlert";
 import { PlannerNotice } from "@/components/ui/PlannerNotice";
 import { useBillingAccount } from "@/hooks/useBillingAccount";
@@ -90,6 +91,8 @@ export function PlanosPageClient() {
   return (
     <PlanosPageShell>
       <PlanosHero subtitle={subtitle} showExploreLink={showExploreLink} />
+
+      {catalog?.promo ? <PlanosPromoBanner promo={catalog.promo} /> : null}
 
       <PlanosStatusAlert flow={effectiveFlow} account={billingAccount} />
 

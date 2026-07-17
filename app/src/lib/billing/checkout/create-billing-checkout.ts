@@ -33,9 +33,23 @@ import {
   resolvePlanLabel,
 } from "@/lib/billing/plan-catalog";
 import { resolveBillingPriceCents } from "@/lib/billing/resolve-plan-prices";
+import { resolveActivePromoPriceCents } from "@/lib/billing/site-promo/site-promo-store";
 import { isCheckoutRenewalForUser } from "@/lib/billing/access/resolve-subscription-access";
 import type { PaymentRow } from "@/lib/billing/schema/billing-row-types";
 import type { SubscriptionRow } from "@/lib/billing/schema/billing-row-types";
+import type { PaidPlanId } from "@/lib/billing/types";
+
+/**
+ * Valor cobrado no checkout: preço promocional quando há promoção ativa para o
+ * plano (e ainda válida), senão o preço base do env/default. Reverte sozinho
+ * quando a promoção expira, pois `resolveActivePromoPriceCents` checa o prazo.
+ */
+async function resolveCheckoutAmountCents(
+  planId: PaidPlanId
+): Promise<number> {
+  const promoPrice = await resolveActivePromoPriceCents(planId);
+  return promoPrice ?? resolveBillingPriceCents(planId);
+}
 
 function assertCheckoutGatewayReady(): void {
   const config = resolvePixGatewayConfig();
@@ -159,7 +173,7 @@ async function createNewPixCheckout(
   }
 
   const renewal = await isCheckoutRenewalForUser(input.cpf);
-  const amountCents = resolveBillingPriceCents(input.planId);
+  const amountCents = await resolveCheckoutAmountCents(input.planId);
   const durationDays = resolvePlanDurationDays(input.planId);
   const gatewayId = resolvePixGatewayId();
   const paymentId = randomUUID();

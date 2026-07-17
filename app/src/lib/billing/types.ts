@@ -35,6 +35,30 @@ export interface BillingPlanSavings {
   label: string | null;
 }
 
+/**
+ * Promoção ativa exibida na página de planos (gerada no /dev).
+ *
+ * A promoção é dirigida por preço: o operador define o preço promocional de um
+ * plano e a duração; o sistema calcula o percentual, o texto e reverte o preço
+ * automaticamente no fim do prazo.
+ */
+export interface SitePromoPublic {
+  /** Selo curto, ex.: "-20%". */
+  badge: string | null;
+  headline: string;
+  description: string;
+  /** Plano em promoção (badge no card + já selecionado). */
+  highlightPlanId: PaidPlanId;
+  /** ISO — quando a promoção termina e o preço volta ao normal. */
+  expiresAt: string;
+  /** Preço normal do plano (centavos) — exibido riscado. */
+  basePriceCents: number;
+  /** Preço promocional cobrado no checkout (centavos). */
+  promoPriceCents: number;
+  /** Percentual de desconto calculado. */
+  discountPercent: number;
+}
+
 export interface BillingPlansResponse {
   ok: true;
   currency: "BRL";
@@ -45,6 +69,8 @@ export interface BillingPlansResponse {
     label: string;
   };
   plans: BillingPlanView[];
+  /** Promoção ativa no site (banner em /planos); null quando não há. */
+  promo: SitePromoPublic | null;
   /** Trimestre vs. 3× mensal (R$ 30 base). */
   quarterSavings: BillingPlanSavings | null;
   /** Semestre vs. 2× trimestre. */

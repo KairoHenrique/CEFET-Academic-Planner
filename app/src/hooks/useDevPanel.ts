@@ -12,6 +12,7 @@ import {
   getDevSyncStatus,
   patchDevRevokeGiftKey,
   patchDevSyncPolicy,
+  deleteDevSitePromo,
   postDevAccountEmailsCron,
   postDevCreateGiftKeys,
   postDevDispatchPromotion,
@@ -143,6 +144,19 @@ export function useDevDispatchPromotion() {
     mutationFn: (body: DevPromotionRequest) => postDevDispatchPromotion(body),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.devAuditLog() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.billingPlans() });
+    },
+  });
+}
+
+export function useDevClearSitePromo() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => deleteDevSitePromo(),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.devAuditLog() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.billingPlans() });
     },
   });
 }

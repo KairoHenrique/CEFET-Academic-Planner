@@ -41,7 +41,7 @@ export function buildWelcomeEmail(input: WelcomeTemplateInput) {
       "",
       "Você já pode acompanhar notas e faltas, montar sua grade, ver o mapa de pré-requisitos e a integralização do curso.",
       "",
-      "Você tem 7 dias de acesso gratuito para explorar tudo. É só clicar no botão abaixo:",
+      "Você tem 7 dias de acesso gratuito para explorar tudo.",
       "",
       startHref,
       "",

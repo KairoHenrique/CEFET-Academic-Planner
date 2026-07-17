@@ -6,6 +6,7 @@ import { PageGrid } from "@/components/layout/PageGrid";
 import { DevAuditSection } from "@/components/dev/DevAuditSection";
 import { DevGiftKeysSection } from "@/components/dev/DevGiftKeysSection";
 import { DevNavbar } from "@/components/dev/DevNavbar";
+import { DevPromotionsSection } from "@/components/dev/DevPromotionsSection";
 import { DevRobotsSection } from "@/components/dev/DevRobotsSection";
 import { DevSyncQueueSection } from "@/components/dev/DevSyncQueueSection";
 import { DevSyncPolicyForm } from "@/components/dev/DevSyncPolicyForm";
@@ -71,6 +72,10 @@ export function DevPanelShell({ operatorEmail, onLogout }: DevPanelShellProps) {
 
         {activeView === "chaves" ? (
           <DevGiftKeysSection />
+        ) : null}
+
+        {activeView === "promocoes" ? (
+          <DevPromotionsSection />
         ) : null}
 
         {activeView === "policy" ? (

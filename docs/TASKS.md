@@ -197,8 +197,9 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 - [x] **BACK:** B62 *(fila e-mail — promoções sempre + ciclo conta: cadastro, fim trial, plano perto de acabar, plano encerrado)*
 - [x] **BACK:** B62b *(provedor transacional — **Brevo** grátis/sem domínio, fallback **Resend**; envio real via REST `fetch`, HTML anti-XSS + retry backoff; stub de log quando sem secret · deploy jul/2026, teste real ok · aprovado jul/2026)*
 - [x] **BACK:** B62c *(conteúdo + ativação — saudação com 2 primeiros nomes, link `/planos` absoluto, agenda plano expirando 7/3/1 + encerrado, disparo de promoção no `/dev` · push+aprovado jul/2026)*
+- [@] **BACK+FRONT:** B73/F42 *(promoção dirigida por preço — aba **Promoções** no `/dev` define preço promocional + duração; sistema calcula %, gera textos, sobrescreve preço no checkout/`/planos` e reverte no fim do prazo; banner + preço riscado · push jul/2026, aguardando aprovação 100%)*
 
-**Ordem 6b:** `B44 → B45 → B58 → B63` → `B59` → `F29` → `B61 → B62 → B62b → B62c`
+**Ordem 6b:** `B44 → B45 → B58 → B63` → `B59` → `F29` → `B61 → B62 → B62b → B62c → B73/F42`
 
 ---
 
@@ -1175,8 +1176,10 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | B62 | Back | E-mails conta/promo | Fila: promoções (**sempre**) + cadastro, fim trial, plano perto de acabar, plano encerrado | [x] |
 | B62b | Back | Provedor e-mail | **Brevo** (grátis/sem domínio) → Resend fallback · REST `fetch` · HTML anti-XSS · retry backoff · stub sem secret · **deploy+teste ok** | [x] |
 | B62c | Back | Conteúdo + ativação e-mail | Saudação 2 primeiros nomes · link `/planos` absoluto · agenda plano expirando (7/3/1) + encerrado · disparo de promoção no `/dev` | [x] |
+| B73 | Back | Promo do site (por preço) | Promo global dirigida por preço no `app_config`: operador define preço promocional + duração; sistema calcula %, gera textos, sobrescreve preço no checkout e na `GET /api/billing/plans`, e reverte no fim do prazo | [@] |
+| F42 | Front | Promoções (/dev) + banner | Aba **Promoções** no `/dev` (tabela de preços atuais, form preço+duração com preview de %, promo ativa + encerrar) · banner e card com preço riscado em `/planos` | [@] |
 
-**Ordem 6b:** `B44 → B45 → B58 → B63` → `B59` → `F29` → `B61 → B62 → B62b → B62c`
+**Ordem 6b:** `B44 → B45 → B58 → B63` → `B59` → `F29` → `B61 → B62 → B62b → B62c → B73/F42`
 
 > **Fora do 6b:** pagamento PIX e planos pagos = **Bloco 7** (B47–B53). Dev local Bloco 1–2 mantém login SIGAA simples até cloud.
 
@@ -1757,7 +1760,7 @@ Rota **`/dev`** — invisível ao aluno.
 | **Robôs (ops manual)** | Lista **nome + CPF** com busca; **chavinhas** (toggle dourado) por robô — **R1** sync principal · **R2** calendário (**B66**) · **R3** turmas (**B67**); disparo **individual** (1 conta) ou **global** (todas/filtradas); usa **CPF + senha já persistidos**; **sem cooldown** B65/O3 |
 | Credenciais | **B71** ✅ — painel dev só `credentialSaved` + `accountRef` opaco; senha nunca na API/logs |
 | Chaves | Criar (lote), listar, revogar, ver quem resgatou |
-| Promoções | Toggle global + banners `/planos` |
+| Promoções | Aba **Promoções** (**B73/F42** `[@]`) — preço promocional + duração · banner `/planos` · e-mail global automático |
 | Simulação | Forçar expiração/renovação de plano; sync forçado; reset dados (confirmação dupla) |
 | Auditoria | Log de ações sensíveis |
 
@@ -1792,7 +1795,7 @@ Rota **`/dev`** — invisível ao aluno.
 | 3 | **Copy sem travessão** — textos revisados (welcome, fim trial, expirando, encerrado) | `email/account-email-templates.ts` |
 | 4 | **Plano expirando** — agenda faixas 7/3/1 dias (dedupe por janela) | `email/schedule-account-lifecycle-emails.ts` |
 | 5 | **Plano encerrado** — dispara na virada (janela 3d, ignora quem já renovou) | `email/schedule-account-lifecycle-emails.ts` |
-| 6 | **Disparo de promoção no `/dev`** — card na aba Robôs (global/individual) + flush imediato da fila | `POST /api/dev/promotions`, `dev-panel/dispatch-promotion.ts`, `dev-panel/promotion-targets.ts`, `components/dev/DevPromotionCard.tsx` |
+| 6 | **Disparo de promoção** — evoluído em **B73/F42** (aba Promoções, dirigida por preço; sempre global) | ver seção B73/F42 abaixo |
 | 7 | **HTML da marca** — cabeçalho azul-marinho com logo (`/logo_v2.png`) + wordmark + tagline · botão de ação dourado (URL sozinha vira botão) · rodapé com contato | `email/account-email-html.ts` |
 
 **Ativação:** sem novo secret (Brevo já configurado). Ciclo de plano pago passa a rodar automaticamente pelo cron (`run-account-email-cron` já chama os dois schedulers) após o deploy. **Welcome** segue genérico no cadastro (nome só existe após 1º sync); demais e-mails já saem personalizados.
@@ -1800,6 +1803,20 @@ Rota **`/dev`** — invisível ao aluno.
 **E-mail de contato/suporte:** `acme.hubsuporte@gmail.com` — fonte única em `legal/constants.ts`; explícito na seção 1 da privacidade e na seção 9 (Contato) dos termos, além do rodapé de `/termos` e `/privacidade`.
 
 **Status:** `[x]` push + aprovado jul/2026.
+
+#### B73/F42 — promoção dirigida por preço (jul/2026) `[@]`
+
+> Evolui o disparo de promoção do B62c: sem texto livre, sem escopo individual. Operador só escolhe **plano + preço promocional + duração**.
+
+| # | Entrega | Arquivos-chave |
+|---|---|---|
+| 1 | **Store** — `app_config` `billing.site_promo` (Postgres/arquivo); preço reverte sozinho ao expirar | `billing/site-promo/*`, `sync-policy/app-config-store.ts` |
+| 2 | **Checkout + catálogo** — preço promocional em `create-billing-checkout` e `GET /api/billing/plans` | `checkout/create-billing-checkout.ts`, `apply-site-promo-to-plans.ts` |
+| 3 | **Copy automática** — % + "de X por Y" + prazo (banner e e-mail) | `billing/site-promo/build-promo-copy.ts` |
+| 4 | **Aba Promoções** no `/dev` — tabela de preços, form, promo ativa + encerrar | `DevPromotionsSection.tsx`, `dev-panel-navigation.ts` |
+| 5 | **Banner `/planos`** — selo `-X%`, preço riscado no card, plano já selecionado | `PlanosPromoBanner.tsx`, `PlanosPlanShowcase.tsx` |
+
+**Status:** `[@]` push jul/2026 — aguardando aprovação 100%.
 
 ### Painel robôs — ops manual (escopo fechado p/ **B70** + **F41**)
 
@@ -1939,7 +1956,7 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 8. **Próximo passo do roadmap:** informe **depois do push** (tasks em `[@]` ou `[x]`). Com commits locais só `[x]`, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v3](#ordem-oficial-de-execução-v3) — **Bloco 2 (sync) antes do Bloco 6 (Supabase)**. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy **após** sync validado; RLS ✅ **6c** (antes do PIX). Marco “site no ar p/ testes gerais” → [final do TASKS.md](#marco--site-no-ar-para-testes-gerais).
-11. **Próximo passo:** **#10 — Bloco 4 · F28** (site mobile). **F25–F27** `[x]` (skeletons, transições de rota, favicon/título — aprovado jul/2026). **#9 fechado:** **B36/B37** `[x]` (alertas no sino, aprovado jul/2026) · **F24 descartado** (banners removidos — só sino) · demais `[x]`. Ops sync = PC home server (`npm run worker:home` + `npm run worker:tunnel` + secrets CF; dev scraper `SIGAA_BROWSER_CHANNEL=chrome`).
+11. **Próximo passo:** **#10 — Bloco 4 · F28** (site mobile). **B73/F42** `[@]` (promoção por preço + aba Promoções — push jul/2026, aguardando aprovação). **F25–F27** `[x]`. **#9 fechado:** **B36/B37** `[x]` · **F24 descartado**. Ops sync = PC home server (`npm run worker:home` + `npm run worker:tunnel` + secrets CF; dev scraper `SIGAA_BROWSER_CHANNEL=chrome`).
 12. **Integralização:** CH concluída = `historico` + PPC (`computeChDoneFromDisciplinas`); portal SIGAA só % / total currículo; matérias já passadas = **B30** ✅.
 13. **Gift + painel dev:** **B68–B71** ✅ · **F39–F41** ✅ — painel sem senha SIGAA (`credentialSaved` + `accountRef`).
 14. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial. **Polish em task `[x]`** (ex.: F38, dashboard) também exige nota no TASKS no mesmo ciclo do push.

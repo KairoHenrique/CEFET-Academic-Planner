@@ -21,6 +21,17 @@ export function resolvePlanSavingsLabel(
 export function resolveDefaultPaidPlanId(
   catalog: BillingPlansResponse
 ): PaidPlanId {
+  // Promoção com plano em destaque abre já selecionado, reforçando a oferta.
+  const highlightId = catalog.promo?.highlightPlanId ?? null;
+  if (highlightId) {
+    const highlighted = catalog.plans.find(
+      (plan) => plan.kind === "paid" && plan.id === highlightId
+    );
+    if (highlighted?.kind === "paid") {
+      return highlighted.id as PaidPlanId;
+    }
+  }
+
   const featured = catalog.plans.find(
     (plan) => plan.kind === "paid" && plan.featured
   );
