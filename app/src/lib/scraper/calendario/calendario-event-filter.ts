@@ -4,7 +4,7 @@ const INSTITUTIONAL_KEYWORDS =
 
 /** Eventos que realmente importam para o aluno (detalhe SIGAA). */
 const IMPORTANT_CALENDARIO_EVENT =
-  /^(per[ií]odo letivo|matr[ií]cula on\s?line|matr[ií]cula extraordin[aá]ria|rematr[ií]cula|ajustes das rematr[ií]culas\/turmas|ajustes das matr[ií]culas\/turmas|recesso|provas finais|in[ií]cio das aulas|trancamento)$/i;
+  /^(per[ií]odo letivo|matr[ií]cula on\s?line|matr[ií]cula extraordin[aá]ria|rematr[ií]cula|processamento de matr[ií]cula|processamento de rematr[ií]cula|ajustes das rematr[ií]culas\/turmas|ajustes das matr[ií]culas\/turmas|recesso|provas finais|in[ií]cio das aulas|trancamento)$/i;
 
 export function isUndefinedCalendarioValue(raw: string): boolean {
   const text = raw.replace(/\s+/g, " ").trim().toLowerCase();

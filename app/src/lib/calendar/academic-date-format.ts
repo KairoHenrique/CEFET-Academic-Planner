@@ -1,4 +1,5 @@
 import type { CalendarioAcademicoRow } from "@/lib/types/db";
+import { resolveEventLabelOverride } from "@/lib/calendar/event-label-overrides";
 
 /** DD/MM/YY — ex.: 22/01/26 */
 export function formatIsoToBrDate(iso: string): string {
@@ -21,6 +22,10 @@ export function formatAcademicDateRange(
 
 export function formatInstitutionalEventLabel(row: CalendarioAcademicoRow): string {
   const base = row.evento.trim();
+
+  const override = resolveEventLabelOverride(base);
+  if (override) return override;
+
   if (/per[ií]odo letivo/i.test(base) && row.semestre?.trim()) {
     return `${base} ${row.semestre.trim()}`;
   }
