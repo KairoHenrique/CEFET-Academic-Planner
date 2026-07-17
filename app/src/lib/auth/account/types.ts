@@ -1,4 +1,4 @@
-import type { TrialSubscriptionSnapshot } from "@/lib/auth/trial/trial-status";
+import type { ResolvedSubscriptionAccess } from "@/lib/billing/access/resolve-subscription-access";
 
 export type AppCursoId =
   | "eng-computacao"
@@ -41,5 +41,5 @@ export interface AuthSessionPayload {
 export interface AccountAuthResult {
   profile: AppProfileRecord;
   session: AuthSessionPayload;
-  subscription: TrialSubscriptionSnapshot;
+  subscription: ResolvedSubscriptionAccess;
 }

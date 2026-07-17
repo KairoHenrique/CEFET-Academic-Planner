@@ -6,6 +6,7 @@ import { PasswordInput } from "@/components/ui/PasswordInput";
 import { SyncProgress } from "@/components/ui/SyncProgress";
 import { getSyncCredentials, saveSyncCredentials } from "@/lib/auth/credentials";
 import { needsSyncPassword } from "@/lib/auth/sync-session";
+import { isCloudSession } from "@/lib/auth/session";
 import { useSync } from "@/hooks/useSync";
 
 export function SyncButton() {
@@ -30,6 +31,13 @@ export function SyncButton() {
   };
 
   const handleClick = () => {
+    // Cloud: identidade vem da sessão e a senha SIGAA está no servidor —
+    // dispara direto, sem exigir senha/credencial local.
+    if (isCloudSession()) {
+      void runSync();
+      return;
+    }
+
     const creds = getSyncCredentials();
     if (!creds?.username) {
       void runSync();

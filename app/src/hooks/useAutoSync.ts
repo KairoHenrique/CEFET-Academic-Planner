@@ -4,7 +4,18 @@ import { useEffect, useRef } from "react";
 import { getSyncCredentials } from "@/lib/auth/credentials";
 import { consumeBackgroundSyncPending } from "@/lib/auth/background-sync";
 import { needsSyncPassword } from "@/lib/auth/sync-session";
+import { isCloudSession } from "@/lib/auth/session";
 import type { PerfilSyncStatus } from "@/lib/types/perfil-api";
+
+/**
+ * Pode iniciar sync agora? No cloud, a senha SIGAA está no servidor — basta a
+ * sessão. No modo SIGAA, exige usuário + senha na sessão do browser.
+ */
+function canStartSyncNow(): boolean {
+  if (isCloudSession()) return true;
+  const creds = getSyncCredentials();
+  return Boolean(creds?.username) && !needsSyncPassword(creds?.username);
+}
 
 function canAutoSyncNow(settings: PerfilSyncStatus): boolean {
   if (!settings.lastSyncAt) return false;
@@ -41,8 +52,7 @@ export function useAutoSync(
   useEffect(() => {
     if (!syncSettings || entrySyncDoneRef.current) return;
 
-    const creds = getSyncCredentials();
-    if (!creds?.username || needsSyncPassword(creds.username)) return;
+    if (!canStartSyncNow()) return;
 
     if (consumeBackgroundSyncPending()) {
       entrySyncDoneRef.current = true;
@@ -63,9 +73,7 @@ export function useAutoSync(
       const settings = settingsRef.current;
       if (!settings || syncingRef.current) return;
       if (!canAutoSyncNow(settings)) return;
-
-      const creds = getSyncCredentials();
-      if (!creds?.username || needsSyncPassword(creds.username)) return;
+      if (!canStartSyncNow()) return;
 
       void startSyncRef.current(undefined, {
         mode: "lite",

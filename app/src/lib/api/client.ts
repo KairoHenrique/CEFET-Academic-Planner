@@ -142,9 +142,23 @@ async function requestJson<T>(
 ): Promise<T> {
   let response: Response;
 
+  // Timeout evita loading infinito no browser (Workers/rede).
+  const timeoutMs =
+    path.startsWith("/api/sync") && !path.includes("/queue/")
+      ? 0
+      : path.startsWith("/api/")
+        ? 20_000
+        : 0;
+  const controller =
+    !init?.signal && timeoutMs > 0 ? new AbortController() : null;
+  const timer = controller
+    ? setTimeout(() => controller.abort(), timeoutMs)
+    : null;
+
   try {
     response = await fetch(path, {
       ...init,
+      signal: init?.signal ?? controller?.signal,
       headers: {
         "Content-Type": "application/json",
         ...buildRequestAuthHeaders(sigaaUsername),
@@ -157,6 +171,8 @@ async function requestJson<T>(
       "NETWORK_ERROR",
       0
     );
+  } finally {
+    if (timer) clearTimeout(timer);
   }
 
   const body = await parseJsonBody<T & ApiFailureBody>(response);
@@ -172,8 +188,10 @@ async function requestJson<T>(
   return body;
 }
 
-export async function getAuthConfig(): Promise<AuthConfigResponse> {
-  return requestJson<AuthConfigResponse>("/api/auth/config");
+export async function getAuthConfig(
+  init?: RequestInit
+): Promise<AuthConfigResponse> {
+  return requestJson<AuthConfigResponse>("/api/auth/config", init);
 }
 
 export async function postAuthRegister(

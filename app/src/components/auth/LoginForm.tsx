@@ -6,17 +6,21 @@ import { LoginCard } from "@/components/auth/LoginCard";
 import { SigaaLoginForm } from "@/components/auth/SigaaLoginForm";
 import { useAuthConfig } from "@/hooks/useAuthConfig";
 
+function AuthLoadingCard() {
+  return (
+    <LoginCard subtitle="Carregando…">
+      <p className="auth-loading" role="status">
+        Preparando autenticação…
+      </p>
+    </LoginCard>
+  );
+}
+
 function LoginFormContent() {
   const authConfig = useAuthConfig();
 
   if (authConfig.loading) {
-    return (
-      <LoginCard subtitle="Carregando…">
-        <p className="auth-loading" role="status">
-          Preparando autenticação…
-        </p>
-      </LoginCard>
-    );
+    return <AuthLoadingCard />;
   }
 
   if (authConfig.mode === "cloud") {
@@ -28,7 +32,7 @@ function LoginFormContent() {
 
 export function LoginForm() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<AuthLoadingCard />}>
       <LoginFormContent />
     </Suspense>
   );
