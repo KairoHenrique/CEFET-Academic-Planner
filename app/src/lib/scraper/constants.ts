@@ -99,3 +99,17 @@ export const DIRGRAD_CALENDARIO_URL =
 export const SIGAA_HEADLESS =
   process.env.SIGAA_HEADLESS !== "false" &&
   process.env.SIGAA_HEADLESS !== "0";
+
+/**
+ * Canal do browser do sistema para Playwright (`chrome` | `msedge` | …).
+ * Vazio = Chromium embutido (Docker/Fly). No PC home-worker use `chrome`.
+ */
+export const SIGAA_BROWSER_CHANNEL = (() => {
+  const fromLocal = readStringFromEnvLocal("SIGAA_BROWSER_CHANNEL");
+  const raw = (fromLocal ?? process.env.SIGAA_BROWSER_CHANNEL?.trim() ?? "")
+    .toLowerCase();
+  if (raw === "chrome" || raw === "msedge" || raw === "chrome-beta") {
+    return raw;
+  }
+  return null;
+})();

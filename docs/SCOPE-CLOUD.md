@@ -271,8 +271,8 @@ Recuperação de acesso: por **e-mail** ou **telefone** cadastrados (não usa e-
 
 ### 6.1 Onde roda
 
-- **Worker dedicado** (container/VPS ou serviço serverless com Playwright) — implementação **B54:** `app/worker/` · Docker · ver `app/worker/README.md`.
-- Supabase Edge Functions **não** são ideais para Playwright completo — avaliar Railway, Fly.io, ou VPS barato.
+- **Worker dedicado** — path oficial: **PC home server** com Playwright/Chrome + **Cloudflare Tunnel** (`cloudflared`) expondo `localhost:8787`. Implementação **B54/B72e:** `app/worker/` · `npm run worker:home` · ver `app/worker/README.md`. Fly/Docker ficam como fallback se o PC não estiver online.
+- Supabase Edge Functions **não** são ideais para Playwright completo — o browser **nunca** roda na Cloudflare.
 
 ### 6.2 Fluxo
 

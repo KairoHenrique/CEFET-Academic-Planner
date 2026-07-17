@@ -1,10 +1,25 @@
 import { chromium, type Browser, type BrowserContext } from "playwright";
-import { SIGAA_HEADLESS } from "@/lib/scraper/constants";
+import {
+  SIGAA_BROWSER_CHANNEL,
+  SIGAA_HEADLESS,
+} from "@/lib/scraper/constants";
 
 export async function launchSigaaBrowser(): Promise<Browser> {
+  const args = ["--no-sandbox", "--disable-dev-shm-usage"];
+
+  // PC home-worker: Chrome/Edge instalados do sistema (SIGAA_BROWSER_CHANNEL).
+  // Container/Fly: omitir a var → Chromium embutido do Playwright.
+  if (SIGAA_BROWSER_CHANNEL) {
+    return chromium.launch({
+      channel: SIGAA_BROWSER_CHANNEL,
+      headless: SIGAA_HEADLESS,
+      args,
+    });
+  }
+
   return chromium.launch({
     headless: SIGAA_HEADLESS,
-    args: ["--no-sandbox", "--disable-dev-shm-usage"],
+    args,
   });
 }
 
@@ -14,7 +29,7 @@ export async function createSigaaContext(
   const context = await browser.newContext({
     locale: "pt-BR",
     userAgent:
-      "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
     ignoreHTTPSErrors: true,
   });
 

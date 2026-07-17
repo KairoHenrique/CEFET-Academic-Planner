@@ -44,7 +44,11 @@ function parseEnvFile(path) {
 }
 
 function stripJsonComments(source) {
-  return source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
+  // Só remove comentários de linha inteira (`^\s*//`). Um `//.*$` genérico
+  // apagaria o `//` dentro de strings como "https://...", corrompendo o JSON.
+  return source
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/^\s*\/\/.*$/gm, "");
 }
 
 const env = parseEnvFile(ENV_PATH);

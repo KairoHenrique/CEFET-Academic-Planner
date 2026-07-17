@@ -11,7 +11,7 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
 > - **Modo testes:** deploy global após sync validado; RLS na fase 6c (antes do PIX)
 > **Pré-mobile (#8):** **#6d** ✅ + **#6e** ✅ + **#7** + **#9 + #10** (site maduro + **F28**) · policy **§6.6** · **B68a–f** ✅
 >
-> **📌 Prioridade (jul/2026):** **site local primeiro** (`PLANNER_DATABASE=sqlite` + Playwright in-process) — terminar **#9** (B35→…) e **#10**. **Ops B72** (worker público Fly/VPS) **adiado** — código B72a–e `[%]` permanece; sync na URL pública fica depois. Ver [Bloco 2f · B72](#12--bloco-2f--sync-real-postgres-b72).
+> **📌 Prioridade (jul/2026):** **worker sync = este PC** (Chrome + Playwright + mirror → Supabase) exposto via **cloudflared**; Cloudflare só despacha. Código B72a–e `[x]`. Ops: `npm run worker:home` + `npm run worker:tunnel` + secrets CF — ver [`app/worker/README.md`](../app/worker/README.md) · [Bloco 2f · B72](#12--bloco-2f--sync-real-postgres-b72). Site local (#9/#10) continua em paralelo.
 
 **Navegação rápida:** [Roadmap detalhado (#0→#11)](#roadmap-detalhado--ordem-de-execução-0--11) · [Sequência #0→#11](#sequência-completa--o-que-fazer-e-em-qual-ordem) · [Ordem oficial v3](#ordem-oficial-de-execução-v3) · [Checklist BACK→FRONT](#checklist-mestre-ordem-de-execução) · [Detalhe por bloco](#detalhe-dos-blocos) · [#6d orquestração sync](#6d--orquestração-sync--catálogo-global-pré-mobile) · [#6e painel dev](#6e--painel-dev--policy-pré-pix) · [Escopo cloud](./SCOPE-CLOUD.md) · [Marco testes gerais](#marco--site-no-ar-para-testes-gerais) · [Apêndice escopo futuro](#apêndice--escopo-futuro-fora-da-ordem-011) · [Apêndice B65 dev](#apêndice--b65-sync-automático-dev-remover-antes-de-produção) · [Apêndice gift + painel dev](#apêndice--chaves-gift-e-painel-dev-jun2026)
 
@@ -43,7 +43,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ## Roadmap detalhado — ordem de execução (#0 → #11)
 
-> **Próximo oficial:** **#9 — B36** `[ ]` (alertas integralização) → B37 → F24 (site local). **F20** `[%]` + **B35** `[%]` entregues. **B72** ops = **adiado**.
+> **Próximo oficial:** **#9 — B36** (alertas integralização) → **B37** → **F24**. Bloco **2f (B72a–e)**, **#9 B32–B34/F21–F23** e **B35/F20** `[x]` (push jul/2026). Migração cloud→Postgres (rotas SQLite-only) e painel dev (conceder assinatura / gift key + robô R1 cloud) entregues no mesmo push.
 > **Regra:** siga **#0 → #11** · dentro de cada bloco → **BACK (B) antes de FRONT (F)**. Checklist espelho: [Checklist mestre](#checklist-mestre-ordem-de-execução).
 
 ### #0 — Planejamento `✅`
@@ -269,14 +269,14 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 > Depende de dados reais do Bloco 2. **Executar antes do mobile (#8).**
 
-- [%] **BACK:** B32 *(motor elegibilidade — `GET /api/simulador/elegibilidade`)*
-- [%] **BACK:** B33 *(choque de horários — `POST /api/simulador/choques`)*
-- [%] **BACK:** B34 *(persistir simulação — `GET/POST /api/simulador/simulacoes` + export)*
-- [%] **FRONT:** F21 *(simulador elegível — filtro + drag-and-drop na grade)*
-- [%] **FRONT:** F22 *(alerta choque — destaque visual de conflito)*
-- [%] **FRONT:** F23 *(salvar simulação — botões salvar/exportar matrícula)*
-- [%] **BACK:** B35 *(`GET /api/mapa/grafo` — nós e arestas para react-flow)*
-- [%] **FRONT:** F20 *(grafo react-flow — zoom, pan, setas sólidas/pontilhadas)*
+- [x] **BACK:** B32 *(motor elegibilidade — `GET /api/simulador/elegibilidade`)*
+- [x] **BACK:** B33 *(choque de horários — `POST /api/simulador/choques`)*
+- [x] **BACK:** B34 *(persistir simulação — `GET/POST /api/simulador/simulacoes` + export)*
+- [x] **FRONT:** F21 *(simulador elegível — filtro + drag-and-drop na grade)*
+- [x] **FRONT:** F22 *(alerta choque — destaque visual de conflito)*
+- [x] **FRONT:** F23 *(salvar simulação — botões salvar/exportar matrícula)*
+- [x] **BACK:** B35 *(`GET /api/mapa/grafo` — nós e arestas para react-flow)*
+- [x] **FRONT:** F20 *(grafo react-flow — zoom, pan, setas sólidas/pontilhadas)*
 - [ ] **BACK:** B36 *(alertas integralização — limiar por categoria de CH)*
 - [ ] **BACK:** B37 *(alertas calendário — datas acadêmicas próximas)*
 - [ ] **FRONT:** F24 *(alertas na UI — banners integralização + calendário)*
@@ -285,23 +285,23 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ---
 
-### #12 — Bloco 2f · Sync real Postgres (B72) `🟡 5/5 [%]`
+### #12 — Bloco 2f · Sync real Postgres (B72) `✅ 5/5 [x]`
 
-> **Código fechado; ops worker público adiado (jul/2026).** Gap de escrita resolvido com **mirror SQLite→Postgres**. **Prioridade atual:** site local SQLite (#9 B35…). Provisionar Fly/VPS + secrets CF **depois** de fechar o site.
+> **Código fechado; ops = PC home server (jul/2026).** Gap de escrita resolvido com **mirror SQLite→Postgres**. **Worker oficial:** este PC (`SIGAA_BROWSER_CHANNEL=chrome`, `npm run worker:home`) + **cloudflared** (`npm run worker:tunnel`) → secrets no Cloudflare. Fly/Docker = fallback só se o PC não estiver online. Ver `app/worker/README.md`.
 >
-> **Padrão:** SQLite = staging do scraper · Postgres = serving DB · Mirror = replicação idempotente com proteção `manual`/`override` na fronteira (CQRS: worker escreve, cloud lê). Decisão de arquitetura: duplicar 20+ funções de escrita com regras de merge num adapter PG criaria drift de regra de negócio; o mirror reutiliza as regras (`user-data-priority.ts`) verbatim.
+> **Padrão:** SQLite = staging do scraper · Postgres = serving DB · Mirror = replicação idempotente com proteção `manual`/`override` na fronteira (CQRS: worker no PC escreve, cloud lê). Decisão de arquitetura: duplicar 20+ funções de escrita com regras de merge num adapter PG criaria drift de regra de negócio; o mirror reutiliza as regras (`user-data-priority.ts`) verbatim.
 
-- [%] **BACK:** B72a *(`PlannerWritePort` + adapter SQLite; resolvido via `isSqliteAllowed()` — staging sempre SQLite, cloud puro lança erro)*
-- [%] **BACK:** B72b *(mirror Postgres — `lib/sync-mirror/`: snapshot readonly do SQLite do usuário → UPSERT/replace idempotente em `aluno`, `historico`, `semestre_atual`, `notas`, `faltas`, `tarefas`, `grupo_membros`, `integralizacao`, `configuracoes` (whitelist, sem credenciais) + catálogo global `disciplinas`, `requisitos`, `turmas_ofertadas`, `calendario_academico`; linhas `manual=1`/`*_override=1` no PG preservadas)*
-- [%] **BACK:** B72c *(tenant CPF→`app_profiles` (`user_id` + `curso_id`) + hook `runMirrorAfterSync` nos 3 runners (`runSync`, turmas, calendário) — qualquer caminho (rota, fila, worker, script) espelha automaticamente; falha de mirror não derruba sync)*
-- [%] **BACK:** B72d *(desstub `/api/sync*` em modo postgres local — `runWithScraperSqlite` (override ALS do guard, nunca vale em `isCloudDeployment()`); fila SQLite + readiness + turmas + calendário funcionam em dev postgres; no deploy Cloudflare o stub só permanece **sem** `SIGAA_WORKER_URL` configurado (dispatch B72e) · script `npm run sync:mirror` (SIGAA_CPF/SIGAA_PASSWORD) roda sync completo + verificação de linhas no PG)*
-- [%] **OPS:** B72e *(dispatch cloud→worker pronto: fila Postgres `sync_jobs` (migration + `pg-sync-jobs-store`, sem credenciais persistidas) · worker `POST /jobs` com `execution:"async"` (202 + status no PG) e robôs `turmas`/`calendario` p/ catálogo global · `/api/sync` e `/api/sync/queue`+`[jobId]` no cloud despacham via `SIGAA_WORKER_URL`+Bearer (senha selada AES-GCM do corpo ou de `app_profiles.sigaa_password_enc`; job escopado por `X-Planner-Sigaa-User`) · orquestrador cron despacha calendário/turmas/deep ao worker · ops: `worker/fly.toml`, Dockerfile `--include=dev`, README, `npm run smoke:cloud-sync`)*
+- [x] **BACK:** B72a *(`PlannerWritePort` + adapter SQLite; resolvido via `isSqliteAllowed()` — staging sempre SQLite, cloud puro lança erro)*
+- [x] **BACK:** B72b *(mirror Postgres — `lib/sync-mirror/`: snapshot readonly do SQLite do usuário → UPSERT/replace idempotente em `aluno`, `historico`, `semestre_atual`, `notas`, `faltas`, `tarefas`, `grupo_membros`, `integralizacao`, `configuracoes` (whitelist, sem credenciais) + catálogo global `disciplinas`, `requisitos`, `turmas_ofertadas`, `calendario_academico`; linhas `manual=1`/`*_override=1` no PG preservadas)*
+- [x] **BACK:** B72c *(tenant CPF→`app_profiles` (`user_id` + `curso_id`) + hook `runMirrorAfterSync` nos 3 runners (`runSync`, turmas, calendário) — qualquer caminho (rota, fila, worker, script) espelha automaticamente; falha de mirror não derruba sync)*
+- [x] **BACK:** B72d *(desstub `/api/sync*` em modo postgres local — `runWithScraperSqlite` (override ALS do guard, nunca vale em `isCloudDeployment()`); fila SQLite + readiness + turmas + calendário funcionam em dev postgres; no deploy Cloudflare o stub só permanece **sem** `SIGAA_WORKER_URL` configurado (dispatch B72e) · script `npm run sync:mirror` (SIGAA_CPF/SIGAA_PASSWORD) roda sync completo + verificação de linhas no PG)*
+- [x] **OPS:** B72e *(dispatch cloud→worker pronto: fila Postgres `sync_jobs` · worker async 202 + robôs turmas/calendario · cloud despacha via `SIGAA_WORKER_URL`+Bearer · **path oficial = PC + cloudflared** (`worker:home` / `worker:tunnel`, `SIGAA_BROWSER_CHANNEL=chrome`) · secrets CF · `smoke:cloud-sync` · Fly/Docker = fallback)*
 
 **Validação live (06/jul):** `npm run sync:mirror` com conta real → Supabase populado: aluno 1 · histórico 31 · semestre_atual 7 · notas 37 · faltas 149 · tarefas 2 · grupo 10 · integralização 5 · config 8 · turmas_ofertadas 99 · calendário 6. Fix extra no scraper: interstitial "Notificações Acadêmicas" do SIGAA (confirmar senha + leitura) e shim `__name` do esbuild/tsx no `page.evaluate`.
 
-**Validação E2E B72e (06/jul):** cloud simulado (`PLANNER_CLOUD=true` porta 3001) + worker local → `smoke:cloud-sync`: enqueue 202 → job `queued→running→completed` (121s, 5 etapas) → mirror ok → `sync_jobs` completed no Supabase. **Ops (adiado):** provisionar worker público (`fly deploy -c worker/fly.toml`) + secrets `SIGAA_WORKER_URL`/`WORKER_SHARED_SECRET` no app Cloudflare + smoke na URL pública — **voltar depois do site local (#9+#10)**.
+**Validação E2E B72e (06/jul):** cloud simulado (`PLANNER_CLOUD=true` porta 3001) + worker local → `smoke:cloud-sync`: enqueue 202 → job `queued→running→completed` (121s, 5 etapas) → mirror ok → `sync_jobs` completed no Supabase. **Ops restante:** subir worker no PC + túnel + `wrangler secret put SIGAA_WORKER_URL` / `WORKER_SHARED_SECRET` + smoke na URL pública.
 
-**Ordem Bloco 2f:** `B72a → B72b → B72c → B72d → B72e` ✅ código · push/aprovação + ops **adiados** · desenvolvimento local **não bloqueado**
+**Ordem Bloco 2f:** `B72a → B72b → B72c → B72d → B72e` ✅ código · ops = **PC home server** · push jul/2026 (aprovado `[x]`)
 
 ---
 
@@ -420,7 +420,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ### 1.4 API e Integração UI ↔ SQLite
 
-> **Progresso:** Bloco 1 ✅ · **Bloco 2a/2b** ✅ · **Bloco 6a** ✅ **8/8** · **6b** ✅ **8/8** · **6c** ✅ **2/2** · **#6d** ✅ **6/6** · **#6e** ✅ **2/2** · **#7** ✅ **15/15** · **#12** B72a–e `[%]` **5/5** (código ok; **ops worker público adiado**) · **#9** B32–B34 + F21–F23 `[%]` · **B35**/**F20** `[%]` · próximo **B36** (site local) · URL **`https://acme-hub.khfm.workers.dev`** (sync cloud depois).
+> **Progresso:** Bloco 1 ✅ · **Bloco 2a/2b** ✅ · **Bloco 6a** ✅ **8/8** · **6b** ✅ **8/8** · **6c** ✅ **2/2** · **#6d** ✅ **6/6** · **#6e** ✅ **2/2** · **#7** ✅ **15/15** · **#12** B72a–e `[x]` **5/5** (código ok; **ops = PC + cloudflared**) · **#9** B32–B34 + F21–F23 `[x]` · **B35**/**F20** `[x]` · URL **`https://acme-hub.khfm.workers.dev`**.
 
 Roadmap detalhado: ver **[Roadmap #0→#11 no topo](#roadmap-detalhado--ordem-de-execução-0--11)** · [Ordem oficial v3](#ordem-oficial-de-execução-v3). **F19** simulador (2a) `[x]` · **B67** `[x]`.
 
@@ -446,7 +446,7 @@ FASE C   Bloco 6a            Supabase + deploy global (seed, sem RLS rígido)
     ↓
 FASE D   Bloco 7 ✅           Assinatura PIX
     ↓
-         Bloco 2f 🟡          Sync real Postgres (**B72**) — a–e `[%]` · ops worker público **adiado**
+         Bloco 2f ✅          Sync real Postgres (**B72**) — a–e `[x]` · ops = **PC + cloudflared**
     ↓
 FASE F   Bloco 3             Inteligência acadêmica (web) ← **agora (local)**
          Bloco 4             Polimento UX + site mobile (**F28**)
@@ -468,7 +468,7 @@ FASE G   Bloco 9             Multi-PPC (Mecatrônica, Moda) 🔒 só após mobil
 | **6d** | B | **2c** | Orquestração sync + catálogo global (**B68-orq**) | ✅ **6/6** — policy §6.6 |
 | **6e** | B/F | **2e** | Painel dev + policy §6.6 (**B70** → **F41**) | ✅ **2/2** |
 | **7** | D | **7** | PIX + gate de acesso | ✅ **15/15** · monetização |
-| **12** | B | **2f** | **Sync real Postgres (B72)** — mirror SQLite→PG | 🟡 **5/5** `[%]` — código + E2E cloud-sim ok; **ops worker público adiado** (site local primeiro) |
+| **12** | B | **2f** | **Sync real Postgres (B72)** — mirror SQLite→PG | ✅ **5/5** `[x]` — código + E2E ok; **ops = PC + cloudflared** |
 | **9** | F | **3** | Grafo, matrícula, alertas | **Depois de #7** · **antes do mobile (#8)** |
 | **10** | F | **4** | Skeletons, transições, favicon, **site mobile (F28)** | **Antes do mobile (#8)** |
 | **#8** | E | **8** | Mobile Android (Expo Go) | **Depois de #9 + #10** + **#6d + #6e + #7** · **sem lojas** |
@@ -506,7 +506,7 @@ Estratégia: **fatias verticais** — backend primeiro, depois frontend.
 | **2** | #2–3 | Scraper SIGAA — **prioridade pós-Bloco 1** |
 | **6** | #4–6 | Cloud Supabase — **após sync validado** |
 | **2e** | #6e | Painel dev + policy (B70/F41 ✅) |
-| **2f** | #12 | **Sync real Postgres (B72)** — 🟡 5/5 `[%]` · ops worker público **adiado** (site local primeiro) |
+| **2f** | #12 | **Sync real Postgres (B72)** — ✅ 5/5 `[x]` · ops = **PC + cloudflared** |
 | **7** | #7 | Assinatura PIX |
 | **3** | #9 | Inteligência acadêmica *(antes do mobile)* |
 | **4** | #10 | Polimento UX + **site mobile (F28)** *(antes do mobile)* |
@@ -545,8 +545,8 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | **#6d** | 2c | Orquestração sync + catálogo global | ✅ **6/6** · policy **§6.6** | 6/6 |
 | **#6e** | 2e | Painel dev + policy (B70 → F41) | ✅ **2/2** | 2/2 |
 | **#7** | 7 | Assinatura PIX | ✅ **Concluído** | 15/15 |
-| **#12** | 2f | **Sync real Postgres (B72)** | 🟡 B72a–e `[%]` · **ops worker público adiado** | 5/5 |
-| **#9** | 3 | Inteligência acadêmica | B32–B34 + F21–F23 + **B35**/**F20** `[%]` · próximo **B36** | 8/11 |
+| **#12** | 2f | **Sync real Postgres (B72)** | ✅ B72a–e `[x]` · **ops = PC + cloudflared** | 5/5 |
+| **#9** | 3 | Inteligência acadêmica | B32–B34 + F21–F23 + **B35**/**F20** `[x]` · próximo **B36** | 8/11 |
 | **#10** | 4 | Polimento UX + site mobile (**F28**) | **Antes do mobile (#8)** | 0/4 |
 | **#8** | 8 | Mobile Android (Expo Go) | Depois de **#6d** + **#7** + **#9** + **#10** · **sem Play/App Store** | 0/10 |
 | **#11** | 9 | Multi-PPC (Mecatrônica, Moda) | **🔒 Só após #8** | 0/4 |
@@ -612,7 +612,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 **Contagem 8/8:** só os 8 primeiros grupos até **`F37`** · **`F38` · `B66` · `B67` · `F19`** = extras (fora do 8/8) · polish `04887c9`/`5923e9c` · modulação dashboard · fix mapa/histórico/notificações (jun/2026)
 
-**Próximo:** **B36** — alertas integralização. **F20** `[%]`. **B72** ops **adiado**.
+**Próximo:** **B36** — alertas integralização → **B37** → **F24**. Bloco **2f/B72** e **B35/F20** `[x]` (push jul/2026).
 
 ---
 
@@ -706,17 +706,17 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 ---
 
-### #12 — Bloco 2f · Sync real Postgres (B72) `🟡 5/5 [%]`
+### #12 — Bloco 2f · Sync real Postgres (B72) `✅ 5/5 [x]`
 
-> 🟡 **Mirror + dispatch cloud→worker validados E2E** (código). **Ops worker público adiado** — site local (#9 B35…) primeiro. Ver [detalhe](#12--bloco-2f--sync-real-postgres-b72).
+> ✅ **Mirror + dispatch cloud→worker validados E2E** (push jul/2026). **Ops = PC home server + cloudflared** (`worker:home` / `worker:tunnel` / secrets CF). Ver [detalhe](#12--bloco-2f--sync-real-postgres-b72) · `app/worker/README.md`.
 
-- [%] **BACK:** B72a — Write Port + adapter SQLite (staging)
-- [%] **BACK:** B72b — mirror Postgres (`lib/sync-mirror/` — UPSERT idempotente + proteção manual/override)
-- [%] **BACK:** B72c — tenant CPF→`app_profiles` + hook `runMirrorAfterSync` nos runners
-- [%] **BACK:** B72d — desstub `/api/sync*` local postgres (`runWithScraperSqlite`) + `npm run sync:mirror`
-- [%] **OPS:**  B72e — fila Postgres `sync_jobs` + worker async (202) + robôs turmas/calendario + dispatch cloud `/api/sync*` + cron orquestrador → worker + fly.toml/README + `smoke:cloud-sync`
+- [x] **BACK:** B72a — Write Port + adapter SQLite (staging)
+- [x] **BACK:** B72b — mirror Postgres (`lib/sync-mirror/` — UPSERT idempotente + proteção manual/override)
+- [x] **BACK:** B72c — tenant CPF→`app_profiles` + hook `runMirrorAfterSync` nos runners
+- [x] **BACK:** B72d — desstub `/api/sync*` local postgres (`runWithScraperSqlite`) + `npm run sync:mirror`
+- [x] **OPS:**  B72e — fila `sync_jobs` + worker async + dispatch cloud → **PC** (`SIGAA_WORKER_URL` via cloudflared) + `SIGAA_BROWSER_CHANNEL=chrome` + `smoke:cloud-sync`
 
-**Ordem #12:** `B72a → B72b → B72c → B72d → B72e` ✅ código · push/ops **adiados**
+**Ordem #12:** `B72a → B72b → B72c → B72d → B72e` ✅ código · ops = **PC + tunnel** · push jul/2026 (aprovado `[x]`)
 
 ---
 
@@ -724,10 +724,10 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 > Depende de dados reais do Bloco 2. **Executar antes do mobile (#8).** Desenvolvimento **local (SQLite)** agora; deploy cloud não bloqueia B35+.
 
-- [%] **BACK:**  B32 → B33 → B34
-- [%] **FRONT:** F21 → F22 → F23
-- [%] **BACK:**  B35
-- [%] **FRONT:** F20
+- [x] **BACK:**  B32 → B33 → B34
+- [x] **FRONT:** F21 → F22 → F23
+- [x] **BACK:**  B35
+- [x] **FRONT:** F20
 - [ ] **BACK:**  B36 → B37
 - [ ] **FRONT:** F24
 
@@ -787,8 +787,8 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | **#6d** | **2c — Orquestração sync** | ✅ | 6 / 6 |
 | **#6e** | **2e — Painel dev** | ✅ | 2 / 2 |
 | #7 | 7 — Assinatura PIX | ✅ | 15 / 15 |
-| **#12** | **2f — Sync real Postgres (B72)** | 🟡 B72a–e `[%]` · **ops worker público adiado** | 5 / 5 |
-| #9 | 3 — Inteligência | 🟡 B32–B34 + F21–F23 + **B35**/**F20** `[%]` · próximo **B36** | 8 / 11 |
+| **#12** | **2f — Sync real Postgres (B72)** | ✅ B72a–e `[x]` · **ops = PC + cloudflared** | 5 / 5 |
+| #9 | 3 — Inteligência | 🟡 B32–B34 + F21–F23 + **B35**/**F20** `[x]` · próximo **B36** | 8 / 11 |
 | #10 | 4 — Polimento + site mobile | ⬜ *(antes mobile · incl. F28)* | 0 / 4 |
 | #8 | 8 — Mobile Android | ⬜ *(após #9 + #10 · sem lojas)* | 0 / 10 |
 | #11 | 9 — Multi-PPC | 🔒 *(após #8)* | 0 / 4 |
@@ -1015,7 +1015,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] `worker/Dockerfile` (Playwright jammy) · `worker/README.md`
 - [x] Testes `tests/worker-b54.test.ts`
 
-> **Próximo (produto):** **B36** · **F20** `[%]` · **B72** ops adiado.
+> **Próximo (produto):** **B36** → **B37** → **F24**. Bloco **2f/B72** e **F20** `[x]` (push jul/2026).
 
 #### B55 — API fila sync `[x]`
 
@@ -1025,7 +1025,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Dispatcher assíncrono → worker B54 (`SIGAA_WORKER_URL`) ou **inline** (`SYNC_QUEUE_DISPATCH=inline`)
 - [x] Testes `tests/sync-queue-b55.test.ts` · `npm run test:sync-queue`
 
-> **Próximo (produto):** **B36** · **F20** `[%]` · **B72** ops adiado.
+> **Próximo (produto):** **B36** → **B37** → **F24**. Bloco **2f/B72** e **F20** `[x]` (push jul/2026).
 
 #### B56 — Pipeline no worker `[x]`
 
@@ -1245,16 +1245,16 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 | # | Tipo | Task | Resumo | Fase | Status |
 |---|------|------|--------|------|--------|
-| B32 | Back | Motor elegibilidade | `GET /api/simulador/elegibilidade` · histórico + pré-requisitos | 5.3 | [%] |
-| B33 | Back | Choque de horários | `POST /api/simulador/choques` · sobreposição na grade | 5.3 | [%] |
-| B34 | Back | Persistir simulação | `GET/POST/DELETE /api/simulador/simulacoes` · export JSON | 5.3 | [%] |
-| B35 | Back | `GET /api/mapa/grafo` | Nós e arestas para react-flow | 5.2 | [%] |
+| B32 | Back | Motor elegibilidade | `GET /api/simulador/elegibilidade` · histórico + pré-requisitos | 5.3 | [x] |
+| B33 | Back | Choque de horários | `POST /api/simulador/choques` · sobreposição na grade | 5.3 | [x] |
+| B34 | Back | Persistir simulação | `GET/POST/DELETE /api/simulador/simulacoes` · export JSON | 5.3 | [x] |
+| B35 | Back | `GET /api/mapa/grafo` | Nós e arestas para react-flow | 5.2 | [x] |
 | B36 | Back | Alertas integralização | Limiar por categoria de CH | 5.4 | [ ] |
 | B37 | Back | Alertas calendário | Datas acadêmicas próximas | 5.5 | [ ] |
-| F20 | Front | Grafo react-flow | Zoom, pan, setas sólidas/pontilhadas | 5.2 | [%] |
-| F21 | Front | Simulador elegível | Filtro + drag-and-drop na grade | 5.3 | [%] |
-| F22 | Front | Alerta choque | Destaque visual de conflito | 5.3 | [%] |
-| F23 | Front | Salvar simulação | Botões salvar/exportar matrícula | 5.3 | [%] |
+| F20 | Front | Grafo react-flow | Zoom, pan, setas sólidas/pontilhadas | 5.2 | [x] |
+| F21 | Front | Simulador elegível | Filtro + drag-and-drop na grade | 5.3 | [x] |
+| F22 | Front | Alerta choque | Destaque visual de conflito | 5.3 | [x] |
+| F23 | Front | Salvar simulação | Botões salvar/exportar matrícula | 5.3 | [x] |
 | F24 | Front | Alertas na UI | Banners integralização + calendário | 5.4–5.5 | [ ] |
 
 **Ordem:** `B32 → B33 → B34` → `F21 → F22 → F23` → `B35 → F20` → `B36 → B37 → F24`
@@ -1606,10 +1606,10 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Colunas por período (1–10) com disciplinas obrigatórias e status — **via API** (F12 · B18)
 - [x] Cores dos nós por status: Concluída, Cursando, Desbloqueada, Trancada
 - [x] Clique no nó navega para página da disciplina
-- [%] API grafo — **B35** `GET /api/mapa/grafo` (nós + arestas pre/co p/ react-flow)
-- [%] Renderizar grafo interativo (`@xyflow/react`) — **F20**
-- [%] Setas sólidas para pré-requisitos, pontilhadas para co-requisitos — **F20**
-- [%] Zoom e pan para navegação — **F20**
+- [x] API grafo — **B35** `GET /api/mapa/grafo` (nós + arestas pre/co p/ react-flow)
+- [x] Renderizar grafo interativo (`@xyflow/react`) — **F20**
+- [x] Setas sólidas para pré-requisitos, pontilhadas para co-requisitos — **F20**
+- [x] Zoom e pan para navegação — **F20**
 
 ### 5.3 Simulador de Matrícula (Pré-horário)
 - [x] Página dedicada apenas ao simulador de horários/matrícula (`/simulador` — Montar Grade)
@@ -1618,13 +1618,13 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Lista de matérias com ícones: Desbloqueada / Trancada (template mock)
 - [x] Alocar matéria desbloqueada em horário vazio da grade (clique — template)
 - [x] Clique em aula da grade abre modal com detalhes e opção de remover
-- [%] API elegibilidade — **B32** (`GET /api/simulador/elegibilidade`)
-- [%] API choque de horários — **B33** (`POST /api/simulador/choques`)
-- [%] API salvar/exportar simulação — **B34** (`/api/simulador/simulacoes`)
-- [x] Drag-and-drop de matérias para a grade semanal — **F21** `[%]`
-- [x] Detecção automática de choque de horários (alerta visual) — **F22** `[%]`
-- [x] Botão "Salvar Simulação" para referência futura — **F23** `[%]`
-- [x] Botão "Exportar" para levar na hora da matrícula — **F23** `[%]`
+- [x] API elegibilidade — **B32** (`GET /api/simulador/elegibilidade`)
+- [x] API choque de horários — **B33** (`POST /api/simulador/choques`)
+- [x] API salvar/exportar simulação — **B34** (`/api/simulador/simulacoes`)
+- [x] Drag-and-drop de matérias para a grade semanal — **F21** `[x]`
+- [x] Detecção automática de choque de horários (alerta visual) — **F22** `[x]`
+- [x] Botão "Salvar Simulação" para referência futura — **F23** `[x]`
+- [x] Botão "Exportar" para levar na hora da matrícula — **F23** `[x]`
 
 ### 5.4 Gestão de Integralização (Horas)
 - [x] Tabela com tipos de CH, total, concluído, pendente — **via API** (F11)
@@ -1882,10 +1882,10 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
    - Após **push com aprovação 100%** ou aprovação explícita depois: marque como `[x]` — finalizada (+ item 11 “Próximo passo”).
    - Faça **commit** ao concluir cada task (push só quando o usuário pedir).
    - **Obrigatório:** toda entrega deve refletir no TASKS.md **no mesmo ciclo** — tabela B/F, checklist mestre, progresso, bullets de UI e notas para agentes **sem texto stale**.
-8. **Próximo passo do roadmap:** informe **depois do push** (tasks em `[@]` ou `[x]`). Com commits locais só `[%]`, **não** avance o roadmap na resposta.
+8. **Próximo passo do roadmap:** informe **depois do push** (tasks em `[@]` ou `[x]`). Com commits locais só `[x]`, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v3](#ordem-oficial-de-execução-v3) — **Bloco 2 (sync) antes do Bloco 6 (Supabase)**. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy **após** sync validado; RLS ✅ **6c** (antes do PIX). Marco “site no ar p/ testes gerais” → [final do TASKS.md](#marco--site-no-ar-para-testes-gerais).
-11. **Próximo passo:** **#9 — B36** — alertas de integralização (limiar CH). **F20** `[%]` (grafo `@xyflow/react` em `/mapa`). Depois B37 → F24 → **#10**. **B72** ops = **adiado**. Dev: `PLANNER_DATABASE=sqlite`.
+11. **Próximo passo:** **#9 — B36** (alertas integralização) → **B37** → **F24**. Bloco **2f/B72a–e** e **#9 até F20** `[x]` (push jul/2026). Ops sync = PC home server (`npm run worker:home` + `npm run worker:tunnel` + secrets CF; dev scraper `SIGAA_BROWSER_CHANNEL=chrome`).
 12. **Integralização:** CH concluída = `historico` + PPC (`computeChDoneFromDisciplinas`); portal SIGAA só % / total currículo; matérias já passadas = **B30** ✅.
 13. **Gift + painel dev:** **B68–B71** ✅ · **F39–F41** ✅ — painel sem senha SIGAA (`credentialSaved` + `accountRef`).
 14. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial. **Polish em task `[x]`** (ex.: F38, dashboard) também exige nota no TASKS no mesmo ciclo do push.
@@ -1896,11 +1896,11 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 
 ## Marco — site no ar para testes gerais
 
-> **🌐 Mínimo funcional beta (jul/2026):** **6b** ✅ · **6c** ✅ — cadastro, login CPF, trial, gate, RLS/isolamento por conta. Sync SIGAA → Postgres = **[B72a–e](#12--bloco-2f--sync-real-postgres-b72)** `[%]` (código ok; **ops worker público adiado**). **Dev do site:** SQLite local + Playwright. Sincronizar **na URL pública** fica para quando o worker for provisionado.
+> **🌐 Mínimo funcional beta (jul/2026):** **6b** ✅ · **6c** ✅ — cadastro, login CPF, trial, gate, RLS/isolamento por conta. Sync SIGAA → Postgres = **[B72a–e](#12--bloco-2f--sync-real-postgres-b72)** `[x]` — **worker = este PC** + cloudflared (ver `app/worker/README.md`). Enquanto o túnel/worker estiver offline, sync na URL pública fica stub.
 
-> **🌐 Beta aberto:** URL pública com **cadastro + login CPF + trial + gate** (**F29** ✅). Dados SIGAA reais no Supabase via `npm run sync:mirror` (dev) até o worker público existir. **Produto atual:** terminar #9/#10 em local.
+> **🌐 Beta aberto:** URL pública com **cadastro + login CPF + trial + gate** (**F29** ✅). Com worker+túnel no ar, sync cloud → Chrome neste PC → mirror Supabase. Sem PC online: usar `npm run sync:mirror` (dev) ou stub na URL.
 
-> **🌐 O que isso NÃO significa:** o botão Sincronizar **na URL** fica em stub enquanto não houver worker público — **ok por agora** (ops adiado). Localmente o sync Playwright funciona sem worker. **Dados isolados por conta** ✅ **6c**. **PIX / planos pagos** ✅ **#7**.
+> **🌐 O que isso NÃO significa:** o botão Sincronizar **na URL** exige PC com `worker:home` + `worker:tunnel` + secrets CF. Localmente o sync Playwright também roda in-process. **Dados isolados por conta** ✅ **6c**. **PIX / planos pagos** ✅ **#7**.
 
 ### Fases até o go-live comercial
 
