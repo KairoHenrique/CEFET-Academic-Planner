@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Icon, type IconName } from "@/components/ui/Icon";
 import type { DashboardStats } from "@/lib/types/dashboard";
 
@@ -13,6 +14,7 @@ const statConfig: Array<{
   color: "gold" | "blue" | "danger";
   detail: string;
   icon: IconName;
+  href: string;
   format: (value: number) => string;
 }> = [
   {
@@ -21,6 +23,7 @@ const statConfig: Array<{
     color: "gold",
     detail: "RG acumulado",
     icon: "star",
+    href: "/integralizacao",
     format: (value) => value.toFixed(2),
   },
   {
@@ -29,6 +32,7 @@ const statConfig: Array<{
     color: "blue",
     detail: "do curso concluído",
     icon: "chart",
+    href: "/integralizacao",
     format: (value) => `${value}%`,
   },
   {
@@ -37,6 +41,7 @@ const statConfig: Array<{
     color: "blue",
     detail: "cursando este semestre",
     icon: "books",
+    href: "/disciplinas",
     format: (value) => String(value),
   },
   {
@@ -45,6 +50,7 @@ const statConfig: Array<{
     color: "danger",
     detail: "entregas próximas",
     icon: "clipboard",
+    href: "/calendario",
     format: (value) => String(value),
   },
 ];
@@ -53,7 +59,12 @@ export function StatsRow({ stats }: StatsRowProps) {
   return (
     <div className="stats-module-grid">
       {statConfig.map((stat) => (
-        <div key={stat.key} className="card stat-card">
+        <Link
+          key={stat.key}
+          href={stat.href}
+          className="card stat-card stat-card--link"
+          aria-label={`${stat.label} — abrir área`}
+        >
           <p className="card-header">
             <span className="section-header-title">{stat.label}</span>
           </p>
@@ -68,7 +79,7 @@ export function StatsRow({ stats }: StatsRowProps) {
               <Icon name={stat.icon} size={18} />
             </span>
           </div>
-        </div>
+        </Link>
       ))}
     </div>
   );

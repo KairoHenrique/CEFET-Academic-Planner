@@ -14,6 +14,12 @@ export const DEV_PANEL_VIEWS = [
     icon: "calendar" satisfies IconName,
   },
   {
+    id: "chaves",
+    label: "Chaves",
+    description: "Códigos de plano — gerar, listar e revogar.",
+    icon: "star" satisfies IconName,
+  },
+  {
     id: "policy",
     label: "Policy",
     description: "Orquestração §6.6 — cron e worker.",

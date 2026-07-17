@@ -261,6 +261,8 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 > **#7 Mapa:** **F31–F40** ✅ · **L1** ✅ · **B71** ✅ — bloco **#7** fechado (pré-go-live PIX).
 
+> **Correção pós-go-live (jul/2026) — bugfix B51 `[@]`:** ativação de assinatura paga estava quebrada — a `UPDATE subscriptions` usava `$3` com só 2 parâmetros (erro Postgres `42P18`), então o pagamento era **aprovado** mas o plano ficava preso em `pending_payment`. **Fix:** parâmetro corrigido (`$2`) + `confirmBillingPayment` idempotente/auto-corretivo (reconcilia a ativação mesmo com pagamento já aprovado; só ativa `pending_payment`) + webhook responde `200` p/ pagamento inexistente (evita retries do MP). Preço de teste (R$1) revertido → **R$30/mês**. PIX aprovado → redirect `/` (Dashboard) já garantido por **F32** (poll 4s).
+
 > **Painel dev:** **B70/F41** = [#6e](#6e--painel-dev--policy-pré-pix) *(fora desta ordem — vem antes)*.
 
 ---
@@ -613,6 +615,8 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 **Ordem 2a (execução linear):** `B24→B26` → `B27` → `B65` → `B28` → `B30` → `B31` → `F18` → `F37` → `F38` → `B66` → `B67` → `F19`
 
 **Contagem 8/8:** só os 8 primeiros grupos até **`F37`** · **`F38` · `B66` · `B67` · `F19`** = extras (fora do 8/8) · polish `04887c9`/`5923e9c` · modulação dashboard · fix mapa/histórico/notificações (jun/2026)
+
+> **Calendário — rótulos e datas (jul/2026, sobre B66) `[@]`:** renomeação **só na exibição** (nome bruto do SIGAA segue no banco): `Matrícula OnLine → Matrícula Fase 1`, `Rematrícula → Matrícula Fase 2`, `Processamento de Matrícula/Rematrícula → Resultado Matrícula Fase 1/2` (`event-label-overrides.ts`). Scraper passa a captar os eventos de "processamento" (`calendario-event-filter.ts`) e há fallback de datas institucionais conhecidas sem duplicar quando o SIGAA publica (`known-institutional-dates.ts`).
 
 **Próximo:** **B36** — alertas integralização → **B37** → **F24**. Bloco **2f/B72** e **B35/F20** `[x]` (push jul/2026).
 
@@ -1750,6 +1754,24 @@ Rota **`/dev`** — invisível ao aluno.
 | Auditoria | Log de ações sensíveis |
 
 **Tasks:** **B70** (API + middleware + robôs ops) · **F41** (UI + chavinhas + lista) · **B71** ✅
+
+#### Melhorias operacionais painel dev (jul/2026) `[@]`
+
+> Fecha lacunas de ops identificadas na auditoria do `/dev` (sobre **B70/F41**). Sem novo ID de bloco — polimento operacional.
+
+| # | Melhoria | Back | Front |
+|---|---|---|---|
+| 1 | **Aba “Chaves”** — gerar em lote (1–50) + rótulo interno · listar · revogar (usa `GET`/`PATCH /api/dev/gift-keys` já existentes) | ✅ | ✅ |
+| 2 | **Fila: falhas + retry** — `sync-status` backend-aware (Postgres no cloud) lista `failed`; `POST /api/dev/sync-jobs/retry` re-enfileira no worker | ✅ | ✅ |
+| 3 | **Fila: “Rodar tick agora”** — `POST /api/dev/orchestrator/tick` (force) | ✅ | ✅ |
+| 4 | **Fila: “Rodar cron de e-mails”** — `POST /api/dev/cron/account-emails` (B62) | ✅ | ✅ |
+| 5 | **Assinaturas da conta** — histórico + **revogar plano ativo** (`GET /api/dev/subscriptions`, `POST /api/dev/subscriptions/revoke`) | ✅ | ✅ |
+
+**Correção de bug:** a aba **Fila sync** usava o store SQLite (`getSyncQueueDatabase`) e quebrava no cloud (Postgres) — agora `get-dev-sync-status` é backend-aware.
+
+**Fora do escopo desta rodada:** robôs por camada (histórico/notificações/calendário como robôs separados) — R1-deep já cobre; exige refatorar o pipeline para expor runners por camada.
+
+**Status:** `[@]` push feito (jul/2026) — aguardando aprovação 100%.
 
 ### Painel robôs — ops manual (escopo fechado p/ **B70** + **F41**)
 

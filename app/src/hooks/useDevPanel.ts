@@ -5,14 +5,21 @@ import { ApiClientError } from "@/lib/api/client";
 import {
   getDevAccounts,
   getDevAuditLog,
+  getDevGiftKeys,
   getDevSession,
+  getDevSubscriptions,
   getDevSyncPolicy,
   getDevSyncStatus,
+  patchDevRevokeGiftKey,
   patchDevSyncPolicy,
-  postDevCreateGiftKey,
+  postDevAccountEmailsCron,
+  postDevCreateGiftKeys,
   postDevGrantSubscription,
   postDevLogin,
   postDevLogout,
+  postDevOrchestratorTick,
+  postDevRetrySyncJob,
+  postDevRevokeSubscription,
   postDevRobotsRun,
   resetDevSyncPolicy,
 } from "@/lib/dev-panel/client-api";
@@ -127,13 +134,100 @@ export function useDevGrantSubscription() {
   });
 }
 
-export function useDevCreateGiftKey() {
+export function useDevGiftKeys(enabled: boolean) {
+  return useQuery({
+    queryKey: queryKeys.devGiftKeys(),
+    queryFn: () => getDevGiftKeys(100),
+    enabled,
+    retry: false,
+    staleTime: 15_000,
+  });
+}
+
+export function useDevCreateGiftKeys() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (body: { planId: string; days: number }) =>
-      postDevCreateGiftKey(body),
+    mutationFn: (body: {
+      planId: string;
+      days: number;
+      count: number;
+      label?: string;
+    }) => postDevCreateGiftKeys(body),
     onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.devGiftKeys() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.devAuditLog() });
+    },
+  });
+}
+
+export function useDevRevokeGiftKey() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (code: string) => patchDevRevokeGiftKey(code),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.devGiftKeys() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.devAuditLog() });
+    },
+  });
+}
+
+export function useDevOrchestratorTick() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: postDevOrchestratorTick,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.devSyncStatus() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.devAuditLog() });
+    },
+  });
+}
+
+export function useDevAccountEmailsCron() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: postDevAccountEmailsCron,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.devAuditLog() });
+    },
+  });
+}
+
+export function useDevRetrySyncJob() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (jobId: string) => postDevRetrySyncJob(jobId),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.devSyncStatus() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.devAuditLog() });
+    },
+  });
+}
+
+export function useDevSubscriptions(accountRef: string | null) {
+  return useQuery({
+    queryKey: queryKeys.devSubscriptions(accountRef ?? ""),
+    queryFn: () => getDevSubscriptions(accountRef as string),
+    enabled: Boolean(accountRef),
+    retry: false,
+    staleTime: 10_000,
+  });
+}
+
+export function useDevRevokeSubscription() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (accountRef: string) => postDevRevokeSubscription(accountRef),
+    onSuccess: (_data, accountRef) => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.devAccounts("") });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.devSubscriptions(accountRef),
+      });
       void queryClient.invalidateQueries({ queryKey: queryKeys.devAuditLog() });
     },
   });

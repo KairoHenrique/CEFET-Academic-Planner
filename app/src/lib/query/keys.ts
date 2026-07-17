@@ -20,6 +20,9 @@ export const queryKeys = {
   devSyncPolicy: () => [...queryKeys.all, "dev", "sync-policy"] as const,
   devSyncStatus: () => [...queryKeys.all, "dev", "sync-status"] as const,
   devAuditLog: () => [...queryKeys.all, "dev", "audit-log"] as const,
+  devGiftKeys: () => [...queryKeys.all, "dev", "gift-keys"] as const,
+  devSubscriptions: (accountRef: string) =>
+    [...queryKeys.all, "dev", "subscriptions", accountRef] as const,
   billingPlans: () => [...queryKeys.all, "billing", "plans"] as const,
   billingAccount: () => [...queryKeys.all, "billing", "account"] as const,
   billingPayment: (paymentId: string) =>
