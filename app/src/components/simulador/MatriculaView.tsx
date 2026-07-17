@@ -7,14 +7,19 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { EnrollmentSimulator } from "@/components/simulador/EnrollmentSimulator";
 import { EnrollmentSyncBar } from "@/components/simulador/EnrollmentSyncBar";
 import { ScheduleTableSkeleton } from "@/components/schedule/ScheduleTableSkeleton";
+import { CourseMapFlowGraph } from "@/components/mapa/CourseMapFlowGraph";
+import { DashboardStateCard } from "@/components/dashboard/DashboardStateCard";
+import { MapaSkeleton } from "@/components/mapa/MapaSkeleton";
 import { useTurmasOfertadas } from "@/hooks/useTurmasOfertadas";
 import { useTurmasOfertadasSync } from "@/hooks/useTurmasOfertadasSync";
+import { useMapaGrafo } from "@/hooks/useMapaGrafo";
 import { resolveNextAcademicSemesterLabel } from "@/lib/academic/resolve-academic-semester";
 import { filterSimuladorTurmas } from "@/lib/simulador/turma-course-utils";
 
 export function MatriculaView() {
   const turmas = useTurmasOfertadas();
   const sync = useTurmasOfertadasSync({ autoRun: true });
+  const grafo = useMapaGrafo();
 
   const semestreLabel =
     turmas.data?.semestre ?? resolveNextAcademicSemesterLabel(new Date());
@@ -144,6 +149,22 @@ export function MatriculaView() {
             <EnrollmentSimulator data={turmas.data} />
           )}
         </article>
+      </div>
+
+      <div className="col-12">
+        {grafo.loading && !grafo.data ? (
+          <MapaSkeleton />
+        ) : grafo.error || !grafo.data ? (
+          <DashboardStateCard
+            variant="error"
+            title="Falha ao carregar grafo"
+            message={grafo.error ?? "Não foi possível carregar o grafo de pré-requisitos."}
+            actionLabel="Tentar novamente"
+            onRetry={() => void grafo.refetch()}
+          />
+        ) : (
+          <CourseMapFlowGraph grafo={grafo.data} />
+        )}
       </div>
     </PageGrid>
   );

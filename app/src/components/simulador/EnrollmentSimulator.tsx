@@ -2,6 +2,10 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { SectionHeader } from "@/components/ui/SectionHeader";
+import {
+  ExpandableStage,
+  ExpandToggleButton,
+} from "@/components/ui/ExpandableStage";
 import { Modal } from "@/components/ui/Modal";
 import { ScheduleDetailContent } from "@/components/ui/ActivityDetail";
 import { EnrollmentConflictNotice } from "@/components/simulador/EnrollmentConflictNotice";
@@ -98,6 +102,7 @@ export function EnrollmentSimulator({ data }: EnrollmentSimulatorProps) {
     [data.enrollmentContext]
   );
 
+  const [expanded, setExpanded] = useState(false);
   const [schedule, setSchedule] = useState<ScheduleSlot[][]>(() =>
     createEmptySchedule()
   );
@@ -614,7 +619,20 @@ export function EnrollmentSimulator({ data }: EnrollmentSimulatorProps) {
 
   return (
     <>
-      <SectionHeader title="Simulador de Matrícula" icon="map" />
+      <ExpandableStage
+        expanded={expanded}
+        onCollapse={() => setExpanded(false)}
+        title="Simulador de Matrícula"
+      >
+      <div className="enrollment-stage" data-expanded={expanded || undefined}>
+      <div className="expandable-head">
+        <SectionHeader title="Simulador de Matrícula" icon="map" />
+        <ExpandToggleButton
+          expanded={expanded}
+          onToggle={() => setExpanded((value) => !value)}
+          label="grade"
+        />
+      </div>
 
       <div className="enrollment-layout">
         <div className="enrollment-schedule-stack">
@@ -672,6 +690,8 @@ export function EnrollmentSimulator({ data }: EnrollmentSimulatorProps) {
           onCourseDragEnd={() => setDraggedTurmaId(null)}
         />
       </div>
+      </div>
+      </ExpandableStage>
 
       {conflictNotice ? (
         <EnrollmentConflictNotice

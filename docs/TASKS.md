@@ -276,7 +276,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 - [x] **FRONT:** F22 *(alerta choque — destaque visual de conflito)*
 - [x] **FRONT:** F23 *(salvar simulação — botões salvar/exportar matrícula)*
 - [x] **BACK:** B35 *(`GET /api/mapa/grafo` — nós e arestas para react-flow)*
-- [x] **FRONT:** F20 *(grafo react-flow — zoom, pan, setas sólidas/pontilhadas)*
+- [x] **FRONT:** F20 *(grafo react-flow — zoom, pan, setas sólidas/pontilhadas)* · **polish jul/2026:** grafo também em **Montar Grade** (abaixo do simulador) + botão **Expandir** (popup em top-layer `<dialog>`, sem blur) via `ExpandableStage` reutilizável — aplicado ao grafo e à grade.
 - [ ] **BACK:** B36 *(alertas integralização — limiar por categoria de CH)*
 - [ ] **BACK:** B37 *(alertas calendário — datas acadêmicas próximas)*
 - [ ] **FRONT:** F24 *(alertas na UI — banners integralização + calendário)*
