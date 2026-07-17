@@ -1,10 +1,12 @@
 import { buildCalendarFromData } from "@/lib/calendar/build-calendar";
+import { buildIntegralizacaoFromQueries } from "@/lib/integralizacao/build-integralizacao-from-queries";
 import {
   buildNotificationSnapshotFromData,
   type NotificationSnapshot,
 } from "@/lib/notifications/build-notification-snapshot";
 import { buildPendingCalendarReminderSourcesFromEvents } from "@/lib/notifications/build-pending-calendar-reminder-sources";
 import { resolveCloudNotificationPreferences } from "@/lib/perfil/build-perfil-cloud-data";
+import { postgresQueryDeps } from "@/lib/db/postgres/query-port";
 import {
   pgGetAllNotas,
   pgGetAluno,
@@ -28,6 +30,7 @@ export async function buildNotificationSnapshotCloud(): Promise<NotificationSnap
     academicRows,
     calendarTarefas,
     eventosManuais,
+    integralizacao,
   ] = await Promise.all([
     pgGetAluno(),
     pgGetSemestreAtual(),
@@ -36,6 +39,7 @@ export async function buildNotificationSnapshotCloud(): Promise<NotificationSnap
     pgGetCalendarioAcademico(),
     pgGetTarefasForCalendar(),
     pgGetEventosCalendario(),
+    buildIntegralizacaoFromQueries(postgresQueryDeps),
   ]);
 
   const activeIds = new Set(
@@ -59,5 +63,7 @@ export async function buildNotificationSnapshotCloud(): Promise<NotificationSnap
     tarefas,
     notasSemestre,
     calendarSources: buildPendingCalendarReminderSourcesFromEvents(events),
+    integralizacao,
+    academicRows,
   });
 }

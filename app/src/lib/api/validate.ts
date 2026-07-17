@@ -724,6 +724,16 @@ export function parsePatchPerfilBody(body: unknown): PatchPerfilBody {
     if (prefs.classReminders !== undefined) {
       notifications.classReminders = parseOptionalBoolean(prefs.classReminders);
     }
+    if (prefs.integralizacaoAlerts !== undefined) {
+      notifications.integralizacaoAlerts = parseOptionalBoolean(
+        prefs.integralizacaoAlerts
+      );
+    }
+    if (prefs.academicDateAlerts !== undefined) {
+      notifications.academicDateAlerts = parseOptionalBoolean(
+        prefs.academicDateAlerts
+      );
+    }
 
     if (Object.keys(notifications).length > 0) {
       patch.notifications = notifications;

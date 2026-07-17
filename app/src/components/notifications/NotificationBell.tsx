@@ -29,13 +29,17 @@ function countByKind(items: NotificationSnapshotItem[]) {
   const newGrades = items.filter((item) => item.kind === "grade").length;
   const newCalendarEvents = items.filter(
     (item) =>
-      item.kind === "calendar-event-reminder" || item.kind === "class-reminder"
+      item.kind === "calendar-event-reminder" ||
+      item.kind === "class-reminder" ||
+      item.kind === "calendar-date-alert"
   ).length;
   return { newTasks, newGrades, newCalendarEvents };
 }
 
 function iconForNotification(item: NotificationSnapshotItem) {
   if (item.kind === "grade") return "star" as const;
+  if (item.kind === "integralizacao-alert") return "graduation" as const;
+  if (item.kind === "calendar-date-alert") return "calendar" as const;
   if (item.kind === "class-reminder") return "books" as const;
   if (item.kind === "calendar-event-reminder") {
     return isUrgentCalendarReminderFingerprint(item.fingerprint)
@@ -51,6 +55,12 @@ function iconForNotification(item: NotificationSnapshotItem) {
 }
 
 function kindClassName(item: NotificationSnapshotItem): string {
+  if (item.kind === "integralizacao-alert") {
+    return "notification-bell-kind notification-bell-kind--integralizacao-alert";
+  }
+  if (item.kind === "calendar-date-alert") {
+    return "notification-bell-kind notification-bell-kind--calendar-date-alert";
+  }
   if (item.kind === "class-reminder") {
     return "notification-bell-kind notification-bell-kind--class-reminder";
   }

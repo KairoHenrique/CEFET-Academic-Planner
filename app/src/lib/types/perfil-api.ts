@@ -49,6 +49,10 @@ export interface NotificationPreferences {
   calendarReminders: boolean;
   /** Aulas da grade — apenas 30 min antes. */
   classReminders: boolean;
+  /** B36 — marcos de integralização (faixa por categoria de CH). */
+  integralizacaoAlerts: boolean;
+  /** B37 — datas acadêmicas institucionais próximas. */
+  academicDateAlerts: boolean;
 }
 
 export interface PerfilResponse {

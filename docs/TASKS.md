@@ -281,8 +281,8 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 - [x] **FRONT:** F23 *(salvar simulação — botões salvar/exportar matrícula)*
 - [x] **BACK:** B35 *(`GET /api/mapa/grafo` — nós e arestas para react-flow)*
 - [x] **FRONT:** F20 *(grafo react-flow — zoom, pan, setas sólidas/pontilhadas)* · **polish jul/2026:** grafo também em **Montar Grade** (abaixo do simulador) + botão **Expandir** (popup em top-layer `<dialog>`, sem blur) via `ExpandableStage` reutilizável — aplicado ao grafo e à grade.
-- [ ] **BACK:** B36 *(alertas integralização — limiar por categoria de CH)*
-- [ ] **BACK:** B37 *(alertas calendário — datas acadêmicas próximas)*
+- [%] **BACK:** B36 *(alertas integralização — limiar por categoria de CH)* — marcos `50/80/100%` por categoria no sino (kind `integralizacao-alert`)
+- [%] **BACK:** B37 *(alertas calendário — datas acadêmicas próximas)* — janela 14 dias no sino (kind `calendar-date-alert`)
 - [ ] **FRONT:** F24 *(alertas na UI — banners integralização + calendário)*
 
 **Ordem Bloco 3:** `B32–B34` → `F21–F23` → `B35` → `F20` → `B36–B37` → `F24`
@@ -738,7 +738,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] **FRONT:** F21 → F22 → F23
 - [x] **BACK:**  B35
 - [x] **FRONT:** F20
-- [ ] **BACK:**  B36 → B37
+- [%] **BACK:**  B36 → B37
 - [ ] **FRONT:** F24
 
 **Ordem Bloco 3:** `B32–B34` → `F21–F23` → `B35` → `F20` → `B36–B37` → `F24`
@@ -1260,8 +1260,8 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | B33 | Back | Choque de horários | `POST /api/simulador/choques` · sobreposição na grade | 5.3 | [x] |
 | B34 | Back | Persistir simulação | `GET/POST/DELETE /api/simulador/simulacoes` · export JSON | 5.3 | [x] |
 | B35 | Back | `GET /api/mapa/grafo` | Nós e arestas para react-flow | 5.2 | [x] |
-| B36 | Back | Alertas integralização | Limiar por categoria de CH | 5.4 | [ ] |
-| B37 | Back | Alertas calendário | Datas acadêmicas próximas | 5.5 | [ ] |
+| B36 | Back | Alertas integralização | Limiar por categoria de CH | 5.4 | [%] |
+| B37 | Back | Alertas calendário | Datas acadêmicas próximas | 5.5 | [%] |
 | F20 | Front | Grafo react-flow | Zoom, pan, setas sólidas/pontilhadas | 5.2 | [x] |
 | F21 | Front | Simulador elegível | Filtro + drag-and-drop na grade | 5.3 | [x] |
 | F22 | Front | Alerta choque | Destaque visual de conflito | 5.3 | [x] |
@@ -1646,12 +1646,12 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Barras de progresso douradas unificadas no app
 - [x] Documentar glossário de tipos de CH no `SCOPE.md` §6.4 (implementação → **F11b**)
 - [x] Glossário **“Entenda suas horas”** na UI (obrigatória, eletiva, complementar, extensão, flexibilizada) — F11b
-- [ ] Alerta quando estiver perto de concluir uma categoria
+- [%] Alerta quando estiver perto de concluir uma categoria — **B37→B36** no sino: marcos `50/80/100%` por categoria de CH (kind `integralizacao-alert`, `build-integralizacao-alert-items.ts`; commit local)
 
 ### 5.5 Calendário Acadêmico
 - [x] Tela com datas do semestre via `GET /api/calendar` + painel acadêmico (seed/mock em dev; **B66** popula `calendario_academico` via sync isolado)
 - [x] Painel dual-semestre: corrente + próximo; rotação na véspera do Período Letivo; divisor visual; vazio por coluna
-- [/] Alertas/notificações para datas próximas — lembretes de **tarefa** 24h/1h via sino (**F38** ✅); datas acadêmicas institucionais = **B37** *(pós-B66 ✅)*
+- [%] Alertas/notificações para datas próximas — lembretes de **tarefa** 24h/1h via sino (**F38** ✅); datas acadêmicas institucionais no sino via **B37** *(kind `calendar-date-alert`, janela 14 dias; commit local)*
 - [x] Verificação periódica de novas datas — `shouldRunCalendarioSync` + TTL 7d + disparo background pós-sync (**B66**)
 
 ---

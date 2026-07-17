@@ -471,6 +471,16 @@ a:hover {
   background: rgba(90, 140, 220, 0.16);
 }
 
+.notification-bell-kind--integralizacao-alert {
+  color: #8be3b0;
+  background: rgba(64, 200, 140, 0.14);
+}
+
+.notification-bell-kind--calendar-date-alert {
+  color: #d3b6ff;
+  background: rgba(150, 110, 230, 0.16);
+}
+
 .notification-bell-copy {
   display: flex;
   flex-direction: column;

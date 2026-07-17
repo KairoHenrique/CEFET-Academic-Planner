@@ -67,6 +67,25 @@ export function buildClassReminderFingerprint(
   return `class-reminder:${eventId}|${startDateIso}|30m`;
 }
 
+/**
+ * B36 — chave estável por (categoria, faixa). Só uma nova faixa (50→80→100)
+ * gera novo não-lido; re-syncs na mesma faixa são deduplicados pelo baseline.
+ */
+export function buildIntegralizacaoAlertFingerprint(
+  categoria: string,
+  band: number
+): string {
+  return `integralizacao-alert:${normalizeNotificationText(categoria)}|${band}`;
+}
+
+/** B37 — chave estável por (evento, data de início). */
+export function buildAcademicDateAlertFingerprint(
+  eventId: string,
+  startDateIso: string
+): string {
+  return `calendar-date-alert:${eventId}|${startDateIso}`;
+}
+
 export function isUrgentClassReminderFingerprint(fingerprint: string): boolean {
   return fingerprint.startsWith("class-reminder:");
 }

@@ -13,6 +13,8 @@ const CONFIG_KEYS = {
   taskReminders: "notifications.pref.task_reminders",
   calendarReminders: "notifications.pref.calendar_reminders",
   classReminders: "notifications.pref.class_reminders",
+  integralizacaoAlerts: "notifications.pref.integralizacao_alerts",
+  academicDateAlerts: "notifications.pref.academic_date_alerts",
 } as const;
 
 function readBooleanConfig(key: string, fallback: boolean): boolean {
@@ -39,6 +41,14 @@ export function getNotificationPreferences(): NotificationPreferences {
       CONFIG_KEYS.classReminders,
       DEFAULT_NOTIFICATION_PREFERENCES.classReminders
     ),
+    integralizacaoAlerts: readBooleanConfig(
+      CONFIG_KEYS.integralizacaoAlerts,
+      DEFAULT_NOTIFICATION_PREFERENCES.integralizacaoAlerts
+    ),
+    academicDateAlerts: readBooleanConfig(
+      CONFIG_KEYS.academicDateAlerts,
+      DEFAULT_NOTIFICATION_PREFERENCES.academicDateAlerts
+    ),
   };
 }
 
@@ -58,6 +68,11 @@ export function saveNotificationPreferences(
   setConfig(CONFIG_KEYS.taskReminders, next.taskReminders ? "1" : "0");
   setConfig(CONFIG_KEYS.calendarReminders, next.calendarReminders ? "1" : "0");
   setConfig(CONFIG_KEYS.classReminders, next.classReminders ? "1" : "0");
+  setConfig(
+    CONFIG_KEYS.integralizacaoAlerts,
+    next.integralizacaoAlerts ? "1" : "0"
+  );
+  setConfig(CONFIG_KEYS.academicDateAlerts, next.academicDateAlerts ? "1" : "0");
 
   return next;
 }
