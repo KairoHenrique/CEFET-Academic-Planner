@@ -1,4 +1,7 @@
-import { renderAccountEmailHtml } from "@/lib/email/account-email-html";
+import {
+  ACCOUNT_EMAIL_LOGO_CID,
+  renderAccountEmailHtml,
+} from "@/lib/email/account-email-html";
 import {
   RECIPIENT_PATTERN,
   isRetryableHttpStatus,
@@ -69,7 +72,9 @@ export function createHomeWorkerEmailSender(
           toEmail: message.toEmail,
           subject: message.subject,
           bodyText: message.bodyText,
-          bodyHtml: renderAccountEmailHtml(message.subject, message.bodyText),
+          bodyHtml: renderAccountEmailHtml(message.subject, message.bodyText, {
+            logoSrc: `cid:${ACCOUNT_EMAIL_LOGO_CID}`,
+          }),
         }),
       });
 
