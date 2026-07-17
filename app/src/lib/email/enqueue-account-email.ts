@@ -1,5 +1,4 @@
 import type { AppProfileRecord } from "@/lib/auth/account/types";
-import { BILLING_RENEW_HREF } from "@/lib/auth/trial/constants";
 import {
   buildAccountEmailDedupeKey,
   buildPlanEndedEmail,
@@ -9,11 +8,13 @@ import {
   buildWelcomeEmail,
 } from "@/lib/email/account-email-templates";
 import { enqueueAccountEmail } from "@/lib/email/account-email-queue-repository";
+import { resolveRenewUrl } from "@/lib/email/email-links";
 
 export async function enqueueWelcomeAccountEmail(
-  profile: AppProfileRecord
+  profile: AppProfileRecord,
+  firstNames?: string | null
 ): Promise<"queued" | "duplicate"> {
-  const template = buildWelcomeEmail({ contactEmail: profile.email });
+  const template = buildWelcomeEmail({ firstNames });
 
   return enqueueAccountEmail({
     userId: profile.userId,
@@ -31,8 +32,12 @@ export async function enqueueTrialEndedEmail(input: {
   cpf: string;
   toEmail: string;
   trialStartedAt: string;
+  firstNames?: string | null;
 }): Promise<"queued" | "duplicate"> {
-  const template = buildTrialEndedEmail({ renewHref: BILLING_RENEW_HREF });
+  const template = buildTrialEndedEmail({
+    renewHref: resolveRenewUrl(),
+    firstNames: input.firstNames,
+  });
 
   return enqueueAccountEmail({
     userId: input.userId,
@@ -55,11 +60,15 @@ export async function enqueuePlanExpiringSoonEmail(input: {
   planLabel: string;
   expiresAt: string;
   daysRemaining: number;
+  /** Faixa do lembrete (7/3/1) — evita reenvio diário dentro da mesma janela. */
+  thresholdDays: number;
+  firstNames?: string | null;
 }): Promise<"queued" | "duplicate"> {
   const template = buildPlanExpiringEmail({
     planLabel: input.planLabel,
     daysRemaining: input.daysRemaining,
-    renewHref: BILLING_RENEW_HREF,
+    renewHref: resolveRenewUrl(),
+    firstNames: input.firstNames,
   });
 
   return enqueueAccountEmail({
@@ -70,7 +79,7 @@ export async function enqueuePlanExpiringSoonEmail(input: {
     dedupeKey: buildAccountEmailDedupeKey("plan_expiring_soon", [
       input.cpf,
       input.expiresAt,
-      String(input.daysRemaining),
+      String(input.thresholdDays),
     ]),
     subject: template.subject,
     bodyText: template.bodyText,
@@ -82,8 +91,12 @@ export async function enqueuePlanEndedEmail(input: {
   cpf: string;
   toEmail: string;
   periodKey: string;
+  firstNames?: string | null;
 }): Promise<"queued" | "duplicate"> {
-  const template = buildPlanEndedEmail({ renewHref: BILLING_RENEW_HREF });
+  const template = buildPlanEndedEmail({
+    renewHref: resolveRenewUrl(),
+    firstNames: input.firstNames,
+  });
 
   return enqueueAccountEmail({
     userId: input.userId,
@@ -106,10 +119,12 @@ export async function enqueuePromotionAccountEmail(input: {
   campaignId: string;
   headline: string;
   message: string;
+  firstNames?: string | null;
 }): Promise<"queued" | "duplicate"> {
   const template = buildPromotionEmail({
     headline: input.headline,
     message: input.message,
+    firstNames: input.firstNames,
   });
 
   return enqueueAccountEmail({

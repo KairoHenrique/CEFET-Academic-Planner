@@ -6,6 +6,8 @@ import type {
   DevGrantSubscriptionRequest,
   DevGrantSubscriptionResult,
   DevOpsActionResult,
+  DevPromotionRequest,
+  DevPromotionResult,
   DevRevokeSubscriptionResult,
   DevRobotRunRequest,
   DevRobotRunResult,
@@ -202,6 +204,15 @@ export async function patchDevRevokeGiftKey(
     { method: "PATCH" }
   );
   return mapGiftKeyRowToView(response.key);
+}
+
+export async function postDevDispatchPromotion(
+  body: DevPromotionRequest
+): Promise<{ ok: true } & DevPromotionResult> {
+  return devRequestJson("/api/dev/promotions", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
 }
 
 export async function postDevOrchestratorTick(): Promise<DevOpsActionResult> {
