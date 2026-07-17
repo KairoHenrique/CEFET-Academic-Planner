@@ -195,7 +195,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 - [x] **FRONT:** F29 *(cadastro + login produção — CPF explícito no login · `PlannerNotice` toast de erro)*
 - [x] **BACK:** B61 *(PATCH `/api/perfil` → `app_profiles` no Postgres — UI **F37** ✅)*
 - [x] **BACK:** B62 *(fila e-mail — promoções sempre + ciclo conta: cadastro, fim trial, plano perto de acabar, plano encerrado)*
-- [%] **BACK:** B62b *(provedor transacional — **Brevo** grátis/sem domínio, fallback **Resend**; envio real via REST `fetch`, HTML anti-XSS + retry backoff; stub de log quando sem secret)*
+- [@] **BACK:** B62b *(provedor transacional — **Brevo** grátis/sem domínio, fallback **Resend**; envio real via REST `fetch`, HTML anti-XSS + retry backoff; stub de log quando sem secret · deploy jul/2026, teste real ok)*
 
 **Ordem 6b:** `B44 → B45 → B58 → B63` → `B59` → `F29` → `B61 → B62 → B62b`
 
@@ -1172,7 +1172,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | B61 | Back | Preferências contato | PATCH `/api/perfil` → `app_profiles` Postgres (UI **F37** ✅) | [x] |
 | F29 | Front | Cadastro + login | Cadastro: e-mail, tel, CPF, curso, senha · Login: **só CPF + senha** · tabs cloud + Bearer | [x] |
 | B62 | Back | E-mails conta/promo | Fila: promoções (**sempre**) + cadastro, fim trial, plano perto de acabar, plano encerrado | [x] |
-| B62b | Back | Provedor e-mail | **Brevo** (grátis/sem domínio) → Resend fallback · REST `fetch` · HTML anti-XSS · retry backoff · stub sem secret | [%] |
+| B62b | Back | Provedor e-mail | **Brevo** (grátis/sem domínio) → Resend fallback · REST `fetch` · HTML anti-XSS · retry backoff · stub sem secret · **deploy+teste ok** | [@] |
 
 **Ordem 6b:** `B44 → B45 → B58 → B63` → `B59` → `F29` → `B61 → B62 → B62b`
 
