@@ -2,9 +2,14 @@ export const dynamic = "force-dynamic";
 
 import { apiErrorResponse, apiSuccess } from "@/lib/api/response";
 import { parseSyncRequest } from "@/lib/api/validate";
+import { isCloudDeployment } from "@/lib/db/backend/config";
 import { runWithScraperSqlite } from "@/lib/db/backend/sqlite-guard";
 import { ensureDbReady } from "@/lib/db/bootstrap";
 import { runWithUserDb } from "@/lib/db/connection-manager";
+import {
+  enqueueCloudSyncJob,
+  isCloudSyncWorkerConfigured,
+} from "@/lib/sync-queue/cloud-sync-queue";
 import { runTurmasOfertadasSync } from "@/lib/sync/run-turmas-ofertadas-sync";
 import { withSyncLock } from "@/lib/sync/sync-lock";
 import { ApiError } from "@/lib/api/errors";
@@ -20,6 +25,39 @@ export const POST = async (request: Request) => {
       body &&
       typeof body === "object" &&
       (body as Record<string, unknown>).force === true;
+
+    // Cloud: o scraper (Playwright) não roda no Cloudflare. Enfileira o robô
+    // `turmas` para o worker do PC, que raspa e espelha no Postgres. O client
+    // aguarda a conclusão via `jobId` e refaz o fetch das turmas.
+    if (isCloudDeployment()) {
+      if (!isCloudSyncWorkerConfigured()) {
+        throw new ApiError(
+          "SIGAA_OFFLINE",
+          "Sincronização indisponível: worker não configurado no deploy.",
+          503
+        );
+      }
+
+      const enqueued = await enqueueCloudSyncJob({
+        username: credentials.username,
+        password: credentials.password || undefined,
+        mode: "deep",
+        lane: "priority",
+        trigger: "manual",
+        robot: "turmas",
+      });
+
+      return apiSuccess(
+        {
+          ok: true as const,
+          cloud: true as const,
+          jobId: enqueued.job.jobId,
+          rowsWritten: 0,
+          message: "Sincronização de turmas enfileirada.",
+        },
+        enqueued.reused ? 200 : 202
+      );
+    }
 
     return await runWithScraperSqlite(() =>
       runWithUserDb(credentials.username, async () => {

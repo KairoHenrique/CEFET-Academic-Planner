@@ -9,10 +9,6 @@ import { EnrollmentScheduleConflictBanner } from "@/components/simulador/Enrollm
 import { EnrollmentSimulacoesMenu } from "@/components/simulador/EnrollmentSimulacoesMenu";
 import { EnrollmentSaveDialog } from "@/components/simulador/EnrollmentSaveDialog";
 import { downloadElementAsJpeg } from "@/lib/export/download-element-jpeg";
-import {
-  buildSimulationExportFromSchedule,
-  downloadSimulationJson,
-} from "@/lib/export/download-simulation-json";
 import type { SimuladorChoquePair, SimuladorSimulationSummary } from "@/lib/types/simulador-api";
 import type { ScheduleSlot, ScheduleSlotData } from "@/lib/types/schedule";
 import type { TurmaOfertadaCourse } from "@/lib/types/turmas-ofertadas-api";
@@ -112,17 +108,6 @@ export function EnrollmentSchedulePanel({
       setExporting(false);
     }
   }, [canDownload, exporting, semestreLabel]);
-
-  const handleExportJson = useCallback(() => {
-    if (!canDownload || !semestreLabel) return;
-    const exportData = buildSimulationExportFromSchedule({
-      titulo: defaultSaveTitle,
-      semestre: semestreLabel,
-      schedule,
-      catalog,
-    });
-    downloadSimulationJson(exportData);
-  }, [canDownload, catalog, defaultSaveTitle, schedule, semestreLabel]);
 
   const handleSave = useCallback(
     async (titulo: string) => {
@@ -231,16 +216,6 @@ export function EnrollmentSchedulePanel({
           >
             <Icon name="download" size={14} aria-hidden />
             {exporting ? "Gerando…" : "Baixar"}
-          </button>
-          <button
-            type="button"
-            className="enrollment-download-btn"
-            onClick={handleExportJson}
-            disabled={!canDownload || exporting}
-            aria-label="Exportar simulação em JSON"
-          >
-            <Icon name="arrow-right" size={14} aria-hidden />
-            Exportar
           </button>
           <button
             type="button"

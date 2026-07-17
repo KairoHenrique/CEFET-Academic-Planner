@@ -16,13 +16,20 @@ import { findDisciplinaForTurmaOffer } from "@/lib/turmas-ofertadas/find-discipl
 import { resolveEnrollmentEligibility } from "@/lib/turmas-ofertadas/resolve-enrollment-eligibility";
 import type { TurmasEnrollmentContext } from "@/lib/turmas-ofertadas/assemble-turmas-enrollment-context";
 
+// Paleta de matizes bem separados no círculo cromático (~36° entre cada),
+// legíveis sobre o fundo escuro. Evita tons próximos (ex.: dois laranjas) que
+// dificultavam distinguir disciplinas adjacentes.
 const OFFER_COLORS = [
-  "#3FB950",
-  "#79C0FF",
-  "#A371F7",
-  "#F0883E",
-  "#FFA657",
-  "#FF7B72",
+  "#FF5C5C", // vermelho
+  "#FF9838", // laranja
+  "#E3C93A", // amarelo
+  "#57D45A", // verde
+  "#25C685", // verde-esmeralda
+  "#28D2D2", // ciano
+  "#4D94FF", // azul
+  "#7C74FF", // índigo
+  "#B863F5", // roxo
+  "#F55C9E", // rosa
 ] as const;
 
 function colorForCode(code: string): string {

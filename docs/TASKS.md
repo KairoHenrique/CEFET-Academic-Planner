@@ -299,6 +299,8 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 **Validação live (06/jul):** `npm run sync:mirror` com conta real → Supabase populado: aluno 1 · histórico 31 · semestre_atual 7 · notas 37 · faltas 149 · tarefas 2 · grupo 10 · integralização 5 · config 8 · turmas_ofertadas 99 · calendário 6. Fix extra no scraper: interstitial "Notificações Acadêmicas" do SIGAA (confirmar senha + leitura) e shim `__name` do esbuild/tsx no `page.evaluate`.
 
+**Fix jul/2026 (turmas cloud + polish simulador):** `POST /api/sync/turmas` ganhou branch cloud — enfileira o robô `turmas` no worker (`enqueueCloudSyncJob`) em vez de tentar Playwright no Cloudflare; `useTurmasOfertadasSync` resolve credencial via sessão cloud (`resolveSyncStartCredentials`, sem prompt de senha) e faz poll do `jobId` antes de refazer o fetch. UI de Montar Grade: apelidos de disciplina curados (`subject-nickname-overrides.ts`, prioridade sobre código SIGAA), paleta de cores mais divergente (10 matizes) e remoção do botão "Exportar" (JSON).
+
 **Validação E2E B72e (06/jul):** cloud simulado (`PLANNER_CLOUD=true` porta 3001) + worker local → `smoke:cloud-sync`: enqueue 202 → job `queued→running→completed` (121s, 5 etapas) → mirror ok → `sync_jobs` completed no Supabase. **Ops restante:** subir worker no PC + túnel + `wrangler secret put SIGAA_WORKER_URL` / `WORKER_SHARED_SECRET` + smoke na URL pública.
 
 **Ordem Bloco 2f:** `B72a → B72b → B72c → B72d → B72e` ✅ código · ops = **PC home server** · push jul/2026 (aprovado `[x]`)
