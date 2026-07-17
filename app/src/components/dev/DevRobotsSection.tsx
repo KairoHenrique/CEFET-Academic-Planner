@@ -9,6 +9,7 @@ import {
 } from "@/lib/dev-panel/robots/definitions";
 import type { DevRobotTargetResult } from "@/lib/dev-panel/types";
 import { DevAccountsList } from "@/components/dev/DevAccountsList";
+import { DevGrantSubscriptionCard } from "@/components/dev/DevGrantSubscriptionCard";
 import { DevRobotModule } from "@/components/dev/DevRobotModule";
 import { useDevAccounts, useDevRunRobots } from "@/hooks/useDevPanel";
 
@@ -111,6 +112,8 @@ export function DevRobotsSection() {
         loading={accountsQuery.isLoading}
         className="col-12"
       />
+
+      <DevGrantSubscriptionCard selectedAccount={selectedAccount} />
 
       <div className="dev-robot-modules col-12">
         {DEV_ROBOT_DEFINITIONS.map((definition) => (

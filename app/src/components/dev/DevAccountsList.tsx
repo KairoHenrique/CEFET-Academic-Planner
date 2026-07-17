@@ -47,7 +47,7 @@ export function DevAccountsList({
         className="form-input"
         value={search}
         onChange={(event) => onSearchChange(event.target.value)}
-        placeholder="Buscar nome ou CPF…"
+        placeholder="Buscar nome, CPF, e-mail ou matrícula…"
         aria-label="Buscar contas"
       />
     </label>
@@ -108,6 +108,11 @@ export function DevAccountsList({
                     <span className="dev-table-name">{account.displayName}</span>
                     {account.email ? (
                       <span className="dev-table-meta">{account.email}</span>
+                    ) : null}
+                    {account.matricula ? (
+                      <span className="dev-table-meta">
+                        Matrícula {account.matricula}
+                      </span>
                     ) : null}
                   </td>
                   <td>{account.cpfMasked}</td>

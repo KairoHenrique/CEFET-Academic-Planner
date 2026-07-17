@@ -12,6 +12,7 @@ export function toDevAccountPublicView(
     cpfMasked: account.cpfMasked,
     cpfLast4: account.cpfLast4,
     displayName: account.displayName,
+    matricula: account.matricula,
     cursoId: account.cursoId,
     email: account.email,
     credentialSaved: account.credentialSaved,

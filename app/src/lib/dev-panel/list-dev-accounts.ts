@@ -23,6 +23,7 @@ function matchesQuery(input: {
   cpf: string;
   displayName: string;
   email: string | null;
+  matricula: string | null;
   q: string;
 }): boolean {
   const needle = input.q.trim().toLowerCase();
@@ -32,7 +33,8 @@ function matchesQuery(input: {
   return (
     (cpfDigits.length > 0 && normalizeCpf(input.cpf).includes(cpfDigits)) ||
     input.displayName.toLowerCase().includes(needle) ||
-    (input.email?.toLowerCase().includes(needle) ?? false)
+    (input.email?.toLowerCase().includes(needle) ?? false) ||
+    (input.matricula?.toLowerCase().includes(needle) ?? false)
   );
 }
 
@@ -55,6 +57,7 @@ function readSqliteAccount(cpf: string): DevAccountRecord | null {
       cpfMasked: maskCpf(cpf),
       cpfLast4: cpfLast4(cpf),
       displayName: aluno?.nome?.trim() || `CPF ${cpfLast4(cpf)}`,
+      matricula: aluno?.matricula?.trim() || null,
       cursoId: aluno?.curso?.trim() || "eng-computacao",
       email: aluno?.email?.trim() || null,
       credentialSaved,
@@ -71,6 +74,8 @@ async function listPostgresAccounts(query?: string): Promise<DevAccountRecord[]>
   const pattern = q ? `%${q}%` : null;
   const cpfPattern = cpfNeedle ? `%${cpfNeedle}%` : null;
 
+  // JOIN LATERAL: dados sincronizados do aluno (nome/matrícula) quando existirem,
+  // permitindo busca por nome, matrícula, e-mail ou CPF em uma única query.
   const result = await pool.query<{
     user_id: string;
     cpf: string;
@@ -79,37 +84,81 @@ async function listPostgresAccounts(query?: string): Promise<DevAccountRecord[]>
     updated_at: Date;
     credential_saved: boolean;
     trial_started_at: Date | null;
+    aluno_nome: string | null;
+    aluno_matricula: string | null;
+    sub_plan_id: string | null;
+    sub_status: string | null;
+    sub_expires_at: Date | null;
   }>(
     `SELECT p.user_id, p.cpf, p.email, p.curso_id, p.updated_at,
             (
               p.sigaa_password_enc IS NOT NULL
               AND length(trim(p.sigaa_password_enc)) > 0
             ) AS credential_saved,
-            t.trial_started_at
+            t.trial_started_at,
+            a.nome AS aluno_nome,
+            a.matricula AS aluno_matricula,
+            s.plan_id AS sub_plan_id,
+            s.status AS sub_status,
+            s.expires_at AS sub_expires_at
      FROM app_profiles p
      LEFT JOIN trial_por_cpf t ON t.cpf = p.cpf
+     LEFT JOIN LATERAL (
+       SELECT nome, matricula
+       FROM aluno
+       WHERE aluno.user_id = p.user_id
+       LIMIT 1
+     ) a ON true
+     LEFT JOIN LATERAL (
+       SELECT plan_id, status, expires_at
+       FROM subscriptions
+       WHERE subscriptions.user_id = p.user_id
+       ORDER BY
+         CASE status
+           WHEN 'active' THEN 0
+           WHEN 'pending_payment' THEN 1
+           ELSE 2
+         END,
+         expires_at DESC
+       LIMIT 1
+     ) s ON true
      WHERE (
        $1::text IS NULL
        OR lower(p.email) LIKE $1
        OR p.cpf LIKE $2
+       OR lower(a.nome) LIKE $1
+       OR lower(a.matricula) LIKE $1
      )
      ORDER BY p.created_at DESC
      LIMIT 200`,
     [pattern, cpfPattern]
   );
 
-  return result.rows.map((row) => ({
-    userId: row.user_id,
-    cpf: normalizeCpf(row.cpf),
-    cpfMasked: maskCpf(row.cpf),
-    cpfLast4: cpfLast4(row.cpf),
-    displayName: row.email.split("@")[0] || `CPF ${cpfLast4(row.cpf)}`,
-    cursoId: row.curso_id,
-    email: row.email,
-    credentialSaved: row.credential_saved,
-    lastSyncAt: row.updated_at.toISOString(),
-    subscription: resolvePostgresDevSubscription(row.trial_started_at),
-  }));
+  return result.rows.map((row) => {
+    const nome = row.aluno_nome?.trim();
+    return {
+      userId: row.user_id,
+      cpf: normalizeCpf(row.cpf),
+      cpfMasked: maskCpf(row.cpf),
+      cpfLast4: cpfLast4(row.cpf),
+      displayName: nome || row.email.split("@")[0] || `CPF ${cpfLast4(row.cpf)}`,
+      matricula: row.aluno_matricula?.trim() || null,
+      cursoId: row.curso_id,
+      email: row.email,
+      credentialSaved: row.credential_saved,
+      lastSyncAt: row.updated_at.toISOString(),
+      subscription: resolvePostgresDevSubscription(
+        row.trial_started_at,
+        row.sub_plan_id && row.sub_status && row.sub_expires_at
+          ? {
+              plan_id: row.sub_plan_id,
+              status: row.sub_status,
+              expires_at: row.sub_expires_at,
+            }
+          : null
+      ),
+    };
+  });
 }
 
 function listSqliteAccounts(query?: string): DevAccountRecord[] {
@@ -141,6 +190,7 @@ function listSqliteAccounts(query?: string): DevAccountRecord[] {
         cpf,
         displayName: account.displayName,
         email: account.email,
+        matricula: account.matricula,
         q: query ?? "",
       })
     ) {
