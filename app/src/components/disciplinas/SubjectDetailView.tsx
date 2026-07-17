@@ -9,6 +9,7 @@ import { SubjectAbsencePanel } from "@/components/disciplinas/SubjectAbsencePane
 import { SubjectPanelsRow } from "@/components/disciplinas/SubjectPanelsRow";
 import { SubjectTasksPanel } from "@/components/disciplinas/SubjectTasksPanel";
 import { SubjectSyllabusPanel } from "@/components/disciplinas/SubjectSyllabusPanel";
+import { SubjectDetailSkeleton } from "@/components/disciplinas/SubjectDetailSkeleton";
 import { Icon } from "@/components/ui/Icon";
 import { useDisciplina } from "@/hooks/useDisciplina";
 
@@ -20,17 +21,7 @@ export function SubjectDetailView({ code }: SubjectDetailViewProps) {
   const { data, isLoading, error, notFound, refetch } = useDisciplina(code);
 
   if (isLoading) {
-    return (
-      <PageGrid>
-        <div className="col-12">
-          <div
-            className="skeleton subject-detail-skeleton"
-            aria-busy="true"
-            aria-label="Carregando disciplina"
-          />
-        </div>
-      </PageGrid>
-    );
+    return <SubjectDetailSkeleton />;
   }
 
   if (notFound) {

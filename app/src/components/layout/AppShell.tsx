@@ -40,7 +40,13 @@ export function AppShell({ children }: AppShellProps) {
                 isLegalPage ? "main-content-legal" : ""
               }`}
             >
-              {children}
+              {showStudentChrome ? (
+                <div key={pathname} className="route-transition">
+                  {children}
+                </div>
+              ) : (
+                children
+              )}
             </main>
           </SubscriptionAccessGuard>
         </AuthGate>

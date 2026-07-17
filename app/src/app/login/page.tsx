@@ -5,7 +5,7 @@ import { Icon } from "@/components/ui/Icon";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Entrar | ACME HUB",
+  title: "Entrar",
 };
 
 export default function LoginPage() {

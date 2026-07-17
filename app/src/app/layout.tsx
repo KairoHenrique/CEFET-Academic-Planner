@@ -17,7 +17,10 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "ACME HUB",
+  title: {
+    default: "ACME HUB",
+    template: "%s · ACME HUB",
+  },
   description: "ACME HUB — planejador acadêmico com sincronização ao SIGAA do CEFET-MG",
 };
 

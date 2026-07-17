@@ -1,6 +1,11 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { PlanosPageClient } from "@/components/planos/PlanosPageClient";
 import { PlanosPageShell } from "@/components/planos/PlanosPageShell";
+
+export const metadata: Metadata = {
+  title: "Planos",
+};
 
 function PlanosPageFallback() {
   return (

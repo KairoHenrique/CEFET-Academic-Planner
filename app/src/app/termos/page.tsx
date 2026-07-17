@@ -7,7 +7,7 @@ import { TERMS_SECTIONS } from "@/lib/legal/content/terms-sections";
 import { LEGAL_ROUTES } from "@/lib/legal/constants";
 
 export const metadata: Metadata = {
-  title: "Termos de Uso | ACME HUB",
+  title: "Termos de Uso",
   description: "Termos de Uso do ACME HUB — planejador acadêmico CEFET-MG.",
 };
 
