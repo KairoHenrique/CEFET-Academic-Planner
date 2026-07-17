@@ -7449,6 +7449,35 @@ a:hover {
   color: var(--gold-200);
 }
 
+.grade-sim-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  margin-left: var(--space-2);
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-secondary, #9db0c7);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.grade-sim-remove:hover {
+  border-color: var(--danger, #f2555a);
+  background: rgba(242, 85, 90, 0.12);
+  color: var(--danger, #f2555a);
+}
+
+.grade-sim-remove:focus-visible {
+  outline: 2px solid var(--gold-400);
+  outline-offset: 2px;
+}
+
 .tasks-panel-header {
   display: flex;
   align-items: center;
