@@ -1,2 +1,4 @@
-# App de bandeja (home server) — binario gerado pelo build, nao versionar
+# App de bandeja (home server) — binarios/icone gerados pelo build, nao versionar
+/ServidorACME.exe
 /ServidorCEFET.exe
+/app/scripts/servidor-acme.ico

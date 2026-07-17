@@ -1,4 +1,4 @@
-// CEFET Planner - Servidor de casa (tray app nativo).
+// ServidorACME - Servidor de casa (tray app nativo).
 // Sobe o worker Playwright (:8787) + tunnel cloudflared e atualiza
 // automaticamente o secret SIGAA_WORKER_URL no Cloudflare.
 // Compilar: ver app/scripts/build-tray-exe.ps1
@@ -54,14 +54,14 @@ namespace HomeServerTray
 
             notify = new NotifyIcon();
             notify.Icon = LoadIcon();
-            notify.Text = "CEFET Planner - Servidor";
+            notify.Text = "ServidorACME - Servidor";
             notify.Visible = true;
             notify.ContextMenuStrip = menu;
             notify.MouseClick += delegate (object s, MouseEventArgs e)
             {
                 if (e.Button == MouseButtons.Left) ShowMenu();
             };
-            notify.ShowBalloonTip(2500, "CEFET Planner",
+            notify.ShowBalloonTip(2500, "ServidorACME",
                 "Pronto. Clique no icone e em \"Executar\".", ToolTipIcon.Info);
 
             Log("Tray iniciado. AppDir=" + appDir);
@@ -70,6 +70,14 @@ namespace HomeServerTray
 
         static Icon LoadIcon()
         {
+            // 1) icone embutido no proprio .exe (logo do site via /win32icon)
+            try
+            {
+                Icon self = Icon.ExtractAssociatedIcon(Application.ExecutablePath);
+                if (self != null) return self;
+            }
+            catch { }
+            // 2) fallback: favicon do app
             try
             {
                 string ico = Path.Combine(appDir, "src", "app", "favicon.ico");
@@ -129,7 +137,7 @@ namespace HomeServerTray
             try
             {
                 miStatus.Text = t;
-                string full = "CEFET Planner - " + t;
+                string full = "ServidorACME - " + t;
                 notify.Text = full.Length > 63 ? full.Substring(0, 63) : full;
             }
             catch { }
@@ -176,7 +184,7 @@ namespace HomeServerTray
             miStart.Enabled = false;
             miStop.Enabled = true;
             SetStatus("No ar (conectando tunel...)");
-            notify.ShowBalloonTip(3000, "CEFET Planner",
+            notify.ShowBalloonTip(3000, "ServidorACME",
                 "Servidor iniciado. Conectando tunel...", ToolTipIcon.Info);
         }
 
@@ -208,14 +216,14 @@ namespace HomeServerTray
                 if (p.ExitCode == 0)
                 {
                     SetStatus("No ar (OK)");
-                    notify.ShowBalloonTip(4000, "CEFET Planner",
+                    notify.ShowBalloonTip(4000, "ServidorACME",
                         "Servidor no ar! Tunel conectado e URL atualizada no Cloudflare.",
                         ToolTipIcon.Info);
                 }
                 else
                 {
                     SetStatus("No ar (falha secret)");
-                    notify.ShowBalloonTip(5000, "CEFET Planner",
+                    notify.ShowBalloonTip(5000, "ServidorACME",
                         "Tunel no ar, mas falhou atualizar o secret. URL: " + url,
                         ToolTipIcon.Warning);
                 }
@@ -241,7 +249,7 @@ namespace HomeServerTray
             miStart.Enabled = true;
             miStop.Enabled = false;
             SetStatus("Parado");
-            notify.ShowBalloonTip(2000, "CEFET Planner", "Servidor parado.", ToolTipIcon.Info);
+            notify.ShowBalloonTip(2000, "ServidorACME", "Servidor parado.", ToolTipIcon.Info);
         }
 
         static void KillTree(Process p)
