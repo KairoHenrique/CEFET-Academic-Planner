@@ -1815,6 +1815,7 @@ Rota **`/dev`** — invisível ao aluno.
 | 3 | **Copy automática** — % + "de X por Y" + prazo (banner e e-mail) | `billing/site-promo/build-promo-copy.ts` |
 | 4 | **Aba Promoções** no `/dev` — tabela de preços, form, promo ativa + encerrar | `DevPromotionsSection.tsx`, `dev-panel-navigation.ts` |
 | 5 | **Banner `/planos`** — selo `-X%`, preço riscado no card, plano já selecionado | `PlanosPromoBanner.tsx`, `PlanosPlanShowcase.tsx` |
+| 6 | **Filtro smoke/teste** — não dispara para `@smoke.test`, `@example.*`, local-part `smoke-*`/`t2-*` (economiza crédito Brevo) | `is-deliverable-promotion-email.ts`, `promotion-targets.ts` |
 
 **Status:** `[@]` push jul/2026 — aguardando aprovação 100%.
 

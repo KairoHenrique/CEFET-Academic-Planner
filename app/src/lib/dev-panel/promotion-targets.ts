@@ -7,11 +7,11 @@ import { getPostgresPool } from "@/lib/db/postgres/pool";
 import { getAluno } from "@/lib/db/queries";
 import { resolveDbPathForUser, runWithUserDb } from "@/lib/db/connection-manager";
 import { resolveDevAccountRef } from "@/lib/dev-panel/dev-account-ref";
+import { isDeliverablePromotionEmail } from "@/lib/dev-panel/is-deliverable-promotion-email";
 import type { DevRobotScope } from "@/lib/dev-panel/types";
 
 /** Teto defensivo de destinatários por campanha (evita disparo acidental massivo). */
 const MAX_TARGETS = 5000;
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export interface PromotionTarget {
   userId: string | null;
@@ -29,10 +29,6 @@ interface ResolvedScope {
 interface PromotionScopeInput {
   scope: DevRobotScope;
   accountRef?: string;
-}
-
-function isValidEmail(email: string | null | undefined): email is string {
-  return typeof email === "string" && EMAIL_PATTERN.test(email.trim());
 }
 
 interface PostgresTargetRow {
@@ -64,7 +60,7 @@ async function resolvePostgresTargets(
         );
 
   return result.rows
-    .filter((row) => isValidEmail(row.email))
+    .filter((row) => isDeliverablePromotionEmail(row.email))
     .map((row) => ({
       userId: row.user_id,
       cpf: normalizeCpf(row.cpf),
@@ -83,7 +79,7 @@ function readSqliteTarget(cpf: string): PromotionTarget | null {
     ensureDbReady();
     const aluno = getAluno();
     const email = aluno?.email?.trim();
-    if (!isValidEmail(email)) {
+    if (!isDeliverablePromotionEmail(email)) {
       return null;
     }
 
