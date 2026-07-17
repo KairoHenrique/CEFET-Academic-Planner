@@ -261,7 +261,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 > **#7 Mapa:** **F31–F40** ✅ · **L1** ✅ · **B71** ✅ — bloco **#7** fechado (pré-go-live PIX).
 
-> **Correção pós-go-live (jul/2026) — bugfix B51 `[@]`:** ativação de assinatura paga estava quebrada — a `UPDATE subscriptions` usava `$3` com só 2 parâmetros (erro Postgres `42P18`), então o pagamento era **aprovado** mas o plano ficava preso em `pending_payment`. **Fix:** parâmetro corrigido (`$2`) + `confirmBillingPayment` idempotente/auto-corretivo (reconcilia a ativação mesmo com pagamento já aprovado; só ativa `pending_payment`) + webhook responde `200` p/ pagamento inexistente (evita retries do MP). Preço de teste (R$1) revertido → **R$30/mês**. PIX aprovado → redirect `/` (Dashboard) já garantido por **F32** (poll 4s).
+> **Correção pós-go-live (jul/2026) — bugfix B51 `[x]`:** ativação de assinatura paga estava quebrada — a `UPDATE subscriptions` usava `$3` com só 2 parâmetros (erro Postgres `42P18`), então o pagamento era **aprovado** mas o plano ficava preso em `pending_payment`. **Fix:** parâmetro corrigido (`$2`) + `confirmBillingPayment` idempotente/auto-corretivo (reconcilia a ativação mesmo com pagamento já aprovado; só ativa `pending_payment`) + webhook responde `200` p/ pagamento inexistente (evita retries do MP). Preço de teste (R$1) revertido → **R$30/mês**. PIX aprovado → redirect `/` (Dashboard) já garantido por **F32** (poll 4s).
 
 > **Painel dev:** **B70/F41** = [#6e](#6e--painel-dev--policy-pré-pix) *(fora desta ordem — vem antes)*.
 
@@ -300,6 +300,8 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 - [x] **OPS:** B72e *(dispatch cloud→worker pronto: fila Postgres `sync_jobs` · worker async 202 + robôs turmas/calendario · cloud despacha via `SIGAA_WORKER_URL`+Bearer · **path oficial = PC + cloudflared** (`worker:home` / `worker:tunnel`, `SIGAA_BROWSER_CHANNEL=chrome`) · secrets CF · `smoke:cloud-sync` · Fly/Docker = fallback)*
 
 **Validação live (06/jul):** `npm run sync:mirror` com conta real → Supabase populado: aluno 1 · histórico 31 · semestre_atual 7 · notas 37 · faltas 149 · tarefas 2 · grupo 10 · integralização 5 · config 8 · turmas_ofertadas 99 · calendário 6. Fix extra no scraper: interstitial "Notificações Acadêmicas" do SIGAA (confirmar senha + leitura) e shim `__name` do esbuild/tsx no `page.evaluate`.
+
+> **Ferramenta ops — home-server tray (jul/2026) `[x]`:** app de bandeja nativo (`app/scripts/HomeServerTray.cs` → `ServidorCEFET.exe`, build em `build-tray-exe.ps1` via `csc`; fallback PowerShell `home-server-tray.ps1`). Menu **Executar/Parar** sobe/derruba `worker:home` (:8787) + `cloudflared` túnel e **atualiza sozinho** o secret `SIGAA_WORKER_URL` (captura a URL `*.trycloudflare.com` do stdout do cloudflared e roda `wrangler secret put`). Elimina o passo manual do secret a cada boot. `.exe` fora do git (`.gitignore`).
 
 **Fix jul/2026 (turmas cloud + polish simulador):** `POST /api/sync/turmas` ganhou branch cloud — enfileira o robô `turmas` no worker (`enqueueCloudSyncJob`) em vez de tentar Playwright no Cloudflare; `useTurmasOfertadasSync` resolve credencial via sessão cloud (`resolveSyncStartCredentials`, sem prompt de senha) e faz poll do `jobId` antes de refazer o fetch. UI de Montar Grade: apelidos de disciplina curados (`subject-nickname-overrides.ts`, prioridade sobre código SIGAA), paleta de cores mais divergente (10 matizes) e remoção do botão "Exportar" (JSON). Removido o auto-sync de turmas ao abrir `/simulador` (`MatriculaView` sem `autoRun`) — sincroniza só no clique de "Atualizar SIGAA"/"Buscar turmas" ou no sync geral (refetch via evento `planner:sync-complete`); abrir a página apenas lê o que já está no banco.
 
@@ -616,7 +618,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 **Contagem 8/8:** só os 8 primeiros grupos até **`F37`** · **`F38` · `B66` · `B67` · `F19`** = extras (fora do 8/8) · polish `04887c9`/`5923e9c` · modulação dashboard · fix mapa/histórico/notificações (jun/2026)
 
-> **Calendário — rótulos e datas (jul/2026, sobre B66) `[@]`:** renomeação **só na exibição** (nome bruto do SIGAA segue no banco): `Matrícula OnLine → Matrícula Fase 1`, `Rematrícula → Matrícula Fase 2`, `Processamento de Matrícula/Rematrícula → Resultado Matrícula Fase 1/2` (`event-label-overrides.ts`). Scraper passa a captar os eventos de "processamento" (`calendario-event-filter.ts`) e há fallback de datas institucionais conhecidas sem duplicar quando o SIGAA publica (`known-institutional-dates.ts`).
+> **Calendário — rótulos e datas (jul/2026, sobre B66) `[x]`:** renomeação **só na exibição** (nome bruto do SIGAA segue no banco): `Matrícula OnLine → Matrícula Fase 1`, `Rematrícula → Matrícula Fase 2`, `Processamento de Matrícula/Rematrícula → Resultado Matrícula Fase 1/2` (`event-label-overrides.ts`). Scraper passa a captar os eventos de "processamento" (`calendario-event-filter.ts`) e há fallback de datas institucionais conhecidas sem duplicar quando o SIGAA publica (`known-institutional-dates.ts`).
 
 **Próximo:** **B36** — alertas integralização → **B37** → **F24**. Bloco **2f/B72** e **B35/F20** `[x]` (push jul/2026).
 
@@ -1755,7 +1757,7 @@ Rota **`/dev`** — invisível ao aluno.
 
 **Tasks:** **B70** (API + middleware + robôs ops) · **F41** (UI + chavinhas + lista) · **B71** ✅
 
-#### Melhorias operacionais painel dev (jul/2026) `[@]`
+#### Melhorias operacionais painel dev (jul/2026) `[x]`
 
 > Fecha lacunas de ops identificadas na auditoria do `/dev` (sobre **B70/F41**). Sem novo ID de bloco — polimento operacional.
 
@@ -1771,7 +1773,7 @@ Rota **`/dev`** — invisível ao aluno.
 
 **Fora do escopo desta rodada:** robôs por camada (histórico/notificações/calendário como robôs separados) — R1-deep já cobre; exige refatorar o pipeline para expor runners por camada.
 
-**Status:** `[@]` push feito (jul/2026) — aguardando aprovação 100%.
+**Status:** `[x]` aprovado 100% (push jul/2026).
 
 ### Painel robôs — ops manual (escopo fechado p/ **B70** + **F41**)
 
