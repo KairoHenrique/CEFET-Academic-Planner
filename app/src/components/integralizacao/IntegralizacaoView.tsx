@@ -9,7 +9,6 @@ import { IntegrationSummaryCard } from "@/components/integralizacao/IntegrationS
 import { IntegrationTotalCard } from "@/components/integralizacao/IntegrationTotalCard";
 import { IntegralizacaoSkeleton } from "@/components/integralizacao/IntegralizacaoSkeleton";
 import { RegisterHoursModal } from "@/components/integralizacao/RegisterHoursModal";
-import { IntegralizacaoAlertBanner } from "@/components/alerts/IntegralizacaoAlertBanner";
 import { useIntegralizacao } from "@/hooks/useIntegralizacao";
 
 export function IntegralizacaoView() {
@@ -64,8 +63,6 @@ export function IntegralizacaoView() {
         title="Integralização"
         subtitle="Acompanhe horas por categoria e cadastre atividades complementares"
       />
-
-      <IntegralizacaoAlertBanner />
 
       <div className="col-4">
         <IntegrationTotalCard
