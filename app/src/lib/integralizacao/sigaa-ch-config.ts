@@ -29,11 +29,25 @@ export function persistSigaaIntegralizacaoResumo(
   }
 }
 
-export function readSigaaIntegralizacaoResumo(): SigaaIntegralizacaoResumo {
-  const totalRaw = getConfig(SIGAA_CH_TOTAL_CURRICULO_KEY);
-  const percentRaw = getConfig(SIGAA_CH_PERCENT_INTEGRALIZADO_KEY);
-  const integralizadoRaw = getConfig(SIGAA_CH_TOTAL_INTEGRALIZADO_KEY);
-  const fromHistoricoRaw = getConfig(SIGAA_CH_FROM_HISTORICO_PDF_KEY);
+export const SIGAA_CH_KEYS = [
+  SIGAA_CH_TOTAL_CURRICULO_KEY,
+  SIGAA_CH_PERCENT_INTEGRALIZADO_KEY,
+  SIGAA_CH_TOTAL_INTEGRALIZADO_KEY,
+  SIGAA_CH_FROM_HISTORICO_PDF_KEY,
+] as const;
+
+/**
+ * Constrói o resumo a partir de um leitor de configuração agnóstico de backend
+ * (SQLite `getConfig` ou Postgres `configuracoes`). Centraliza o parsing/validação
+ * para não duplicar regras entre os dois caminhos.
+ */
+export function buildSigaaResumoFromReader(
+  read: (chave: string) => string | null
+): SigaaIntegralizacaoResumo {
+  const totalRaw = read(SIGAA_CH_TOTAL_CURRICULO_KEY);
+  const percentRaw = read(SIGAA_CH_PERCENT_INTEGRALIZADO_KEY);
+  const integralizadoRaw = read(SIGAA_CH_TOTAL_INTEGRALIZADO_KEY);
+  const fromHistoricoRaw = read(SIGAA_CH_FROM_HISTORICO_PDF_KEY);
 
   const totalCurriculo = totalRaw ? Number(totalRaw) : null;
   const percentIntegralizado = percentRaw ? Number(percentRaw) : null;
@@ -58,4 +72,8 @@ export function readSigaaIntegralizacaoResumo(): SigaaIntegralizacaoResumo {
         : null,
     fromHistoricoPdf: fromHistoricoRaw === "1",
   };
+}
+
+export function readSigaaIntegralizacaoResumo(): SigaaIntegralizacaoResumo {
+  return buildSigaaResumoFromReader(getConfig);
 }

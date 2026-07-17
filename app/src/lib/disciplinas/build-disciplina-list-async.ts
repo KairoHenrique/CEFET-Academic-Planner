@@ -1,11 +1,13 @@
-import { buildSubjectListItem } from "@/lib/disciplinas/build-subject";
+import {
+  buildSubjectListItemsFromQueries,
+  type SubjectBulkQueryDeps,
+} from "@/lib/disciplinas/build-subject-source";
 import { subjectMatchesDisciplinaFilter } from "@/lib/disciplinas/list-filters";
 import type {
   DisciplinaListFilter,
   DisciplinaListResponse,
   SubjectListItem,
 } from "@/lib/types/disciplinas-api";
-import type { SemestreAtualWithDisciplina } from "@/lib/types/db";
 
 function matchesSearch(item: SubjectListItem, query: string): boolean {
   if (!query) return true;
@@ -17,17 +19,14 @@ function matchesSearch(item: SubjectListItem, query: string): boolean {
 }
 
 export async function buildDisciplinaListFromQueries(
-  getSemestreAtual: () => Promise<SemestreAtualWithDisciplina[]>,
+  deps: SubjectBulkQueryDeps,
   query = "",
   filter: DisciplinaListFilter = "todas"
 ): Promise<DisciplinaListResponse> {
-  const items = (await getSemestreAtual())
-    .map(buildSubjectListItem)
-    .filter(
-      (item) =>
-        matchesSearch(item, query) &&
-        subjectMatchesDisciplinaFilter(item, filter)
-    );
+  const items = (await buildSubjectListItemsFromQueries(deps)).filter(
+    (item) =>
+      matchesSearch(item, query) && subjectMatchesDisciplinaFilter(item, filter)
+  );
 
   return { items };
 }

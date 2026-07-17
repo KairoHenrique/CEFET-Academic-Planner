@@ -9,6 +9,6 @@ type RouteContext = { params: Promise<{ code: string }> };
 export const PATCH = withDb(async (request, context: RouteContext) => {
   const { code } = await context.params;
   const body = parsePatchDisciplinaAppearanceBody(await request.json());
-  const data = patchDisciplinaAppearance(decodeURIComponent(code), body);
+  const data = await patchDisciplinaAppearance(decodeURIComponent(code), body);
   return apiSuccess(data);
 });

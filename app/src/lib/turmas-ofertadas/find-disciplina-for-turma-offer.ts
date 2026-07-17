@@ -23,7 +23,7 @@ export function findDisciplinaForTurmaOffer(
   );
   if (byName) return byName;
 
-  const resolvedCode = resolveDisciplinaCodigoByNome(nome);
+  const resolvedCode = resolveDisciplinaCodigoByNome(nome, disciplinas);
   if (isPpcCanonicalCodigo(resolvedCode)) {
     return disciplinas.find((item) => item.codigo === resolvedCode);
   }

@@ -14,6 +14,19 @@ import {
 } from "./map-calendar-event";
 import type { CalendarResponse } from "@/lib/types/calendar-api";
 import type { CalendarEvent } from "@/lib/types/calendar";
+import type {
+  CalendarioAcademicoRow,
+  EventoCalendarioRow,
+  SemestreAtualWithDisciplina,
+  TarefaCalendarRow,
+} from "@/lib/types/db";
+
+export interface CalendarSourceData {
+  academicRows: CalendarioAcademicoRow[];
+  semestreRows: SemestreAtualWithDisciplina[];
+  tarefas: TarefaCalendarRow[];
+  eventosManuais: EventoCalendarioRow[];
+}
 
 function sortCalendarEvents(events: CalendarEvent[]): CalendarEvent[] {
   return events.sort((left, right) => {
@@ -23,18 +36,17 @@ function sortCalendarEvents(events: CalendarEvent[]): CalendarEvent[] {
   });
 }
 
-export function buildCalendar(): CalendarResponse {
-  purgeInvalidCalendarioAcademico();
-  const academicRows = getCalendarioAcademico();
+/** Núcleo backend-agnóstico: monta o calendário a partir dos dados carregados. */
+export function buildCalendarFromData(data: CalendarSourceData): CalendarResponse {
+  const { academicRows, semestreRows } = data;
   const academicDateGroups = buildAcademicDateDisplayGroups(academicRows);
-  const semestreRows = getSemestreAtual();
 
   const baseEvents = mapCalendarRowsToEvents({
-    tarefas: getTarefasForCalendar(),
+    tarefas: data.tarefas,
     eventosManuais: [],
     academicos: [],
   });
-  const manualEvents = expandManualCalendarEvents(getEventosCalendario());
+  const manualEvents = expandManualCalendarEvents(data.eventosManuais);
   const academicEvents = expandAcademicRowsToCalendarEvents(academicRows);
   const classEvents = expandClassSessionEvents({
     semestreRows,
@@ -51,4 +63,14 @@ export function buildCalendar(): CalendarResponse {
     academicDates: academicDateGroups.flatMap((group) => group.items),
     academicDateGroups,
   };
+}
+
+export function buildCalendar(): CalendarResponse {
+  purgeInvalidCalendarioAcademico();
+  return buildCalendarFromData({
+    academicRows: getCalendarioAcademico(),
+    semestreRows: getSemestreAtual(),
+    tarefas: getTarefasForCalendar(),
+    eventosManuais: getEventosCalendario(),
+  });
 }

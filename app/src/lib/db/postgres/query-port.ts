@@ -1,6 +1,7 @@
 import type { IntegralizacaoQueryDeps } from "@/lib/integralizacao/build-integralizacao-from-queries";
 import type { MapaQueryDeps } from "@/lib/mapa/build-mapa";
 import * as pg from "@/lib/db/postgres/queries-read";
+import { pgReadSigaaIntegralizacaoResumo } from "@/lib/db/postgres/pg-sigaa-config";
 
 export const postgresQueryDeps: IntegralizacaoQueryDeps = {
   getAluno: pg.pgGetAluno,
@@ -9,6 +10,9 @@ export const postgresQueryDeps: IntegralizacaoQueryDeps = {
   getHistorico: pg.pgGetHistorico,
   getSemestreAtual: pg.pgGetSemestreAtual,
   getTarefas: pg.pgGetTarefas,
+  getSigaaResumo: pgReadSigaaIntegralizacaoResumo,
+  getAllNotas: pg.pgGetAllNotas,
+  getAllFaltas: pg.pgGetAllFaltas,
 };
 
 export const postgresMapaQueryDeps: MapaQueryDeps = {

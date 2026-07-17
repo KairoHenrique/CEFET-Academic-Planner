@@ -4,6 +4,7 @@ import * as pg from "@/lib/db/postgres/queries-read";
 export const postgresDisciplinaDetailDeps: DisciplinaDetailQueryDeps = {
   getSemestreAtualByCodigo: pg.pgGetSemestreAtualByCodigo,
   getDisciplinaByCodigo: pg.pgGetDisciplinaByCodigo,
+  getNotasByDisciplina: pg.pgGetNotasByDisciplina,
   getFaltasByDisciplina: pg.pgGetFaltasByDisciplina,
   getGrupoByDisciplina: pg.pgGetGrupoByDisciplina,
   getTarefasByDisciplina: pg.pgGetTarefasByDisciplina,

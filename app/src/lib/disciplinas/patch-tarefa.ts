@@ -1,20 +1,20 @@
 import { notFoundError, validationError } from "@/lib/api/errors";
 import {
-  deleteTarefa,
-  getTarefaById,
-  updateTarefaConcluida,
-  updateTarefaFields,
-} from "@/lib/db/queries";
+  mDeleteTarefa,
+  mGetTarefaById,
+  mUpdateTarefaConcluida,
+  mUpdateTarefaFields,
+} from "@/lib/db/mutations/mutation-ports";
 import type { PatchTarefaBody } from "@/lib/types/disciplinas-api";
 
-export function patchTarefa(id: number, body: PatchTarefaBody) {
-  const tarefa = getTarefaById(id);
+export async function patchTarefa(id: number, body: PatchTarefaBody) {
+  const tarefa = await mGetTarefaById(id);
   if (!tarefa) {
     throw notFoundError("Tarefa não encontrada.");
   }
 
   if (body.action === "toggle") {
-    updateTarefaConcluida(id, body.concluida);
+    await mUpdateTarefaConcluida(id, body.concluida);
     return { id, concluida: body.concluida };
   }
 
@@ -22,7 +22,7 @@ export function patchTarefa(id: number, body: PatchTarefaBody) {
     if (tarefa.manual !== 1) {
       throw validationError("Apenas tarefas manuais podem ser excluídas.");
     }
-    const changes = deleteTarefa(id);
+    const changes = await mDeleteTarefa(id);
     if (changes === 0) {
       throw validationError("Não foi possível excluir a tarefa.");
     }
@@ -34,7 +34,7 @@ export function patchTarefa(id: number, body: PatchTarefaBody) {
     throw validationError("Título da tarefa é obrigatório.");
   }
 
-  const changes = updateTarefaFields(id, {
+  const changes = await mUpdateTarefaFields(id, {
     titulo,
     descricao: body.descricao?.trim(),
     data_fim: body.data_fim,

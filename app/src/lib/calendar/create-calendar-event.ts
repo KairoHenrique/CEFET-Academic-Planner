@@ -5,22 +5,22 @@ import { DEFAULT_EVENT_COLOR } from "@/lib/colors/palette";
 import { resolveDefaultEventColor } from "@/lib/colors/event-type-colors";
 import { serializeRecurrenceDays } from "@/lib/calendar/recurrence-weekdays";
 import {
-  getEventoCalendarioById,
-  getSemestreAtualByCodigo,
-  getTarefaCalendarByDisciplinaLatest,
-  insertEventoCalendario,
-  saveTarefa,
-} from "@/lib/db/queries";
+  mGetEventoCalendarioById,
+  mGetSemestreAtualByCodigo,
+  mGetTarefaCalendarById,
+  mInsertEventoCalendario,
+  mInsertTarefa,
+} from "@/lib/db/mutations/mutation-ports";
 import { mapTarefaRowToCalendarEvent } from "./map-calendar-event";
 import type { CalendarEvent } from "@/lib/types/calendar";
 import type { CreateCalendarEventBody } from "@/lib/types/calendar-api";
 
-function resolveSubject(subjectCode?: string) {
+async function resolveSubject(subjectCode?: string) {
   if (!subjectCode?.trim()) {
     return { disciplinaId: null, nome: null, cor: null };
   }
 
-  const semestre = getSemestreAtualByCodigo(subjectCode.trim());
+  const semestre = await mGetSemestreAtualByCodigo(subjectCode.trim());
   if (!semestre) {
     throw notFoundError("Disciplina não encontrada no semestre atual.");
   }
@@ -57,13 +57,13 @@ function resolveManualSpanEnd(body: CreateCalendarEventBody): string | null {
   return body.dateEnd;
 }
 
-function createAsTarefa(body: CreateCalendarEventBody): CalendarEvent {
-  const subject = resolveSubject(body.subjectCode);
+async function createAsTarefa(body: CreateCalendarEventBody): Promise<CalendarEvent> {
+  const subject = await resolveSubject(body.subjectCode);
   if (!subject.disciplinaId) {
     throw validationError("Informe a disciplina para tarefas e provas.");
   }
 
-  saveTarefa({
+  const createdId = await mInsertTarefa({
     disciplina_id: subject.disciplinaId,
     titulo: body.title.trim(),
     descricao: body.description?.trim() ?? "",
@@ -79,12 +79,12 @@ function createAsTarefa(body: CreateCalendarEventBody): CalendarEvent {
     pontuacao_maxima: null,
   });
 
-  const latest = getTarefaCalendarByDisciplinaLatest(subject.disciplinaId);
-  if (!latest) {
+  const created = await mGetTarefaCalendarById(createdId);
+  if (!created) {
     throw validationError("Não foi possível criar o evento.");
   }
 
-  const mapped = mapTarefaRowToCalendarEvent(latest);
+  const mapped = mapTarefaRowToCalendarEvent(created);
   return {
     ...mapped,
     timeStart: body.timeStart,
@@ -92,9 +92,11 @@ function createAsTarefa(body: CreateCalendarEventBody): CalendarEvent {
   };
 }
 
-function createAsEventoManual(body: CreateCalendarEventBody): CalendarEvent {
+async function createAsEventoManual(
+  body: CreateCalendarEventBody
+): Promise<CalendarEvent> {
   const subject = body.subjectCode
-    ? resolveSubject(body.subjectCode)
+    ? await resolveSubject(body.subjectCode)
     : { disciplinaId: null, nome: null, cor: null };
 
   const recurrence =
@@ -104,7 +106,7 @@ function createAsEventoManual(body: CreateCalendarEventBody): CalendarEvent {
         ? "daily"
         : "none";
 
-  const eventoId = insertEventoCalendario({
+  const eventoId = await mInsertEventoCalendario({
     titulo: body.title.trim(),
     descricao: body.description?.trim() ?? "",
     data: body.date,
@@ -129,7 +131,7 @@ function createAsEventoManual(body: CreateCalendarEventBody): CalendarEvent {
     manual: 1,
   });
 
-  const created = getEventoCalendarioById(eventoId);
+  const created = await mGetEventoCalendarioById(eventoId);
   if (!created) {
     throw validationError("Não foi possível criar o evento.");
   }
@@ -142,7 +144,9 @@ function createAsEventoManual(body: CreateCalendarEventBody): CalendarEvent {
   return expanded;
 }
 
-export function createCalendarEvent(body: CreateCalendarEventBody): CalendarEvent {
+export async function createCalendarEvent(
+  body: CreateCalendarEventBody
+): Promise<CalendarEvent> {
   if (shouldCreateAsTarefa(body)) {
     return createAsTarefa(body);
   }

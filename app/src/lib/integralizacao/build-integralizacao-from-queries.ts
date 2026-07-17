@@ -6,12 +6,17 @@ import {
   getIntegrationTotalHours,
 } from "@/lib/integralizacao/ch-catalog";
 import { resolveQueryCursoId } from "@/lib/db/resolve-query-curso-id";
-import { readSigaaIntegralizacaoResumo } from "@/lib/integralizacao/sigaa-ch-config";
+import {
+  readSigaaIntegralizacaoResumo,
+  type SigaaIntegralizacaoResumo,
+} from "@/lib/integralizacao/sigaa-ch-config";
 import type {
   AlunoRow,
   DisciplinaRow,
+  FaltaRow,
   HistoricoRow,
   IntegralizacaoRow,
+  NotaRow,
   SemestreAtualWithDisciplina,
   TarefaRow,
 } from "@/lib/types/db";
@@ -24,6 +29,17 @@ export interface IntegralizacaoQueryDeps {
   getHistorico: () => Promise<HistoricoRow[]>;
   getSemestreAtual: () => Promise<SemestreAtualWithDisciplina[]>;
   getTarefas: () => Promise<TarefaRow[]>;
+  /**
+   * Leitor do resumo `sigaa.ch.*`. Ausente = fallback SQLite (`getConfig`);
+   * no cloud/postgres é injetado para ler da tabela `configuracoes`.
+   */
+  getSigaaResumo?: () => Promise<SigaaIntegralizacaoResumo>;
+  /**
+   * Notas/faltas em lote (bulk) — usados pelo dashboard para montar os cards de
+   * disciplina sem N+1 nem acoplamento ao SQLite. Ausentes = fallback SQLite.
+   */
+  getAllNotas?: () => Promise<NotaRow[]>;
+  getAllFaltas?: () => Promise<FaltaRow[]>;
 }
 
 export async function buildIntegralizacaoFromQueries(
@@ -48,13 +64,17 @@ export async function buildIntegralizacaoFromQueries(
     semestreAtual.map((entry) => entry.disciplina_id)
   );
 
+  const sigaaResumo = deps.getSigaaResumo
+    ? await deps.getSigaaResumo()
+    : readSigaaIntegralizacaoResumo();
+
   const categories = aggregateIntegralizacaoCategories(
     rows,
     catalog,
-    computedByType
+    computedByType,
+    sigaaResumo.fromHistoricoPdf ?? false
   );
 
-  const sigaaResumo = readSigaaIntegralizacaoResumo();
   const totalHours = sigaaResumo.totalCurriculo ?? getIntegrationTotalHours();
   const totalDoneFromCategories = categories.reduce(
     (sum, category) => sum + category.done,

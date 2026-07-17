@@ -37,8 +37,11 @@ function toReminderSource(event: CalendarEvent): PendingCalendarReminderSource {
   };
 }
 
-/** Server-only: separa aulas da grade dos demais eventos do calendário. */
-export function buildPendingCalendarReminderSources(referenceDate = new Date()): {
+/** Núcleo puro — separa aulas da grade dos demais eventos, agnóstico de backend. */
+export function buildPendingCalendarReminderSourcesFromEvents(
+  events: CalendarEvent[],
+  referenceDate = new Date()
+): {
   events: PendingCalendarReminderSource[];
   classes: PendingCalendarReminderSource[];
 } {
@@ -48,7 +51,6 @@ export function buildPendingCalendarReminderSources(referenceDate = new Date()):
     String(referenceDate.getDate()).padStart(2, "0"),
   ].join("-");
 
-  const { events } = buildCalendar();
   const upcoming = events
     .filter(isNotifiableCalendarEvent)
     .filter((event) => (event.dateEnd ?? event.date) >= refIso);
@@ -66,4 +68,13 @@ export function buildPendingCalendarReminderSources(referenceDate = new Date()):
   }
 
   return { events: manualEvents, classes };
+}
+
+/** Server-only (SQLite): separa aulas da grade dos demais eventos do calendário. */
+export function buildPendingCalendarReminderSources(referenceDate = new Date()): {
+  events: PendingCalendarReminderSource[];
+  classes: PendingCalendarReminderSource[];
+} {
+  const { events } = buildCalendar();
+  return buildPendingCalendarReminderSourcesFromEvents(events, referenceDate);
 }

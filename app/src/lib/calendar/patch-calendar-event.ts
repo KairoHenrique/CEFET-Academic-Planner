@@ -1,33 +1,33 @@
 import { notFoundError, validationError } from "@/lib/api/errors";
 import {
-  deleteEventoCalendario,
-  deleteTarefa,
-  getEventoCalendarioById,
-  getSemestreAtualByCodigo,
-  getTarefaCalendarById,
-  updateEventoCalendarioFields,
-  updateTarefaConcluida,
-  updateTarefaFields,
-} from "@/lib/db/queries";
+  mDeleteEventoCalendario,
+  mDeleteTarefa,
+  mGetEventoCalendarioById,
+  mGetSemestreAtualByCodigo,
+  mGetTarefaCalendarById,
+  mUpdateEventoCalendarioFields,
+  mUpdateTarefaConcluida,
+  mUpdateTarefaFields,
+} from "@/lib/db/mutations/mutation-ports";
 import { encodeCalendarEventId, parseCalendarEventId } from "./calendar-event-id";
 import type {
   PatchCalendarEventBody,
   PatchCalendarEventResponse,
 } from "@/lib/types/calendar-api";
 
-function resolveSubjectCode(subjectCode: string) {
-  const semestre = getSemestreAtualByCodigo(subjectCode.trim());
+async function resolveSubjectCode(subjectCode: string) {
+  const semestre = await mGetSemestreAtualByCodigo(subjectCode.trim());
   if (!semestre) {
     throw notFoundError("Disciplina não encontrada no semestre atual.");
   }
   return semestre.disciplina_id;
 }
 
-function patchTarefaEvent(
+async function patchTarefaEvent(
   numericId: number,
   body: PatchCalendarEventBody
-): PatchCalendarEventResponse {
-  const tarefa = getTarefaCalendarById(numericId);
+): Promise<PatchCalendarEventResponse> {
+  const tarefa = await mGetTarefaCalendarById(numericId);
   if (!tarefa) {
     throw notFoundError("Evento não encontrado.");
   }
@@ -35,7 +35,7 @@ function patchTarefaEvent(
   const eventId = encodeCalendarEventId("tarefa", numericId);
 
   if (body.action === "toggle") {
-    updateTarefaConcluida(numericId, body.done);
+    await mUpdateTarefaConcluida(numericId, body.done);
     return { id: eventId, done: body.done };
   }
 
@@ -43,7 +43,7 @@ function patchTarefaEvent(
     if (tarefa.manual !== 1) {
       throw validationError("Apenas eventos manuais podem ser excluídos.");
     }
-    if (deleteTarefa(numericId) === 0) {
+    if ((await mDeleteTarefa(numericId)) === 0) {
       throw validationError("Não foi possível excluir o evento.");
     }
     return { id: eventId, deleted: true };
@@ -53,7 +53,7 @@ function patchTarefaEvent(
     throw validationError("Tarefas do calendário só aceitam tipo tarefa ou prova.");
   }
 
-  const changes = updateTarefaFields(numericId, {
+  const changes = await mUpdateTarefaFields(numericId, {
     titulo: body.title?.trim(),
     descricao: body.description?.trim(),
     data_fim: body.date,
@@ -73,11 +73,11 @@ function patchTarefaEvent(
   return { id: eventId, updated: true };
 }
 
-function patchManualEvento(
+async function patchManualEvento(
   numericId: number,
   body: PatchCalendarEventBody
-): PatchCalendarEventResponse {
-  const evento = getEventoCalendarioById(numericId);
+): Promise<PatchCalendarEventResponse> {
+  const evento = await mGetEventoCalendarioById(numericId);
   if (!evento) {
     throw notFoundError("Evento não encontrado.");
   }
@@ -85,12 +85,12 @@ function patchManualEvento(
   const eventId = encodeCalendarEventId("evento", numericId);
 
   if (body.action === "toggle") {
-    updateEventoCalendarioFields(numericId, { concluida: body.done ? 1 : 0 });
+    await mUpdateEventoCalendarioFields(numericId, { concluida: body.done ? 1 : 0 });
     return { id: eventId, done: body.done };
   }
 
   if (body.action === "delete") {
-    if (deleteEventoCalendario(numericId) === 0) {
+    if ((await mDeleteEventoCalendario(numericId)) === 0) {
       throw validationError("Não foi possível excluir o evento.");
     }
     return { id: eventId, deleted: true };
@@ -102,10 +102,10 @@ function patchManualEvento(
   } else if (body.subjectCode === null) {
     disciplinaId = null;
   } else {
-    disciplinaId = resolveSubjectCode(body.subjectCode);
+    disciplinaId = await resolveSubjectCode(body.subjectCode);
   }
 
-  const changes = updateEventoCalendarioFields(numericId, {
+  const changes = await mUpdateEventoCalendarioFields(numericId, {
     titulo: body.title?.trim(),
     descricao: body.description?.trim(),
     data: body.date,
@@ -122,10 +122,10 @@ function patchManualEvento(
   return { id: eventId, updated: true };
 }
 
-export function patchCalendarEvent(
+export async function patchCalendarEvent(
   rawId: string,
   body: PatchCalendarEventBody
-): PatchCalendarEventResponse {
+): Promise<PatchCalendarEventResponse> {
   const { source, numericId } = parseCalendarEventId(rawId);
 
   if (source === "academico") {
