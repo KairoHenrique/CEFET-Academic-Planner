@@ -2268,6 +2268,29 @@ a:hover {
   z-index: 1;
 }
 
+/* F26 — transição de entrada entre rotas do aluno (keyed por pathname). */
+@keyframes route-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.route-transition {
+  animation: route-fade-in 220ms ease-out;
+  will-change: opacity, transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .route-transition {
+    animation: none;
+  }
+}
+
 .app-route-loading {
   display: flex;
   align-items: center;
@@ -5109,9 +5132,40 @@ a:hover {
   border-radius: var(--radius-sm);
 }
 
-.subject-detail-skeleton {
-  height: 180px;
-  border-radius: var(--radius-md);
+.subject-detail-skeleton-back {
+  height: 20px;
+  width: 190px;
+  border-radius: var(--radius-sm);
+}
+
+.subject-detail-skeleton-header {
+  height: 132px;
+  border-radius: var(--radius-lg);
+}
+
+.subject-detail-skeleton-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+.subject-detail-skeleton-panel {
+  height: 210px;
+  border-radius: var(--radius-lg);
+}
+
+.subject-detail-skeleton-panel--sm {
+  height: 96px;
+}
+
+.subject-detail-skeleton-panel--tasks {
+  height: 168px;
+}
+
+@media (max-width: 768px) {
+  .subject-detail-skeleton-row {
+    grid-template-columns: 1fr;
+  }
 }
 
 .data-table-fetching {

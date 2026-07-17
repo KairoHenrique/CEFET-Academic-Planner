@@ -7,7 +7,7 @@ import { PRIVACY_SECTIONS } from "@/lib/legal/content/privacy-sections";
 import { LEGAL_ROUTES } from "@/lib/legal/constants";
 
 export const metadata: Metadata = {
-  title: "Política de Privacidade | ACME HUB",
+  title: "Política de Privacidade",
   description:
     "Política de Privacidade e tratamento de dados pessoais (LGPD) do ACME HUB.",
 };

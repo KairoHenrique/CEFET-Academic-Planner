@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { DevPanelPage } from "@/components/dev/DevPanelPage";
 
 export const metadata: Metadata = {
-  title: "Painel dev | ACME HUB",
+  title: "Painel dev",
   robots: { index: false, follow: false },
 };
 
