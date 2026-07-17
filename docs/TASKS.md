@@ -1793,6 +1793,7 @@ Rota **`/dev`** — invisível ao aluno.
 | 4 | **Plano expirando** — agenda faixas 7/3/1 dias (dedupe por janela) | `email/schedule-account-lifecycle-emails.ts` |
 | 5 | **Plano encerrado** — dispara na virada (janela 3d, ignora quem já renovou) | `email/schedule-account-lifecycle-emails.ts` |
 | 6 | **Disparo de promoção no `/dev`** — card na aba Robôs (global/individual) + flush imediato da fila | `POST /api/dev/promotions`, `dev-panel/dispatch-promotion.ts`, `dev-panel/promotion-targets.ts`, `components/dev/DevPromotionCard.tsx` |
+| 7 | **HTML da marca** — cabeçalho azul-marinho com logo (`/logo_v2.png`) + wordmark + tagline · botão de ação dourado (URL sozinha vira botão) · rodapé com contato | `email/account-email-html.ts` |
 
 **Ativação:** sem novo secret (Brevo já configurado). Ciclo de plano pago passa a rodar automaticamente pelo cron (`run-account-email-cron` já chama os dois schedulers) após o deploy. **Welcome** segue genérico no cadastro (nome só existe após 1º sync); demais e-mails já saem personalizados.
 
