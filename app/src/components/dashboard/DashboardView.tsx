@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { PageGrid } from "@/components/layout/PageGrid";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { ModuleGrid } from "@/components/layout/ModuleGrid";
 import { StatsRow } from "@/components/dashboard/StatsRow";
 import { SubjectsGrid } from "@/components/dashboard/SubjectsGrid";
 import { UpcomingTasks } from "@/components/dashboard/UpcomingTasks";
@@ -12,18 +11,6 @@ import { IntegrationProgress } from "@/components/dashboard/IntegrationProgress"
 import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton";
 import { DashboardStateCard } from "@/components/dashboard/DashboardStateCard";
 import { useDashboard } from "@/hooks/useDashboard";
-import {
-  useModuleLayout,
-  type ModuleDefinition,
-} from "@/hooks/useModuleLayout";
-
-const MODULES: ModuleDefinition[] = [
-  { id: "stats", label: "Indicadores", colClass: "col-12" },
-  { id: "tasks", label: "Próximas entregas", colClass: "col-8" },
-  { id: "integration", label: "Integralização", colClass: "col-4" },
-  { id: "schedule", label: "Grade semanal", colClass: "col-12" },
-  { id: "subjects", label: "Disciplinas", colClass: "col-12" },
-];
 
 function getGreeting(): string {
   const hour = new Date().getHours();
@@ -33,15 +20,12 @@ function getGreeting(): string {
 }
 
 export function DashboardView() {
-  const layout = useModuleLayout("dashboard", MODULES);
   const { data, loading, error, needsSync, refetch } = useDashboard();
   const [greeting, setGreeting] = useState("Olá,");
 
   useEffect(() => {
     setGreeting(getGreeting());
   }, []);
-
-  if (!layout.hydrated) return null;
 
   if (loading) {
     return (
@@ -78,23 +62,6 @@ export function DashboardView() {
     );
   }
 
-  const renderModule = (id: string) => {
-    switch (id) {
-      case "stats":
-        return <StatsRow stats={data.stats} />;
-      case "tasks":
-        return <UpcomingTasks tasks={data.tarefas} />;
-      case "integration":
-        return <IntegrationProgress integralizacao={data.integralizacao} />;
-      case "schedule":
-        return <WeeklySchedulePreview />;
-      case "subjects":
-        return <SubjectsGrid disciplinas={data.disciplinas} />;
-      default:
-        return null;
-    }
-  };
-
   return (
     <PageGrid>
       <PageHeader
@@ -105,11 +72,21 @@ export function DashboardView() {
         tutorial="dashboard"
       />
 
-      <ModuleGrid
-        layout={layout}
-        modules={MODULES}
-        renderModule={renderModule}
-      />
+      <div className="col-12">
+        <StatsRow stats={data.stats} />
+      </div>
+      <div className="col-8">
+        <UpcomingTasks tasks={data.tarefas} />
+      </div>
+      <div className="col-4">
+        <IntegrationProgress integralizacao={data.integralizacao} />
+      </div>
+      <div className="col-12">
+        <WeeklySchedulePreview />
+      </div>
+      <div className="col-12">
+        <SubjectsGrid disciplinas={data.disciplinas} />
+      </div>
     </PageGrid>
   );
 }
