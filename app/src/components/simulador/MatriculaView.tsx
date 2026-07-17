@@ -18,7 +18,9 @@ import { filterSimuladorTurmas } from "@/lib/simulador/turma-course-utils";
 
 export function MatriculaView() {
   const turmas = useTurmasOfertadas();
-  const sync = useTurmasOfertadasSync({ autoRun: true });
+  // Sem autoRun: sincroniza só no clique de "Atualizar SIGAA"/"Buscar turmas"
+  // ou no sync geral. Abrir a página apenas lê o que já está no banco.
+  const sync = useTurmasOfertadasSync();
   const grafo = useMapaGrafo();
 
   const semestreLabel =
