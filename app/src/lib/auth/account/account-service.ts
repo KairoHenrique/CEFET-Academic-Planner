@@ -25,18 +25,54 @@ import {
   ensureTrialRecordForCpf,
   resolveTrialSubscriptionForCpf,
 } from "@/lib/auth/trial/trial-service";
+import {
+  resolveSubscriptionAccessForCpf,
+  type ResolvedSubscriptionAccess,
+} from "@/lib/billing/access/resolve-subscription-access";
 import { persistServerSigaaCredentials, sealServerSigaaPassword } from "@/lib/crypto/server-sigaa-credential-store";
 import { ensurePostgresReady } from "@/lib/db/bootstrap-postgres";
 import { createServerSupabaseClient } from "@/lib/supabase/client";
 import { enqueueWelcomeAccountEmail } from "@/lib/email/enqueue-account-email";
 import { assertCredentialHardeningForRuntime } from "@/lib/security/credential-hardening";
+import {
+  enqueueCloudSyncJob,
+  isCloudSyncWorkerConfigured,
+} from "@/lib/sync-queue/cloud-sync-queue";
 
-async function resolveAccountSubscription(cpf: string) {
-  const existing = await resolveTrialSubscriptionForCpf(cpf);
-  if (existing) {
-    return existing;
+/**
+ * Dispara o 1º sync de uma conta recém-criada (best-effort). O worker offline
+ * não pode bloquear o cadastro — nesse caso o sync é reprocessado pelo
+ * orquestrador (cron) ou por um sync manual. Idempotente: o enqueue r1 reusa
+ * job ativo por usuário.
+ */
+async function enqueueInitialAccountSync(
+  cpf: string,
+  password: string
+): Promise<void> {
+  if (!isCloudSyncWorkerConfigured()) return;
+  try {
+    await enqueueCloudSyncJob({
+      username: cpf,
+      password,
+      mode: "full",
+      lane: "priority",
+      trigger: "first_login",
+    });
+  } catch {
+    // Silencioso: falha de dispatch não deve derrubar o fluxo de cadastro.
   }
-  return ensureTrialRecordForCpf(cpf);
+}
+
+async function resolveAccountSubscription(
+  cpf: string
+): Promise<ResolvedSubscriptionAccess> {
+  // Garante o registro de trial (idempotente) para contas sem histórico…
+  const existingTrial = await resolveTrialSubscriptionForCpf(cpf);
+  if (!existingTrial) {
+    await ensureTrialRecordForCpf(cpf);
+  }
+  // …mas retorna o acesso real: assinatura paga ativa tem precedência sobre trial.
+  return resolveSubscriptionAccessForCpf(cpf);
 }
 
 async function signInWithInternalEmail(
@@ -120,17 +156,18 @@ export async function registerAccount(
       legalConsent: input.legalConsent,
     });
 
-    const subscription = await ensureTrialRecordForCpf(input.cpf);
+    await ensureTrialRecordForCpf(input.cpf);
     await enqueueWelcomeAccountEmail(profile).catch(() => undefined);
     const sessionResult = await signInWithInternalEmail(
       input.cpf,
       input.password
     );
+    await enqueueInitialAccountSync(input.cpf, input.password);
 
     return {
       profile,
       session: sessionResult.session,
-      subscription,
+      subscription: sessionResult.subscription,
     };
   } catch (error) {
     await admin.auth.admin.deleteUser(userId);

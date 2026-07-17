@@ -16,13 +16,28 @@ const DEFAULT_STATE: AuthConfigState = {
   cursos: [],
 };
 
+const AUTH_CONFIG_TIMEOUT_MS = 8_000;
+
+function fallbackSigaaMode(): AuthConfigState {
+  return {
+    loading: false,
+    mode: "sigaa",
+    cursos: [],
+  };
+}
+
 export function useAuthConfig(): AuthConfigState {
   const [state, setState] = useState<AuthConfigState>(DEFAULT_STATE);
 
   useEffect(() => {
     let cancelled = false;
+    const controller = new AbortController();
+    const timer = window.setTimeout(
+      () => controller.abort(),
+      AUTH_CONFIG_TIMEOUT_MS
+    );
 
-    void getAuthConfig()
+    void getAuthConfig({ signal: controller.signal })
       .then((config) => {
         if (cancelled) return;
         setState({
@@ -33,15 +48,16 @@ export function useAuthConfig(): AuthConfigState {
       })
       .catch(() => {
         if (cancelled) return;
-        setState({
-          loading: false,
-          mode: "sigaa",
-          cursos: [],
-        });
+        setState(fallbackSigaaMode());
+      })
+      .finally(() => {
+        window.clearTimeout(timer);
       });
 
     return () => {
       cancelled = true;
+      controller.abort();
+      window.clearTimeout(timer);
     };
   }, []);
 

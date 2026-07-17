@@ -10,7 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { clearSession } from "@/lib/auth/session";
-import { getSyncCredentials } from "@/lib/auth/credentials";
+import { resolveSyncStartCredentials } from "@/lib/auth/resolve-sync-start-credentials";
 import {
   isSilentBackgroundSyncError,
   mapQueuedSyncError,
@@ -68,7 +68,7 @@ export function SyncQueueProvider({ children }: { children: ReactNode }) {
         return false;
       }
 
-      const creds = credentials ?? getSyncCredentials();
+      const creds = resolveSyncStartCredentials(credentials);
       if (!creds) {
         setError("Credenciais não encontradas. Faça login novamente.");
         return false;

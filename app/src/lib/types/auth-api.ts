@@ -3,7 +3,7 @@ import type {
   AppProfileRecord,
   AuthSessionPayload,
 } from "@/lib/auth/account/types";
-import type { TrialSubscriptionSnapshot } from "@/lib/auth/trial/trial-status";
+import type { ResolvedSubscriptionAccess } from "@/lib/billing/access/resolve-subscription-access";
 
 export interface AuthCursoOption {
   id: AppCursoId;
@@ -20,7 +20,7 @@ export interface AccountAuthResponse {
   ok: true;
   profile: AppProfileRecord;
   session: AuthSessionPayload;
-  subscription: TrialSubscriptionSnapshot;
+  subscription: ResolvedSubscriptionAccess;
 }
 
 export interface RegisterAccountBody {

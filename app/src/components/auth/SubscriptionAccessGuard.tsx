@@ -3,9 +3,11 @@
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
+import { AppRouteLoading } from "@/components/layout/AppRouteLoading";
 import { getPerfil } from "@/lib/api/client";
 import { isAuthenticated, isCloudSession } from "@/lib/auth/session";
 import {
+  isSubscriptionExemptPath,
   resolveSubscriptionGuardHref,
   shouldGuardSubscriptionAccess,
 } from "@/lib/billing/subscription-access-client";
@@ -23,16 +25,19 @@ export function SubscriptionAccessGuard({
   const authed = isAuthenticated();
   const cloud = isCloudSession();
   const guardEnabled = authed && cloud;
+  const subscriptionExempt = isSubscriptionExemptPath(pathname);
+
   const { data: perfil, isLoading, isError } = useQuery({
     queryKey: PERFIL_QUERY_KEY,
     queryFn: getPerfil,
     enabled: guardEnabled,
     staleTime: 30_000,
   });
-  const [ready, setReady] = useState(false);
+
+  const [ready, setReady] = useState(!guardEnabled || subscriptionExempt);
 
   useEffect(() => {
-    if (!guardEnabled) {
+    if (!guardEnabled || subscriptionExempt) {
       setReady(true);
       return;
     }
@@ -55,10 +60,23 @@ export function SubscriptionAccessGuard({
     }
 
     setReady(true);
-  }, [guardEnabled, isError, isLoading, pathname, perfil, router]);
+  }, [
+    guardEnabled,
+    isError,
+    isLoading,
+    pathname,
+    perfil,
+    router,
+    subscriptionExempt,
+  ]);
+
+  // /planos e rotas públicas não bloqueiam a UI enquanto o perfil carrega.
+  if (subscriptionExempt) {
+    return <>{children}</>;
+  }
 
   if (!ready) {
-    return null;
+    return <AppRouteLoading message="Verificando assinatura…" />;
   }
 
   return <>{children}</>;
