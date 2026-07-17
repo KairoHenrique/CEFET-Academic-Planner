@@ -7,11 +7,13 @@ import {
 import {
   activateSubscriptionAfterPayment,
   findPlanDurationDays,
+  findSubscriptionById,
 } from "@/lib/billing/checkout/billing-subscription-repository";
 import type { PaymentGateway } from "@/lib/billing/schema/billing-schema-catalog";
 import type { PaymentStatus } from "@/lib/billing/schema/billing-schema-catalog";
 import type { PaymentRow } from "@/lib/billing/schema/billing-row-types";
 import type { SubscriptionRow } from "@/lib/billing/schema/billing-row-types";
+import type { PaidPlanId } from "@/lib/billing/types";
 
 export interface ConfirmBillingPaymentInput {
   gateway: PaymentGateway;
@@ -52,6 +54,35 @@ async function resolvePaymentForConfirmation(
   throw notFoundError("Pagamento não encontrado para confirmação.");
 }
 
+/**
+ * Ativação idempotente: garante a liberação da assinatura mesmo quando o
+ * pagamento já estava `approved` de uma tentativa anterior que falhou na etapa
+ * de ativação (a atualização do pagamento e a ativação não são atômicas).
+ *
+ * Só ativa quando a assinatura ainda está `pending_payment` — assim evita
+ * ressuscitar assinaturas já `active`/`expired`/`cancelled` em reentregas do
+ * webhook (que estenderiam o prazo indevidamente).
+ */
+async function ensureSubscriptionActivated(input: {
+  subscriptionId: string;
+  userId: string;
+  planId: PaidPlanId;
+}): Promise<{ subscription: SubscriptionRow | null; activated: boolean }> {
+  const existing = await findSubscriptionById(input.subscriptionId);
+  if (!existing || existing.status !== "pending_payment") {
+    return { subscription: existing, activated: false };
+  }
+
+  const durationDays = await findPlanDurationDays(input.planId);
+  const subscription = await activateSubscriptionAfterPayment({
+    subscriptionId: input.subscriptionId,
+    userId: input.userId,
+    durationDays,
+  });
+
+  return { subscription, activated: true };
+}
+
 export async function confirmBillingPayment(
   input: ConfirmBillingPaymentInput
 ): Promise<ConfirmBillingPaymentResult> {
@@ -65,46 +96,41 @@ export async function confirmBillingPayment(
     };
   }
 
-  const payment = await resolvePaymentForConfirmation(input);
+  let payment = await resolvePaymentForConfirmation(input);
+  const statusChanged = payment.status !== input.mappedStatus;
 
-  if (payment.status === input.mappedStatus) {
+  if (statusChanged) {
+    const paidAt =
+      input.mappedStatus === "approved" ? new Date().toISOString() : null;
+    payment = await updatePaymentStatus({
+      paymentId: payment.id,
+      status: input.mappedStatus,
+      paidAt,
+    });
+  }
+
+  // Reconciliação idempotente: mesmo que o pagamento já estivesse aprovado,
+  // garante a ativação da assinatura (cura falhas parciais de tentativas
+  // anteriores e evita cobrança sem liberação de plano).
+  if (input.mappedStatus === "approved" && payment.subscription_id) {
+    const { subscription, activated } = await ensureSubscriptionActivated({
+      subscriptionId: payment.subscription_id,
+      userId: payment.user_id,
+      planId: payment.plan_id,
+    });
+
     return {
       ok: true,
-      processed: false,
+      processed: statusChanged || activated,
       payment,
-      subscription: null,
+      subscription,
     };
   }
-
-  const paidAt =
-    input.mappedStatus === "approved" ? new Date().toISOString() : null;
-
-  const updatedPayment = await updatePaymentStatus({
-    paymentId: payment.id,
-    status: input.mappedStatus,
-    paidAt,
-  });
-
-  if (input.mappedStatus !== "approved" || !payment.subscription_id) {
-    return {
-      ok: true,
-      processed: true,
-      payment: updatedPayment,
-      subscription: null,
-    };
-  }
-
-  const durationDays = await findPlanDurationDays(payment.plan_id);
-  const subscription = await activateSubscriptionAfterPayment({
-    subscriptionId: payment.subscription_id,
-    userId: payment.user_id,
-    durationDays,
-  });
 
   return {
     ok: true,
-    processed: true,
-    payment: updatedPayment,
-    subscription,
+    processed: statusChanged,
+    payment,
+    subscription: null,
   };
 }

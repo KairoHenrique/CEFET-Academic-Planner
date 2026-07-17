@@ -76,6 +76,39 @@ export async function insertPendingPixSubscription(input: {
   return mapSubscriptionRow(row);
 }
 
+export async function listSubscriptionsForUser(
+  userId: string,
+  limit = 20
+): Promise<SubscriptionRow[]> {
+  const pool = getPostgresPool();
+  const capped = Math.min(Math.max(limit, 1), 100);
+  const result = await pool.query<SubscriptionDbRow>(
+    `${SUBSCRIPTION_SELECT}
+     WHERE user_id = $1
+     ORDER BY created_at DESC
+     LIMIT $2`,
+    [userId, capped]
+  );
+
+  return result.rows.map(mapSubscriptionRow);
+}
+
+/** Cancela todas as assinaturas ativas do usuário (revogação manual pelo dev). */
+export async function cancelActiveSubscriptionsForUser(
+  userId: string
+): Promise<number> {
+  const pool = getPostgresPool();
+  const result = await pool.query(
+    `UPDATE subscriptions
+     SET status = 'cancelled', updated_at = now()
+     WHERE user_id = $1
+       AND status = 'active'`,
+    [userId]
+  );
+
+  return result.rowCount ?? 0;
+}
+
 export async function findLatestActiveSubscriptionForUser(
   userId: string,
   excludeSubscriptionId?: string
@@ -126,7 +159,7 @@ export async function activateSubscriptionAfterPayment(input: {
     `UPDATE subscriptions
      SET status = 'active',
          started_at = now(),
-         expires_at = $3,
+         expires_at = $2,
          updated_at = now()
      WHERE id = $1
      RETURNING id, user_id, plan_id, status, source, started_at, expires_at,

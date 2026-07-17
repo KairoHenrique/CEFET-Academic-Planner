@@ -68,6 +68,16 @@ export async function processMercadoPagoBillingWebhook(
     readMercadoPagoAccessToken()
   );
 
+  // Pagamento inexistente (ex.: "Simular notificação" com ID fictício):
+  // reconhece o recebimento (200) sem processar, evitando retries do MP.
+  if (!details) {
+    return {
+      ok: true,
+      processed: false,
+      gatewayPaymentId: notification.gatewayPaymentId,
+    };
+  }
+
   const result = await confirmBillingPayment({
     gateway: "mercadopago",
     gatewayPaymentId: details.id,
