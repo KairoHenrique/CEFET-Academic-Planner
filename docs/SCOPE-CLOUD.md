@@ -673,7 +673,7 @@ Durante beta/testes com URL pública:
 - [ ] Onde hospedar worker Playwright (Railway / Fly.io / VPS — ver §6.3 fila 1×)
 - [x] Política de fila: 1 job global, auto 3h/usuário, manual fim da fila + cooldown 5 min, prioridade 1º login (§6.3)
 - [ ] Mobile: Supabase client direto vs. API Next.js
-- [%] Provedor de e-mail transacional — **Brevo** (grátis 300/dia, sem domínio) com fallback **Resend** (REST via `fetch`, sem SDK; HTML anti-XSS + retry backoff) — **B62b** (aguardando push + secrets `BREVO_API_KEY`/`EMAIL_FROM`)
+- [@] Provedor de e-mail transacional — **Brevo** (grátis 300/dia, sem domínio) com fallback **Resend** (REST via `fetch`, sem SDK; HTML anti-XSS + retry backoff) — **B62b** (deploy jul/2026; secrets `BREVO_API_KEY`/`EMAIL_FROM` no `acme-hub`; teste real ok `provider=brevo`)
 - [ ] **Provedor de nuvem v1 para PDFs:** Google Drive vs. Dropbox vs. OneDrive (ou todos)
 
 ### Decisões fechadas
