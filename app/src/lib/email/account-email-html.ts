@@ -19,6 +19,17 @@ const NAVY = "#0b1220";
 const URL_PATTERN = /(https?:\/\/[^\s<]+)/g;
 const STANDALONE_URL_PATTERN = /^https?:\/\/[^\s<]+$/;
 
+/** CID usado no SMTP Gmail (anexo inline) — Gmail bloqueia img remota de workers.dev. */
+export const ACCOUNT_EMAIL_LOGO_CID = "acme-logo";
+
+export interface RenderAccountEmailHtmlOptions {
+  /**
+   * Src da logo no `<img>`. Use `cid:acme-logo` no envio SMTP (anexo).
+   * Default: URL absoluta pública (`/logo_v2.png`).
+   */
+  logoSrc?: string;
+}
+
 function escapeHtml(value: string): string {
   return value
     .replace(/&/g, "&amp;")
@@ -79,11 +90,10 @@ function renderBody(bodyText: string): string {
     .join("");
 }
 
-function renderHeader(): string {
-  const logoUrl = resolveAppUrl("/logo_v2.png");
+function renderHeader(logoSrc: string): string {
   return `<tr>
     <td align="center" style="background:linear-gradient(135deg,#013a72,#001426);padding:32px 32px 26px;">
-      <img src="${logoUrl}" width="72" height="64" alt="${BRAND}" style="display:block;border:0;outline:none;text-decoration:none;height:64px;width:auto;margin:0 auto 12px;" />
+      <img src="${logoSrc}" width="72" height="64" alt="${BRAND}" style="display:block;border:0;outline:none;text-decoration:none;height:64px;width:auto;margin:0 auto 12px;" />
       <div style="color:${GOLD};font-size:22px;font-weight:800;letter-spacing:1px;font-family:'Segoe UI',Arial,sans-serif;">${BRAND}</div>
       <div style="color:#c7d2e0;font-size:12px;letter-spacing:0.4px;margin-top:4px;">${TAGLINE}</div>
     </td>
@@ -111,11 +121,14 @@ function renderFooter(year: number): string {
 
 export function renderAccountEmailHtml(
   subject: string,
-  bodyText: string
+  bodyText: string,
+  options?: RenderAccountEmailHtmlOptions
 ): string {
   const safeSubject = escapeHtml(subject);
   const body = renderBody(bodyText);
   const year = new Date().getFullYear();
+  const logoSrc =
+    options?.logoSrc?.trim() || resolveAppUrl("/logo_v2.png");
 
   return `<!doctype html>
 <html lang="pt-BR">
@@ -131,7 +144,7 @@ export function renderAccountEmailHtml(
       <tr>
         <td align="center">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,0.35);">
-            ${renderHeader()}
+            ${renderHeader(logoSrc)}
             <tr>
               <td style="padding:30px 32px 8px;">
                 <h1 style="margin:0 0 20px;font-size:20px;line-height:1.35;color:${NAVY};font-weight:700;">${safeSubject}</h1>
