@@ -10,7 +10,10 @@ import {
   getSyncCredentials,
   saveSyncCredentials,
 } from "@/lib/auth/credentials";
+import { resolveSyncStartCredentials } from "@/lib/auth/resolve-sync-start-credentials";
+import { isCloudSession } from "@/lib/auth/session";
 import { needsSyncPassword } from "@/lib/auth/sync-session";
+import { pollSyncJobUntilDone } from "@/lib/sync-queue/poll-sync-job-client";
 import { queryKeys } from "@/lib/query/keys";
 import { resolveTurmasSyncFeedback } from "@/lib/simulador/turmas-sync-feedback";
 import type { TurmasSyncFeedbackTone } from "@/lib/simulador/turmas-sync-feedback";
@@ -67,7 +70,8 @@ export function useTurmasOfertadasSync(
     ): Promise<boolean> => {
       if (syncing) return false;
 
-      const creds = credentials ?? getSyncCredentials();
+      // No cloud a senha SIGAA está no servidor — as credenciais vêm da sessão.
+      const creds = credentials ?? resolveSyncStartCredentials();
       if (!creds?.username) {
         setError("Faça login e sincronize com o SIGAA para buscar turmas.");
         return false;
@@ -87,6 +91,25 @@ export function useTurmasOfertadasSync(
           { ...creds, mode: creds.mode ?? "incremental" },
           { force: runOptions.force === true }
         );
+
+        // Cloud: o robô roda no worker do PC — aguarda o job concluir antes de
+        // refazer o fetch, senão a lista continua vazia.
+        if (result.cloud && result.jobId) {
+          await pollSyncJobUntilDone(result.jobId, {
+            sigaaUsername: creds.username,
+          });
+          stopProgress();
+          setStepLabel("Concluído");
+          setProgress(100);
+          setLastMessage("Turmas ofertadas atualizadas.");
+          setLastMessageTone("success");
+          onComplete?.("Turmas ofertadas atualizadas.");
+          await invalidateTurmas();
+          await delay(350);
+          resetProgress();
+          setSyncing(false);
+          return true;
+        }
 
         stopProgress();
         setStepLabel("Concluído");
@@ -131,13 +154,15 @@ export function useTurmasOfertadasSync(
 
   const requestSync = useCallback(
     (runOptions?: RunTurmasSyncOptions) => {
-      const creds = getSyncCredentials();
+      const creds = resolveSyncStartCredentials();
       if (!creds?.username) {
         setError("Faça login e sincronize com o SIGAA para buscar turmas.");
         return;
       }
 
-      if (needsSyncPassword(creds.username)) {
+      // Cloud: identidade vem da sessão e a senha está no servidor — dispara
+      // direto. Modo SIGAA local ainda pede a senha quando necessário.
+      if (!isCloudSession() && needsSyncPassword(creds.username)) {
         setPasswordPromptOpen(true);
         return;
       }
@@ -173,8 +198,9 @@ export function useTurmasOfertadasSync(
   useEffect(() => {
     if (!autoRun || autoRanRef.current) return;
 
-    const creds = getSyncCredentials();
-    if (!creds?.username || needsSyncPassword(creds.username)) return;
+    const creds = resolveSyncStartCredentials();
+    if (!creds?.username) return;
+    if (!isCloudSession() && needsSyncPassword(creds.username)) return;
 
     autoRanRef.current = true;
     void runSync(undefined, { force: false });

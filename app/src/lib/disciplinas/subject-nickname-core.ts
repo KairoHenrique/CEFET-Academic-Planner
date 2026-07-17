@@ -1,3 +1,5 @@
+import { resolveNicknameOverride } from "@/lib/disciplinas/subject-nickname-overrides";
+
 const SUBJECT_NICKNAME_MAX_LENGTH = 10;
 
 export function sanitizeSubjectNickname(value: string): string {
@@ -162,6 +164,9 @@ export function suggestBaseNicknameFromName(
   name: string,
   extraWords: string[] = []
 ): string {
+  const override = resolveNicknameOverride(name);
+  if (override) return override;
+
   const source = extractNicknameSourceName(name);
   const trimmed = name.trim();
   const words = [
@@ -192,6 +197,10 @@ export function suggestBaseNickname(
   code: string,
   extraWords: string[] = []
 ): string {
+  // Apelido curado tem prioridade sobre o código SIGAA (que costuma ser ruim).
+  const override = resolveNicknameOverride(name);
+  if (override) return override;
+
   const normalizedCode = code.trim().toUpperCase();
   if (!/^GT\d+/i.test(normalizedCode) && isUsableShortCode(code)) {
     return normalizedCode;

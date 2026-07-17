@@ -57,7 +57,7 @@ describe("subject-display-name — apelidos SIGAA", () => {
     );
     assert.equal(
       suggestSubjectNickname("INTRODUÇÃO À SOCIOLOGIA", "INTRODUCAO-A-SOC"),
-      "SOCIOLOGIA"
+      "SOCIO"
     );
   });
 
@@ -88,7 +88,7 @@ describe("subject-display-name — apelidos SIGAA", () => {
       suggestDisciplineShortLabel(
         "Cálculo com Funções de uma Variável Real"
       ),
-      "CALCUL"
+      "CALCI"
     );
   });
 

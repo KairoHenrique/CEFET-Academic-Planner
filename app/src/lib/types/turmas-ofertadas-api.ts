@@ -75,6 +75,9 @@ export interface TurmasOfertadasSyncResponse {
   usedExampleData?: boolean;
   rowsWritten: number;
   message: string;
+  /** Cloud: job enfileirado no worker do PC — o client deve aguardar o `jobId`. */
+  cloud?: boolean;
+  jobId?: string;
 }
 
 export const TURMA_SCHEDULE_BLOCKER_MESSAGE =
