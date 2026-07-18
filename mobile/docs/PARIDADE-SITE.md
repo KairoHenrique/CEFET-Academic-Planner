@@ -32,7 +32,8 @@ Inventário cruzado jul/2026. **Meta:** toda função do aluno no site v1.0 no E
 `Início · Agenda · Matérias · Mais` → Notificações, Sync, Mapa, Integralização, Simulador, Planos, Perfil
 
 ## Diferenças UX (intencionais)
-- Bottom tabs em vez de drawer F28
+- Bottom tabs em vez de drawer F28 (só posição dos módulos)
+- **Visual = F28** (tokens, Outfit/Inter, cards, page-header, chips)
 - Grafo do mapa = lista de arestas (não react-flow)
 - Cadastro de conta = web (formulário legal/referral/gift)
 - Simulador sem drag-and-drop visual da grade (seleção + API de choques)

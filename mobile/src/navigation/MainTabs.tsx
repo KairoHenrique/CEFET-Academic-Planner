@@ -16,21 +16,37 @@ const TAB_ICONS: Record<keyof MainTabsParamList, string> = {
   Mais: "⋯",
 };
 
+/** Tab bar no estilo glass + gold active do navbar/drawer F28. */
 export function MainTabs() {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: brand.gold,
+        tabBarActiveTintColor: brand.gold200,
         tabBarInactiveTintColor: brand.textMuted,
         tabBarStyle: {
-          backgroundColor: brand.bgSecondary,
+          backgroundColor: brand.glass,
           borderTopColor: brand.border,
           borderTopWidth: 1,
+          height: 60,
+          paddingBottom: 6,
+          paddingTop: 4,
         },
-        tabBarLabelStyle: { fontSize: 11, fontWeight: "700" },
-        tabBarIcon: ({ color }) => (
-          <Text style={[styles.icon, { color }]}>{TAB_ICONS[route.name]}</Text>
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontFamily: brand.fontBodyBold,
+          fontWeight: "700",
+        },
+        tabBarIcon: ({ color, focused }) => (
+          <Text
+            style={[
+              styles.icon,
+              { color },
+              focused && styles.iconActive,
+            ]}
+          >
+            {TAB_ICONS[route.name]}
+          </Text>
         ),
       })}
     >
@@ -60,7 +76,11 @@ export function MainTabs() {
 
 const styles = StyleSheet.create({
   icon: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "700",
+  },
+  iconActive: {
+    backgroundColor: "rgba(232,198,106,0.12)",
+    overflow: "hidden",
   },
 });

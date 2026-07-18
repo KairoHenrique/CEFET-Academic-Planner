@@ -72,6 +72,7 @@ export function DisciplinasScreen() {
   return (
     <Screen
       title="Matérias"
+      eyebrow="Disciplinas"
       subtitle="Notas, faltas, horários e tarefas"
       cacheHint={fromCache ? "Dados do cache offline" : null}
       scrollProps={{

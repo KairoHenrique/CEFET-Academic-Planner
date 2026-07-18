@@ -85,6 +85,7 @@ export function IntegralizacaoScreen() {
   return (
     <Screen
       title="Integralização"
+      eyebrow="Carga horária"
       subtitle={
         data
           ? `${data.totalDone}h de ${data.totalHours}h · ${data.percent}%`

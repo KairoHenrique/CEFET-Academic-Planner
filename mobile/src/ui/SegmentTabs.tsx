@@ -7,6 +7,7 @@ type Props<T extends string> = {
   onChange: (id: T) => void;
 };
 
+/** Chips / toggle F28 (filtros + mapa Grade|Grafo). */
 export function SegmentTabs<T extends string>({
   tabs,
   value,
@@ -39,26 +40,27 @@ export function SegmentTabs<T extends string>({
 }
 
 const styles = StyleSheet.create({
-  wrap: { marginBottom: 14, flexGrow: 0 },
-  row: { gap: 8, paddingRight: 8 },
+  wrap: { marginBottom: brand.space4, flexGrow: 0 },
+  row: { gap: brand.space2, paddingRight: 8 },
   tab: {
-    paddingVertical: 10,
+    minHeight: brand.touchMin,
     paddingHorizontal: 14,
-    borderRadius: 10,
-    backgroundColor: brand.glass,
+    borderRadius: brand.radiusSm,
+    backgroundColor: "rgba(0,32,72,0.45)",
     borderWidth: 1,
     borderColor: brand.border,
-    minWidth: 72,
     alignItems: "center",
+    justifyContent: "center",
   },
   tabActive: {
-    backgroundColor: "rgba(0,96,177,0.45)",
-    borderColor: brand.gold,
+    backgroundColor: "rgba(232,198,106,0.12)",
+    borderColor: brand.gold400,
   },
   text: {
-    color: brand.textMuted,
-    fontWeight: "700",
+    color: brand.textSecondary,
+    fontFamily: brand.fontBodySemi,
+    fontWeight: "600",
     fontSize: 13,
   },
-  textActive: { color: brand.gold },
+  textActive: { color: brand.gold200 },
 });

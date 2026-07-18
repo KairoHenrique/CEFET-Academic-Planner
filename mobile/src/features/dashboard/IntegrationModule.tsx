@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
   },
   barFill: {
     height: "100%",
-    backgroundColor: brand.gold,
+    backgroundColor: brand.gold400,
     borderRadius: 4,
   },
 });

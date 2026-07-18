@@ -64,7 +64,7 @@ export function MoreHomeScreen() {
   const navigation = useNavigation<Nav>();
 
   return (
-    <Screen title="Mais" subtitle="Ferramentas e configurações">
+    <Screen title="Mais" eyebrow="ACME HUB" subtitle="Ferramentas e configurações">
       {MENU.map((item) => (
         <Pressable
           key={item.key}
