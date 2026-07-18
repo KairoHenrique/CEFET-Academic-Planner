@@ -101,6 +101,7 @@ export function Navbar() {
             <button
               type="button"
               className="navbar-menu-btn"
+              data-tutorial-id="nav-menu-mobile"
               onClick={() => setMobileOpen((open) => !open)}
               aria-label={mobileOpen ? "Fechar menu" : "Abrir menu"}
               aria-expanded={mobileOpen}

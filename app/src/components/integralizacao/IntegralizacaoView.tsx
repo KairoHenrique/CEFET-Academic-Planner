@@ -62,6 +62,8 @@ export function IntegralizacaoView() {
         eyebrow="Currículo"
         title="Integralização"
         subtitle="Acompanhe horas por categoria e cadastre atividades complementares"
+        tutorial="integralizacao"
+        tutorialLabel="Como usar Integralização"
       />
 
       <div className="col-4">

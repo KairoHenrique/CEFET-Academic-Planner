@@ -20,6 +20,8 @@ export function DisciplinasView() {
         eyebrow="Semestre 2026.1"
         title="Disciplinas"
         subtitle={subtitle}
+        tutorial="disciplinas"
+        tutorialLabel="Como usar Disciplinas"
       />
       <div className="col-12">
         <SubjectList />

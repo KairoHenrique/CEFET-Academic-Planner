@@ -38,7 +38,11 @@ export function PlanosCheckoutPanel({
   }
 
   return (
-    <section className="planos-checkout" aria-label="Checkout de planos">
+    <section
+      className="planos-checkout"
+      aria-label="Checkout de planos"
+      data-tutorial-id="tutorial-planos-checkout"
+    >
       <PlanosPeriodPicker
         plans={catalog.plans}
         selectedPlanId={selectedPlanId}

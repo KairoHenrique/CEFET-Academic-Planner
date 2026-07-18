@@ -83,6 +83,7 @@ export function GiftKeyRedeemForm({
       className={`gift-key-redeem gift-key-redeem--${variant}`}
       aria-labelledby={variant === "compact" ? undefined : "gift-key-redeem-title"}
       aria-label={variant === "compact" ? "Resgate de chave promocional" : undefined}
+      data-tutorial-id="tutorial-planos-gift"
     >
       <div className="gift-key-redeem-head">
         {variant === "compact" ? (

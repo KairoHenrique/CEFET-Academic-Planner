@@ -73,6 +73,8 @@ export function MapaView() {
         title="Mapa do"
         highlight="Curso"
         subtitle="Visualize períodos, status das disciplinas e pré-requisitos"
+        tutorial="mapa"
+        tutorialLabel="Como usar o Mapa"
       />
 
       <div className="col-12">
@@ -87,7 +89,12 @@ export function MapaView() {
         </div>
       )}
 
-      <div className="col-12 mapa-view-toggle" role="tablist" aria-label="Modo do mapa">
+      <div
+        className="col-12 mapa-view-toggle"
+        role="tablist"
+        aria-label="Modo do mapa"
+        data-tutorial-id="tutorial-mapa-toggle"
+      >
         <button
           type="button"
           role="tab"
