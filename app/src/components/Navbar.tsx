@@ -72,7 +72,7 @@ export function Navbar() {
               ))}
             </span>
             <span className="navbar-brand-text navbar-brand-text--short">
-              ACME
+              ACME HUB
             </span>
           </Link>
 

@@ -123,10 +123,72 @@ export function WeeklyScheduleTable({
 
   return (
     <>
-      <p className="schedule-scroll-hint" aria-hidden="true">
+      <p className="schedule-scroll-hint schedule-scroll-hint--desktop" aria-hidden="true">
         Deslize para ver a grade completa →
       </p>
-      <div className={`schedule-wrapper ${compact ? "schedule-compact" : ""}`}>
+
+      {/* Mobile: agenda por dia — tudo visível sem scroll horizontal */}
+      <div className="schedule-mobile-agenda" aria-label="Grade da semana">
+        {weekDays.map((day, dayIdx) => {
+          const daySlots = timeSlots
+            .map((time, slotIdx) => {
+              const slot = schedule[dayIdx]?.[slotIdx];
+              if (!slot) return null;
+              return { time, slot, slotIdx };
+            })
+            .filter(
+              (entry): entry is { time: string; slot: ScheduleSlotData; slotIdx: number } =>
+                entry !== null
+            );
+
+          return (
+            <section key={day} className="schedule-mobile-day">
+              <h4 className="schedule-mobile-day-title">{day}</h4>
+              {daySlots.length === 0 ? (
+                <p className="schedule-mobile-empty">Sem aulas</p>
+              ) : (
+                <ul className="schedule-mobile-list">
+                  {daySlots.map(({ time, slot, slotIdx }) => (
+                    <li key={`${dayIdx}-${slotIdx}`}>
+                      <button
+                        type="button"
+                        className={[
+                          "schedule-mobile-item",
+                          conflictCellKeys?.has(`${dayIdx}:${slotIdx}`)
+                            ? "schedule-mobile-item--conflict"
+                            : "",
+                        ]
+                          .filter(Boolean)
+                          .join(" ")}
+                        style={
+                          { "--slot-color": slot.color } as React.CSSProperties
+                        }
+                        onClick={() =>
+                          interactive &&
+                          handleSlotClick(slot, day, time, dayIdx, slotIdx)
+                        }
+                        tabIndex={interactive ? undefined : -1}
+                      >
+                        <span className="schedule-mobile-time">
+                          {splitTimeSlot(time).start}–{splitTimeSlot(time).end}
+                        </span>
+                        <span className="schedule-mobile-body">
+                          <span className="schedule-mobile-name">{slot.name}</span>
+                          {slot.room ? (
+                            <span className="schedule-mobile-room">{slot.room}</span>
+                          ) : null}
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          );
+        })}
+      </div>
+
+      <div className={`schedule-wrapper schedule-wrapper--desktop ${compact ? "schedule-compact" : ""}`}>
         <table className={`schedule-table ${compact ? "schedule-table-compact" : ""}`}>
           <thead>
             <tr>
