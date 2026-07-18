@@ -111,7 +111,7 @@ export function PaywallScreen({ session }: Props) {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: brand.navy,
+    backgroundColor: brand.bg,
     justifyContent: "center",
     paddingHorizontal: 24,
   },
@@ -123,15 +123,15 @@ const styles = StyleSheet.create({
   },
   title: {
     marginTop: 16,
-    color: brand.white,
+    color: brand.text,
     fontSize: 22,
     fontWeight: "700",
     textAlign: "center",
   },
   body: {
     marginTop: 12,
-    color: brand.white,
-    opacity: 0.9,
+    color: brand.textSecondary,
+    opacity: 0.95,
     fontSize: 15,
     lineHeight: 22,
     textAlign: "center",

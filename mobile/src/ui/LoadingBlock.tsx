@@ -8,7 +8,7 @@ type Props = {
 export function LoadingBlock({ label = "Carregando…" }: Props) {
   return (
     <View style={styles.root}>
-      <ActivityIndicator color={brand.blue} size="large" />
+      <ActivityIndicator color={brand.gold} size="large" />
       <Text style={styles.label}>{label}</Text>
     </View>
   );
@@ -21,7 +21,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   label: {
-    color: brand.muted,
+    color: brand.textMuted,
     fontSize: 14,
   },
 });

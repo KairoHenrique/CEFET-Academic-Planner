@@ -5,6 +5,7 @@ import type {
   IntegralizacaoResponse,
   MapaResponse,
   NotificationsSnapshotResponse,
+  ScheduleApiResponse,
 } from "@acme/api-contracts";
 import { requestJson } from "../auth/api";
 import { getSession } from "../auth/session";
@@ -62,6 +63,15 @@ export async function fetchCalendar(): Promise<{
 }> {
   return withCacheWrite("calendar", () =>
     requestJson<CalendarApiResponse>("/api/calendar")
+  );
+}
+
+export async function fetchSchedule(): Promise<{
+  data: ScheduleApiResponse;
+  fromCache: boolean;
+}> {
+  return withCacheWrite("schedule", () =>
+    requestJson<ScheduleApiResponse>("/api/schedule")
   );
 }
 

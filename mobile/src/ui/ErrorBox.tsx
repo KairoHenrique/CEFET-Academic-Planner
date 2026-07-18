@@ -21,27 +21,28 @@ export function ErrorBox({ message, onRetry }: Props) {
 
 const styles = StyleSheet.create({
   root: {
-    backgroundColor: "#fde8e8",
-    borderRadius: 12,
+    backgroundColor: "rgba(240,113,120,0.12)",
+    borderRadius: 14,
     padding: 16,
     borderWidth: 1,
-    borderColor: "#f5b5b5",
+    borderColor: "rgba(240,113,120,0.35)",
+    marginBottom: 12,
   },
   message: {
-    color: "#8b1e1e",
+    color: brand.danger,
     fontSize: 14,
     lineHeight: 20,
   },
   button: {
     marginTop: 12,
     alignSelf: "flex-start",
-    backgroundColor: brand.blue,
+    backgroundColor: brand.gold,
     borderRadius: 8,
     paddingHorizontal: 14,
     paddingVertical: 8,
   },
   buttonText: {
-    color: brand.white,
+    color: brand.bg,
     fontWeight: "700",
     fontSize: 13,
   },

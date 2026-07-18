@@ -92,19 +92,19 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 10,
-    backgroundColor: "rgba(0,96,177,0.08)",
+    backgroundColor: "rgba(0,96,177,0.35)",
     alignItems: "center",
     justifyContent: "center",
   },
   iconText: {
     fontSize: 16,
     fontWeight: "800",
-    color: brand.blue,
+    color: brand.gold,
   },
   textWrap: { flex: 1 },
   chevron: {
     fontSize: 22,
-    color: brand.muted,
+    color: brand.gold,
     fontWeight: "300",
   },
   footer: {
@@ -113,6 +113,6 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 12,
-    color: brand.muted,
+    color: brand.textMuted,
   },
 });
