@@ -149,6 +149,17 @@ export function CalendarMonth({
                         <span className="calendar-event-more">+{dayEvents.length - 2}</span>
                       )}
                     </div>
+                    {dayEvents.length > 0 && (
+                      <div className="calendar-day-dots" aria-hidden="true">
+                        {dayEvents.slice(0, 4).map((ev) => (
+                          <span
+                            key={ev.id}
+                            className="calendar-event-dot"
+                            style={{ background: ev.color }}
+                          />
+                        ))}
+                      </div>
+                    )}
                   </>
                 )}
               </button>

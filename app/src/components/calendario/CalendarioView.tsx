@@ -31,17 +31,25 @@ export function CalendarioView() {
     const panel = calendarPanelRef.current;
     if (!panel) return;
 
+    const mobileQuery = window.matchMedia("(max-width: 768px)");
+
     const syncHeight = () => {
+      if (mobileQuery.matches) {
+        setEventsPanelHeight(undefined);
+        return;
+      }
       setEventsPanelHeight(panel.offsetHeight);
     };
 
     syncHeight();
     const observer = new ResizeObserver(syncHeight);
     observer.observe(panel);
+    mobileQuery.addEventListener("change", syncHeight);
     window.addEventListener("resize", syncHeight);
 
     return () => {
       observer.disconnect();
+      mobileQuery.removeEventListener("change", syncHeight);
       window.removeEventListener("resize", syncHeight);
     };
   }, [calendar.isLoading, calendar.events.length, filter]);

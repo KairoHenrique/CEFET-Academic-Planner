@@ -6440,13 +6440,29 @@ body.mobile-nav-open {
   padding: 0 3px;
 }
 
-.calendar-day-events {
+  .calendar-day-events {
   display: flex;
   flex-direction: column;
   gap: 2px;
   flex: 1;
   min-height: 0;
   overflow: hidden;
+}
+
+.calendar-day-dots {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  flex-wrap: wrap;
+  min-height: 0;
+}
+
+.calendar-event-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
 }
 
 .calendar-event-pill {
@@ -11648,17 +11664,16 @@ body.mobile-nav-open {
 
   .calendar-grid {
     gap: 2px;
-    grid-auto-rows: minmax(52px, auto);
+    grid-auto-rows: minmax(44px, auto);
   }
 
   .calendar-day-btn:not(.empty),
   .calendar-day.empty {
-    min-height: 52px;
+    min-height: 44px;
   }
 
   .calendar-day-btn {
-    padding: var(--space-1);
-    font-size: 0.75rem;
+    padding: 2px;
   }
 
   .course-map-row {
@@ -12613,5 +12628,995 @@ body.mobile-nav-open {
 @media (max-width: 720px) {
   .dev-run-result {
     grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* ============================================================
+   F28 — Mobile Responsive Layer
+   Todas as regras abaixo aplicam-se SOMENTE em telas ≤768px
+   e ≤480px. Nenhum estilo desktop é alterado.
+   ============================================================ */
+
+/* ---- 1. Mobile Nav Drawer ---- */
+@media (max-width: 768px) {
+  /* Body scroll lock enquanto o drawer está aberto */
+  body.mobile-nav-open {
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    touch-action: none;
+  }
+
+  /* Backdrop overlay escuro */
+  .mobile-nav-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1100;
+    background: rgba(0, 8, 20, 0.6);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity 280ms cubic-bezier(0.4, 0, 0.2, 1),
+      visibility 280ms cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    border: none;
+    padding: 0;
+    margin: 0;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  .mobile-nav-backdrop.open {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  /* Drawer panel — slide-in da direita */
+  .mobile-nav {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1200;
+    width: min(300px, 80vw);
+    background: var(--glass-bg);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border-left: 1px solid var(--border-gold);
+    box-shadow: -8px 0 32px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    padding: calc(var(--nav-height) + var(--safe-top) + var(--space-6)) var(--space-5) calc(var(--space-6) + var(--safe-bottom));
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    transform: translateX(100%);
+    transition: transform 320ms cubic-bezier(0.32, 0.72, 0, 1);
+    will-change: transform;
+  }
+
+  .mobile-nav.open {
+    transform: translateX(0);
+  }
+
+  .mobile-nav[hidden] {
+    display: flex;
+  }
+
+  /* Lista de links no drawer */
+  .mobile-nav-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    flex: 1;
+  }
+
+  .mobile-nav-list li a {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-md);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition:
+      background var(--transition-fast),
+      color var(--transition-fast);
+    min-height: var(--touch-min);
+  }
+
+  .mobile-nav-list li a:hover {
+    background: var(--bg-hover);
+    color: var(--gold-200);
+  }
+
+  .mobile-nav-list li a.active {
+    background: rgba(212, 168, 67, 0.12);
+    color: var(--gold-200);
+    font-weight: 600;
+  }
+
+  .mobile-nav-list li a .icon {
+    color: var(--gold-400);
+    flex-shrink: 0;
+  }
+
+  .mobile-nav-list li a.active .icon {
+    color: var(--gold-200);
+  }
+
+  /* Logout no drawer — empurrado para o fundo */
+  .mobile-nav-logout {
+    margin-top: auto;
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--border-muted);
+  }
+
+  .mobile-nav-logout-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    width: 100%;
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    background: transparent;
+    border: 1px solid var(--border-muted);
+    cursor: pointer;
+    min-height: var(--touch-min);
+    transition:
+      background var(--transition-fast),
+      color var(--transition-fast),
+      border-color var(--transition-fast);
+  }
+
+  .mobile-nav-logout-btn:hover {
+    background: rgba(248, 81, 73, 0.08);
+    color: var(--danger);
+    border-color: rgba(248, 81, 73, 0.3);
+  }
+
+  /* Hamburger menu button — já tem display:flex na query existente.
+     Garantir touch-target + aparência */
+  .navbar-menu-btn {
+    align-items: center;
+    justify-content: center;
+    width: var(--touch-min);
+    height: var(--touch-min);
+    min-width: var(--touch-min);
+    min-height: var(--touch-min);
+    border: none;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--gold-300);
+    cursor: pointer;
+    transition: background var(--transition-fast), color var(--transition-fast);
+    padding: 0;
+  }
+
+  .navbar-menu-btn:hover {
+    background: var(--bg-hover);
+    color: var(--gold-200);
+  }
+
+  .navbar-menu-btn:focus-visible {
+    outline: 2px solid var(--gold-300);
+    outline-offset: 2px;
+  }
+}
+
+/* ---- 2. Schedule Table Mobile Scroll ---- */
+@media (max-width: 768px) {
+  .schedule-wrapper {
+    position: relative;
+  }
+
+  /* Indicador de sombra de fade no lado direito */
+  .schedule-wrapper::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 32px;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(0, 16, 32, 0.85) 100%
+    );
+    pointer-events: none;
+    z-index: 2;
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    opacity: 1;
+    transition: opacity var(--transition-fast);
+  }
+
+  /* Schedule table compact — reduz min-width para caber melhor */
+  .schedule-table-compact {
+    min-width: 600px;
+  }
+}
+
+/* ---- 3. Subject Detail Header Mobile ---- */
+@media (max-width: 768px) {
+  .subject-detail-header {
+    padding: var(--space-4);
+  }
+
+  .subject-detail-top {
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .subject-detail-top-aside {
+    margin-left: 0;
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .subject-detail-title {
+    font-size: 1.25rem;
+  }
+
+  .subject-detail-meta {
+    gap: var(--space-3);
+  }
+
+  .subject-detail-meta .subject-meta-item {
+    font-size: 0.75rem;
+  }
+
+  .subject-detail-actions {
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+}
+
+/* ---- 4. Enrollment Simulator Mobile ---- */
+@media (max-width: 768px) {
+  .enrollment-sidebar-row {
+    grid-template-columns: 1fr;
+    height: auto;
+    max-height: none;
+    min-height: auto;
+    overflow: visible;
+  }
+
+  .enrollment-sidebar-row > .enrollment-sidebar {
+    height: auto;
+    max-height: min(50vh, 380px);
+    min-height: 10rem;
+    overflow: hidden;
+  }
+
+  .enrollment-sidebar-scroll {
+    grid-template-columns: 1fr;
+    max-height: none;
+  }
+
+  .enrollment-selection-float-shell {
+    position: relative;
+    top: auto;
+    right: auto;
+    width: 100%;
+    pointer-events: auto;
+    z-index: 10;
+    margin-bottom: var(--space-3);
+  }
+
+  .enrollment-selection-float {
+    transform-origin: top center;
+  }
+
+  .enrollment-schedule-stack {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+  }
+
+  .enrollment-sync-bar {
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+
+  .enrollment-sync-meta {
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .enrollment-sync-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ---- 5. Integralizacao Layout Mobile ---- */
+@media (max-width: 768px) {
+  .integration-donut-wrap {
+    max-width: 220px;
+    margin: 0 auto;
+  }
+
+  .integration-summary-body {
+    gap: var(--space-3);
+  }
+
+  .integration-table {
+    min-width: 560px;
+  }
+
+  .integration-detail-card {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .integration-table-header {
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+}
+
+/* ---- 6. Modal Full-screen Mobile ---- */
+@media (max-width: 768px) {
+  .modal-panel {
+    width: 100%;
+    max-width: 100%;
+    max-height: 100vh;
+    max-height: 100dvh;
+    height: auto;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    margin: 0;
+    margin-top: auto;
+  }
+
+  .modal {
+    align-items: flex-end;
+  }
+
+  .modal-header {
+    padding: var(--space-4) var(--space-4);
+    gap: var(--space-3);
+  }
+
+  .modal-body {
+    padding: var(--space-4);
+  }
+
+  .modal-close {
+    width: var(--touch-min);
+    height: var(--touch-min);
+    min-width: var(--touch-min);
+    min-height: var(--touch-min);
+  }
+
+  .modal-form-actions {
+    flex-wrap: wrap;
+  }
+
+  .modal-form-actions .btn,
+  .modal-form-actions .btn-gold,
+  .modal-form-actions .btn-outline {
+    min-height: var(--touch-min);
+    flex: 1 1 auto;
+  }
+
+  /* Profile modal — max-height para não cobrir tudo */
+  .modal-panel:has(.profile-modal-body) {
+    max-height: 85vh;
+    max-height: 85dvh;
+  }
+}
+
+/* ---- 7. Data Tables Scroll ---- */
+@media (max-width: 768px) {
+  .data-table-wrap:not(.grades-table-wrap):not(.attendance-table-wrap) {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
+  }
+
+  .data-table-wrap:not(.grades-table-wrap):not(.attendance-table-wrap) .data-table {
+    min-width: 480px;
+  }
+
+  /* Notas + frequência: cards empilhados (sem scroll horizontal) */
+  .grades-table-wrap,
+  .attendance-table-wrap {
+    overflow: visible;
+  }
+
+  .grades-table-wrap .data-table,
+  .attendance-table-wrap .data-table {
+    min-width: 0;
+    width: 100%;
+    table-layout: auto;
+  }
+
+  .grades-table-wrap .data-table thead,
+  .attendance-table-wrap .data-table thead {
+    display: none;
+  }
+
+  .grades-table-wrap .data-table,
+  .grades-table-wrap .data-table tbody,
+  .attendance-table-wrap .data-table,
+  .attendance-table-wrap .data-table tbody {
+    display: block;
+    width: 100%;
+  }
+
+  .grades-table-wrap .data-table tr,
+  .attendance-table-wrap .data-table tr {
+    display: grid;
+    gap: var(--space-2);
+    width: 100%;
+    margin-bottom: var(--space-3);
+    padding: var(--space-3);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    background: var(--bg-secondary);
+  }
+
+  .grades-table-wrap .data-table tr:last-child,
+  .attendance-table-wrap .data-table tr:last-child {
+    margin-bottom: 0;
+  }
+
+  .grades-table-wrap .data-table td,
+  .attendance-table-wrap .data-table td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    padding: 0;
+    text-align: left;
+    white-space: normal;
+    font-size: 0.875rem;
+    border: none;
+  }
+
+  .grades-table-wrap .data-table td::before,
+  .attendance-table-wrap .data-table td::before {
+    content: attr(data-label);
+    flex-shrink: 0;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+  }
+
+  .grades-table-wrap .data-table td[data-label="Avaliação"] {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    padding-bottom: var(--space-2);
+    margin-bottom: var(--space-1);
+    border-bottom: 1px solid var(--border-muted);
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .grades-table-wrap .data-table td[data-label="Avaliação"]::before {
+    width: 100%;
+    margin-bottom: 2px;
+  }
+
+  .grades-table-wrap .data-table td.grades-score-cell {
+    align-items: stretch;
+  }
+
+  .grades-table-wrap .grades-score-input,
+  .grades-table-wrap .grades-sim-input {
+    max-width: none;
+    width: min(120px, 40vw);
+    min-height: var(--touch-min);
+    font-size: 16px;
+    margin-inline: 0;
+  }
+
+  .grades-panel-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-3);
+  }
+
+  .grades-panel-actions {
+    width: 100%;
+  }
+
+  .grades-panel-actions .btn-outline {
+    flex: 1 1 calc(50% - var(--space-1));
+    min-height: var(--touch-min);
+    justify-content: center;
+  }
+
+  .grades-panel,
+  .absence-panel {
+    height: auto;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .subject-panel-col--synced {
+    overflow: visible;
+  }
+
+  .subject-panels-row .absence-panel .attendance-table-wrap {
+    overflow: visible;
+    max-height: none;
+  }
+}
+
+/* ---- 8. Page Header Mobile ---- */
+@media (max-width: 768px) {
+  .page-header {
+    padding-bottom: var(--space-3);
+  }
+
+  .page-header-row {
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+
+  .page-header h1 {
+    word-break: break-word;
+  }
+
+  .page-header-eyebrow {
+    font-size: 0.625rem;
+  }
+
+  .page-header .subtitle {
+    font-size: 0.8125rem;
+  }
+}
+
+/* ---- 9. Planos Page Fine-tuning ---- */
+@media (max-width: 768px) {
+  .planos-hero-top {
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .planos-hero-actions {
+    width: 100%;
+  }
+
+  .planos-hero-actions .btn,
+  .planos-hero-actions .btn-gold {
+    width: 100%;
+    min-height: var(--touch-min);
+    justify-content: center;
+  }
+
+  .planos-promo {
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .planos-promo-actions {
+    width: 100%;
+  }
+
+  .planos-promo-actions .btn {
+    width: 100%;
+    min-height: var(--touch-min);
+  }
+}
+
+/* ---- 10. Calendar Mobile (grade compacta + lista) ---- */
+@media (max-width: 768px) {
+  .calendar-panel-card {
+    padding: var(--space-3);
+  }
+
+  .calendar-month-header {
+    margin-bottom: var(--space-3);
+  }
+
+  .calendar-month-title {
+    font-size: 1rem;
+    text-align: center;
+  }
+
+  .calendar-weekdays {
+    gap: 2px;
+    margin-bottom: var(--space-1);
+  }
+
+  .calendar-weekdays span {
+    font-size: 0.625rem;
+  }
+
+  .calendar-grid {
+    gap: 2px;
+    grid-auto-rows: minmax(48px, auto);
+  }
+
+  .calendar-day-btn:not(.empty),
+  .calendar-day.empty {
+    min-height: 48px;
+  }
+
+  .calendar-day-btn:not(.empty) {
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 4px 2px;
+  }
+
+  .calendar-day-top {
+    width: 100%;
+    justify-content: center;
+    gap: 0;
+  }
+
+  .calendar-day-number {
+    font-size: 0.8125rem;
+    font-weight: 700;
+  }
+
+  /* Esconde pills longas — só dots + toque abre o dia */
+  .calendar-day-events {
+    display: none;
+  }
+
+  .calendar-day-meta {
+    display: none;
+  }
+
+  .calendar-day-dots {
+    display: flex;
+  }
+
+  .calendar-event-dot {
+    width: 5px;
+    height: 5px;
+  }
+
+  .calendar-filters-card {
+    padding: var(--space-3);
+  }
+
+  .calendar-filters-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-3);
+  }
+
+  .calendar-filters-header .filter-bar {
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: var(--space-1);
+    flex-wrap: nowrap;
+    gap: var(--space-2);
+  }
+
+  .calendar-filters-header .filter-bar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .calendar-filters-header .filter-chip {
+    flex-shrink: 0;
+    white-space: nowrap;
+    min-height: var(--touch-min);
+  }
+
+  /* Lista de eventos: altura natural (sem sync com o mês) */
+  .calendar-events-card {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible;
+  }
+
+  .calendar-events-card .event-list--scroll {
+    max-height: min(50vh, 420px);
+    overflow-y: auto;
+  }
+
+  .event-list-item {
+    min-height: var(--touch-min);
+    padding: var(--space-3);
+  }
+
+  .event-list-item .event-type-badge,
+  .event-list-item [class*="badge"] {
+    flex-shrink: 0;
+  }
+}
+
+/* ---- 11. Course Map Flow Mobile ---- */
+@media (max-width: 768px) {
+  .course-map-row {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: var(--space-3);
+  }
+
+  .mapa-view-toggle {
+    gap: var(--space-1);
+  }
+}
+
+/* ---- 12. Profile Menu Mobile ---- */
+@media (max-width: 768px) {
+  .profile-menu-panel {
+    right: 0;
+    left: auto;
+    width: min(280px, calc(100vw - 32px));
+  }
+}
+
+/* ---- 13. General Touch & Spacing (≤480px phone) ---- */
+@media (max-width: 480px) {
+  h1 {
+    font-size: 1.35rem;
+  }
+
+  h2 {
+    font-size: 1.1rem;
+  }
+
+  h3 {
+    font-size: 0.95rem;
+  }
+
+  /* Main content — padding mais compacto */
+  .main-content {
+    padding-left: calc(var(--space-3) + var(--safe-left));
+    padding-right: calc(var(--space-3) + var(--safe-right));
+  }
+
+  /* Cards gerais — padding reduzido */
+  .card {
+    padding: var(--space-3);
+  }
+
+  /* Navbar — super compacto */
+  .navbar-inner {
+    padding: 0 var(--space-2);
+  }
+
+  .navbar-brand .brand-logo-img {
+    width: 36px;
+    height: 36px;
+  }
+
+  .navbar-brand-text--short {
+    font-size: 0.8125rem;
+  }
+
+  /* Stats — ajuste de fonte */
+  .card-stat {
+    font-size: 1.5rem;
+  }
+
+  .card-stat-detail {
+    font-size: 0.6875rem;
+  }
+
+  /* Subject cards */
+  .subject-card {
+    padding: var(--space-3);
+  }
+
+  .subject-name {
+    font-size: 0.875rem;
+  }
+
+  /* UpcomingTasks — compactar */
+  .task-item {
+    padding: var(--space-3);
+  }
+
+  /* Weekly schedule preview */
+  .schedule-table {
+    min-width: 560px;
+  }
+
+  /* Back link */
+  .back-link {
+    font-size: 0.75rem;
+    min-height: var(--touch-min);
+    display: inline-flex;
+    align-items: center;
+  }
+
+  /* Section headers */
+  .section-header-title {
+    font-size: 0.6875rem;
+  }
+
+  /* Mobile drawer — mais estreito em telas pequenas */
+  .mobile-nav {
+    width: min(280px, 85vw);
+    padding-left: var(--space-4);
+    padding-right: var(--space-4);
+  }
+
+  .mobile-nav-list li a {
+    padding: var(--space-2) var(--space-3);
+    font-size: 0.875rem;
+  }
+
+  /* Enrollment mobile */
+  .enrollment-sidebar {
+    padding: var(--space-3);
+  }
+
+  .enrollment-sidebar-row > .enrollment-sidebar {
+    max-height: min(40vh, 320px);
+  }
+
+  /* Calendar — compactar grade */
+  .calendar-grid {
+    gap: 2px;
+    grid-auto-rows: minmax(44px, auto);
+  }
+
+  .calendar-day-btn:not(.empty),
+  .calendar-day.empty {
+    min-height: 44px;
+  }
+
+  .calendar-day-btn {
+    padding: 2px;
+  }
+
+  /* Integration donut — menor */
+  .integration-donut-wrap {
+    max-width: 180px;
+  }
+
+  .integration-donut-value {
+    font-size: 1.75rem;
+  }
+
+  /* Modal — fullscreen total */
+  .modal-panel {
+    border-radius: 0;
+    max-height: 100vh;
+    max-height: 100dvh;
+  }
+
+  .modal-header {
+    padding: var(--space-3);
+  }
+
+  .modal-body {
+    padding: var(--space-3);
+  }
+
+  /* Course map */
+  .course-map-row {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
+
+  .cmap-node {
+    width: 148px;
+  }
+
+  /* Planos page */
+  .planos-page {
+    gap: var(--space-4);
+  }
+
+  .planos-hero-title {
+    font-size: 1.35rem;
+  }
+
+  .planos-hero-subtitle {
+    font-size: 0.8125rem;
+  }
+
+  /* Profile modal compacto */
+  .profile-modal-hero {
+    padding: var(--space-4);
+  }
+
+  .profile-modal-avatar {
+    width: 56px;
+    height: 56px;
+    font-size: 1.25rem;
+  }
+
+  .profile-modal-name {
+    font-size: 1rem;
+  }
+
+  /* Notification panel */
+  .notification-bell-panel {
+    position: fixed;
+    top: calc(var(--nav-height) + var(--safe-top) + var(--space-2));
+    right: var(--space-2);
+    left: var(--space-2);
+    width: auto;
+    max-height: calc(100vh - var(--nav-height) - var(--safe-top) - var(--space-4));
+  }
+
+  /* Legal pages */
+  .legal-page {
+    padding: var(--space-4) 0;
+  }
+
+  .legal-page h1 {
+    font-size: 1.25rem;
+  }
+
+  /* Tutorial button */
+  .page-help-btn {
+    min-width: var(--touch-min);
+    min-height: var(--touch-min);
+  }
+}
+
+/* ---- 14. Tap Highlight & Overscroll Behavior ---- */
+@media (max-width: 768px) {
+  html {
+    touch-action: manipulation;
+  }
+
+  /* Remove tap highlight em iOS */
+  a,
+  button,
+  [role="button"] {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Previne overscroll/bounce em containers de scroll */
+  .schedule-wrapper,
+  .data-table-wrap,
+  .enrollment-sidebar-scroll,
+  .integration-detail-card,
+  .event-list--scroll {
+    overscroll-behavior: contain;
+  }
+
+  /* Input/select touch targets — 16px evita zoom iOS */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="date"],
+  input[type="time"],
+  select,
+  textarea {
+    min-height: var(--touch-min);
+    font-size: 16px;
+  }
+}
+
+/* F28 — animação de abertura do drawer (match da transição JS) */
+@keyframes mobile-nav-slide-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mobile-nav {
+    transition: none;
+  }
+
+  .mobile-nav-backdrop {
+    transition: none;
   }
 }
