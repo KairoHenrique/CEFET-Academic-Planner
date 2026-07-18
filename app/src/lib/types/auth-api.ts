@@ -29,6 +29,8 @@ export interface RegisterAccountBody {
   cpf: string;
   cursoId: AppCursoId;
   password: string;
+  /** Matrícula SIGAA do amigo (opcional). */
+  friendMatricula?: string;
   acceptedLegal: {
     terms: boolean;
     privacy: boolean;

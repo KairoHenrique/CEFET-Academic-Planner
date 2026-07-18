@@ -241,6 +241,63 @@ export async function insertActiveManualSubscription(input: {
   return mapSubscriptionRow(row);
 }
 
+export async function extendSubscriptionExpiresAt(
+  subscriptionId: string,
+  extraDays: number
+): Promise<SubscriptionRow> {
+  if (extraDays <= 0) {
+    throw new Error("extraDays deve ser positivo.");
+  }
+
+  const pool = getPostgresPool();
+  const result = await pool.query<SubscriptionDbRow>(
+    `UPDATE subscriptions
+     SET expires_at = expires_at + ($2 || ' days')::interval,
+         updated_at = now()
+     WHERE id = $1
+     RETURNING id, user_id, plan_id, status, source, started_at, expires_at,
+               created_at, updated_at`,
+    [subscriptionId, String(extraDays)]
+  );
+
+  const row = result.rows[0];
+  if (!row) {
+    throw new Error("Assinatura não encontrada para extensão.");
+  }
+
+  return mapSubscriptionRow(row);
+}
+
+export async function insertActiveReferralSubscription(input: {
+  userId: string;
+  planId: PaidPlanId;
+  expiresAt: Date;
+}): Promise<SubscriptionRow> {
+  const pool = getPostgresPool();
+  const result = await pool.query<SubscriptionDbRow>(
+    `INSERT INTO subscriptions (
+       user_id, plan_id, status, source, expires_at
+     ) VALUES (
+       $1, $2, 'active', 'referral', $3
+     )
+     RETURNING id, user_id, plan_id, status, source, started_at, expires_at,
+               created_at, updated_at`,
+    [input.userId, input.planId, input.expiresAt.toISOString()]
+  );
+
+  const row = result.rows[0];
+  if (!row) {
+    throw new Error("Falha ao criar assinatura via indicação.");
+  }
+
+  await expireOtherActiveSubscriptions({
+    userId: input.userId,
+    keepSubscriptionId: row.id,
+  });
+
+  return mapSubscriptionRow(row);
+}
+
 export async function findPlanDurationDays(planId: PaidPlanId): Promise<number> {
   const pool = getPostgresPool();
   const result = await pool.query<{ duration_days: number }>(

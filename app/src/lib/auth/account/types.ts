@@ -20,6 +20,8 @@ export interface RegisterAccountInput {
   cpf: string;
   cursoId: AppCursoId;
   password: string;
+  /** Matrícula SIGAA do amigo (opcional) — indicação B74. */
+  friendMatricula?: string;
   legalConsent: {
     termsVersion: string;
     privacyVersion: string;

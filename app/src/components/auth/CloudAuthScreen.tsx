@@ -6,7 +6,6 @@ import { AuthModeTabs } from "@/components/auth/AuthModeTabs";
 import { CloudLoginForm } from "@/components/auth/CloudLoginForm";
 import { LoginCard } from "@/components/auth/LoginCard";
 import { RegisterForm } from "@/components/auth/RegisterForm";
-import { GiftKeyRedeemForm } from "@/components/billing/GiftKeyRedeemForm";
 import { LegalFooterLinks } from "@/components/legal/LegalFooterLinks";
 import type { AuthCursoOption } from "@/lib/types/auth-api";
 
@@ -37,10 +36,7 @@ export function CloudAuthScreen({ cursos }: CloudAuthScreenProps) {
       {panel === "login" ? (
         <CloudLoginForm />
       ) : (
-        <>
-          <RegisterForm cursos={cursos} />
-          <GiftKeyRedeemForm variant="inline" deferUntilAuth />
-        </>
+        <RegisterForm cursos={cursos} />
       )}
     </LoginCard>
   );

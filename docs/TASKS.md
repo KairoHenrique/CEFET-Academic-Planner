@@ -43,7 +43,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ## Roadmap detalhado — ordem de execução (#0 → #11)
 
-> **Próximo oficial:** **#10 — Bloco 4 · F28** (site mobile). **F25–F27** `[x]` (skeletons, transições, favicon/título — aprovado jul/2026). **#9 fechado:** **B36/B37** `[x]` (alertas no sino, aprovado jul/2026) · **F24 descartado** (banners removidos — alertas ficam só no sino) · demais #9 `[x]`. Bloco **2f (B72a–e)** `[x]`. **Fix jul/2026:** login rápido normaliza CPF no `sync-readiness` (CPF formatado não força mais re-sync de 1º acesso).
+> **Próximo oficial:** **#10 — Bloco 4 · F28** (site mobile). **B74/F43** `[@]` (indicação por matrícula no cadastro). **B73/F42** `[@]`. **F25–F27** `[x]` (skeletons, transições, favicon/título — aprovado jul/2026). **#9 fechado:** **B36/B37** `[x]` (alertas no sino, aprovado jul/2026) · **F24 descartado** (banners removidos — alertas ficam só no sino) · demais #9 `[x]`. Bloco **2f (B72a–e)** `[x]`. **Fix jul/2026:** login rápido normaliza CPF no `sync-readiness` (CPF formatado não força mais re-sync de 1º acesso).
 > **Regra:** siga **#0 → #11** · dentro de cada bloco → **BACK (B) antes de FRONT (F)**. Checklist espelho: [Checklist mestre](#checklist-mestre-ordem-de-execução).
 
 ### #0 — Planejamento `✅`
@@ -198,8 +198,9 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 - [x] **BACK:** B62b *(provedor transacional — **Brevo** grátis/sem domínio, fallback **Resend**; envio real via REST `fetch`, HTML anti-XSS + retry backoff; stub de log quando sem secret · deploy jul/2026, teste real ok · aprovado jul/2026)*
 - [x] **BACK:** B62c *(conteúdo + ativação — saudação com 2 primeiros nomes, link `/planos` absoluto, agenda plano expirando 7/3/1 + encerrado, disparo de promoção no `/dev` · push+aprovado jul/2026)*
 - [@] **BACK+FRONT:** B73/F42 *(promoção dirigida por preço — aba **Promoções** no `/dev` define preço promocional + duração; sistema calcula %, gera textos, sobrescreve preço no checkout/`/planos` e reverte no fim do prazo; banner + preço riscado · push jul/2026, aguardando aprovação 100%)*
+- [@] **BACK+FRONT:** B74/F43 *(indicação por matrícula do amigo no cadastro — +3d cada no 1º pagamento do indicado · cap 30d · trial 7d intacto · chave gift só em `/planos` · push jul/2026, aguardando aprovação)*
 
-**Ordem 6b:** `B44 → B45 → B58 → B63` → `B59` → `F29` → `B61 → B62 → B62b → B62c → B73/F42`
+**Ordem 6b:** `B44 → B45 → B58 → B63` → `B59` → `F29` → `B61 → B62 → B62b → B62c → B73/F42` → `B74/F43`
 
 ---
 
@@ -256,7 +257,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 - [x] **FRONT:** F32 *(tela PIX — QR + copia-e-cola + polling `GET /api/billing/payments/[id]`)*
 - [x] **FRONT:** F33 *(renovação — grace period · alerta em `/planos`)*
 - [x] **FRONT:** F34 *(minha assinatura — perfil + histórico via `GET /api/billing/account`)*
-- [x] **FRONT:** F40 *(resgate chave — login/cadastro/`/planos` · `POST /api/billing/redeem-key`)*
+- [x] **FRONT:** F40 *(resgate chave — `/planos` · `POST /api/billing/redeem-key` · cadastro = matrícula amigo **F43**)*
 - [x] **LEGAL:** L1 *(termos + LGPD — `/termos` · `/privacidade` · consent cadastro · `GET /api/legal/meta` · migration consent)*
 - [x] **BACK:** B71 *(endurecimento credenciais — accountRef opaco · credentialSaved · logs/audit sanitizados · gate produção)*
 
@@ -431,7 +432,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ### 1.4 API e Integração UI ↔ SQLite
 
-> **Progresso:** Bloco 1 ✅ · **Bloco 2a/2b** ✅ · **Bloco 6a** ✅ **8/8** · **6b** ✅ **8/8** · **6c** ✅ **2/2** · **#6d** ✅ **6/6** · **#6e** ✅ **2/2** · **#7** ✅ **15/15** · **#12** B72a–e `[x]` **5/5** (código ok; **ops = PC + cloudflared**) · **#9** B32–B34 + F21–F23 `[x]` · **B35**/**F20** `[x]` · URL **`https://acme-hub.khfm.workers.dev`**.
+> **Progresso:** Bloco 1 ✅ · **Bloco 2a/2b** ✅ · **Bloco 6a** ✅ **8/8** · **6b** ✅ **8/8** (+ **B73/F42** `[@]` · **B74/F43** `[@]` indicação) · **6c** ✅ **2/2** · **#6d** ✅ **6/6** · **#6e** ✅ **2/2** · **#7** ✅ **15/15** · **#12** B72a–e `[x]` **5/5** (código ok; **ops = PC + cloudflared**) · **#9** B32–B34 + F21–F23 `[x]` · **B35**/**F20** `[x]` · URL **`https://acme-hub.khfm.workers.dev`**.
 
 Roadmap detalhado: ver **[Roadmap #0→#11 no topo](#roadmap-detalhado--ordem-de-execução-0--11)** · [Ordem oficial v3](#ordem-oficial-de-execução-v3). **F19** simulador (2a) `[x]` · **B67** `[x]`.
 
@@ -673,13 +674,15 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 ---
 
-### #5 — Bloco 6b · Cloud — Auth `✅ 8/8`
+### #5 — Bloco 6b · Cloud — Auth `✅ 8/8` + extras
 
 - [x] **BACK:** B44 → B45 → B58 → B63 → B59
-- [x] **BACK:** B61 → B62
+- [x] **BACK:** B61 → B62 → B62b → B62c
+- [@] **BACK+FRONT:** B73/F42
+- [@] **BACK+FRONT:** B74/F43
 - [x] **FRONT:** F29
 
-**Ordem 6b:** `B44 → B45 → B58 → B63` → `B59` → `F29` → `B61 → B62`
+**Ordem 6b:** `B44 → B45 → B58 → B63` → `B59` → `F29` → `B61 → B62 → B62b → B62c → B73/F42` → `B74/F43`
 
 ---
 
@@ -1162,7 +1165,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 #### 6b — Auth (#5)
 
 > **Escopo (regras):** `SCOPE.md` §2.0–§2.2, §2.5 · `SCOPE-CLOUD.md` §3–§4.  
-> **Resumo:** cadastro = **e-mail + telefone + CPF + senha SIGAA + curso (PPC)**; **login só CPF + senha**; trial **7 dias / 1× por CPF**; **e-mail** = promo + ciclo conta (§2.5) — acadêmico só in-app (**F38**).
+> **Resumo:** cadastro = **e-mail + telefone + CPF + senha SIGAA + curso (PPC)** (+ opcional **matrícula do amigo** **B74/F43**); **login só CPF + senha**; trial **7 dias / 1× por CPF**; **e-mail** = promo + ciclo conta (§2.5) — acadêmico só in-app (**F38**).
 
 | # | Tipo | Task | Resumo | Status |
 |---|------|------|--------|--------|
@@ -1178,8 +1181,10 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | B62c | Back | Conteúdo + ativação e-mail | Saudação 2 primeiros nomes · link `/planos` absoluto · agenda plano expirando (7/3/1) + encerrado · disparo de promoção no `/dev` | [x] |
 | B73 | Back | Promo do site (por preço) | Promo global dirigida por preço no `app_config`: operador define preço promocional + duração; sistema calcula %, gera textos, sobrescreve preço no checkout e na `GET /api/billing/plans`, e reverte no fim do prazo | [@] |
 | F42 | Front | Promoções (/dev) + banner | Aba **Promoções** no `/dev` (tabela de preços atuais, form preço+duração com preview de %, promo ativa + encerrar) · banner e card com preço riscado em `/planos` | [@] |
+| B74 | Back | Indicação por matrícula | `account_referrals` · `friendMatricula` no register · +3d cada no 1º PIX do indicado · cap 30d · trial 7d intacto | [@] |
+| F43 | Front | Matrícula do amigo | Criar conta: troca “Chave de plano” por campo opcional matrícula + copy de indicação | [@] |
 
-**Ordem 6b:** `B44 → B45 → B58 → B63` → `B59` → `F29` → `B61 → B62 → B62b → B62c → B73/F42`
+**Ordem 6b:** `B44 → B45 → B58 → B63` → `B59` → `F29` → `B61 → B62 → B62b → B62c → B73/F42` → `B74/F43`
 
 > **Fora do 6b:** pagamento PIX e planos pagos = **Bloco 7** (B47–B53). Dev local Bloco 1–2 mantém login SIGAA simples até cloud.
 
@@ -1238,7 +1243,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | F32 | Front | Tela PIX | `/planos/pix` — QR base64 · copia-e-cola · polling status · redirect pós-aprovado | [x] |
 | F33 | Front | Renovação | `PlanosStatusAlert` — grace 3d · copy acumula período | [x] |
 | F34 | Front | Minha assinatura | Modal perfil — plano · validade · histórico PIX | [x] |
-| F40 | Front | Resgate chave plano | 8 chars — login/cadastro (defer) + `/planos` · feedback uso único | [x] |
+| F40 | Front | Resgate chave plano | 8 chars — `/planos` (cadastro usa **matrícula do amigo** **F43**) · feedback uso único | [x] |
 | L1 | Legal | Termos + LGPD | `/termos` · `/privacidade` · consent cadastro · `GET /api/legal/meta` | [x] |
 
 **Ordem #7:** `B47 → B48` → `B49 → B50 → B51 → B52 → B53` → `B69` → `F31 → F32 → F33 → F34` → `F40` → `L1` → **`B71`** *(última — imediatamente antes do go-live público)*
@@ -1494,7 +1499,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Modulação de layout **somente no dashboard** (demais telas layout fixo)
 - [x] Menu perfil no avatar — modal, tutorial, /planos, **editar e-mail/celular** (**F37** ✅ · `PATCH /api/perfil`)
 - [x] Sino de notificações in-app — tarefas/notas novas + lembretes 24h/1h (**F38**); polish `04887c9` (baseline pré-sync, nota obtida/máxima no painel)
-- [x] Cadastro produção: e-mail, telefone, CPF, **curso (Comp/Meca/Moda)**, senha — **F29** ✅ (`POST /api/auth/register` · tabs Entrar/Criar conta)
+- [x] Cadastro produção: e-mail, telefone, CPF, **curso (Comp/Meca/Moda)**, senha — **F29** ✅ · opcional **matrícula do amigo** (**F43** `[@]`)
 - [x] Login produção: **apenas CPF + senha** — **F29** ✅ (`POST /api/auth/login` · Bearer + `X-Planner-Sigaa-User`)
 - [x] `/planos` checkout PIX + gift key + renovação (**F31–F33**, **F40**) · `/planos/pix` QR + polling (**F32**) · perfil histórico (**F34**)
 - [x] Termos + Privacidade LGPD — **L1** (`/termos` · `/privacidade` · consent no cadastro · links login/planos)
@@ -1723,7 +1728,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | Uso | **Uma vez** por chave; vincula CPF + período de acesso |
 | Pacote | Definido na criação (dias, tipo semestre/ano, validade opcional da chave) |
 | Emissão | **Somente operador** — painel `/dev` |
-| Resgate | Aluno em login, cadastro ou `/planos` (**F40**) |
+| Resgate | Aluno em `/planos` (**F40**). Cadastro usa **matrícula do amigo** (**F43** / **B74**). |
 
 **Tasks:** **B69** (back) · **F40** (front resgate) · parte de **B70/F41** (criar/listar chaves)
 
@@ -1817,6 +1822,20 @@ Rota **`/dev`** — invisível ao aluno.
 | 5 | **Banner `/planos`** — selo `-X%`, preço riscado no card, plano já selecionado | `PlanosPromoBanner.tsx`, `PlanosPlanShowcase.tsx` |
 | 6 | **Filtro smoke/teste** — não dispara para `@smoke.test`, `@example.*`, local-part `smoke-*`/`t2-*` (economiza crédito Brevo) | `is-deliverable-promotion-email.ts`, `promotion-targets.ts` |
 | 7 | **Entrega Gmail via PC** — `ACCOUNT_EMAIL_VIA_HOME_WORKER` + SMTP Gmail no worker (`POST /email/send`); Brevo free não entrega no Gmail (`*.brevosend.com`) | `home-worker-email-sender.ts`, `gmail-smtp-send.ts`, `worker/server.ts` |
+
+**Status:** `[@]` push jul/2026 — aguardando aprovação 100%.
+
+#### B74/F43 — indicação por matrícula do amigo (jul/2026) `[@]`
+
+> No criar conta: **Matrícula do amigo** (no lugar da chave gift). Chave gift permanece só em `/planos` / painel.
+
+| # | Entrega | Arquivos-chave |
+|---|---|---|
+| 1 | **Schema** — `account_referrals` + `source=referral` em subscriptions | `20260717120000_b74_*.sql` |
+| 2 | **Register** — `friendMatricula` opcional → pending | `create-pending-referral.ts`, `parse-account-request.ts` |
+| 3 | **Reward** — +3d cada no 1º PIX aprovado · cap 30d · trial intacto | `apply-referral-rewards.ts`, `confirm-billing-payment.ts` |
+| 4 | **UI** — campo no `RegisterForm` · remove gift no cadastro | `FriendMatriculaField.tsx`, `CloudAuthScreen.tsx` |
+| 5 | **Docs** — `SCOPE.md` §2.1.2 · `SCOPE-CLOUD` §3.7 · `test:b74` | |
 
 **Status:** `[@]` push jul/2026 — aguardando aprovação 100%.
 
@@ -1958,7 +1977,7 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 8. **Próximo passo do roadmap:** informe **depois do push** (tasks em `[@]` ou `[x]`). Com commits locais só `[x]`, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v3](#ordem-oficial-de-execução-v3) — **Bloco 2 (sync) antes do Bloco 6 (Supabase)**. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy **após** sync validado; RLS ✅ **6c** (antes do PIX). Marco “site no ar p/ testes gerais” → [final do TASKS.md](#marco--site-no-ar-para-testes-gerais).
-11. **Próximo passo:** **#10 — Bloco 4 · F28** (site mobile). **B73/F42** `[@]` (promoção por preço + aba Promoções — push jul/2026, aguardando aprovação). **F25–F27** `[x]`. **#9 fechado:** **B36/B37** `[x]` · **F24 descartado**. Ops sync = PC home server (`npm run worker:home` + `npm run worker:tunnel` + secrets CF; dev scraper `SIGAA_BROWSER_CHANNEL=chrome`).
+11. **Próximo passo:** **#10 — Bloco 4 · F28** (site mobile). **B74/F43** `[@]` (indicação por matrícula — push jul/2026, aguardando aprovação). **B73/F42** `[@]`. **F25–F27** `[x]`. **#9 fechado:** **B36/B37** `[x]` · **F24 descartado**. Ops sync = PC home server (`npm run worker:home` + `npm run worker:tunnel` + secrets CF; dev scraper `SIGAA_BROWSER_CHANNEL=chrome`).
 12. **Integralização:** CH concluída = `historico` + PPC (`computeChDoneFromDisciplinas`); portal SIGAA só % / total currículo; matérias já passadas = **B30** ✅.
 13. **Gift + painel dev:** **B68–B71** ✅ · **F39–F41** ✅ — painel sem senha SIGAA (`credentialSaved` + `accountRef`).
 14. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial. **Polish em task `[x]`** (ex.: F38, dashboard) também exige nota no TASKS no mesmo ciclo do push.

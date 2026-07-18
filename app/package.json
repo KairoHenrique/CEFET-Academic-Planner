@@ -29,6 +29,7 @@
     "test:b52": "tsx --test tests/b52-subscription-gate.test.ts",
     "test:b53": "tsx --test tests/b53-billing-renewal.test.ts",
     "test:b69": "tsx --test tests/b69-gift-keys.test.ts",
+    "test:b74": "tsx --test tests/b74-referrals.test.ts",
     "test:f31": "tsx --test tests/f31-billing-auth-flow.test.ts",
     "test:f32-f40": "tsx --test tests/f32-f40-billing-ui.test.ts",
     "test:t2": "tsx --env-file=.env.local --test tests/t2-rls-isolation.test.ts",

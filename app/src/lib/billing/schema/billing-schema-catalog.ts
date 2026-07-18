@@ -20,6 +20,7 @@ export const SUBSCRIPTION_SOURCES = [
   "pix",
   "gift_key",
   "manual",
+  "referral",
 ] as const;
 
 export type SubscriptionSource = (typeof SUBSCRIPTION_SOURCES)[number];

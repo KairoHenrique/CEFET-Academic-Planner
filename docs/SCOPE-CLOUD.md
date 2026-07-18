@@ -126,7 +126,7 @@ Critérios para escolha (fase de implementação):
 
 - Cartão de crédito
 - Boleto
-- Cupons públicos / códigos de afiliado em massa (diferente de **chaves gift** operador — §3.6)
+- Cupons públicos / códigos de afiliado em massa (diferente de **chaves gift** operador — §3.6 e de **indicação por matrícula** 1:1 — §3.7)
 - Plano família / institucional
 - Nota fiscal automática (pode ser manual no início)
 
@@ -161,6 +161,28 @@ Complementa PIX e trial (`SCOPE.md` §2.1.1). Implementação cloud:
 - Rate limit por IP/CPF (anti brute-force de 8 chars).
 
 **Promoções:** flag global `promotions_enabled` (config operador) controla banners em `/planos`; independente das chaves gift.
+
+### 3.7 Indicação por matrícula (amigo) — B74 / F43
+
+Complementa trial e PIX (`SCOPE.md` §2.1.2). No cadastro o aluno pode informar a **matrícula SIGAA** de um amigo que já sincronizou.
+
+**Tabela `account_referrals`:**
+
+| Campo | Descrição |
+|---|---|
+| `referred_user_id` | Conta nova (única — 1 indicação) |
+| `referrer_user_id` / `referrer_matricula` | Amigo encontrado via `aluno.matricula` |
+| `status` | `pending` → `rewarded` (ou `void`) |
+| `*_days_granted` | Dias efetivamente creditados (respeitam cap 30) |
+
+**Regras:**
+
+- Bônus **+3 dias** para cada lado **somente** quando o indicado tem assinatura ativada por pagamento (webhook PIX / `confirmBillingPayment`).
+- Cap **30 dias** acumulados de bônus de indicação por `user_id`.
+- Trial 7 dias (`trial_por_cpf`) **independente** — não é encurtado nem cancelado.
+- Empilhamento: estende assinatura `active` existente; se só trial, cria `subscriptions` com `source = 'referral'` a partir do fim do trial.
+
+**Cadastro:** `POST /api/auth/register` aceita `friendMatricula` opcional. UI: campo no criar conta (substitui chave gift nessa tela). Resgate de chave gift permanece em `/planos`.
 
 ---
 
