@@ -13738,42 +13738,61 @@ body.mobile-nav-open {
     flex-shrink: 0;
   }
 
-  /* Matéria: header compacto */
+  /* Matéria: header compacto (sem buraco do flex-basis 12rem) */
   .subject-detail-header {
     padding: var(--space-3);
   }
 
   .subject-detail-top {
-    flex-direction: column;
-    align-items: stretch;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "head head"
+      "actions aside";
+    align-items: center;
     gap: var(--space-2);
-    margin-bottom: var(--space-3);
+    margin-bottom: var(--space-2);
   }
 
-  .subject-detail-top-aside {
-    margin-left: 0;
+  .subject-detail-head {
+    grid-area: head;
+    flex: none;
     width: 100%;
-    justify-content: flex-start;
-    flex-wrap: wrap;
-  }
-
-  .subject-detail-title {
-    font-size: 1.15rem;
-    line-height: 1.25;
+    min-width: 0;
   }
 
   .subject-detail-actions {
+    grid-area: actions;
     gap: var(--space-2);
     margin-top: 0;
   }
 
+  .subject-detail-top-aside {
+    grid-area: aside;
+    width: auto;
+    margin-left: 0;
+    justify-content: flex-end;
+    order: unset;
+  }
+
+  .subject-detail-title {
+    font-size: 1.125rem;
+    line-height: 1.25;
+    margin-top: 2px;
+  }
+
   .subject-detail-meta {
-    gap: var(--space-2);
+    gap: var(--space-2) var(--space-3);
     flex-wrap: wrap;
+    margin-top: 0;
   }
 
   .subject-detail-meta .subject-meta-item {
     font-size: 0.75rem;
+  }
+
+  .page-header-eyebrow {
+    margin-bottom: 0;
   }
 
   /* Notas: cards mais compactos + nome com espaço do rótulo */
