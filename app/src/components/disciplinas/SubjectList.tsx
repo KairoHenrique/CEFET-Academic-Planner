@@ -144,7 +144,7 @@ export function SubjectList() {
                     className="subject-list-card-foot"
                     onClick={(event) => event.stopPropagation()}
                   >
-                    <SubjectGradeCell subject={subject} />
+                    <SubjectGradeCell subject={subject} compact />
                     <span className={`badge ${absenceRisk.badgeClass}`}>
                       {subject.absences}/{subject.maxAbsences} faltas
                     </span>

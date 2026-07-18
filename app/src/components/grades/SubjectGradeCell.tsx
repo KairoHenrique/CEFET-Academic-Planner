@@ -6,9 +6,10 @@ import type { SubjectListItem } from "@/lib/types/disciplinas-api";
 
 interface SubjectGradeCellProps {
   subject: Pick<SubjectListItem, "code" | "grade" | "gradeRisk">;
+  compact?: boolean;
 }
 
-export function SubjectGradeCell({ subject }: SubjectGradeCellProps) {
+export function SubjectGradeCell({ subject, compact = false }: SubjectGradeCellProps) {
   const { gradeRisk, recoveryScore, setRecoveryScore } = useSubjectRecovery(
     subject.code,
     subject.gradeRisk
@@ -19,7 +20,8 @@ export function SubjectGradeCell({ subject }: SubjectGradeCellProps) {
       grade={subject.grade}
       gradeRisk={gradeRisk}
       variant="inline"
-      recoveryInteractive
+      showBar={!compact}
+      recoveryInteractive={!compact}
       recoveryScore={recoveryScore}
       onRecoveryScoreSave={setRecoveryScore}
       onRecoveryScoreClear={() => setRecoveryScore(null)}
