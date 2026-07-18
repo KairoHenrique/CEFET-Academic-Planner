@@ -2,9 +2,11 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { IntegralizacaoScreen } from "../screens/IntegralizacaoScreen";
 import { MapaScreen } from "../screens/MapaScreen";
 import { MoreHomeScreen } from "../screens/MoreHomeScreen";
+import { NotificationsScreen } from "../screens/NotificationsScreen";
 import { PerfilScreen } from "../screens/PerfilScreen";
 import { PlanosScreen } from "../screens/PlanosScreen";
 import { SimuladorScreen } from "../screens/SimuladorScreen";
+import { SyncScreen } from "../screens/SyncScreen";
 import { brand } from "../theme/brand";
 import type { MoreStackParamList } from "./types";
 
@@ -45,6 +47,16 @@ export function MoreStack() {
         name="Planos"
         component={PlanosScreen}
         options={{ title: "Planos" }}
+      />
+      <Stack.Screen
+        name="Notificacoes"
+        component={NotificationsScreen}
+        options={{ title: "Notificações" }}
+      />
+      <Stack.Screen
+        name="Sync"
+        component={SyncScreen}
+        options={{ title: "Sync SIGAA" }}
       />
       <Stack.Screen
         name="Perfil"

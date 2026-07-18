@@ -11,6 +11,8 @@ export type MoreStackParamList = {
   Integralizacao: undefined;
   Simulador: undefined;
   Planos: undefined;
+  Notificacoes: undefined;
+  Sync: undefined;
   Perfil: undefined;
 };
 

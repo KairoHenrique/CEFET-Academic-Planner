@@ -1,8 +1,17 @@
 import { useCallback, useState } from "react";
-import { RefreshControl, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Pressable,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import type { IntegralizacaoResponse } from "@acme/api-contracts";
 import { ApiClientError } from "../auth/api";
+import { postIntegralizacaoHours } from "../api/mutations";
 import { fetchIntegralizacao } from "../cache/fetchers";
 import { categoryPercent } from "../lib/safe-text";
 import { brand } from "../theme/brand";
@@ -12,12 +21,19 @@ import { ErrorBox } from "../ui/ErrorBox";
 import { LoadingBlock } from "../ui/LoadingBlock";
 import { Screen } from "../ui/Screen";
 
+const MANUAL_TYPES = ["Complementar", "Extensão", "Flexibilizada"] as const;
+
 export function IntegralizacaoScreen() {
   const [data, setData] = useState<IntegralizacaoResponse | null>(null);
   const [fromCache, setFromCache] = useState(false);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [tipoCh, setTipoCh] =
+    useState<(typeof MANUAL_TYPES)[number]>("Complementar");
+  const [horas, setHoras] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [formMsg, setFormMsg] = useState<string | null>(null);
 
   const load = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
@@ -43,6 +59,28 @@ export function IntegralizacaoScreen() {
       void load(true);
     }, [load])
   );
+
+  async function onRegister() {
+    const n = Number(horas);
+    if (!Number.isInteger(n) || n <= 0) {
+      setFormMsg("Informe horas inteiras > 0.");
+      return;
+    }
+    setBusy(true);
+    setFormMsg(null);
+    try {
+      const updated = await postIntegralizacaoHours({ tipoCh, horas: n });
+      setData(updated);
+      setHoras("");
+      setFormMsg("Horas lançadas.");
+    } catch (err) {
+      setFormMsg(
+        err instanceof ApiClientError ? err.message : "Falha ao lançar horas."
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
 
   return (
     <Screen
@@ -91,6 +129,48 @@ export function IntegralizacaoScreen() {
                 ]}
               />
             </View>
+          </View>
+
+          <Text style={cardStyles.sectionTitle}>Lançar horas manuais</Text>
+          <View style={cardStyles.card}>
+            <View style={styles.typeRow}>
+              {MANUAL_TYPES.map((t) => (
+                <Pressable
+                  key={t}
+                  style={[styles.typeChip, tipoCh === t && styles.typeActive]}
+                  onPress={() => setTipoCh(t)}
+                >
+                  <Text
+                    style={[
+                      styles.typeText,
+                      tipoCh === t && styles.typeTextActive,
+                    ]}
+                  >
+                    {t}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+            <TextInput
+              style={styles.input}
+              placeholder="Horas"
+              placeholderTextColor={brand.textMuted}
+              keyboardType="number-pad"
+              value={horas}
+              onChangeText={setHoras}
+            />
+            <Pressable
+              style={[styles.saveBtn, busy && styles.disabled]}
+              onPress={() => void onRegister()}
+              disabled={busy}
+            >
+              {busy ? (
+                <ActivityIndicator color={brand.text} />
+              ) : (
+                <Text style={styles.saveText}>Cadastrar</Text>
+              )}
+            </Pressable>
+            {formMsg ? <Text style={styles.formMsg}>{formMsg}</Text> : null}
           </View>
 
           {data.categories.length === 0 ? (
@@ -171,5 +251,43 @@ const styles = StyleSheet.create({
     height: "100%",
     backgroundColor: brand.gold,
     borderRadius: 999,
+  },
+  typeRow: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginBottom: 10 },
+  typeChip: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: brand.border,
+  },
+  typeActive: {
+    borderColor: brand.gold,
+    backgroundColor: "rgba(0,96,177,0.35)",
+  },
+  typeText: { color: brand.textMuted, fontSize: 12, fontWeight: "700" },
+  typeTextActive: { color: brand.gold },
+  input: {
+    backgroundColor: "rgba(0,0,0,0.25)",
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: brand.border,
+    color: brand.text,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginBottom: 8,
+  },
+  saveBtn: {
+    backgroundColor: brand.blue,
+    borderRadius: 10,
+    paddingVertical: 12,
+    alignItems: "center",
+  },
+  saveText: { color: brand.text, fontWeight: "800" },
+  disabled: { opacity: 0.55 },
+  formMsg: {
+    marginTop: 8,
+    color: brand.gold,
+    fontWeight: "600",
+    textAlign: "center",
   },
 });

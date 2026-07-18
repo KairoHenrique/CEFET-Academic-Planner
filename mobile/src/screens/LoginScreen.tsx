@@ -1,13 +1,14 @@
 import { useState } from "react";
 import {
   ActivityIndicator,
+  Linking,
   Pressable,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from "react-native";
-import { ApiClientError, loginAndPersist } from "../auth/api";
+import { ApiClientError, loginAndPersist, resolveWebHref } from "../auth/api";
 import { formatCpfInput, isValidCpf, normalizeCpf } from "../auth/cpf";
 import { brand } from "../theme/brand";
 
@@ -95,6 +96,15 @@ export function LoginScreen({ apiConfigured }: Props) {
             <Text style={styles.buttonText}>Entrar</Text>
           )}
         </Pressable>
+        <Pressable
+          style={styles.register}
+          onPress={() => void Linking.openURL(resolveWebHref("/login"))}
+          disabled={busy}
+        >
+          <Text style={styles.registerText}>
+            Criar conta no site (cadastro completo)
+          </Text>
+        </Pressable>
       </View>
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
@@ -171,5 +181,16 @@ const styles = StyleSheet.create({
     color: brand.danger,
     textAlign: "center",
     fontSize: 14,
+  },
+  register: {
+    marginTop: 4,
+    paddingVertical: 10,
+    alignItems: "center",
+  },
+  registerText: {
+    color: brand.gold,
+    fontWeight: "700",
+    fontSize: 13,
+    textAlign: "center",
   },
 });

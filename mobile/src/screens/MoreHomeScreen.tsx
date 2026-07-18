@@ -17,21 +17,33 @@ type MenuItem = {
 
 const MENU: MenuItem[] = [
   {
+    key: "Notificacoes",
+    label: "Notificações",
+    subtitle: "Mesmo feed do sino do site",
+    icon: "🔔",
+  },
+  {
+    key: "Sync",
+    label: "Sync SIGAA",
+    subtitle: "Enfileirar sincronização lite/full",
+    icon: "↻",
+  },
+  {
     key: "Mapa",
     label: "Mapa PPC",
-    subtitle: "Grade curricular por período",
+    subtitle: "Grade curricular + grafo",
     icon: "M",
   },
   {
     key: "Integralizacao",
     label: "Integralização",
-    subtitle: "Carga horária por categoria",
+    subtitle: "CH por categoria + horas manuais",
     icon: "I",
   },
   {
     key: "Simulador",
     label: "Simulador",
-    subtitle: "Turmas ofertadas no semestre",
+    subtitle: "Turmas, choques e simulações",
     icon: "S",
   },
   {
@@ -43,7 +55,7 @@ const MENU: MenuItem[] = [
   {
     key: "Perfil",
     label: "Perfil",
-    subtitle: "Conta e notificações",
+    subtitle: "Conta, contato e notificações",
     icon: "◎",
   },
 ];

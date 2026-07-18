@@ -1,11 +1,13 @@
 import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
+  Linking,
   Pressable,
   RefreshControl,
   StyleSheet,
   Switch,
   Text,
+  TextInput,
   View,
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
@@ -17,6 +19,7 @@ import {
   ApiClientError,
   getPerfil,
   requestJson,
+  resolveWebHref,
 } from "../auth/api";
 import { subscriptionStatusLabel } from "../auth/access";
 import { maskCpf } from "../auth/cpf";
@@ -47,12 +50,16 @@ export function PerfilScreen() {
   const [logoutBusy, setLogoutBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
 
   const load = useCallback(async () => {
     setError(null);
     try {
       const result = await getPerfil();
       setPerfil(result);
+      setEmail(result.account.email ?? "");
+      setPhone(result.account.phone ?? "");
     } catch (err) {
       setError(
         err instanceof ApiClientError
@@ -94,6 +101,32 @@ export function PerfilScreen() {
         err instanceof ApiClientError
           ? err.message
           : "Falha ao salvar preferências."
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function saveContact() {
+    setSaving(true);
+    setMessage(null);
+    try {
+      const updated = await requestJson<PerfilResponse>("/api/perfil", {
+        method: "PATCH",
+        body: JSON.stringify({
+          email: email.trim() || null,
+          phone: phone.trim() || null,
+        }),
+      });
+      setPerfil(updated);
+      setEmail(updated.account.email ?? "");
+      setPhone(updated.account.phone ?? "");
+      setMessage("Contato atualizado.");
+    } catch (err) {
+      setMessage(
+        err instanceof ApiClientError
+          ? err.message
+          : "Falha ao salvar contato."
       );
     } finally {
       setSaving(false);
@@ -148,14 +181,39 @@ export function PerfilScreen() {
                 Matrícula {profile.matricula}
               </Text>
             ) : null}
-            {perfil.account.email ? (
-              <Text style={cardStyles.cardMeta}>{perfil.account.email}</Text>
-            ) : null}
             {perfil.account.cpf ? (
               <Text style={cardStyles.cardMeta}>
                 CPF {maskCpf(perfil.account.cpf)}
               </Text>
             ) : null}
+          </View>
+
+          <Text style={cardStyles.sectionTitle}>Contato</Text>
+          <View style={cardStyles.card}>
+            <TextInput
+              style={styles.input}
+              placeholder="E-mail"
+              placeholderTextColor={brand.textMuted}
+              autoCapitalize="none"
+              keyboardType="email-address"
+              value={email}
+              onChangeText={setEmail}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Telefone"
+              placeholderTextColor={brand.textMuted}
+              keyboardType="phone-pad"
+              value={phone}
+              onChangeText={setPhone}
+            />
+            <Pressable
+              style={[styles.saveBtn, saving && styles.disabled]}
+              onPress={() => void saveContact()}
+              disabled={saving}
+            >
+              <Text style={styles.saveText}>Salvar contato</Text>
+            </Pressable>
           </View>
 
           {sub ? (
@@ -171,6 +229,19 @@ export function PerfilScreen() {
               ) : null}
             </View>
           ) : null}
+
+          <View style={cardStyles.card}>
+            <Text style={cardStyles.cardTitle}>Sync</Text>
+            <Text style={cardStyles.cardMeta}>
+              Intervalo automático: {perfil.sync.intervalMinutes} min
+            </Text>
+            <Text style={cardStyles.cardMeta}>
+              Último sync:{" "}
+              {perfil.sync.lastSyncAt
+                ? new Date(perfil.sync.lastSyncAt).toLocaleString("pt-BR")
+                : "nunca"}
+            </Text>
+          </View>
 
           <Text style={cardStyles.sectionTitle}>Notificações</Text>
           {(Object.keys(PREF_LABELS) as PrefKey[]).map((key) => (
@@ -192,6 +263,19 @@ export function PerfilScreen() {
           {message ? <Text style={styles.message}>{message}</Text> : null}
 
           <Pressable
+            style={styles.linkBtn}
+            onPress={() => void Linking.openURL(resolveWebHref("/termos"))}
+          >
+            <Text style={styles.linkText}>Termos de uso</Text>
+          </Pressable>
+          <Pressable
+            style={styles.linkBtn}
+            onPress={() => void Linking.openURL(resolveWebHref("/privacidade"))}
+          >
+            <Text style={styles.linkText}>Privacidade</Text>
+          </Pressable>
+
+          <Pressable
             style={[styles.logout, logoutBusy && styles.disabled]}
             onPress={() => void onLogout()}
             disabled={logoutBusy}
@@ -209,6 +293,23 @@ export function PerfilScreen() {
 }
 
 const styles = StyleSheet.create({
+  input: {
+    backgroundColor: "rgba(0,0,0,0.25)",
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: brand.border,
+    color: brand.text,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginBottom: 8,
+  },
+  saveBtn: {
+    backgroundColor: brand.blue,
+    borderRadius: 10,
+    paddingVertical: 12,
+    alignItems: "center",
+  },
+  saveText: { color: brand.text, fontWeight: "800" },
   prefRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -229,6 +330,8 @@ const styles = StyleSheet.create({
     color: brand.gold,
     textAlign: "center",
   },
+  linkBtn: { marginTop: 10, alignItems: "center" },
+  linkText: { color: brand.gold, fontWeight: "700" },
   logout: {
     marginTop: 20,
     backgroundColor: brand.danger,
