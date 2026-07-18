@@ -777,7 +777,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 > **Pré-mobile (#8):** site **v1.0** (**#6d + #7 + #9 + #10** + **F28**).  
 > **Meta:** mesma função do desktop, UX nativa melhor · sessão que fica · dados no aparelho · push de sync/novidades (só logado).  
-> **Progresso:** **M1–M3** `[x]`. **Local:** **M4–M15** `[%]` (auth → QA). Paridade funcional site↔app (`mobile/docs/PARIDADE-SITE.md`).
+> **Progresso:** **M1–M3** `[x]`. **Local:** **M4–M15** `[%]`. App = WebView site F28 (`mobile/docs/WEBVIEW.md`).
 
 - [x] **SETUP:** M1 *(Expo `mobile/` · Android only · SDK 54)*
 - [x] **SETUP/SHARED:** M2 *(tipos `@acme/api-contracts`)*
