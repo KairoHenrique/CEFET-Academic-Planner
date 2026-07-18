@@ -2,37 +2,51 @@ import { getTaskDueDateTime, normalizeTime } from "@/lib/tasks/dates";
 import {
   buildCalendarEventReminderFingerprint,
   buildClassReminderFingerprint,
+  type CalendarReminderSlot,
 } from "@/lib/notifications/notification-fingerprint";
 import type {
   NotificationSnapshotItem,
   PendingCalendarReminderSource,
 } from "@/lib/types/notifications-api";
 
-export type CalendarReminderSlot = "24h" | "1h";
+export type { CalendarReminderSlot };
 export type ClassReminderSlot = "30m";
 
-const ONE_HOUR_MS = 60 * 60 * 1000;
-const TWENTY_FOUR_HOURS_MS = 24 * ONE_HOUR_MS;
 const THIRTY_MINUTES_MS = 30 * 60 * 1000;
+const MS_PER_DAY = 86_400_000;
 
+function toIsoDate(date: Date): string {
+  return [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, "0"),
+    String(date.getDate()).padStart(2, "0"),
+  ].join("-");
+}
+
+function daysBetweenIso(fromIso: string, toIso: string): number {
+  const from = new Date(`${fromIso}T12:00:00`).getTime();
+  const to = new Date(`${toIso}T12:00:00`).getTime();
+  return Math.round((to - from) / MS_PER_DAY);
+}
+
+/**
+ * Eventos manuais: só cadastro (`new`), 1 dia antes (`1d`) e no dia (`0d`).
+ * Não dispara a cada dia da janela anterior de 24h contínuas.
+ */
 export function getActiveCalendarReminderSlots(
   event: Pick<PendingCalendarReminderSource, "startDateIso" | "startTime">,
   now: Date
 ): CalendarReminderSlot[] {
-  if (!event.startDateIso.trim()) return [];
+  const startDateIso = event.startDateIso.trim();
+  if (!startDateIso) return [];
 
-  const start = getTaskDueDateTime(
-    event.startDateIso,
-    normalizeTime(event.startTime)
-  );
-  if (start.getTime() <= now.getTime()) return [];
+  const todayIso = toIsoDate(now);
+  const days = daysBetweenIso(todayIso, startDateIso);
+  if (days < 0) return [];
 
-  const msUntilStart = start.getTime() - now.getTime();
-  const slots: CalendarReminderSlot[] = [];
-
-  if (msUntilStart <= TWENTY_FOUR_HOURS_MS) slots.push("24h");
-  if (msUntilStart <= ONE_HOUR_MS) slots.push("1h");
-
+  const slots: CalendarReminderSlot[] = ["new"];
+  if (days === 1) slots.push("1d");
+  if (days === 0) slots.push("0d");
   return slots;
 }
 
@@ -53,7 +67,9 @@ export function getActiveClassReminderSlots(
 }
 
 function buildCalendarReminderTitle(slot: CalendarReminderSlot): string {
-  return slot === "24h" ? "Evento em 24 horas" : "Evento em 1 hora";
+  if (slot === "new") return "Novo evento";
+  if (slot === "1d") return "Evento amanhã";
+  return "Evento hoje";
 }
 
 function buildClassReminderTitle(): string {
@@ -64,7 +80,12 @@ function buildCalendarReminderSubtitle(
   event: PendingCalendarReminderSource,
   slot: CalendarReminderSlot
 ): string {
-  const prefix = slot === "24h" ? "Faltam 24h para" : "Faltam 1h para";
+  const prefix =
+    slot === "new"
+      ? "Cadastrado"
+      : slot === "1d"
+        ? "Amanhã"
+        : "Hoje";
   return `${prefix}: ${event.title} · ${event.subtitle}`;
 }
 
@@ -72,7 +93,7 @@ function buildClassReminderSubtitle(event: PendingCalendarReminderSource): strin
   return `Sua aula começa em 30 min: ${event.title} · ${event.subtitle}`;
 }
 
-/** Eventos manuais e marcos — 24h e 1h antes. */
+/** Eventos manuais e marcos — cadastro, 1 dia antes e no dia. */
 export function buildCalendarEventReminderItems(
   events: PendingCalendarReminderSource[],
   now = new Date()

@@ -286,7 +286,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 - [x] **BACK:** B35 *(`GET /api/mapa/grafo` — nós e arestas para react-flow)*
 - [x] **FRONT:** F20 *(grafo react-flow — zoom, pan, setas sólidas/pontilhadas)* · **polish jul/2026:** grafo também em **Montar Grade** (abaixo do simulador) + botão **Expandir** (popup em top-layer `<dialog>`, sem blur) via `ExpandableStage` reutilizável — aplicado ao grafo e à grade.
 - [x] **BACK:** B36 *(alertas integralização — limiar por categoria de CH)* — marcos `50/80/100%` por categoria no sino (kind `integralizacao-alert`)
-- [x] **BACK:** B37 *(alertas calendário — datas acadêmicas próximas)* — janela 14 dias no sino (kind `calendar-date-alert`)
+- [x] **BACK:** B37 *(alertas calendário — datas acadêmicas)* — sino: nova data / 1 dia antes / no dia (kind `calendar-date-alert`; sem spam diário da janela 14d)
 - [-] **FRONT:** F24 *(alertas na UI)* — **descartado** por decisão do produto: alertas de integralização/calendário ficam **só no sino** (B36/B37); banners de página removidos
 
 **Ordem Bloco 3:** `B32–B34` → `F21–F23` → `B35` → `F20` → `B36–B37` → `F24`
@@ -1273,7 +1273,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | B34 | Back | Persistir simulação | `GET/POST/DELETE /api/simulador/simulacoes` · export JSON | 5.3 | [x] |
 | B35 | Back | `GET /api/mapa/grafo` | Nós e arestas para react-flow | 5.2 | [x] |
 | B36 | Back | Alertas integralização | Limiar por categoria de CH (sino) | 5.4 | [x] |
-| B37 | Back | Alertas calendário | Datas acadêmicas próximas (sino) | 5.5 | [x] |
+| B37 | Back | Alertas calendário | Datas acadêmicas no sino (nova / D-1 / no dia) | 5.5 | [x] |
 | F20 | Front | Grafo react-flow | Zoom, pan, setas sólidas/pontilhadas | 5.2 | [x] |
 | F21 | Front | Simulador elegível | Filtro + drag-and-drop na grade | 5.3 | [x] |
 | F22 | Front | Alerta choque | Destaque visual de conflito | 5.3 | [x] |
@@ -1663,7 +1663,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 ### 5.5 Calendário Acadêmico
 - [x] Tela com datas do semestre via `GET /api/calendar` + painel acadêmico (seed/mock em dev; **B66** popula `calendario_academico` via sync isolado)
 - [x] Painel dual-semestre: corrente + próximo; rotação na véspera do Período Letivo; divisor visual; vazio por coluna
-- [x] Alertas/notificações para datas próximas — lembretes de **tarefa** 24h/1h via sino (**F38** ✅); datas acadêmicas institucionais via **B37** (sino, janela 14 dias); **F24 descartado** (sem banner na UI — alerta só no sino)
+- [x] Alertas/notificações para datas próximas — lembretes de **tarefa** 24h/1h via sino (**F38** ✅); datas acadêmicas via **B37** (sino: nova / D-1 / no dia); eventos manuais no mesmo ritmo (cadastro / D-1 / no dia); painel recente some 24h após vista; **F24 descartado** (sem banner na UI — alerta só no sino)
 - [x] Verificação periódica de novas datas — `shouldRunCalendarioSync` + TTL 7d + disparo background pós-sync (**B66**)
 
 ---

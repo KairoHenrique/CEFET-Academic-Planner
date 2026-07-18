@@ -45,13 +45,13 @@ export interface NotificationPreferences {
   tasks: boolean;
   grades: boolean;
   taskReminders: boolean;
-  /** Eventos manuais e marcos — 24h e 1h antes. */
+  /** Eventos manuais e marcos — ao cadastrar, 1 dia antes e no dia. */
   calendarReminders: boolean;
   /** Aulas da grade — apenas 30 min antes. */
   classReminders: boolean;
   /** B36 — marcos de integralização (faixa por categoria de CH). */
   integralizacaoAlerts: boolean;
-  /** B37 — datas acadêmicas institucionais próximas. */
+  /** B37 — datas acadêmicas: nova no sync, 1 dia antes e no dia. */
   academicDateAlerts: boolean;
 }
 

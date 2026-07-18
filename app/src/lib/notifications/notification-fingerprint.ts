@@ -52,10 +52,13 @@ export function buildGradeNotificationFingerprint(
   return `${base}|${normalizeGradeNota(nota)}`;
 }
 
+export type CalendarReminderSlot = "new" | "1d" | "0d";
+export type AcademicDateAlertSlot = "new" | "1d" | "0d";
+
 export function buildCalendarEventReminderFingerprint(
   eventId: string,
   startDateIso: string,
-  slot: "24h" | "1h"
+  slot: CalendarReminderSlot
 ): string {
   return `calendar-event-reminder:${eventId}|${startDateIso}|${slot}`;
 }
@@ -78,12 +81,13 @@ export function buildIntegralizacaoAlertFingerprint(
   return `integralizacao-alert:${normalizeNotificationText(categoria)}|${band}`;
 }
 
-/** B37 — chave estável por (evento, data de início). */
+/** B37 — chave estável por (evento, data, momento: new / 1d / 0d). */
 export function buildAcademicDateAlertFingerprint(
   eventId: string,
-  startDateIso: string
+  startDateIso: string,
+  slot: AcademicDateAlertSlot
 ): string {
-  return `calendar-date-alert:${eventId}|${startDateIso}`;
+  return `calendar-date-alert:${eventId}|${startDateIso}|${slot}`;
 }
 
 export function isUrgentClassReminderFingerprint(fingerprint: string): boolean {
@@ -133,7 +137,7 @@ export function isUrgentTaskReminderFingerprint(fingerprint: string): boolean {
 export function isUrgentCalendarReminderFingerprint(fingerprint: string): boolean {
   return (
     fingerprint.startsWith("calendar-event-reminder:") &&
-    fingerprint.endsWith("|1h")
+    fingerprint.endsWith("|0d")
   );
 }
 

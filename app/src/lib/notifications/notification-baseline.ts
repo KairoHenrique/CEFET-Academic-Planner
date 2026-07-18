@@ -68,12 +68,66 @@ export function isNotificationMarkedReadInBaseline(
   baseline: Set<string>
 ): boolean {
   if (baseline.has(fingerprint)) return true;
-  return isGradeFingerprintMarkedReadInBaseline(fingerprint, baseline);
+  if (isGradeFingerprintMarkedReadInBaseline(fingerprint, baseline)) return true;
+  return isLegacyCalendarSlotMarkedRead(fingerprint, baseline);
+}
+
+/**
+ * Baseline antiga (B37 sem slot / lembretes 24h·1h): trata `|new` como já visto
+ * se o mesmo evento+data já estava no baseline, evitando flood na troca de política.
+ */
+function isLegacyCalendarSlotMarkedRead(
+  fingerprint: string,
+  baseline: Set<string>
+): boolean {
+  const academic = fingerprint.match(
+    /^calendar-date-alert:(.+)\|(\d{4}-\d{2}-\d{2})\|new$/
+  );
+  if (academic) {
+    const legacy = `calendar-date-alert:${academic[1]}|${academic[2]}`;
+    if (baseline.has(legacy)) return true;
+  }
+
+  const calendar = fingerprint.match(
+    /^calendar-event-reminder:(.+)\|(\d{4}-\d{2}-\d{2})\|new$/
+  );
+  if (calendar) {
+    const prefix = `calendar-event-reminder:${calendar[1]}|${calendar[2]}|`;
+    for (const key of baseline) {
+      if (key.startsWith(prefix)) return true;
+    }
+  }
+
+  return false;
+}
+
+const CALENDAR_SLOTS_V2_FLAG = "meta:calendar-notification-slots-v2";
+
+/**
+ * One-shot: marca todos os `|new` atuais como lidos para quem já tinha baseline,
+ * senão o usuário recebe dezenas de “Nova data / Novo evento” de uma vez.
+ * Datas D-1 / no dia continuam notificando quando chegarem.
+ */
+export function migrateCalendarNotificationSlotsV2(
+  stableFingerprints: string[]
+): boolean {
+  const baseline = readNotificationBaseline();
+  if (!baseline || baseline.has(CALENDAR_SLOTS_V2_FLAG)) return false;
+
+  const newsToSeed = stableFingerprints.filter(
+    (fp) =>
+      fp.endsWith("|new") &&
+      (fp.startsWith("calendar-date-alert:") ||
+        fp.startsWith("calendar-event-reminder:"))
+  );
+
+  mergeNotificationBaseline([...newsToSeed, CALENDAR_SLOTS_V2_FLAG]);
+  return true;
 }
 
 export function seedNotificationBaselineIfMissing(fingerprints: string[]): void {
   if (readNotificationBaseline() !== null) return;
-  writeNotificationBaseline(fingerprints);
+  writeNotificationBaseline([...fingerprints, CALENDAR_SLOTS_V2_FLAG]);
 }
 
 /** Primeira baseline após sync: só o que já existia antes, não notas novas do scrape. */
@@ -81,6 +135,6 @@ export function initializeNotificationBaselineFromPreSync(
   preSyncFingerprints: string[]
 ): boolean {
   if (readNotificationBaseline() !== null) return false;
-  writeNotificationBaseline(preSyncFingerprints);
+  writeNotificationBaseline([...preSyncFingerprints, CALENDAR_SLOTS_V2_FLAG]);
   return true;
 }

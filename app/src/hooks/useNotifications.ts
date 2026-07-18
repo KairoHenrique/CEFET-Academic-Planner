@@ -7,6 +7,7 @@ import {
   initializeNotificationBaselineFromPreSync,
   isNotificationMarkedReadInBaseline,
   mergeNotificationBaseline,
+  migrateCalendarNotificationSlotsV2,
   migrateLegacyNotificationBaseline,
   readNotificationBaseline,
   seedNotificationBaselineIfMissing,
@@ -141,7 +142,7 @@ export function useNotifications() {
         )
       ),
       ...(query.data.pendingCalendarEvents ?? []).flatMap((event) =>
-        (["24h", "1h"] as const).map((slot) =>
+        (["new", "1d", "0d"] as const).map((slot) =>
           buildCalendarEventReminderFingerprint(
             event.eventId,
             event.startDateIso,
@@ -154,10 +155,17 @@ export function useNotifications() {
       ),
     ];
 
+    let bumped = false;
     if (migrateLegacyNotificationBaseline(stableFingerprints)) {
-      setBaselineVersion((value) => value + 1);
+      bumped = true;
+    }
+    if (migrateCalendarNotificationSlotsV2(stableFingerprints)) {
+      bumped = true;
     } else if (preSync === null) {
       seedNotificationBaselineIfMissing(stableFingerprints);
+    }
+    if (bumped) {
+      setBaselineVersion((value) => value + 1);
     }
   }, [
     query.data?.items,

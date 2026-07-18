@@ -3,19 +3,21 @@ import {
   formatIsoToBrDate,
 } from "@/lib/calendar/academic-date-format";
 import { mergeKnownInstitutionalDates } from "@/lib/calendar/known-institutional-dates";
-import { buildAcademicDateAlertFingerprint } from "@/lib/notifications/notification-fingerprint";
+import {
+  buildAcademicDateAlertFingerprint,
+  type AcademicDateAlertSlot,
+} from "@/lib/notifications/notification-fingerprint";
 import type { CalendarioAcademicoRow } from "@/lib/types/db";
 import type { NotificationSnapshotItem } from "@/lib/types/notifications-api";
 
 /**
- * B37 — datas acadêmicas institucionais próximas (matrícula, rematrícula,
- * resultados, provas finais, período letivo…).
+ * B37 — datas acadêmicas institucionais.
  *
- * Complementa o pipeline de lembretes 24h/1h do sino, que hoje EXCLUI eventos
- * `academico-*`. Aqui a janela é diária (`[hoje, hoje+N]`): a cada refetch do
- * React Query o conjunto reflete a data atual, sem precisar do tick de 60s.
+ * Avisa só em 3 momentos (não a cada dia da janela):
+ * - `new`: data nova no calendário (primeira aparição no snapshot)
+ * - `1d`: um dia antes
+ * - `0d`: no dia do evento
  */
-const UPCOMING_WINDOW_DAYS = 14;
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 const MS_PER_DAY = 86_400_000;
 
@@ -33,43 +35,65 @@ function daysBetweenIso(fromIso: string, toIso: string): number {
   return Math.round((to - from) / MS_PER_DAY);
 }
 
-function buildCountdownSubtitle(startIso: string, todayIso: string): string {
-  const days = daysBetweenIso(todayIso, startIso);
+function buildSlotSubtitle(
+  slot: AcademicDateAlertSlot,
+  startIso: string
+): string {
   const dateLabel = formatIsoToBrDate(startIso);
-  if (days <= 0) return `Hoje · ${dateLabel}`;
-  if (days === 1) return `Amanhã · ${dateLabel}`;
-  return `Em ${days} dias · ${dateLabel}`;
+  if (slot === "new") return `Nova data · ${dateLabel}`;
+  if (slot === "1d") return `Amanhã · ${dateLabel}`;
+  return `Hoje · ${dateLabel}`;
+}
+
+function buildSlotTitle(
+  slot: AcademicDateAlertSlot,
+  eventLabel: string
+): string {
+  if (slot === "new") return `Nova data: ${eventLabel}`;
+  if (slot === "1d") return `Amanhã: ${eventLabel}`;
+  return `Hoje: ${eventLabel}`;
 }
 
 /** Núcleo puro — recebe as linhas do calendário acadêmico (SQLite ou Postgres). */
 export function buildAcademicDateAlertItems(
   academicRows: CalendarioAcademicoRow[],
-  referenceDate: Date = new Date(),
-  windowDays: number = UPCOMING_WINDOW_DAYS
+  referenceDate: Date = new Date()
 ): NotificationSnapshotItem[] {
   const rows = mergeKnownInstitutionalDates(academicRows);
-
   const todayIso = toIsoDate(referenceDate);
-  const horizon = new Date(referenceDate);
-  horizon.setDate(horizon.getDate() + windowDays);
-  const horizonIso = toIsoDate(horizon);
-
   const items: NotificationSnapshotItem[] = [];
+
   for (const row of rows) {
     const startIso = row.data_inicio?.trim();
     if (!startIso || !ISO_DATE.test(startIso)) continue;
-    if (startIso < todayIso || startIso > horizonIso) continue;
+    if (startIso < todayIso) continue;
 
-    items.push({
-      fingerprint: buildAcademicDateAlertFingerprint(String(row.id), startIso),
-      kind: "calendar-date-alert",
-      title: formatInstitutionalEventLabel(row),
-      subtitle: buildCountdownSubtitle(startIso, todayIso),
-      href: "/calendario",
-      at: startIso,
-    });
+    const eventLabel = formatInstitutionalEventLabel(row);
+    const days = daysBetweenIso(todayIso, startIso);
+    const slots: AcademicDateAlertSlot[] = ["new"];
+    if (days === 1) slots.push("1d");
+    if (days === 0) slots.push("0d");
+
+    for (const slot of slots) {
+      items.push({
+        fingerprint: buildAcademicDateAlertFingerprint(
+          String(row.id),
+          startIso,
+          slot
+        ),
+        kind: "calendar-date-alert",
+        title: buildSlotTitle(slot, eventLabel),
+        subtitle: buildSlotSubtitle(slot, startIso),
+        href: "/calendario",
+        at: startIso,
+      });
+    }
   }
 
-  items.sort((a, b) => (a.at ?? "").localeCompare(b.at ?? ""));
+  items.sort((a, b) => {
+    const byDate = (a.at ?? "").localeCompare(b.at ?? "");
+    if (byDate !== 0) return byDate;
+    return a.fingerprint.localeCompare(b.fingerprint);
+  });
   return items;
 }
