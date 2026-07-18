@@ -14,14 +14,14 @@ import {
   type MobileAuthSession,
 } from "./src/auth/session";
 import { hasApiBaseUrl } from "./src/config/env";
+import { registerPushForCurrentSession } from "./src/push/register";
 import { HomePlaceholderScreen } from "./src/screens/HomePlaceholderScreen";
 import { LoginScreen } from "./src/screens/LoginScreen";
 import { PaywallScreen } from "./src/screens/PaywallScreen";
 import { brand } from "./src/theme/brand";
 
 /**
- * M4 — AuthGate + SubscriptionGate.
- * Sem sessão → login; bloqueado → paywall; liberado → home (placeholder até M7).
+ * AuthGate + SubscriptionGate (M4) · push register (M6) · home até M7.
  */
 export default function App() {
   const [ready, setReady] = useState(false);
@@ -29,7 +29,12 @@ export default function App() {
   const apiOk = hasApiBaseUrl();
 
   useEffect(() => {
-    const unsub = subscribeSession((next) => setSessionState(next));
+    const unsub = subscribeSession((next) => {
+      setSessionState(next);
+      if (next && resolveAppDestination(next.subscription.status) === "home") {
+        void registerPushForCurrentSession();
+      }
+    });
     void (async () => {
       const stored = await hydrateSession();
       if (stored) {
@@ -40,7 +45,14 @@ export default function App() {
           // Mantém snapshot local; gate usa status gravado.
         }
       }
-      setSessionState(getSession());
+      const current = getSession();
+      setSessionState(current);
+      if (
+        current &&
+        resolveAppDestination(current.subscription.status) === "home"
+      ) {
+        void registerPushForCurrentSession();
+      }
       setReady(true);
     })();
     return unsub;

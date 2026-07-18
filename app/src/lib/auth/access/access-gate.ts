@@ -5,6 +5,7 @@ import type { AppAccessSnapshot } from "@/lib/auth/access/access-status";
 const ACCESS_GATE_EXEMPT_PATHS = new Set([
   "/api/health",
   "/api/perfil",
+  "/api/push/register",
 ]);
 
 function isBillingRoute(pathname: string): boolean {

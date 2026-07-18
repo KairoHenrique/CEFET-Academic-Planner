@@ -8,6 +8,7 @@ import type {
 } from "@acme/api-contracts";
 import { getApiBaseUrl } from "../config/env";
 import { clearLocalAppData } from "./logout";
+import { unregisterPushForCurrentSession } from "../push/register";
 import {
   applySessionTokens,
   buildAuthHeaders,
@@ -165,8 +166,9 @@ export async function loginAndPersist(
   return persistFromAuthResponse(auth);
 }
 
-/** Logout local: tokens + cache/push (hooks M5/M6). */
+/** Logout local: push token + cache + sessão. */
 export async function logoutLocal(): Promise<void> {
+  await unregisterPushForCurrentSession();
   await clearLocalAppData();
   await clearSession();
 }
