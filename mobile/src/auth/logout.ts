@@ -1,16 +1,15 @@
 /**
- * Limpa dados locais no logout (M4).
- * Cache (M5) e push tokens (M6) encaixam aqui quando existirem.
+ * Limpa dados locais no logout (M4+).
+ * M5: snapshot acadêmico · M6: token push (quando existir).
  */
-const EXTRA_KEYS: string[] = [
-  // "acme-hub.cache.snapshot",
-  // "acme-hub.push.token",
-];
+import { clearAllAcademicCaches } from "../cache/academic-cache";
 
 export async function clearLocalAppData(): Promise<void> {
-  if (EXTRA_KEYS.length === 0) return;
-  const SecureStore = await import("expo-secure-store");
-  await Promise.all(
-    EXTRA_KEYS.map((key) => SecureStore.deleteItemAsync(key).catch(() => undefined))
-  );
+  await clearAllAcademicCaches();
+  try {
+    const SecureStore = await import("expo-secure-store");
+    await SecureStore.deleteItemAsync("acme-hub.push.token").catch(() => undefined);
+  } catch {
+    // SecureStore pode falhar em ambientes sem native — ignore.
+  }
 }

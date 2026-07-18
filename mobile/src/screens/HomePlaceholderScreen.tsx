@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -14,31 +14,51 @@ import {
 } from "../auth/api";
 import { maskCpf } from "../auth/cpf";
 import type { MobileAuthSession } from "../auth/session";
+import { cacheAgeLabel } from "../cache/academic-cache";
+import { fetchDashboard, peekAcademicCache } from "../cache/fetchers";
 import { brand } from "../theme/brand";
 
 type Props = {
   session: MobileAuthSession;
 };
 
-/**
- * Placeholder até M7 (dashboard). Confirma gate + logout.
- */
+/** Placeholder até M7. Exercita cache M5 + logout. */
 export function HomePlaceholderScreen({ session }: Props) {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [cacheHint, setCacheHint] = useState<string | null>(null);
+  const [dashHint, setDashHint] = useState<string | null>(null);
   const sub = session.subscription;
+
+  useEffect(() => {
+    void (async () => {
+      const snap = await peekAcademicCache();
+      setCacheHint(cacheAgeLabel(snap?.updatedAt));
+      if (snap?.dashboard) {
+        setDashHint(
+          `${snap.dashboard.stats.tarefasPendentes} tarefas · ${snap.dashboard.stats.disciplinasCursando} disciplinas (cache)`
+        );
+      }
+    })();
+  }, [session.userId]);
 
   async function onRefreshAccess() {
     setBusy(true);
     setMessage(null);
     try {
       await syncSubscriptionFromPerfil();
-      setMessage("Acesso atualizado.");
+      const { data, fromCache } = await fetchDashboard();
+      setDashHint(
+        `${data.stats.tarefasPendentes} tarefas · ${data.stats.disciplinasCursando} disciplinas${fromCache ? " (cache)" : ""}`
+      );
+      const snap = await peekAcademicCache();
+      setCacheHint(cacheAgeLabel(snap?.updatedAt));
+      setMessage(
+        fromCache ? "Rede falhou — mostrando cache." : "Dados atualizados."
+      );
     } catch (error) {
       setMessage(
-        error instanceof ApiClientError
-          ? error.message
-          : "Falha ao atualizar assinatura."
+        error instanceof ApiClientError ? error.message : "Falha ao atualizar."
       );
     } finally {
       setBusy(false);
@@ -67,10 +87,11 @@ export function HomePlaceholderScreen({ session }: Props) {
           {sub.daysRemaining > 0 ? ` · ${sub.daysRemaining}d` : ""}
         </Text>
       ) : null}
+      {cacheHint ? <Text style={styles.cache}>{cacheHint}</Text> : null}
+      {dashHint ? <Text style={styles.dash}>{dashHint}</Text> : null}
 
       <Text style={styles.placeholder}>
-        Telas do app (dashboard, matérias, …) entram em M7+. Navegação será
-        bottom tabs — sem sidebar.
+        Cache local M5 ativo. Telas completas em M7+.
       </Text>
 
       <View style={styles.actions}>
@@ -82,7 +103,7 @@ export function HomePlaceholderScreen({ session }: Props) {
           {busy ? (
             <ActivityIndicator color={brand.blue} />
           ) : (
-            <Text style={styles.buttonText}>Atualizar assinatura</Text>
+            <Text style={styles.buttonText}>Atualizar dados</Text>
           )}
         </Pressable>
         <Pressable
@@ -130,6 +151,19 @@ const styles = StyleSheet.create({
     marginTop: 6,
     color: brand.white,
     opacity: 0.85,
+    textAlign: "center",
+    fontSize: 13,
+  },
+  cache: {
+    marginTop: 10,
+    color: brand.gold,
+    textAlign: "center",
+    fontSize: 12,
+  },
+  dash: {
+    marginTop: 6,
+    color: brand.white,
+    opacity: 0.9,
     textAlign: "center",
     fontSize: 13,
   },
