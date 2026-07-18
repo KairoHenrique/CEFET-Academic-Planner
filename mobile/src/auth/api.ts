@@ -7,8 +7,6 @@ import type {
   SubscriptionAccessView,
 } from "@acme/api-contracts";
 import { getApiBaseUrl } from "../config/env";
-import { clearLocalAppData } from "./logout";
-import { unregisterPushForCurrentSession } from "../push/register";
 import {
   applySessionTokens,
   buildAuthHeaders,
@@ -164,13 +162,6 @@ export async function loginAndPersist(
 ): Promise<MobileAuthSession> {
   const auth = await postAuthLogin(body);
   return persistFromAuthResponse(auth);
-}
-
-/** Logout local: push token + cache + sessão. */
-export async function logoutLocal(): Promise<void> {
-  await unregisterPushForCurrentSession();
-  await clearLocalAppData();
-  await clearSession();
 }
 
 /** Monta URL absoluta para abrir planos no browser. */

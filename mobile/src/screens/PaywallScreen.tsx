@@ -10,11 +10,11 @@ import {
 import { subscriptionStatusLabel } from "../auth/access";
 import {
   ApiClientError,
-  logoutLocal,
   resolveWebHref,
   syncSubscriptionFromPerfil,
 } from "../auth/api";
 import { maskCpf } from "../auth/cpf";
+import { logoutLocal } from "../auth/logout";
 import type { MobileAuthSession } from "../auth/session";
 import { brand } from "../theme/brand";
 

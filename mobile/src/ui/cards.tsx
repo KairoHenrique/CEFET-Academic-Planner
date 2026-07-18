@@ -1,6 +1,8 @@
 import { StyleSheet, Text, View } from "react-native";
 import { brand } from "../theme/brand";
 
+export { gradeRiskLabel } from "../lib/safe-text";
+
 export const cardStyles = StyleSheet.create({
   card: {
     backgroundColor: brand.glass,
@@ -83,32 +85,6 @@ export function formatPtDate(iso: string): string {
 export function formatGrade(value: number | null, max = 10): string {
   if (value == null) return "—";
   return `${value.toFixed(1)}/${max}`;
-}
-
-/** Aceita objeto da API (`{ label, zone, ... }`) ou string legada. */
-export function gradeRiskLabel(
-  risk: { label?: string } | string | null | undefined
-): string {
-  if (risk == null) return "—";
-  if (typeof risk === "string") {
-    const map: Record<string, string> = {
-      seguro: "Seguro",
-      atencao: "Atenção",
-      critico: "Crítico",
-      recuperacao: "Recuperação",
-      reprovado: "Reprovado",
-      sem_nota: "Sem nota",
-      safe: "Seguro",
-      warning: "Atenção",
-      danger: "Crítico",
-      unknown: "Sem nota",
-    };
-    return map[risk] ?? risk;
-  }
-  if (typeof risk.label === "string" && risk.label.trim()) {
-    return risk.label;
-  }
-  return "—";
 }
 
 const styles = StyleSheet.create({

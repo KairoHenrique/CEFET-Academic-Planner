@@ -142,11 +142,11 @@ export interface DashboardStats {
 }
 
 export interface IntegrationCategory {
-  id: string;
   label: string;
-  hours: number;
   done: number;
-  percent: number;
+  total: number;
+  pending: number;
+  color: "blue" | "gold" | "success" | "warning";
 }
 
 export interface DashboardIntegralizacao {
@@ -253,11 +253,19 @@ export interface SubjectDetail {
   ementa: string;
 }
 
+export type AttendanceStatus = "presente" | "falta" | "nao_registrada";
+
+export interface AttendanceRecord {
+  id: number;
+  date: string;
+  status: AttendanceStatus;
+  quantidade?: number;
+}
+
+/** Paridade com `app/src/lib/types/attendance.ts`. */
 export interface AttendanceSummary {
-  absences: number;
-  maxAbsences: number;
-  percentUsed: number;
-  remaining: number;
+  records: AttendanceRecord[];
+  daysRemaining: number;
 }
 
 export interface GrupoMembroDto {
@@ -348,49 +356,57 @@ export interface ScheduleApiResponse {
 /* Mapa / Integralização                                                      */
 /* -------------------------------------------------------------------------- */
 
-export type MapaDisciplineStatus =
-  | "concluida"
-  | "cursando"
-  | "liberada"
-  | "bloqueada"
-  | "optativa";
+/** Paridade com `CourseMapStatus` do site. */
+export type MapaDisciplineStatus = "done" | "current" | "unlocked" | "locked";
 
 export interface MapaDiscipline {
   code: string;
+  shortLabel: string;
   name: string;
-  period: number;
+  ch: number;
+  type: string | null;
   status: MapaDisciplineStatus;
-  ch?: number;
+  blockedBy?: "prereq" | "ch";
+  chRemaining?: number;
 }
 
 export interface MapaPeriod {
   period: number;
-  label: string;
-  disciplines: MapaDiscipline[];
+  subjects: MapaDiscipline[];
 }
 
 export interface MapaStats {
   total: number;
-  concluidas: number;
-  cursando: number;
-  liberadas: number;
-  bloqueadas: number;
-  percent: number;
+  done: number;
+  current: number;
+  unlocked: number;
+  locked: number;
 }
 
 export interface MapaResponse {
   curso: string;
   periods: MapaPeriod[];
   stats: MapaStats;
-  statusLabels: Record<string, string>;
+  statusLabels: Record<MapaDisciplineStatus, string>;
   historicoSynced: boolean;
+}
+
+export interface IntegralizacaoManualEntry {
+  id: number;
+  tipoCh: string;
+  horas: number;
+}
+
+export interface IntegralizacaoCategoryDetail extends IntegrationCategory {
+  manualEntries: IntegralizacaoManualEntry[];
 }
 
 export interface IntegralizacaoResponse {
   totalHours: number;
   totalDone: number;
   percent: number;
-  categories: IntegrationCategory[];
+  percentSigaa: number | null;
+  categories: IntegralizacaoCategoryDetail[];
 }
 
 /* -------------------------------------------------------------------------- */
