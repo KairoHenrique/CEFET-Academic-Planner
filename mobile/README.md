@@ -10,7 +10,7 @@ Roadmap: [`docs/TASKS.md`](../docs/TASKS.md) · Bloco 8 · escopo [`docs/SCOPE-C
 - [Expo Go](https://play.google.com/store/apps/details?id=host.exp.exponent) no Android (**Play Store** — SDK **54**)
 - Mesma rede Wi‑Fi do PC (ou tunnel)
 
-> O projeto usa **Expo SDK 54** de propósito: a Play Store ainda não entrega Expo Go para SDK 55+. Com SDK 57 o app mostra “Project is incompatible…”.
+> O projeto usa **Expo SDK 54** de propósito: a Play Store ainda não entrega Expo Go para SDK 55+.
 
 ## Rodar
 
@@ -20,44 +20,28 @@ npm install
 npm start
 ```
 
-No terminal do Expo, escaneie o QR com o **Expo Go** (Android). Ou:
-
-```bash
-npm run android
-```
-
-## Escopo M1
-
-- Projeto Expo TypeScript em `mobile/`
-- Target **Android only** (`platforms: ["android"]`)
-- **SDK 54** (compatível com Expo Go da loja)
-- Identidade Cruzeiro (`#0060B1` / `#D4A843`)
-
-Próximas tasks: **M2** tipos · **M3** sessão · **M4** auth · …
-
 ## Estrutura
 
 ```
 mobile/
-├── App.tsx                 # smoke UI (sessão M3; auth UI → M4)
+├── App.tsx                 # AuthGate + SubscriptionGate (M4)
 ├── app.json
 ├── metro.config.js
-├── .env.example            # EXPO_PUBLIC_API_BASE_URL
+├── .env.example
 ├── src/
-│   ├── auth/               # SecureStore + login/refresh (M3)
+│   ├── auth/               # SecureStore · login · refresh · access · logout
+│   ├── screens/            # Login · Paywall · Home placeholder
 │   ├── config/env.ts
 │   ├── contracts/
 │   └── theme/brand.ts
 └── assets/
 ```
 
-Contratos: [`packages/api-contracts`](../packages/api-contracts).
+## Sessão e auth (M3–M4)
 
-## Sessão (M3)
-
-1. Copie `.env.example` → `.env` (URL da API).
-2. `npx expo start -c` → Expo Go.
-3. Login smoke → tokens no SecureStore; feche o app e reabra (deve continuar logado).
-4. **Forçar refresh** / **Logout local**.
-
-`POST /api/auth/refresh` precisa estar no cloud (deploy após push).
+1. `.env` com `EXPO_PUBLIC_API_BASE_URL`
+2. `npx expo start -c` → Expo Go
+3. **Login** (CPF + senha cloud)
+4. Sem assinatura válida → **paywall** (abre planos no site)
+5. Com trial/pago → home placeholder (dashboard em M7+)
+6. **Sair** limpa SecureStore (+ hooks cache/push futuros)

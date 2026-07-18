@@ -1,17 +1,10 @@
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { resolveAppDestination } from "./src/auth/access";
 import {
   ensureFreshSession,
-  loginAndPersist,
-  logoutLocal,
+  syncSubscriptionFromPerfil,
 } from "./src/auth/api";
 import {
   getSession,
@@ -21,25 +14,18 @@ import {
   type MobileAuthSession,
 } from "./src/auth/session";
 import { hasApiBaseUrl } from "./src/config/env";
+import { HomePlaceholderScreen } from "./src/screens/HomePlaceholderScreen";
+import { LoginScreen } from "./src/screens/LoginScreen";
+import { PaywallScreen } from "./src/screens/PaywallScreen";
 import { brand } from "./src/theme/brand";
 
-function maskCpf(cpf: string): string {
-  const digits = cpf.replace(/\D/g, "");
-  if (digits.length < 4) return "***";
-  return `***${digits.slice(-4)}`;
-}
-
 /**
- * M1–M3: scaffold + contratos + sessão SecureStore.
- * Login UI definitivo entra em M4 — formulário abaixo é smoke de QA.
+ * M4 — AuthGate + SubscriptionGate.
+ * Sem sessão → login; bloqueado → paywall; liberado → home (placeholder até M7).
  */
 export default function App() {
   const [ready, setReady] = useState(false);
   const [session, setSessionState] = useState<MobileAuthSession | null>(null);
-  const [cpf, setCpf] = useState("");
-  const [password, setPassword] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
   const apiOk = hasApiBaseUrl();
 
   useEffect(() => {
@@ -49,8 +35,9 @@ export default function App() {
       if (stored) {
         try {
           await ensureFreshSession();
+          await syncSubscriptionFromPerfil();
         } catch {
-          setMessage("Não foi possível renovar a sessão. Faça login de novo.");
+          // Mantém snapshot local; gate usa status gravado.
         }
       }
       setSessionState(getSession());
@@ -59,211 +46,48 @@ export default function App() {
     return unsub;
   }, []);
 
-  async function onLogin() {
-    setBusy(true);
-    setMessage(null);
-    try {
-      await loginAndPersist({ cpf: cpf.trim(), password });
-      setPassword("");
-      setMessage("Sessão gravada no SecureStore.");
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Falha no login.");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function onRefresh() {
-    setBusy(true);
-    setMessage(null);
-    try {
-      const next = await ensureFreshSession({ force: true });
-      setMessage(next ? "Token renovado." : "Sem sessão.");
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Falha no refresh.");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function onLogout() {
-    setBusy(true);
-    setMessage(null);
-    try {
-      await logoutLocal();
-      setMessage("Sessão limpa (logout local).");
-    } finally {
-      setBusy(false);
-    }
-  }
-
   if (!ready) {
     return (
-      <View style={styles.container}>
-        <ActivityIndicator color={brand.gold} />
+      <View style={styles.boot}>
+        <ActivityIndicator color={brand.gold} size="large" />
         <StatusBar style="light" />
       </View>
     );
   }
 
-  const loggedIn = isAuthenticated(session);
+  if (!isAuthenticated(session) || !session) {
+    return (
+      <>
+        <LoginScreen apiConfigured={apiOk} />
+        <StatusBar style="light" />
+      </>
+    );
+  }
+
+  const destination = resolveAppDestination(session.subscription.status);
+
+  if (destination === "paywall") {
+    return (
+      <>
+        <PaywallScreen session={session} />
+        <StatusBar style="light" />
+      </>
+    );
+  }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.brand}>ACME HUB</Text>
-      <Text style={styles.subtitle}>Mobile · sessão M3</Text>
-
-      <Text style={styles.status}>
-        {loggedIn
-          ? `Logado · CPF ${maskCpf(session!.cpf)} · curso ${session!.cursoId}`
-          : "Sem sessão (SecureStore vazio)"}
-      </Text>
-
-      {!apiOk ? (
-        <Text style={styles.warn}>
-          Configure EXPO_PUBLIC_API_BASE_URL em mobile/.env
-        </Text>
-      ) : null}
-
-      {!loggedIn ? (
-        <View style={styles.form}>
-          <TextInput
-            style={styles.input}
-            placeholder="CPF"
-            placeholderTextColor="rgba(255,255,255,0.45)"
-            keyboardType="number-pad"
-            autoCapitalize="none"
-            value={cpf}
-            onChangeText={setCpf}
-            editable={!busy}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Senha"
-            placeholderTextColor="rgba(255,255,255,0.45)"
-            secureTextEntry
-            value={password}
-            onChangeText={setPassword}
-            editable={!busy}
-          />
-          <Pressable
-            style={[styles.button, busy && styles.buttonDisabled]}
-            onPress={() => void onLogin()}
-            disabled={busy || !apiOk}
-          >
-            <Text style={styles.buttonText}>Entrar (smoke)</Text>
-          </Pressable>
-        </View>
-      ) : (
-        <View style={styles.form}>
-          <Pressable
-            style={[styles.button, busy && styles.buttonDisabled]}
-            onPress={() => void onRefresh()}
-            disabled={busy || !apiOk}
-          >
-            <Text style={styles.buttonText}>Forçar refresh</Text>
-          </Pressable>
-          <Pressable
-            style={[styles.buttonSecondary, busy && styles.buttonDisabled]}
-            onPress={() => void onLogout()}
-            disabled={busy}
-          >
-            <Text style={styles.buttonTextLight}>Logout local</Text>
-          </Pressable>
-        </View>
-      )}
-
-      {message ? <Text style={styles.message}>{message}</Text> : null}
-      <Text style={styles.hint}>UI de auth definitiva · M4</Text>
+    <>
+      <HomePlaceholderScreen session={session} />
       <StatusBar style="light" />
-    </View>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  boot: {
     flex: 1,
     backgroundColor: brand.blue,
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: 24,
-  },
-  brand: {
-    color: brand.white,
-    fontSize: 36,
-    fontWeight: "800",
-    letterSpacing: 1,
-  },
-  subtitle: {
-    marginTop: 8,
-    color: brand.gold,
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  status: {
-    marginTop: 20,
-    color: brand.white,
-    fontSize: 14,
-    textAlign: "center",
-    opacity: 0.95,
-  },
-  warn: {
-    marginTop: 12,
-    color: "#ffb4b4",
-    fontSize: 13,
-    textAlign: "center",
-  },
-  form: {
-    width: "100%",
-    maxWidth: 360,
-    marginTop: 20,
-    gap: 10,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.35)",
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    color: brand.white,
-    fontSize: 16,
-  },
-  button: {
-    backgroundColor: brand.gold,
-    borderRadius: 10,
-    paddingVertical: 14,
-    alignItems: "center",
-  },
-  buttonSecondary: {
-    backgroundColor: "rgba(255,255,255,0.18)",
-    borderRadius: 10,
-    paddingVertical: 14,
-    alignItems: "center",
-  },
-  buttonDisabled: {
-    opacity: 0.55,
-  },
-  buttonText: {
-    color: brand.blue,
-    fontWeight: "700",
-    fontSize: 15,
-  },
-  buttonTextLight: {
-    color: brand.white,
-    fontWeight: "700",
-    fontSize: 15,
-  },
-  message: {
-    marginTop: 16,
-    color: brand.white,
-    fontSize: 13,
-    textAlign: "center",
-    opacity: 0.9,
-  },
-  hint: {
-    marginTop: 28,
-    color: brand.white,
-    opacity: 0.7,
-    fontSize: 12,
   },
 });
