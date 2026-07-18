@@ -4,7 +4,7 @@ import type { NotificationSnapshotItem } from "@/lib/types/notifications-api";
 const STORAGE_PREFIX = "planner:notifications:recent-panel:";
 export const RECENT_PANEL_TTL_MS = 24 * 60 * 60 * 1000;
 
-interface RecentPanelEntry {
+export interface RecentPanelEntry {
   item: NotificationSnapshotItem;
   seenAt: string;
 }
@@ -35,7 +35,10 @@ function writeEntries(entries: RecentPanelEntry[]): void {
   localStorage.setItem(key, JSON.stringify(entries));
 }
 
-function pruneExpired(entries: RecentPanelEntry[], now = Date.now()): RecentPanelEntry[] {
+export function pruneExpiredRecentPanelEntries(
+  entries: RecentPanelEntry[],
+  now = Date.now()
+): RecentPanelEntry[] {
   return entries.filter((entry) => {
     const seenAt = Date.parse(entry.seenAt);
     if (!Number.isFinite(seenAt)) return false;
@@ -43,9 +46,34 @@ function pruneExpired(entries: RecentPanelEntry[], now = Date.now()): RecentPane
   });
 }
 
+/** Mescla itens vistos preservando o seenAt original (TTL de 24h não renova). */
+export function mergeRecentPanelArchive(
+  existing: RecentPanelEntry[],
+  items: NotificationSnapshotItem[],
+  seenAt: string,
+  now = Date.parse(seenAt)
+): RecentPanelEntry[] {
+  const byFingerprint = new Map<string, RecentPanelEntry>();
+
+  for (const entry of pruneExpiredRecentPanelEntries(existing, now)) {
+    byFingerprint.set(entry.item.fingerprint, entry);
+  }
+
+  for (const item of items) {
+    const previous = byFingerprint.get(item.fingerprint);
+    byFingerprint.set(item.fingerprint, {
+      item,
+      seenAt: previous?.seenAt ?? seenAt,
+    });
+  }
+
+  return [...byFingerprint.values()];
+}
+
 export function readRecentPanelItems(now = Date.now()): NotificationSnapshotItem[] {
-  const valid = pruneExpired(readEntries(), now);
-  if (valid.length !== readEntries().length) {
+  const current = readEntries();
+  const valid = pruneExpiredRecentPanelEntries(current, now);
+  if (valid.length !== current.length) {
     writeEntries(valid);
   }
   return valid.map((entry) => entry.item);
@@ -58,18 +86,5 @@ export function archiveRecentPanelItems(
   if (items.length === 0) return;
 
   const now = Date.parse(seenAt);
-  const byFingerprint = new Map<string, RecentPanelEntry>();
-
-  for (const entry of pruneExpired(readEntries(), now)) {
-    byFingerprint.set(entry.item.fingerprint, entry);
-  }
-
-  for (const item of items) {
-    byFingerprint.set(item.fingerprint, {
-      item,
-      seenAt,
-    });
-  }
-
-  writeEntries([...byFingerprint.values()]);
+  writeEntries(mergeRecentPanelArchive(readEntries(), items, seenAt, now));
 }
