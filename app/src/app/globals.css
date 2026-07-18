@@ -13120,8 +13120,11 @@ body.mobile-nav-open {
   }
 
   .grades-table-wrap .data-table td[data-label="Avaliação"] {
-    flex-wrap: wrap;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
     justify-content: flex-start;
+    gap: 6px;
     padding-bottom: var(--space-2);
     margin-bottom: var(--space-1);
     border-bottom: 1px solid var(--border-muted);
@@ -13130,8 +13133,10 @@ body.mobile-nav-open {
   }
 
   .grades-table-wrap .data-table td[data-label="Avaliação"]::before {
-    width: 100%;
-    margin-bottom: 2px;
+    display: block;
+    width: auto;
+    margin-bottom: 0;
+    content: attr(data-label);
   }
 
   .grades-table-wrap .data-table td.grades-score-cell {
@@ -13168,6 +13173,16 @@ body.mobile-nav-open {
     height: auto;
     max-height: none;
     overflow: visible;
+    touch-action: pan-y;
+  }
+
+  /* Não prender o scroll da página dentro de Notas */
+  .grades-panel .grades-table-wrap,
+  .grades-table-wrap,
+  .attendance-table-wrap {
+    overflow: visible !important;
+    overscroll-behavior: auto;
+    touch-action: pan-y;
   }
 
   .subject-panel-col--synced {
@@ -13598,9 +13613,9 @@ body.mobile-nav-open {
     -webkit-tap-highlight-color: transparent;
   }
 
-  /* Previne overscroll/bounce em containers de scroll */
+  /* Previne overscroll/bounce em containers de scroll (exceto notas/frequência) */
   .schedule-wrapper,
-  .data-table-wrap,
+  .data-table-wrap:not(.grades-table-wrap):not(.attendance-table-wrap),
   .enrollment-sidebar-scroll,
   .integration-detail-card,
   .event-list--scroll {
@@ -13758,14 +13773,17 @@ body.mobile-nav-open {
     font-size: 0.75rem;
   }
 
-  /* Notas: cards mais compactos + grid Máx/Nota/Necessário */
+  /* Notas: cards mais compactos + nome com espaço do rótulo */
   .grades-table-wrap .data-table tr {
     gap: var(--space-2);
     padding: var(--space-3);
   }
 
   .grades-table-wrap .data-table td[data-label="Avaliação"] {
-    display: block;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
     font-size: 0.875rem;
     line-height: 1.35;
   }
@@ -13785,9 +13803,14 @@ body.mobile-nav-open {
     padding: var(--space-3);
   }
 
-  .grade-risk-panel .card-stat,
+  /* Nota total proporcional ao resto (não hero gigante) */
   .grade-risk-panel .subject-stat-value {
-    font-size: 1.35rem;
+    font-size: 1.125rem;
+    line-height: 1.25;
+  }
+
+  .grade-risk-panel .subject-stat-max {
+    font-size: 0.875rem;
   }
 
   /* Grade semana: agenda mobile (sem scroll lateral) */
