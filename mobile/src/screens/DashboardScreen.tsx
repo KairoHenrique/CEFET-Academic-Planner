@@ -68,10 +68,14 @@ export function DashboardScreen() {
 
   return (
     <Screen
-      title={data ? `${greeting()} ${firstName}` : "Início"}
+      eyebrow={
+        data ? `Semestre ${data.aluno.semestreAtual}` : "ACME HUB"
+      }
+      title={data ? greeting() : "Início"}
+      highlight={data ? firstName : undefined}
       subtitle={
         data
-          ? `Semestre ${data.aluno.semestreAtual} · ${data.aluno.curso}`
+          ? `${data.aluno.curso} · CEFET-MG Divinópolis`
           : "Resumo acadêmico"
       }
       cacheHint={fromCache ? "Dados do cache offline" : null}

@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "@acme/api-contracts": "file:../packages/api-contracts",
+    "@expo-google-fonts/inter": "^0.4.2",
+    "@expo-google-fonts/outfit": "^0.4.3",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-navigation/bottom-tabs": "^7.18.11",
     "@react-navigation/native": "^7.3.11",

@@ -17,8 +17,12 @@ export function MoreStack() {
     <Stack.Navigator
       screenOptions={{
         headerStyle: { backgroundColor: brand.bg },
-        headerTintColor: brand.gold,
-        headerTitleStyle: { fontWeight: "700", color: brand.text },
+        headerTintColor: brand.gold200,
+        headerTitleStyle: {
+          fontWeight: "700",
+          color: brand.text,
+          fontFamily: brand.fontBodyBold,
+        },
         contentStyle: { backgroundColor: brand.bg },
         headerShadowVisible: false,
       }}

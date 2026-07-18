@@ -76,6 +76,7 @@ export function MapaScreen() {
   return (
     <Screen
       title="Mapa PPC"
+      eyebrow="Currículo"
       subtitle={data ? `${data.curso} · ${donePct}% concluído` : undefined}
       cacheHint={fromCache ? "Dados do cache offline" : null}
       scrollProps={{
@@ -116,21 +117,24 @@ export function MapaScreen() {
           ) : null}
 
           <View style={styles.statsGrid}>
-            <StatCard label="Total" value={data.stats.total} />
+            <StatCard label="Total" value={data.stats.total} detail="disciplinas" tone="gold" />
             <StatCard
               label="Concluídas"
               value={data.stats.done}
-              accent={brand.success}
+              detail="feitas"
+              tone="success"
             />
             <StatCard
               label="Cursando"
               value={data.stats.current}
-              accent={brand.blue}
+              detail="agora"
+              tone="blue"
             />
             <StatCard
               label="Liberadas"
               value={data.stats.unlocked}
-              accent={brand.gold}
+              detail="disponíveis"
+              tone="gold"
             />
           </View>
 

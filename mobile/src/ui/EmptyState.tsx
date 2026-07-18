@@ -17,25 +17,27 @@ export function EmptyState({ title, message }: Props) {
 
 const styles = StyleSheet.create({
   root: {
-    backgroundColor: brand.glass,
-    borderRadius: 14,
-    padding: 20,
+    backgroundColor: brand.bgSecondary,
+    borderRadius: brand.radiusLg,
+    padding: brand.space5,
     alignItems: "center",
     borderWidth: 1,
     borderColor: brand.border,
-    marginBottom: 12,
+    marginBottom: brand.space3,
   },
   title: {
-    fontSize: 16,
+    fontSize: 15,
+    fontFamily: brand.fontBodyBold,
     fontWeight: "700",
     color: brand.text,
     textAlign: "center",
   },
   message: {
     marginTop: 8,
-    fontSize: 14,
+    fontSize: 13,
+    fontFamily: brand.fontBody,
     color: brand.textMuted,
     textAlign: "center",
-    lineHeight: 20,
+    lineHeight: 19,
   },
 });

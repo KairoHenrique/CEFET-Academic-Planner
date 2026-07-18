@@ -160,6 +160,7 @@ export function SimuladorScreen() {
   return (
     <Screen
       title="Simulador de matrícula"
+      eyebrow="Montar grade"
       subtitle={
         data
           ? `Semestre ${data.semestre}${data.syncedAt ? " · sync recente" : ""}`

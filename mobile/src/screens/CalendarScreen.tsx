@@ -167,6 +167,7 @@ export function CalendarScreen() {
   return (
     <Screen
       title="Agenda"
+      eyebrow="Calendário"
       subtitle="Grade semanal, eventos e datas acadêmicas"
       cacheHint={fromCache ? "Dados do cache offline" : null}
       scrollProps={{

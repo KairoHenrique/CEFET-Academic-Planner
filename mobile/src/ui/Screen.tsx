@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 import {
   ScrollView,
   StyleSheet,
-  Text,
   View,
   type ScrollViewProps,
   type StyleProp,
@@ -13,12 +12,16 @@ import {
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 import { brand } from "../theme/brand";
+import { PageHeader } from "./cards";
 
 type Props = {
   children: ReactNode;
   scroll?: boolean;
   padded?: boolean;
+  /** Eyebrow F28 (ex.: SEMESTRE 2026.1) */
+  eyebrow?: string;
   title?: string;
+  highlight?: string;
   subtitle?: string;
   cacheHint?: string | null;
   footer?: ReactNode;
@@ -26,11 +29,16 @@ type Props = {
   scrollProps?: Omit<ScrollViewProps, "children" | "contentContainerStyle">;
 };
 
+/**
+ * Shell de página F28 — fundo Cruzeiro + PageHeader (eyebrow/título/subtitle).
+ */
 export function Screen({
   children,
   scroll = true,
   padded = true,
+  eyebrow,
   title,
+  highlight,
   subtitle,
   cacheHint,
   footer,
@@ -41,12 +49,14 @@ export function Screen({
   const paddingStyle = padded ? styles.padded : undefined;
 
   const header =
-    title || subtitle || cacheHint ? (
-      <View style={styles.header}>
-        {title ? <Text style={styles.title}>{title}</Text> : null}
-        {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
-        {cacheHint ? <Text style={styles.cacheHint}>{cacheHint}</Text> : null}
-      </View>
+    title || subtitle || cacheHint || eyebrow ? (
+      <PageHeader
+        eyebrow={eyebrow}
+        title={title ?? ""}
+        highlight={highlight}
+        subtitle={subtitle}
+        cacheHint={cacheHint}
+      />
     ) : null;
 
   const body = (
@@ -58,6 +68,7 @@ export function Screen({
 
   return (
     <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
+      <View style={styles.atmosphere} pointerEvents="none" />
       {scroll ? (
         <ScrollView
           style={styles.flex}
@@ -93,29 +104,16 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: brand.bg,
   },
+  atmosphere: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "transparent",
+    // radial approx: leve vinheta superior navy
+    borderTopWidth: 120,
+    borderTopColor: "rgba(0,24,52,0.35)",
+  },
   flex: { flex: 1 },
   padded: {
     paddingHorizontal: 16,
     paddingTop: 8,
-  },
-  header: {
-    marginBottom: 16,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "800",
-    color: brand.text,
-  },
-  subtitle: {
-    marginTop: 4,
-    fontSize: 14,
-    color: brand.textSecondary,
-    lineHeight: 20,
-  },
-  cacheHint: {
-    marginTop: 6,
-    fontSize: 12,
-    color: brand.gold,
-    fontWeight: "600",
   },
 });

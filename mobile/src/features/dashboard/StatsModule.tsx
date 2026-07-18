@@ -5,22 +5,34 @@ import { StatCard } from "../../ui/cards";
 
 type Props = { stats: DashboardStats };
 
-/** Ordem F28: RG · Integralização · Disciplinas · Tarefas. */
+/** Ordem e copy F28 StatsRow. */
 export function StatsModule({ stats }: Props) {
   return (
     <View style={styles.grid}>
       <StatCard
         label="Rendimento Global"
         value={Number(stats.rg).toFixed(2)}
-        accent={brand.gold}
+        detail="RG acumulado"
+        tone="gold"
       />
       <StatCard
         label="Integralização"
         value={`${stats.integralizacaoPercent}%`}
-        accent={brand.blue}
+        detail="do curso concluído"
+        tone="blue"
       />
-      <StatCard label="Disciplinas" value={stats.disciplinasCursando} />
-      <StatCard label="Tarefas pendentes" value={stats.tarefasPendentes} />
+      <StatCard
+        label="Disciplinas"
+        value={stats.disciplinasCursando}
+        detail="cursando este semestre"
+        tone="blue"
+      />
+      <StatCard
+        label="Tarefas Pendentes"
+        value={stats.tarefasPendentes}
+        detail="entregas próximas"
+        tone="danger"
+      />
     </View>
   );
 }
@@ -29,7 +41,7 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 10,
-    marginBottom: 8,
+    gap: brand.space3,
+    marginBottom: brand.space2,
   },
 });

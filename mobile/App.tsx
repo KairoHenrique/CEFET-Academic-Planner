@@ -1,4 +1,15 @@
-import { NavigationContainer } from "@react-navigation/native";
+import {
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_700Bold,
+} from "@expo-google-fonts/inter";
+import {
+  Outfit_700Bold,
+  Outfit_800ExtraBold,
+} from "@expo-google-fonts/outfit";
+import { useFonts } from "expo-font";
+import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
@@ -22,10 +33,33 @@ import { LoginScreen } from "./src/screens/LoginScreen";
 import { PaywallScreen } from "./src/screens/PaywallScreen";
 import { brand } from "./src/theme/brand";
 
+const navTheme = {
+  ...DefaultTheme,
+  dark: true,
+  colors: {
+    ...DefaultTheme.colors,
+    primary: brand.gold,
+    background: brand.bg,
+    card: brand.glass,
+    text: brand.text,
+    border: brand.border,
+    notification: brand.danger,
+  },
+};
+
 /**
- * AuthGate + SubscriptionGate (M4) · push register (M6) · MainTabs M7–M14.
+ * AuthGate + SubscriptionGate (M4) · push (M6) · MainTabs.
+ * Tipografia F28: Outfit + Inter.
  */
 export default function App() {
+  const [fontsLoaded] = useFonts({
+    Outfit_700Bold,
+    Outfit_800ExtraBold,
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
+  });
   const [ready, setReady] = useState(false);
   const [session, setSessionState] = useState<MobileAuthSession | null>(null);
   const apiOk = hasApiBaseUrl();
@@ -60,7 +94,7 @@ export default function App() {
     return unsub;
   }, []);
 
-  if (!ready) {
+  if (!ready || !fontsLoaded) {
     return (
       <View style={styles.boot}>
         <ActivityIndicator color={brand.gold} size="large" />
@@ -91,10 +125,10 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <NavigationContainer>
+      <NavigationContainer theme={navTheme}>
         <MainTabs />
       </NavigationContainer>
-      <StatusBar style="dark" />
+      <StatusBar style="light" />
     </SafeAreaProvider>
   );
 }
