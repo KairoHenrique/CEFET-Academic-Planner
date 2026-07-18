@@ -217,7 +217,7 @@ export function WeeklyScheduleTable({
                               {slot.name}
                             </span>
                             <span className="schedule-slot-name-short">
-                              {slot.code || slot.name}
+                              {slot.name}
                             </span>
                           </div>
                           <div className="schedule-slot-room">{slot.room}</div>
