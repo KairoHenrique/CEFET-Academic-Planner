@@ -1,11 +1,10 @@
+/**
+ * URL do site ACME HUB (= F28 mobile web).
+ * mobile/.env → EXPO_PUBLIC_API_BASE_URL=https://acme-hub.khfm.workers.dev
+ */
 import Constants from "expo-constants";
 
-/**
- * Base URL da API Next (cloud).
- * Defina em `mobile/.env`: EXPO_PUBLIC_API_BASE_URL=https://...
- * Sem trailing slash.
- */
-export function getApiBaseUrl(): string {
+export function getWebBaseUrl(): string {
   const fromEnv = process.env.EXPO_PUBLIC_API_BASE_URL?.trim();
   const fromExtra = (
     Constants.expoConfig?.extra as { apiBaseUrl?: string } | undefined
@@ -13,17 +12,22 @@ export function getApiBaseUrl(): string {
   const base = (fromEnv || fromExtra || "").replace(/\/$/, "");
   if (!base) {
     throw new Error(
-      "EXPO_PUBLIC_API_BASE_URL ausente. Crie mobile/.env com a URL do ACME HUB."
+      "EXPO_PUBLIC_API_BASE_URL ausente. Crie mobile/.env com a URL do site."
     );
   }
   return base;
 }
 
-export function hasApiBaseUrl(): boolean {
+/** Alias — API e site compartilham a mesma origem cloud. */
+export const getApiBaseUrl = getWebBaseUrl;
+
+export function hasWebBaseUrl(): boolean {
   try {
-    getApiBaseUrl();
+    getWebBaseUrl();
     return true;
   } catch {
     return false;
   }
 }
+
+export const hasApiBaseUrl = hasWebBaseUrl;
