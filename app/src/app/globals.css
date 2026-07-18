@@ -13229,7 +13229,7 @@ body.mobile-nav-open {
 
   .enrollment-sidebar-row > .enrollment-sidebar {
     height: auto;
-    max-height: min(55vh, 420px);
+    max-height: min(50vh, 380px);
     min-height: 10rem;
     overflow: hidden;
   }
@@ -13265,114 +13265,29 @@ body.mobile-nav-open {
     font-size: 0.75rem;
   }
 
-  /* Cards: 1 coluna + altura natural (sem clip/sobreposição) */
+  /* Mantém 2 colunas; só ajusta escala do card para caber sem sobrepor */
+  .enrollment-sidebar {
+    --enrollment-card-height: 110px;
+    --enrollment-card-code-size: 0.625rem;
+    --enrollment-card-title-size: 0.75rem;
+    --enrollment-card-foot-size: 0.625rem;
+    --enrollment-card-badge-size: 0.5625rem;
+    --enrollment-card-row-meta: 1.05rem;
+    --enrollment-card-row-title: calc(0.75rem * 1.2 * 2);
+  }
+
   .enrollment-course-list {
-    grid-template-columns: 1fr;
-    gap: var(--space-2);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .enrollment-course-list > li,
-  .enrollment-course-list-item,
-  .enrollment-course-group,
-  .enrollment-course-group.enrollment-course-group--picker,
-  .enrollment-course-group--picker {
-    height: auto !important;
-    min-height: 0 !important;
-    max-height: none !important;
-    overflow: visible;
-  }
-
-  .enrollment-course-group--picker .enrollment-course-group-card,
-  .enrollment-course-list-item > .enrollment-course,
-  .enrollment-course-btn:not(.enrollment-course-btn--compact) {
-    height: auto !important;
-    min-height: 0 !important;
-    max-height: none !important;
-    overflow: visible;
-  }
-
-  .enrollment-course-group--picker .enrollment-course-group-body,
-  .enrollment-course-group-body,
-  .enrollment-course-body,
-  .enrollment-course > div {
-    display: flex !important;
-    flex-direction: column;
-    align-content: stretch;
-    gap: var(--space-2);
-    grid-template-rows: none !important;
-    height: auto !important;
-    min-height: 0 !important;
-    overflow: visible;
-  }
-
-  .enrollment-course-group-trigger {
-    grid-row: auto !important;
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-1);
-    height: auto !important;
-    overflow: visible;
-  }
-
-  .enrollment-course-group-trigger .enrollment-course-head,
-  .enrollment-course-head {
-    height: auto !important;
-    min-height: 0 !important;
-    max-height: none !important;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    row-gap: var(--space-1);
-  }
-
-  .enrollment-course-badges {
-    flex-wrap: wrap;
-    justify-content: flex-start;
-    margin-left: 0;
-    width: 100%;
-  }
-
-  .enrollment-sidebar .enrollment-course-card-title,
-  .enrollment-course-group--picker .enrollment-course-card-title {
-    height: auto !important;
-    min-height: 0 !important;
-    -webkit-line-clamp: 2;
-    font-size: 0.8125rem;
-  }
-
-  .enrollment-sidebar .enrollment-course-card-foot,
-  .enrollment-course-card-foot {
-    height: auto !important;
-    min-height: 0 !important;
-    max-height: none !important;
-    white-space: normal;
-    line-height: 1.35;
-    overflow: visible;
-    text-overflow: unset;
-  }
-
-  .enrollment-course-group--picker .enrollment-course-slots,
-  .enrollment-course-slots {
-    height: auto !important;
-    max-height: none !important;
-    min-height: 0 !important;
-    flex-wrap: wrap;
-    overflow: visible;
-  }
-
-  .enrollment-course-group--picker .enrollment-course-slot-chip,
-  .enrollment-course-slot-chip {
-    flex: 1 1 calc(50% - var(--space-1));
-    min-width: 0;
-    min-height: 2rem;
-    height: auto;
-    padding: var(--space-1) var(--space-2);
+  .enrollment-status-pill {
+    padding: 0 4px;
+    gap: 2px;
   }
 
   .enrollment-course-slot-chip-time {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 100%;
+    font-size: 0.5625rem;
+    letter-spacing: -0.02em;
   }
 
   .enrollment-selection-float-shell {
@@ -13390,7 +13305,9 @@ body.mobile-nav-open {
   }
 
   .enrollment-schedule-stack {
-    overflow-x: visible;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
   }
 
   .enrollment-sync-bar {
@@ -14079,7 +13996,7 @@ body.mobile-nav-open {
   }
 
   .enrollment-sidebar-row > .enrollment-sidebar {
-    max-height: min(55vh, 420px);
+    max-height: min(50vh, 380px);
   }
 
   /* Calendar — compactar grade */
