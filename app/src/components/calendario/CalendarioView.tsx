@@ -117,6 +117,8 @@ export function CalendarioView() {
               filters={FILTER_OPTIONS}
               active={activeLabel}
               onChange={(label) => setFilter(filterMap[label] ?? "todas")}
+              className="calendar-event-filters"
+              nowrap
             />
           </div>
         </div>
