@@ -52,6 +52,10 @@ interface WeeklyScheduleTableProps {
   selectedSlot?: number | null;
 }
 
+function dayShortLabel(day: string): string {
+  return day.slice(0, 3);
+}
+
 export function WeeklyScheduleTable({
   schedule = weeklySchedule,
   compact = false,
@@ -127,64 +131,14 @@ export function WeeklyScheduleTable({
         Deslize para ver a grade completa →
       </p>
 
-      {/* Mobile: agenda por dia — tudo visível sem scroll horizontal */}
-      <div className="schedule-mobile-agenda" aria-label="Grade da semana">
-        {weekDays.map((day, dayIdx) => {
-          const daySlots = timeSlots.flatMap((time, slotIdx) => {
-            const slot = schedule[dayIdx]?.[slotIdx];
-            if (!slot) return [];
-            return [{ time, slot, slotIdx }];
-          });
-
-          return (
-            <section key={day} className="schedule-mobile-day">
-              <h4 className="schedule-mobile-day-title">{day}</h4>
-              {daySlots.length === 0 ? (
-                <p className="schedule-mobile-empty">Sem aulas</p>
-              ) : (
-                <ul className="schedule-mobile-list">
-                  {daySlots.map(({ time, slot, slotIdx }) => (
-                    <li key={`${dayIdx}-${slotIdx}`}>
-                      <button
-                        type="button"
-                        className={[
-                          "schedule-mobile-item",
-                          conflictCellKeys?.has(`${dayIdx}:${slotIdx}`)
-                            ? "schedule-mobile-item--conflict"
-                            : "",
-                        ]
-                          .filter(Boolean)
-                          .join(" ")}
-                        style={
-                          { "--slot-color": slot.color } as React.CSSProperties
-                        }
-                        onClick={() =>
-                          interactive &&
-                          handleSlotClick(slot, day, time, dayIdx, slotIdx)
-                        }
-                        tabIndex={interactive ? undefined : -1}
-                      >
-                        <span className="schedule-mobile-time">
-                          {splitTimeSlot(time).start}–{splitTimeSlot(time).end}
-                        </span>
-                        <span className="schedule-mobile-body">
-                          <span className="schedule-mobile-name">{slot.name}</span>
-                          {slot.room ? (
-                            <span className="schedule-mobile-room">{slot.room}</span>
-                          ) : null}
-                        </span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </section>
-          );
-        })}
-      </div>
-
-      <div className={`schedule-wrapper schedule-wrapper--desktop ${compact ? "schedule-compact" : ""}`}>
-        <table className={`schedule-table ${compact ? "schedule-table-compact" : ""}`}>
+      <div
+        className={`schedule-wrapper ${compact ? "schedule-compact" : ""}`}
+      >
+        <table
+          className={`schedule-table schedule-table--responsive ${
+            compact ? "schedule-table-compact" : ""
+          }`}
+        >
           <thead>
             <tr>
               <th className="schedule-day-col" aria-hidden="true" />
@@ -192,13 +146,13 @@ export function WeeklyScheduleTable({
                 const { start, end } = splitTimeSlot(slot);
                 return (
                   <th key={slot} className="schedule-time-col">
-                    {compact ? (
-                      <span className="schedule-time-range">
-                        {start} – {end}
-                      </span>
-                    ) : (
-                      slot
-                    )}
+                    <span className="schedule-time-full">{slot}</span>
+                    <span className="schedule-time-range schedule-time-range--desktop">
+                      {start} – {end}
+                    </span>
+                    <span className="schedule-time-short" aria-hidden="true">
+                      {start.slice(0, 5)}
+                    </span>
                   </th>
                 );
               })}
@@ -207,7 +161,12 @@ export function WeeklyScheduleTable({
           <tbody>
             {weekDays.map((day, dayIdx) => (
               <tr key={day}>
-                <td className="day-label schedule-day-col">{compact ? day.slice(0, 3) : day}</td>
+                <td className="day-label schedule-day-col">
+                  <span className="schedule-day-full">{day}</span>
+                  <span className="schedule-day-short" aria-hidden="true">
+                    {dayShortLabel(day)}
+                  </span>
+                </td>
                 {timeSlots.map((time, slotIdx) => {
                   const slot = schedule[dayIdx]?.[slotIdx];
                   const cellKey = `${dayIdx}:${slotIdx}`;
@@ -251,8 +210,16 @@ export function WeeklyScheduleTable({
                             handleSlotClick(slot, day, time, dayIdx, slotIdx)
                           }
                           tabIndex={interactive ? undefined : -1}
+                          title={`${slot.name}${slot.room ? ` · ${slot.room}` : ""}`}
                         >
-                          <div className="schedule-slot-name">{slot.name}</div>
+                          <div className="schedule-slot-name">
+                            <span className="schedule-slot-name-full">
+                              {slot.name}
+                            </span>
+                            <span className="schedule-slot-name-short">
+                              {slot.code || slot.name}
+                            </span>
+                          </div>
                           <div className="schedule-slot-room">{slot.room}</div>
                         </button>
                       ) : hasPreviewLayers ? (
