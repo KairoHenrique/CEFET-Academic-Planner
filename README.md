@@ -2,19 +2,19 @@
 
 > Planejador acadêmico para alunos do **CEFET-MG**: sincroniza dados do SIGAA e oferece dashboard, calendário, mapa do curso e integralização em uma interface moderna (paleta Cruzeiro 💙 + 💛).
 
-![Status](https://img.shields.io/badge/Status-Em%20Desenvolvimento-blue)
-![Plataforma](https://img.shields.io/badge/Plataforma-Windows%20%7C%20Linux-green)
+![Status](https://img.shields.io/badge/Site%20web-v1.0.0-brightgreen)
+![Plataforma](https://img.shields.io/badge/Plataforma-Web%20%7C%20Android%20(Bloco%208)-green)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 
 ---
 
 ## 🎯 O que é?
 
-O **ACME HUB** é uma plataforma web (futuro: mobile Expo + assinatura PIX) que centraliza a vida acadêmica do aluno fora do portal SIGAA.
+O **ACME HUB** é uma plataforma web (**v1.0.0**) — e em seguida app Android (Bloco 8) — que centraliza a vida acadêmica do aluno fora do portal SIGAA.
 
-**Hoje (dev local):** Next.js em `localhost:3000`, SQLite por aluno (`.data/users/{cpf}/`), scraper Playwright no mesmo processo Node.
+**Hoje:** site em produção (Cloudflare Workers + Supabase) com sync SIGAA via worker no PC; Eng. Computação completa (dashboard, disciplinas, calendário, mapa, integralização, simulador, planos PIX, sino).
 
-**Roadmap:** Supabase + worker em fila (Bloco 2b) + deploy global — ver [`docs/TASKS.md`](docs/TASKS.md) e [`docs/SCOPE-CLOUD.md`](docs/SCOPE-CLOUD.md).
+**Próximo:** app mobile Android (Expo) com **paridade total** do site, sessão persistente, cache local e push no telefone — ver [`docs/TASKS.md`](docs/TASKS.md) Bloco 8 e [`docs/SCOPE-CLOUD.md`](docs/SCOPE-CLOUD.md) §7.
 
 ---
 
@@ -24,7 +24,7 @@ O **ACME HUB** é uma plataforma web (futuro: mobile Expo + assinatura PIX) que 
 - Login com CPF + senha SIGAA; sync **full** no primeiro acesso e **incremental** depois.
 - Credenciais SIGAA opcionais cifradas no SQLite (`CREDENTIALS_ENCRYPTION_KEY`).
 - Sync automático em background (intervalo configurável — ver apêndice B65 no TASKS).
-- Sino de notificações: tarefas/notas novas pós-sync + lembretes 24h/1h.
+- Sino de notificações: tarefas/notas novas pós-sync; eventos/datas em cadastro · 1 dia antes · no dia.
 
 ### 📊 Dashboard
 - RG, integralização (CH por categoria), próximas entregas, cards por disciplina.
