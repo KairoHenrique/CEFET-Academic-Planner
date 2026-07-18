@@ -1,6 +1,8 @@
+import { NavigationContainer } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import { resolveAppDestination } from "./src/auth/access";
 import {
   ensureFreshSession,
@@ -14,14 +16,14 @@ import {
   type MobileAuthSession,
 } from "./src/auth/session";
 import { hasApiBaseUrl } from "./src/config/env";
+import { MainTabs } from "./src/navigation/MainTabs";
 import { registerPushForCurrentSession } from "./src/push/register";
-import { HomePlaceholderScreen } from "./src/screens/HomePlaceholderScreen";
 import { LoginScreen } from "./src/screens/LoginScreen";
 import { PaywallScreen } from "./src/screens/PaywallScreen";
 import { brand } from "./src/theme/brand";
 
 /**
- * AuthGate + SubscriptionGate (M4) · push register (M6) · home até M7.
+ * AuthGate + SubscriptionGate (M4) · push register (M6) · MainTabs M7–M14.
  */
 export default function App() {
   const [ready, setReady] = useState(false);
@@ -88,10 +90,12 @@ export default function App() {
   }
 
   return (
-    <>
-      <HomePlaceholderScreen session={session} />
-      <StatusBar style="light" />
-    </>
+    <SafeAreaProvider>
+      <NavigationContainer>
+        <MainTabs />
+      </NavigationContainer>
+      <StatusBar style="dark" />
+    </SafeAreaProvider>
   );
 }
 

@@ -340,7 +340,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 > **Ordem de execução:** **#9 → #10 → #8** — ver [ordem oficial](#ordem-oficial-de-execução-v3).  
 > **Decisão (jul/2026):** app nativo **só Android** · **sem** Play/App Store · alternativa = **site mobile** (**F28**).  
 > **Princípio (v1.0 → app):** **paridade de funções** com o site (tudo que o desktop faz), **não** clonar o layout do site mobile (**F28**). No nativo: só herdar **cores / marca / tipografia de produto**; IA e telas podem ser **mais modulares, visíveis e intuitivas** (bottom nav, home por “o que fazer agora”, módulos grandes). Sessão persistente · cache local · push (silencioso se deslogado). Ver detalhe § UX nativa.  
-> **Progresso:** **M1–M3** `[x]`. **Local:** **M4–M6** `[%]` (auth · cache · push).
+> **Progresso:** **M1–M3** `[x]`. **Local:** **M4–M15** `[%]` (auth → QA Expo Go — aguardando push/aprovação).
 
 - [x] **SETUP:** M1 *(projeto Expo TypeScript — `mobile/` · **Android only** · **SDK 54** p/ Expo Go da Play Store)*
 - [x] **SHARED:** M2 *(tipos/contratos compartilhados — `packages/api-contracts` · `@acme/api-contracts`)*
@@ -348,15 +348,15 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 - [%] **FRONT:** M4 *(auth + gate assinatura — login CPF, trial/pago, logout limpa tokens/cache/push)*
 - [%] **SHARED:** M5 *(cache local — snapshot acadêmico no device; invalida/atualiza pós-sync/API)*
 - [%] **SHARED:** M6 *(push E2E — Expo Notifications + tokens no backend; dispara pós-sync/novidades; sem push se deslogado)*
-- [ ] **FRONT:** M7 *(dashboard — stats, entregas, cards, atalhos)*
-- [ ] **FRONT:** M8 *(disciplinas — lista + detalhe: notas, tarefas, faltas)*
-- [ ] **FRONT:** M9 *(calendário — agenda + eventos; alertas alinhados ao sino web)*
-- [ ] **FRONT:** M10 *(mapa PPC — grafo/grade usável no touch)*
-- [ ] **FRONT:** M11 *(integralização — CH por categoria)*
-- [ ] **FRONT:** M12 *(simulador de matrícula — paridade com `/simulador`)*
-- [ ] **FRONT:** M13 *(planos / PIX — assinatura no app)*
-- [ ] **FRONT:** M14 *(perfil + preferências de notificação — espelha web)*
-- [ ] **TEST:** M15 *(Expo Go Android — QA de paridade + push + sessão)*
+- [%] **FRONT:** M7 *(dashboard — stats, entregas, cards, atalhos)*
+- [%] **FRONT:** M8 *(disciplinas — lista + detalhe: notas, tarefas, faltas)*
+- [%] **FRONT:** M9 *(calendário — agenda + eventos; alertas alinhados ao sino web)*
+- [%] **FRONT:** M10 *(mapa PPC — grafo/grade usável no touch)*
+- [%] **FRONT:** M11 *(integralização — CH por categoria)*
+- [%] **FRONT:** M12 *(simulador de matrícula — paridade com `/simulador`)*
+- [%] **FRONT:** M13 *(planos / PIX — assinatura no app)*
+- [%] **FRONT:** M14 *(perfil + preferências de notificação — espelha web)*
+- [%] **TEST:** M15 *(Expo Go Android — QA de paridade + push + sessão)*
 - [ ] **OPTIONAL:** M16 *(APK sideload pelo site · **sem** Play Store)*
 
 **Ordem Bloco 8:** `M1 → M2 → M3 → M4` → `M5 → M6` → `M7–M14` → `M15` → `(M16 opcional)`
@@ -572,7 +572,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | **#12** | 2f | **Sync real Postgres (B72)** | ✅ B72a–e `[x]` · **ops = PC + cloudflared** | 5/5 |
 | **#9** | 3 | Inteligência acadêmica | **B36/B37** `[x]` (sino) · **F24 descartado** · demais `[x]` · próximo **#10** | 10/10 |
 | **#10** | 4 | Polimento UX + site mobile (**F28**) | **F25–F28** `[x]` (aprovado jul/2026) | 4/4 |
-| **#8** | 8 | Mobile Android (Expo Go) | **M1–M3** `[x]` · **M4** `[%]` · paridade site **v1.0** + push + sessão · **sem Play/App Store** | 3/16 |
+| **#8** | 8 | Mobile Android (Expo Go) | **M1–M3** `[x]` · **M4–M15** `[%]` · paridade site **v1.0** + push + sessão · **sem Play/App Store** | 3/16 |
 | **#11** | 9 | Multi-PPC (Mecatrônica, Moda) | **🔒 Só após #8** | 0/4 |
 
 > **Atalho:** [Roadmap detalhado topo](#roadmap-detalhado--ordem-de-execução-0--11) · [Checklist #1](#1--bloco-1--api--ui--sqlite-4949) · [#2–#3](#2-3--bloco-2--scraper-sigaa-detalhe) · [#6d](#6d--orquestração-sync--catálogo-global-pré-mobile) · [#4–#6](#4-6--bloco-6--cloud--supabase-detalhe) · [#7](#7--bloco-7--assinatura-pix-detalhe) · [#9](#9--bloco-3--inteligência-acadêmica-detalhe) · [#10](#10--bloco-4--polimento-ux--site-mobile-detalhe) · [#8](#8--bloco-8--mobile-android-detalhe) · [#11](#11--expansão-multi-ppc-detalhe)
@@ -777,15 +777,15 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 > **Pré-mobile (#8):** site **v1.0** (**#6d + #7 + #9 + #10** + **F28**).  
 > **Meta:** mesma função do desktop, UX nativa melhor · sessão que fica · dados no aparelho · push de sync/novidades (só logado).  
-> **Progresso:** **M1–M3** `[x]`. **Local:** **M4** `[%]` (auth + gate).
+> **Progresso:** **M1–M3** `[x]`. **Local:** **M4–M15** `[%]` (auth → QA).
 
 - [x] **SETUP:** M1 *(Expo `mobile/` · Android only · SDK 54)*
 - [x] **SETUP/SHARED:** M2 *(tipos `@acme/api-contracts`)*
 - [x] **SETUP:** M3 *(sessão SecureStore + refresh)*
 - [%] **FRONT:** M4 *(auth + gate)*
-- [ ] **SHARED:** M5 → M6 *(cache local · push E2E)*
-- [ ] **FRONT:** M7 → M8 → M9 → M10 → M11 → M12 → M13 → M14 *(paridade de telas)*
-- [ ] **TEST:** M15 *(Expo Go · Android)*
+- [%] **SHARED:** M5 → M6 *(cache local · push E2E)*
+- [%] **FRONT:** M7 → M8 → M9 → M10 → M11 → M12 → M13 → M14 *(paridade de telas)*
+- [%] **TEST:** M15 *(Expo Go · Android)*
 - [ ] **OPTIONAL:** M16 *(APK sideload · sem loja)*
 
 **Ordem Bloco 8:** `M1–M4` → `M5–M6` → `M7–M14` → `M15` → `(M16 opcional)`
@@ -822,7 +822,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | **#12** | **2f — Sync real Postgres (B72)** | ✅ B72a–e `[x]` · **ops = PC + cloudflared** | 5 / 5 |
 | #9 | 3 — Inteligência | ✅ **B36/B37** `[x]` (sino) · **F24 descartado** · próximo **#10** | 10 / 10 |
 | #10 | 4 — Polimento + site mobile | **F25–F28** `[x]` | 4 / 4 |
-| #8 | 8 — Mobile Android | 🟡 **M1–M3** `[x]` · **M4** `[%]` · paridade + push + sessão · sem lojas | 3 / 16 |
+| #8 | 8 — Mobile Android | 🟡 **M1–M3** `[x]` · **M4–M15** `[%]` · paridade + push + sessão · sem lojas | 3 / 16 |
 | #11 | 9 — Multi-PPC | 🔒 *(após #8)* | 0 / 4 |
 
 ---
@@ -1373,15 +1373,15 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | M4 | Front | Auth + gate | Login CPF · trial/pago · logout limpa tudo | [%] |
 | M5 | Shared | Cache local | Snapshot acadêmico AsyncStorage · fallback offline | [%] |
 | M6 | Shared | Push E2E | Tokens + Expo Notifications · push pós-sync | [%] |
-| M7 | Front | Dashboard | Stats, entregas, cards, atalhos | [ ] |
-| M8 | Front | Disciplinas | Lista + detalhe (notas, tarefas, faltas) | [ ] |
-| M9 | Front | Calendário | Agenda + eventos · alertas alinhados ao web | [ ] |
-| M10 | Front | Mapa PPC | Grafo/grade usável no touch | [ ] |
-| M11 | Front | Integralização | CH por categoria | [ ] |
-| M12 | Front | Simulador | Paridade com `/simulador` | [ ] |
-| M13 | Front | Planos / PIX | Assinatura no app | [ ] |
-| M14 | Front | Perfil + prefs | Preferências de notificação (espelha web) | [ ] |
-| M15 | Test | Expo Go QA | Paridade + push + sessão (**Android**) | [ ] |
+| M7 | Front | Dashboard | Stats, entregas, cards, atalhos | [%] |
+| M8 | Front | Disciplinas | Lista + detalhe (notas, tarefas, faltas) | [%] |
+| M9 | Front | Calendário | Agenda + eventos · alertas alinhados ao web | [%] |
+| M10 | Front | Mapa PPC | Grafo/grade usável no touch | [%] |
+| M11 | Front | Integralização | CH por categoria | [%] |
+| M12 | Front | Simulador | Paridade com `/simulador` | [%] |
+| M13 | Front | Planos / PIX | Assinatura no app | [%] |
+| M14 | Front | Perfil + prefs | Preferências de notificação (espelha web) | [%] |
+| M15 | Test | Expo Go QA | Paridade + push + sessão (**Android**) | [%] |
 | M16 | Optional | APK sideload | Download pelo site · **sem** Play Store | [ ] |
 
 **Ordem:** `M1 → M2 → M3 → M4` → `M5 → M6` → `M7 → … → M14` → `M15` → `(M16 opcional)`
@@ -1762,9 +1762,8 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [%] **M4** — auth/gate UI (login · paywall · logout) — aguardando push
 - [%] **M5** — cache local AsyncStorage — aguardando push
 - [%] **M6** — push Expo + `POST /api/push/register` — aguardando push
-- [ ] **M5–M6** — cache local dos dados do aluno + push no telefone (só se logado)
-- [ ] **M7–M14** — telas: dashboard, disciplinas, calendário, mapa, integralização, simulador, planos, perfil
-- [ ] **M15** — QA Expo Go Android (paridade + push + sessão)
+- [%] **M7–M14** — telas bottom tabs (dashboard → perfil) — aguardando push
+- [%] **M15** — QA checklist Expo Go (`mobile/docs/M15-QA.md`) — aguardando push
 - [ ] **M16** *(opcional)* — APK sideload pelo site
 - [x] **Alternativa sem instalar:** site adaptado ao celular (**F28** · aprovado jul/2026)
 - [x] **Site desktop v1.0.0** — base de paridade do app (jul/2026)
@@ -2047,7 +2046,7 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 8. **Próximo passo do roadmap:** informe **depois do push** (tasks em `[@]` ou `[x]`). Com commits locais só `[x]`, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v3](#ordem-oficial-de-execução-v3) — **Bloco 2 (sync) antes do Bloco 6 (Supabase)**. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy **após** sync validado; RLS ✅ **6c** (antes do PIX). Marco “site no ar p/ testes gerais” → [final do TASKS.md](#marco--site-no-ar-para-testes-gerais).
-11. **Próximo passo:** aguardar push/aprovação de **M4–M6** `[%]` (auth · cache · push). **M1–M3** `[x]`. Site **v1.0.0**. Bloco 8 `3/16`. **F28** `[x]`.
+11. **Próximo passo:** aguardar push/aprovação de **M4–M15** `[%]` (paridade mobile completa até QA). **M1–M3** `[x]`. Site **v1.0.0**. Bloco 8 `3/16`. **F28** `[x]`.
 12. **Integralização:** CH concluída = `historico` + PPC (`computeChDoneFromDisciplinas`); portal SIGAA só % / total currículo; matérias já passadas = **B30** ✅.
 13. **Gift + painel dev:** **B68–B71** ✅ · **F39–F41** ✅ — painel sem senha SIGAA (`credentialSaved` + `accountRef`).
 14. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial. **Polish em task `[x]`** (ex.: F38, dashboard) também exige nota no TASKS no mesmo ciclo do push.
