@@ -124,8 +124,8 @@ export function SubjectAbsencePanel({
                     }
                   }}
                 >
-                  <td>{record.date}</td>
-                  <td>
+                  <td data-label="Data">{record.date}</td>
+                  <td data-label="Status">
                     <span className={`badge ${statusBadge[record.status]}`}>
                       {record.status === "falta" && (record.quantidade ?? 0) > 1
                         ? `${record.quantidade} faltas`

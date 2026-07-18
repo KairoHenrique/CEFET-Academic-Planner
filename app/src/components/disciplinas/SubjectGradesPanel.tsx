@@ -396,7 +396,7 @@ export function SubjectGradesPanel({ subject }: SubjectGradesPanelProps) {
 
                     return (
                       <tr key={row.simKey}>
-                        <td>
+                        <td data-label="Avaliação">
                           {row.name}
                           {row.manual && !row.ephemeral && (
                             <span className="badge info grade-manual-badge">
@@ -420,8 +420,10 @@ export function SubjectGradesPanel({ subject }: SubjectGradesPanelProps) {
                             </button>
                           )}
                         </td>
-                        <td className="grades-col-max">{row.max}</td>
-                        <td className="grades-score-cell">
+                        <td className="grades-col-max" data-label="Máx.">
+                          {row.max}
+                        </td>
+                        <td className="grades-score-cell" data-label="Nota">
                           <input
                             type="text"
                             inputMode="decimal"
@@ -440,7 +442,10 @@ export function SubjectGradesPanel({ subject }: SubjectGradesPanelProps) {
                             aria-label={`Nota simulada de ${row.name}`}
                           />
                         </td>
-                        <td className="grades-min-cell grades-col-necessario">
+                        <td
+                          className="grades-min-cell grades-col-necessario"
+                          data-label="Necessário"
+                        >
                           {renderNecessarioCell(
                             row,
                             minNeeded,
@@ -472,6 +477,7 @@ export function SubjectGradesPanel({ subject }: SubjectGradesPanelProps) {
                       >
                         <td
                           className={canEditMeta ? "grades-name-cell" : undefined}
+                          data-label="Avaliação"
                           onClick={canEditMeta ? () => openEdit(row) : undefined}
                           role={canEditMeta ? "button" : undefined}
                           tabIndex={canEditMeta ? 0 : undefined}
@@ -498,8 +504,10 @@ export function SubjectGradesPanel({ subject }: SubjectGradesPanelProps) {
                             </span>
                           )}
                         </td>
-                        <td className="grades-col-max">{row.max}</td>
-                        <td className="grades-score-cell">
+                        <td className="grades-col-max" data-label="Máx.">
+                          {row.max}
+                        </td>
+                        <td className="grades-score-cell" data-label="Nota">
                           {row.id !== undefined ? (
                             <input
                               type="text"
@@ -526,7 +534,10 @@ export function SubjectGradesPanel({ subject }: SubjectGradesPanelProps) {
                             "—"
                           )}
                         </td>
-                        <td className="grades-min-cell grades-col-necessario">
+                        <td
+                          className="grades-min-cell grades-col-necessario"
+                          data-label="Necessário"
+                        >
                           {renderNecessarioCell(
                             row,
                             minNeeded,

@@ -24,12 +24,18 @@ export function SubjectPanelsRow({
     const gradesColumn = gradesColRef.current;
     if (!gradesColumn) return;
 
+    const mobileQuery = window.matchMedia("(max-width: 768px)");
+
     const resolveGradesPanel = (): HTMLElement | null => {
       const panel = gradesColumn.querySelector(".grades-panel");
       return panel instanceof HTMLElement ? panel : null;
     };
 
     const syncHeightFromGrades = () => {
+      if (mobileQuery.matches) {
+        setSyncedHeightPx(null);
+        return;
+      }
       const panel = resolveGradesPanel();
       if (!panel) return;
       setSyncedHeightPx(Math.round(panel.getBoundingClientRect().height));
@@ -42,7 +48,11 @@ export function SubjectPanelsRow({
 
     const observer = new ResizeObserver(syncHeightFromGrades);
     observer.observe(panel);
-    return () => observer.disconnect();
+    mobileQuery.addEventListener("change", syncHeightFromGrades);
+    return () => {
+      observer.disconnect();
+      mobileQuery.removeEventListener("change", syncHeightFromGrades);
+    };
   }, []);
 
   const rowStyle =
