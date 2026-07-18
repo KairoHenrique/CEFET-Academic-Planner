@@ -223,10 +223,7 @@ a:hover {
   top: 0;
   left: 0;
   right: 0;
-  height: calc(var(--nav-height) + var(--safe-top));
-  padding-top: var(--safe-top);
-  padding-left: var(--safe-left);
-  padding-right: var(--safe-right);
+  height: var(--nav-height);
   z-index: 1000;
   background: var(--glass-bg);
   backdrop-filter: blur(var(--glass-blur));
@@ -359,23 +356,21 @@ a:hover {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: var(--touch-min);
-  height: var(--touch-min);
-  min-width: var(--touch-min);
-  min-height: var(--touch-min);
-  padding: 0;
+  width: auto;
+  height: auto;
+  padding: var(--space-1);
   border: none;
   border-radius: var(--radius-sm);
   background: transparent;
   color: var(--gold-300);
   cursor: pointer;
-  transition: color var(--transition-fast), transform var(--transition-fast), background var(--transition-fast);
+  transition: color var(--transition-fast), transform var(--transition-fast);
 }
 
 .notification-bell-btn:hover {
   color: var(--gold-200);
-  background: var(--bg-hover);
-  transform: none;
+  background: transparent;
+  transform: scale(1.05);
 }
 
 .notification-bell-btn:focus-visible {
@@ -554,9 +549,7 @@ a:hover {
 .navbar-sync-btn {
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: var(--space-2);
-  min-height: var(--touch-min);
   padding: var(--space-2) var(--space-4);
   border-radius: var(--radius-sm);
   font-size: 0.75rem;
@@ -569,11 +562,6 @@ a:hover {
   cursor: pointer;
   transition: all var(--transition-fast);
   font-family: var(--font-body);
-}
-
-.navbar-sync-btn:focus-visible {
-  outline: 2px solid var(--gold-200);
-  outline-offset: 2px;
 }
 
 .navbar-sync-btn:hover:not(:disabled) {
@@ -661,10 +649,8 @@ a:hover {
 }
 
 .navbar-avatar {
-  width: var(--touch-min);
-  height: var(--touch-min);
-  min-width: var(--touch-min);
-  min-height: var(--touch-min);
+  width: 34px;
+  height: 34px;
   border-radius: var(--radius-sm);
   background: linear-gradient(135deg, var(--jersey-deep), var(--jersey-royal));
   display: flex;
@@ -2494,12 +2480,12 @@ body.mobile-nav-open {
 /* ---- Main Content ---- */
 .main-content {
   position: relative;
-  padding-top: calc(var(--nav-height) + var(--safe-top) + var(--space-6));
+  padding-top: calc(var(--nav-height) + var(--space-6));
   max-width: var(--max-width);
   margin: 0 auto;
-  padding-left: calc(var(--space-6) + var(--safe-left));
-  padding-right: calc(var(--space-6) + var(--safe-right));
-  padding-bottom: calc(var(--space-12) + var(--safe-bottom));
+  padding-left: var(--space-6);
+  padding-right: var(--space-6);
+  padding-bottom: var(--space-12);
   z-index: 1;
 }
 
@@ -2544,7 +2530,7 @@ body.mobile-nav-open {
 .main-content::before {
   content: '';
   position: fixed;
-  inset: calc(var(--nav-height) + var(--safe-top)) 0 0 0;
+  inset: var(--nav-height) 0 0 0;
   background: radial-gradient(
     ellipse 120% 80% at 50% 0%,
     rgba(0, 24, 52, 0.35) 0%,
@@ -6332,21 +6318,14 @@ body.mobile-nav-open {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: var(--touch-min);
-  height: var(--touch-min);
-  min-width: var(--touch-min);
-  min-height: var(--touch-min);
+  width: 32px;
+  height: 32px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-default);
   background: transparent;
   color: var(--text-secondary);
   cursor: pointer;
   transition: all var(--transition-fast);
-}
-
-.calendar-nav-btn:focus-visible {
-  outline: 2px solid var(--gold-300);
-  outline-offset: 2px;
 }
 
 .calendar-nav-btn:hover {
@@ -7349,10 +7328,6 @@ body.mobile-nav-open {
   border-bottom-color: var(--border-default);
   fill: #dce7f5;
   transition: background var(--transition-fast);
-  width: var(--touch-min);
-  height: var(--touch-min);
-  min-width: var(--touch-min);
-  min-height: var(--touch-min);
 }
 
 .course-map-flow-canvas .react-flow__minimap {
@@ -7496,13 +7471,6 @@ body.mobile-nav-open {
   border: 1px solid rgba(255, 255, 255, 0.4) !important;
   background: var(--gold-300) !important;
   opacity: 0.5;
-}
-
-/* Hit area expandida p/ toque (F28 / mobile-app-adapter) */
-.cmap-node__handle::before {
-  content: "";
-  position: absolute;
-  inset: -14px;
 }
 
 /* Status */
@@ -9992,20 +9960,13 @@ body.mobile-nav-open {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: var(--touch-min);
-  height: var(--touch-min);
-  min-width: var(--touch-min);
-  min-height: var(--touch-min);
+  width: 32px;
+  height: 32px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-default);
   background: transparent;
   color: var(--text-secondary);
   cursor: pointer;
-}
-
-.modal-close:focus-visible {
-  outline: 2px solid var(--gold-300);
-  outline-offset: 2px;
 }
 
 .modal-close:hover {
@@ -11472,6 +11433,80 @@ body.mobile-nav-open {
     display: none;
   }
 
+  /* F28 — safe-area + touch só no mobile (desktop permanece pré-F28) */
+  .navbar {
+    height: calc(var(--nav-height) + var(--safe-top));
+    padding-top: var(--safe-top);
+    padding-left: var(--safe-left);
+    padding-right: var(--safe-right);
+  }
+
+  .main-content {
+    padding-top: calc(var(--nav-height) + var(--safe-top) + var(--space-6));
+    padding-left: calc(var(--space-4) + var(--safe-left));
+    padding-right: calc(var(--space-4) + var(--safe-right));
+    padding-bottom: calc(var(--space-12) + var(--safe-bottom));
+  }
+
+  .main-content::before {
+    inset: calc(var(--nav-height) + var(--safe-top)) 0 0 0;
+  }
+
+  .notification-bell-btn {
+    width: var(--touch-min);
+    height: var(--touch-min);
+    min-width: var(--touch-min);
+    min-height: var(--touch-min);
+    padding: 0;
+  }
+
+  .notification-bell-btn:hover {
+    background: var(--bg-hover);
+    transform: none;
+  }
+
+  .navbar-avatar {
+    width: var(--touch-min);
+    height: var(--touch-min);
+    min-width: var(--touch-min);
+    min-height: var(--touch-min);
+  }
+
+  .navbar-sync-btn {
+    justify-content: center;
+    min-height: var(--touch-min);
+    min-width: var(--touch-min);
+    padding-left: var(--space-2);
+    padding-right: var(--space-2);
+  }
+
+  .calendar-nav-btn {
+    width: var(--touch-min);
+    height: var(--touch-min);
+    min-width: var(--touch-min);
+    min-height: var(--touch-min);
+  }
+
+  .modal-close {
+    width: var(--touch-min);
+    height: var(--touch-min);
+    min-width: var(--touch-min);
+    min-height: var(--touch-min);
+  }
+
+  .course-map-flow-canvas .react-flow__controls-button {
+    width: var(--touch-min);
+    height: var(--touch-min);
+    min-width: var(--touch-min);
+    min-height: var(--touch-min);
+  }
+
+  .cmap-node__handle::before {
+    content: "";
+    position: absolute;
+    inset: -14px;
+  }
+
   .navbar-menu-btn {
     display: flex;
   }
@@ -11501,12 +11536,6 @@ body.mobile-nav-open {
 
   .navbar-actions {
     gap: var(--space-1);
-  }
-
-  .navbar-sync-btn {
-    min-width: var(--touch-min);
-    padding-left: var(--space-2);
-    padding-right: var(--space-2);
   }
 
   .navbar-sync-btn span:last-child {
@@ -11601,11 +11630,6 @@ body.mobile-nav-open {
 
   h1 { font-size: 1.65rem; }
   h2 { font-size: 1.25rem; }
-
-  .main-content {
-    padding-left: calc(var(--space-4) + var(--safe-left));
-    padding-right: calc(var(--space-4) + var(--safe-right));
-  }
 }
 
 /* F28 — faixa telefone (~375px) */

@@ -114,13 +114,23 @@ function CourseMapFlowGraphInner({ grafo }: { grafo: MapaGrafoResponse }) {
 
   const handleLeave = useCallback(() => scheduleClear(), [scheduleClear]);
 
+  /* Touch only — desktop keeps hover focus + scroll-zoom pré-F28 */
+  const [isTouchMap, setIsTouchMap] = useState(false);
+  useEffect(() => {
+    const media = window.matchMedia("(pointer: coarse)");
+    const sync = () => setIsTouchMap(media.matches);
+    sync();
+    media.addEventListener("change", sync);
+    return () => media.removeEventListener("change", sync);
+  }, []);
+
   const handleNodeClick = useCallback<NodeMouseHandler>(
     (_, node) => {
-      if (node.type !== "course") return;
+      if (!isTouchMap || node.type !== "course") return;
       cancelClear();
       setActiveId((previous) => (previous === node.id ? null : node.id));
     },
-    [cancelClear]
+    [cancelClear, isTouchMap]
   );
 
   const handlePane = useCallback(() => {
@@ -193,14 +203,11 @@ function CourseMapFlowGraphInner({ grafo }: { grafo: MapaGrafoResponse }) {
           elementsSelectable
           onNodeMouseEnter={handleEnter}
           onNodeMouseLeave={handleLeave}
-          onNodeClick={handleNodeClick}
+          onNodeClick={isTouchMap ? handleNodeClick : undefined}
           onPaneClick={handlePane}
-          panOnDrag
-          panOnScroll={false}
-          zoomOnScroll={false}
+          zoomOnScroll={!isTouchMap}
           zoomOnPinch
-          zoomOnDoubleClick={false}
-          preventScrolling
+          preventScrolling={isTouchMap}
           minZoom={0.2}
           maxZoom={1.75}
           proOptions={{ hideAttribution: true }}
