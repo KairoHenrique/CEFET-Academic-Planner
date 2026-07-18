@@ -1,10 +1,15 @@
 import { StatusBar } from "expo-status-bar";
 import { StyleSheet, Text, View } from "react-native";
+import type { AppCursoId } from "@acme/api-contracts";
 import { brand } from "./src/theme/brand";
 
+/** Smoke type-level: contratos M2 resolvem no bundle. */
+const CURSO_SMOKE: AppCursoId = "eng-computacao";
+
 /**
- * M1 — scaffold Expo (Android only).
- * Telas, auth, cache e push entram em M2+.
+ * M1 — scaffold Expo (Android only · SDK 54).
+ * M2 — `@acme/api-contracts` ligado.
+ * Telas / auth entram em M3+.
  */
 export default function App() {
   return (
@@ -12,7 +17,7 @@ export default function App() {
       <Text style={styles.brand}>ACME HUB</Text>
       <Text style={styles.subtitle}>Mobile Android · Bloco 8</Text>
       <Text style={styles.hint}>
-        Expo Go · bottom tabs (sem sidebar) · M1 ok
+        Expo Go · SDK 54 · contratos API ({CURSO_SMOKE}) · M1–M2
       </Text>
       <StatusBar style="light" />
     </View>

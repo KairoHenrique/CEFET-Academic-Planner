@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@acme/api-contracts": "file:../packages/api-contracts",
     "expo": "~54.0.35",
     "expo-status-bar": "~3.0.9",
     "react": "19.1.0",

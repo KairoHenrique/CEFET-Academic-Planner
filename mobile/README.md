@@ -39,8 +39,12 @@ Próximas tasks: **M2** tipos · **M3** sessão · **M4** auth · …
 
 ```
 mobile/
-├── App.tsx              # entry UI (placeholder M1)
-├── app.json             # Expo config (Android)
-├── src/theme/brand.ts   # cores do produto
-└── assets/              # ícones / splash
+├── App.tsx
+├── app.json                 # Expo · Android only · SDK 54
+├── metro.config.js          # monorepo → packages/api-contracts
+├── src/theme/brand.ts
+├── src/contracts/           # reexport @acme/api-contracts (M2)
+└── assets/
 ```
+
+Contratos compartilhados: [`packages/api-contracts`](../packages/api-contracts).

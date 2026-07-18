@@ -1,0 +1,566 @@
+/**
+ * Contratos de API compartilhados — ACME HUB.
+ *
+ * Fonte para o app Expo (`mobile/`). Espelham as respostas JSON das rotas
+ * em `app/src/app/api/` / `app/src/lib/types/*`, sem dependências do Next.js.
+ *
+ * Bloco 8 · M2 — ver docs/TASKS.md e docs/SCOPE-CLOUD.md §7.
+ */
+
+export type AppCursoId =
+  | "eng-computacao"
+  | "eng-mecatronica"
+  | "design-moda";
+
+export type GradeRisk =
+  | "seguro"
+  | "atencao"
+  | "critico"
+  | "recuperacao"
+  | "reprovado"
+  | "sem_nota";
+
+/* -------------------------------------------------------------------------- */
+/* Auth                                                                       */
+/* -------------------------------------------------------------------------- */
+
+export interface AuthCursoOption {
+  id: AppCursoId;
+  label: string;
+}
+
+export interface AuthConfigResponse {
+  ok: true;
+  mode: "cloud" | "sigaa";
+  cursos: AuthCursoOption[];
+}
+
+export interface AppProfileRecord {
+  userId: string;
+  cpf: string;
+  email: string;
+  telefone: string;
+  cursoId: AppCursoId;
+  createdAt: string;
+}
+
+export interface AuthSessionPayload {
+  accessToken: string;
+  refreshToken: string;
+  expiresAt: number;
+  tokenType: string;
+}
+
+export type PerfilSubscriptionStatus =
+  | "trial_active"
+  | "trial_expired"
+  | "pending_payment"
+  | "active"
+  | "expired"
+  | "cancelled";
+
+/** Assinatura resolvida no login/cadastro (campos usados pelo gate). */
+export interface SubscriptionAccessView {
+  planId: string;
+  planLabel: string;
+  status: PerfilSubscriptionStatus;
+  expiresAt: string;
+  daysRemaining: number;
+  renewHref: string;
+  inGracePeriod?: boolean;
+  renewalEligible?: boolean;
+  blocked?: boolean;
+}
+
+export interface AccountAuthResponse {
+  ok: true;
+  profile: AppProfileRecord;
+  session: AuthSessionPayload;
+  subscription: SubscriptionAccessView;
+}
+
+export interface RegisterAccountBody {
+  email: string;
+  telefone: string;
+  cpf: string;
+  cursoId: AppCursoId;
+  password: string;
+  friendMatricula?: string;
+  acceptedLegal: {
+    terms: boolean;
+    privacy: boolean;
+    termsVersion: string;
+    privacyVersion: string;
+  };
+}
+
+export interface LoginAccountBody {
+  cpf: string;
+  password: string;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Dashboard                                                                  */
+/* -------------------------------------------------------------------------- */
+
+export interface DashboardAluno {
+  matricula: string;
+  nome: string;
+  curso: string;
+  email: string;
+  semestreAtual: string;
+  rg: number;
+  status: string;
+}
+
+export interface DashboardStats {
+  rg: number;
+  integralizacaoPercent: number;
+  disciplinasCursando: number;
+  tarefasPendentes: number;
+}
+
+export interface IntegrationCategory {
+  id: string;
+  label: string;
+  hours: number;
+  done: number;
+  percent: number;
+}
+
+export interface DashboardIntegralizacao {
+  totalHours: number;
+  totalDone: number;
+  percent: number;
+  categories: IntegrationCategory[];
+}
+
+export type TaskType = "individual" | "grupo";
+
+export interface AcademicTask {
+  id: number;
+  title: string;
+  subject: string;
+  subjectCode: string;
+  subjectColor: string;
+  date: string;
+  dueDateIso: string;
+  dueTime: string;
+  type: TaskType;
+  done: boolean;
+  manual: boolean;
+  description: string;
+  instructions: string[];
+  deliverables: string[];
+  hasGrade: boolean;
+  maxGrade?: number;
+}
+
+export interface SubjectSummary {
+  name: string;
+  nickname: string | null;
+  displayName: string;
+  shortLabel: string;
+  code: string;
+  room: string;
+  grade: number | null;
+  gradeMax: number;
+  passingGrade: number;
+  gradeRisk: GradeRisk;
+  absences: number;
+  maxAbsences: number;
+  tasks: number;
+  color: string;
+}
+
+export interface DashboardResponse {
+  aluno: DashboardAluno;
+  stats: DashboardStats;
+  integralizacao: DashboardIntegralizacao;
+  tarefas: AcademicTask[];
+  disciplinas: SubjectSummary[];
+}
+
+/* -------------------------------------------------------------------------- */
+/* Disciplinas                                                                */
+/* -------------------------------------------------------------------------- */
+
+export interface SubjectListItem extends SubjectSummary {
+  ch?: number;
+  professor?: string;
+  schedule?: string;
+}
+
+export interface DisciplinaListResponse {
+  items: SubjectListItem[];
+}
+
+export interface SubjectEvaluation {
+  id?: number;
+  name: string;
+  max: number;
+  score: number | null;
+  manual?: boolean;
+  userOverride?: boolean;
+  extra?: boolean;
+}
+
+export interface SubjectDetail {
+  name: string;
+  officialName: string;
+  nickname: string | null;
+  displayName: string;
+  shortLabel: string;
+  code: string;
+  room: string;
+  syncedRoom: string | null;
+  schedule?: string;
+  syncedSchedule: string | null;
+  professor?: string;
+  syncedProfessor: string | null;
+  ch?: number;
+  syncedWeeklyHours: number | null;
+  grade: number | null;
+  gradeMax: number;
+  passingGrade: number;
+  gradeRisk: GradeRisk;
+  evaluations: SubjectEvaluation[];
+  absences: number;
+  maxAbsences: number;
+  tasks: number;
+  color: string;
+  ementa: string;
+}
+
+export interface AttendanceSummary {
+  absences: number;
+  maxAbsences: number;
+  percentUsed: number;
+  remaining: number;
+}
+
+export interface GrupoMembroDto {
+  nome: string;
+  matricula: string | null;
+  email: string | null;
+  curso: string | null;
+}
+
+export interface DisciplinaGrupoDto {
+  nome: string | null;
+  membros: GrupoMembroDto[];
+}
+
+export interface SubjectDetailResponse {
+  subject: SubjectDetail;
+  tasks: AcademicTask[];
+  attendance: AttendanceSummary;
+  grupo: DisciplinaGrupoDto;
+  catalogOnly?: boolean;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Calendário                                                                 */
+/* -------------------------------------------------------------------------- */
+
+export type CalendarEventType =
+  | "tarefa"
+  | "prova"
+  | "evento"
+  | "aula"
+  | "feriado"
+  | "outro";
+
+export interface CalendarEvent {
+  id: string;
+  date: string;
+  dateEnd?: string | null;
+  title: string;
+  type: CalendarEventType;
+  color?: string;
+  description?: string;
+  subject?: string;
+  subjectCode?: string;
+  timeStart?: string | null;
+  timeEnd?: string | null;
+  done?: boolean;
+  manual?: boolean;
+}
+
+export interface AcademicDateItem {
+  id: string;
+  label: string;
+  date: string;
+}
+
+export interface AcademicDateSemesterGroup {
+  semestre: string;
+  items: AcademicDateItem[];
+}
+
+export interface CalendarApiResponse {
+  events: CalendarEvent[];
+  academicDateGroups: AcademicDateSemesterGroup[];
+}
+
+/* -------------------------------------------------------------------------- */
+/* Mapa / Integralização                                                      */
+/* -------------------------------------------------------------------------- */
+
+export type MapaDisciplineStatus =
+  | "concluida"
+  | "cursando"
+  | "liberada"
+  | "bloqueada"
+  | "optativa";
+
+export interface MapaDiscipline {
+  code: string;
+  name: string;
+  period: number;
+  status: MapaDisciplineStatus;
+  ch?: number;
+}
+
+export interface MapaPeriod {
+  period: number;
+  label: string;
+  disciplines: MapaDiscipline[];
+}
+
+export interface MapaStats {
+  total: number;
+  concluidas: number;
+  cursando: number;
+  liberadas: number;
+  bloqueadas: number;
+  percent: number;
+}
+
+export interface MapaResponse {
+  curso: string;
+  periods: MapaPeriod[];
+  stats: MapaStats;
+  statusLabels: Record<string, string>;
+  historicoSynced: boolean;
+}
+
+export interface IntegralizacaoResponse {
+  totalHours: number;
+  totalDone: number;
+  percent: number;
+  categories: IntegrationCategory[];
+}
+
+/* -------------------------------------------------------------------------- */
+/* Notificações                                                               */
+/* -------------------------------------------------------------------------- */
+
+export type NotificationKind =
+  | "task"
+  | "grade"
+  | "task-reminder"
+  | "calendar-event-reminder"
+  | "class-reminder"
+  | "integralizacao-alert"
+  | "calendar-date-alert";
+
+export interface NotificationSnapshotItem {
+  fingerprint: string;
+  kind: NotificationKind;
+  title: string;
+  subtitle: string;
+  href: string;
+  at: string | null;
+  disciplinaNome?: string;
+  notaObtida?: number;
+  notaMaxima?: number | null;
+}
+
+export interface NotificationPreferences {
+  tasks: boolean;
+  grades: boolean;
+  taskReminders: boolean;
+  calendarReminders: boolean;
+  classReminders: boolean;
+  integralizacaoAlerts: boolean;
+  academicDateAlerts: boolean;
+}
+
+export interface PendingTaskReminderSource {
+  id: number;
+  disciplinaId: string;
+  title: string;
+  subtitle: string;
+  href: string;
+  dueDateIso: string;
+  dueTime: string;
+}
+
+export interface PendingCalendarReminderSource {
+  eventId: string;
+  title: string;
+  subtitle: string;
+  href: string;
+  startDateIso: string;
+  startTime: string;
+}
+
+export interface NotificationsSnapshotResponse {
+  items: NotificationSnapshotItem[];
+  pendingTasks: PendingTaskReminderSource[];
+  pendingCalendarEvents: PendingCalendarReminderSource[];
+  pendingClassSessions: PendingCalendarReminderSource[];
+  preferences: NotificationPreferences;
+  capturedAt: string;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Perfil                                                                     */
+/* -------------------------------------------------------------------------- */
+
+export interface PerfilAluno {
+  matricula: string;
+  nome: string;
+  curso: string | null;
+  email: string | null;
+  semestreEntrada: string | null;
+  status: string | null;
+  initials: string;
+}
+
+export interface PerfilAccount {
+  cpf: string | null;
+  email: string | null;
+  phone: string | null;
+}
+
+export interface PerfilSubscription {
+  planId: string;
+  planLabel: string;
+  status: PerfilSubscriptionStatus;
+  expiresAt: string;
+  daysRemaining: number;
+  renewHref: string;
+  inGracePeriod?: boolean;
+  renewalEligible?: boolean;
+}
+
+export interface PerfilSyncStatus {
+  automatic: true;
+  intervalMinutes: number;
+  lastSyncAt: string | null;
+}
+
+export interface PerfilResponse {
+  profile: PerfilAluno | null;
+  account: PerfilAccount;
+  subscription: PerfilSubscription;
+  sync: PerfilSyncStatus;
+  notifications: NotificationPreferences;
+}
+
+export interface PatchPerfilBody {
+  email?: string | null;
+  phone?: string | null;
+  notifications?: Partial<NotificationPreferences>;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Billing / planos                                                           */
+/* -------------------------------------------------------------------------- */
+
+export type PaidPlanId =
+  | "quarter"
+  | "semester"
+  | "year"
+  | "five_year"
+  | string;
+
+export interface BillingPlanView {
+  id: string;
+  kind: "trial" | "paid";
+  shortLabel: string;
+  durationLabel: string;
+  priceLabel: string;
+  description: string;
+  featured?: boolean;
+}
+
+export interface BillingPlansResponse {
+  plans: BillingPlanView[];
+  checkoutEnabled: boolean;
+  promo?: {
+    headline: string;
+    description: string;
+    endsAt?: string | null;
+  } | null;
+  quarterSavings?: { label: string } | null;
+  semesterSavings?: { label: string } | null;
+  yearSavings?: { label: string } | null;
+  fiveYearSavings?: { label: string } | null;
+}
+
+export interface BillingCheckoutRequestBody {
+  planId: PaidPlanId;
+  idempotencyKey?: string;
+}
+
+export interface BillingCheckoutPaymentView {
+  id: string;
+  planId: string;
+  amountCents: number;
+  status: string;
+  expiresAt: string;
+  qrCode?: string | null;
+  qrCodeBase64?: string | null;
+  ticketUrl?: string | null;
+}
+
+export interface BillingCheckoutResponse {
+  ok: true;
+  payment: BillingCheckoutPaymentView;
+}
+
+export interface RedeemGiftKeyRequestBody {
+  code: string;
+}
+
+export interface RedeemGiftKeyResponse {
+  ok: true;
+  code: string;
+  planId: string;
+  planLabel: string;
+  subscription: {
+    id: string;
+    status: "active";
+    expiresAt: string;
+    source: "gift_key";
+  };
+}
+
+/* -------------------------------------------------------------------------- */
+/* Sync                                                                       */
+/* -------------------------------------------------------------------------- */
+
+export type SyncMode = "full" | "incremental";
+
+export interface SyncStep {
+  id: string;
+  label: string;
+  progress: number;
+  status?: "pending" | "running" | "done" | "error";
+}
+
+export interface SyncQueueJobView {
+  jobId: string;
+  status: string;
+  progress?: number;
+  message?: string | null;
+  result?: { steps?: SyncStep[] } | null;
+}
+
+export interface SyncQueueEnqueueResponse {
+  ok: true;
+  job: SyncQueueJobView;
+}
