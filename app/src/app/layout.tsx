@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
 import { JerseyBackground } from "@/components/JerseyBackground";
@@ -22,6 +22,13 @@ export const metadata: Metadata = {
     template: "%s · ACME HUB",
   },
   description: "ACME HUB — planejador acadêmico com sincronização ao SIGAA do CEFET-MG",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#001020",
 };
 
 export default function RootLayout({

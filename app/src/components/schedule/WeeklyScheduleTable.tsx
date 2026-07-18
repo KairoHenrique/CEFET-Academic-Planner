@@ -123,6 +123,9 @@ export function WeeklyScheduleTable({
 
   return (
     <>
+      <p className="schedule-scroll-hint" aria-hidden="true">
+        Deslize para ver a grade completa →
+      </p>
       <div className={`schedule-wrapper ${compact ? "schedule-compact" : ""}`}>
         <table className={`schedule-table ${compact ? "schedule-table-compact" : ""}`}>
           <thead>

@@ -43,7 +43,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ## Roadmap detalhado — ordem de execução (#0 → #11)
 
-> **Próximo oficial:** **#10 — Bloco 4 · F28** (site mobile). **B74/F43** `[@]` (indicação por matrícula no cadastro). **B73/F42** `[@]`. **F25–F27** `[x]` (skeletons, transições, favicon/título — aprovado jul/2026). **#9 fechado:** **B36/B37** `[x]` (alertas no sino, aprovado jul/2026) · **F24 descartado** (banners removidos — alertas ficam só no sino) · demais #9 `[x]`. Bloco **2f (B72a–e)** `[x]`. **Fix jul/2026:** login rápido normaliza CPF no `sync-readiness` (CPF formatado não força mais re-sync de 1º acesso).
+> **Próximo oficial:** **#8 — Bloco 8 · Mobile Android (Expo Go)** — após aprovar **F28** `[@]`. **F28** site mobile no remoto (jul/2026). **B74/F43** `[@]` · **B73/F42** `[@]`. **F25–F27** `[x]`. **#9 fechado:** **B36/B37** `[x]` · **F24 descartado**. Bloco **2f (B72a–e)** `[x]`. **Fix jul/2026:** login rápido normaliza CPF no `sync-readiness` (CPF formatado não força mais re-sync de 1º acesso).
 > **Regra:** siga **#0 → #11** · dentro de cada bloco → **BACK (B) antes de FRONT (F)**. Checklist espelho: [Checklist mestre](#checklist-mestre-ordem-de-execução).
 
 ### #0 — Planejamento `✅`
@@ -317,14 +317,14 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ---
 
-### #10 — Bloco 4 · Polimento UX + site mobile `🟡 3/4 (F28 pendente)`
+### #10 — Bloco 4 · Polimento UX + site mobile `[@] 4/4 (F28 push)`
 
 > **Executar antes do mobile (#8).** Quem não instalar o app Android usa o site no celular (**F28**).
 
 - [x] **FRONT:** F25 *(loading skeletons — todas as telas)* — `SubjectDetailSkeleton` estruturado; demais telas já cobertas (dashboard, disciplinas, calendário, mapa, integralização, simulador/grade)
 - [x] **FRONT:** F26 *(transições de página entre rotas)* — fade-in keyed por `pathname` nas telas do aluno (`.route-transition`, respeita `prefers-reduced-motion`)
 - [x] **FRONT:** F27 *(favicon + título na aba)* — favicon já existente + `title` template `%s · ACME HUB` + `metadata` por página
-- [ ] **FRONT:** F28 *(site mobile — nav touch, layouts responsivos nas telas críticas, uso confortável no browser sem instalar app)*
+- [@] **FRONT:** F28 *(site mobile — nav touch 44px, drawer + backdrop, safe-area, disciplinas/grade/calendário/planos · push jul/2026, aguardando aprovação)*
 
 **Ordem Bloco 4:** `F25 → F26 → F27 → F28`
 
@@ -432,7 +432,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ### 1.4 API e Integração UI ↔ SQLite
 
-> **Progresso:** Bloco 1 ✅ · **Bloco 2a/2b** ✅ · **Bloco 6a** ✅ **8/8** · **6b** ✅ **8/8** (+ **B73/F42** `[@]` · **B74/F43** `[@]` indicação) · **6c** ✅ **2/2** · **#6d** ✅ **6/6** · **#6e** ✅ **2/2** · **#7** ✅ **15/15** · **#12** B72a–e `[x]` **5/5** (código ok; **ops = PC + cloudflared**) · **#9** B32–B34 + F21–F23 `[x]` · **B35**/**F20** `[x]` · URL **`https://acme-hub.khfm.workers.dev`**.
+> **Progresso:** Bloco 1 ✅ · **Bloco 2a/2b** ✅ · **Bloco 6a** ✅ **8/8** · **6b** ✅ **8/8** (+ **B73/F42** `[@]` · **B74/F43** `[@]`) · **6c** ✅ **2/2** · **#6d** ✅ **6/6** · **#6e** ✅ **2/2** · **#7** ✅ **15/15** · **#12** B72a–e `[x]` **5/5** · **#9** `[x]` · **#10** F25–F27 `[x]` · **F28** `[@]` · URL **`https://acme-hub.khfm.workers.dev`**.
 
 Roadmap detalhado: ver **[Roadmap #0→#11 no topo](#roadmap-detalhado--ordem-de-execução-0--11)** · [Ordem oficial v3](#ordem-oficial-de-execução-v3). **F19** simulador (2a) `[x]` · **B67** `[x]`.
 
@@ -559,7 +559,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | **#7** | 7 | Assinatura PIX | ✅ **Concluído** | 15/15 |
 | **#12** | 2f | **Sync real Postgres (B72)** | ✅ B72a–e `[x]` · **ops = PC + cloudflared** | 5/5 |
 | **#9** | 3 | Inteligência acadêmica | **B36/B37** `[x]` (sino) · **F24 descartado** · demais `[x]` · próximo **#10** | 10/10 |
-| **#10** | 4 | Polimento UX + site mobile (**F28**) | 🟡 **F25–F27** `[x]` (aprovado jul/2026) · próximo **F28** | 3/4 |
+| **#10** | 4 | Polimento UX + site mobile (**F28**) | **F25–F27** `[x]` · **F28** `[@]` (push jul/2026) | 4/4 |
 | **#8** | 8 | Mobile Android (Expo Go) | Depois de **#6d** + **#7** + **#9** + **#10** · **sem Play/App Store** | 0/10 |
 | **#11** | 9 | Multi-PPC (Mecatrônica, Moda) | **🔒 Só após #8** | 0/4 |
 
@@ -626,7 +626,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 > **Calendário — rótulos e datas (jul/2026, sobre B66) `[x]`:** renomeação **só na exibição** (nome bruto do SIGAA segue no banco): `Matrícula OnLine → Matrícula Fase 1`, `Rematrícula → Matrícula Fase 2`, `Processamento de Matrícula/Rematrícula → Resultado Matrícula Fase 1/2` (`event-label-overrides.ts`). Scraper passa a captar os eventos de "processamento" (`calendario-event-filter.ts`) e há fallback de datas institucionais conhecidas sem duplicar quando o SIGAA publica (`known-institutional-dates.ts`).
 
-**Próximo:** **#10 — Bloco 4 · F28** (site mobile). **F25–F27** `[x]` (aprovado jul/2026) · **B36/B37** `[x]` (sino) · **F24 descartado**. Bloco **2f/B72** e **B35/F20** `[x]` (push jul/2026).
+**Próximo:** **#8 — Mobile Android** (após aprovar **F28** `[@]`). **F25–F27** `[x]` · **F28** `[@]` · **B36/B37** `[x]` · **F24 descartado**. Bloco **2f/B72** e **B35/F20** `[x]`.
 
 ---
 
@@ -751,11 +751,11 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 ---
 
-### #10 — Bloco 4 · Polimento UX + site mobile `🟡 3/4 (F28 pendente)`
+### #10 — Bloco 4 · Polimento UX + site mobile `[@] 4/4 (F28 push)`
 
 > **Executar antes do mobile (#8).** Alternativa ao app instalado = site no celular (**F28**).
 
-- [x] **FRONT:** F25 → F26 → F27 *(aprovado jul/2026)* · [ ] F28
+- [x] **FRONT:** F25 → F26 → F27 *(aprovado jul/2026)* · [@] F28 *(push jul/2026)*
 
 **Ordem Bloco 4:** `F25 → F26 → F27 → F28`
 
@@ -805,7 +805,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | #7 | 7 — Assinatura PIX | ✅ | 15 / 15 |
 | **#12** | **2f — Sync real Postgres (B72)** | ✅ B72a–e `[x]` · **ops = PC + cloudflared** | 5 / 5 |
 | #9 | 3 — Inteligência | ✅ **B36/B37** `[x]` (sino) · **F24 descartado** · próximo **#10** | 10 / 10 |
-| #10 | 4 — Polimento + site mobile | 🟡 **F25–F27** `[x]` · próximo **F28** | 3 / 4 |
+| #10 | 4 — Polimento + site mobile | **F25–F27** `[x]` · **F28** `[@]` | 4 / 4 |
 | #8 | 8 — Mobile Android | ⬜ *(após #9 + #10 · sem lojas)* | 0 / 10 |
 | #11 | 9 — Multi-PPC | 🔒 *(após #8)* | 0 / 4 |
 
@@ -1031,7 +1031,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] `worker/Dockerfile` (Playwright jammy) · `worker/README.md`
 - [x] Testes `tests/worker-b54.test.ts`
 
-> **Próximo (produto):** **#10 — Bloco 4 · F28** (site mobile). **F25–F27** `[x]` (aprovado jul/2026) · **B36/B37** `[x]` (sino) · **F24 descartado**. Bloco **2f/B72** e **F20** `[x]` (push jul/2026).
+> **Próximo (produto):** **#8 — Mobile Android** (após aprovar **F28** `[@]`). **F25–F27** `[x]` · **F28** `[@]` · **B36/B37** `[x]` · **F24 descartado**. Bloco **2f/B72** e **F20** `[x]`.
 
 #### B55 — API fila sync `[x]`
 
@@ -1041,7 +1041,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Dispatcher assíncrono → worker B54 (`SIGAA_WORKER_URL`) ou **inline** (`SYNC_QUEUE_DISPATCH=inline`)
 - [x] Testes `tests/sync-queue-b55.test.ts` · `npm run test:sync-queue`
 
-> **Próximo (produto):** **#10 — Bloco 4 · F28** (site mobile). **F25–F27** `[x]` (aprovado jul/2026) · **B36/B37** `[x]` (sino) · **F24 descartado**. Bloco **2f/B72** e **F20** `[x]` (push jul/2026).
+> **Próximo (produto):** **#8 — Mobile Android** (após aprovar **F28** `[@]`). **F25–F27** `[x]` · **F28** `[@]` · **B36/B37** `[x]` · **F24 descartado**. Bloco **2f/B72** e **F20** `[x]`.
 
 #### B56 — Pipeline no worker `[x]`
 
@@ -1295,7 +1295,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | F25 | Front | Loading skeletons | Placeholders em todas as telas | 6.4 | [x] |
 | F26 | Front | Transições de página | Animações entre rotas | 6.4 | [x] |
 | F27 | Front | Favicon + título | Identidade na aba do browser | 6.4 | [x] |
-| F28 | Front | Site mobile | Nav touch, layouts responsivos, telas críticas no browser | 6.4 | [ ] |
+| F28 | Front | Site mobile | Nav touch 44px, drawer+backdrop, safe-area, layouts críticos no browser | 6.4 | [@] |
 
 **Ordem:** `F25 → F26 → F27 → F28`
 
@@ -1684,7 +1684,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Adicionar loading skeletons em todas as telas — dashboard, disciplinas (lista + `SubjectDetailSkeleton` estruturado), calendário, mapa, integralização, grade/simulador (**F25**)
 - [x] Responsividade básica (breakpoints mobile/tablet/desktop)
 - [x] Favicon e título na aba — favicon `favicon.ico`/`icon.png` · `title` template `%s · ACME HUB` + `metadata` por página (**F27**)
-- [ ] Site mobile — nav touch, layouts responsivos, telas críticas usáveis no browser (**F28** · alternativa ao app Android)
+- [@] Site mobile — nav touch 44px, drawer+backdrop, safe-area, disciplinas/grade/calendário/planos (**F28** · push jul/2026, aguardando aprovação)
 
 ---
 
@@ -1977,7 +1977,7 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 8. **Próximo passo do roadmap:** informe **depois do push** (tasks em `[@]` ou `[x]`). Com commits locais só `[x]`, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v3](#ordem-oficial-de-execução-v3) — **Bloco 2 (sync) antes do Bloco 6 (Supabase)**. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy **após** sync validado; RLS ✅ **6c** (antes do PIX). Marco “site no ar p/ testes gerais” → [final do TASKS.md](#marco--site-no-ar-para-testes-gerais).
-11. **Próximo passo:** **#10 — Bloco 4 · F28** (site mobile). **B74/F43** `[@]` (indicação por matrícula — push jul/2026, aguardando aprovação). **B73/F42** `[@]`. **F25–F27** `[x]`. **#9 fechado:** **B36/B37** `[x]` · **F24 descartado**. Ops sync = PC home server (`npm run worker:home` + `npm run worker:tunnel` + secrets CF; dev scraper `SIGAA_BROWSER_CHANNEL=chrome`).
+11. **Próximo passo:** **#8 — Bloco 8 · Mobile Android (Expo Go)** — após aprovar **F28**. **F28** `[@]` (site mobile — push jul/2026). **B74/F43** `[@]` · **B73/F42** `[@]`. **F25–F27** `[x]`. **#9 fechado:** **B36/B37** `[x]` · **F24 descartado**. Ops sync = PC home server (`npm run worker:home` + `npm run worker:tunnel` + secrets CF; dev scraper `SIGAA_BROWSER_CHANNEL=chrome`).
 12. **Integralização:** CH concluída = `historico` + PPC (`computeChDoneFromDisciplinas`); portal SIGAA só % / total currículo; matérias já passadas = **B30** ✅.
 13. **Gift + painel dev:** **B68–B71** ✅ · **F39–F41** ✅ — painel sem senha SIGAA (`credentialSaved` + `accountRef`).
 14. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial. **Polish em task `[x]`** (ex.: F38, dashboard) também exige nota no TASKS no mesmo ciclo do push.

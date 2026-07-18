@@ -128,6 +128,12 @@
   /* Layout */
   --nav-height: 60px;
   --max-width: 1280px;
+  /* F28 — touch / mobile */
+  --touch-min: 44px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
 }
 
 html {
@@ -217,7 +223,10 @@ a:hover {
   top: 0;
   left: 0;
   right: 0;
-  height: var(--nav-height);
+  height: calc(var(--nav-height) + var(--safe-top));
+  padding-top: var(--safe-top);
+  padding-left: var(--safe-left);
+  padding-right: var(--safe-right);
   z-index: 1000;
   background: var(--glass-bg);
   backdrop-filter: blur(var(--glass-blur));
@@ -248,6 +257,25 @@ a:hover {
   color: var(--text-primary);
   text-decoration: none;
   letter-spacing: -0.02em;
+  min-width: 0;
+}
+
+.navbar-brand-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  line-height: 1.1;
+}
+
+.navbar-brand-word {
+  display: block;
+}
+
+.navbar-brand-text--short {
+  display: none;
+  line-height: 1;
+  letter-spacing: 0.04em;
 }
 
 .brand-logo {
@@ -331,21 +359,28 @@ a:hover {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: auto;
-  height: auto;
-  padding: var(--space-1);
+  width: var(--touch-min);
+  height: var(--touch-min);
+  min-width: var(--touch-min);
+  min-height: var(--touch-min);
+  padding: 0;
   border: none;
   border-radius: var(--radius-sm);
   background: transparent;
   color: var(--gold-300);
   cursor: pointer;
-  transition: color var(--transition-fast), transform var(--transition-fast);
+  transition: color var(--transition-fast), transform var(--transition-fast), background var(--transition-fast);
 }
 
 .notification-bell-btn:hover {
   color: var(--gold-200);
-  background: transparent;
-  transform: scale(1.05);
+  background: var(--bg-hover);
+  transform: none;
+}
+
+.notification-bell-btn:focus-visible {
+  outline: 2px solid var(--gold-300);
+  outline-offset: 2px;
 }
 
 .notification-bell-badge {
@@ -519,7 +554,9 @@ a:hover {
 .navbar-sync-btn {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: var(--space-2);
+  min-height: var(--touch-min);
   padding: var(--space-2) var(--space-4);
   border-radius: var(--radius-sm);
   font-size: 0.75rem;
@@ -532,6 +569,11 @@ a:hover {
   cursor: pointer;
   transition: all var(--transition-fast);
   font-family: var(--font-body);
+}
+
+.navbar-sync-btn:focus-visible {
+  outline: 2px solid var(--gold-200);
+  outline-offset: 2px;
 }
 
 .navbar-sync-btn:hover:not(:disabled) {
@@ -619,8 +661,10 @@ a:hover {
 }
 
 .navbar-avatar {
-  width: 34px;
-  height: 34px;
+  width: var(--touch-min);
+  height: var(--touch-min);
+  min-width: var(--touch-min);
+  min-height: var(--touch-min);
   border-radius: var(--radius-sm);
   background: linear-gradient(135deg, var(--jersey-deep), var(--jersey-royal));
   display: flex;
@@ -2319,8 +2363,10 @@ a:hover {
   display: none;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: var(--touch-min);
+  height: var(--touch-min);
+  min-width: var(--touch-min);
+  min-height: var(--touch-min);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-sm);
   background: transparent;
@@ -2334,23 +2380,60 @@ a:hover {
   border-color: var(--border-emphasis);
 }
 
+.navbar-menu-btn:focus-visible {
+  outline: 2px solid var(--gold-300);
+  outline-offset: 2px;
+}
+
+.mobile-nav-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 998;
+  border: none;
+  padding: 0;
+  margin: 0;
+  background: rgba(0, 8, 20, 0.55);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-nav-backdrop.open {
+  display: block;
+}
+
+body.mobile-nav-open {
+  overflow: hidden;
+}
+
 .mobile-nav {
   display: none;
   position: fixed;
-  top: var(--nav-height);
+  top: calc(var(--nav-height) + var(--safe-top));
   left: 0;
   right: 0;
+  max-height: calc(100dvh - var(--nav-height) - var(--safe-top) - var(--safe-bottom));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   background: var(--glass-bg);
   backdrop-filter: blur(var(--glass-blur));
   -webkit-backdrop-filter: blur(var(--glass-blur));
   border-bottom: 1px solid var(--border-gold);
   padding: var(--space-4);
+  padding-bottom: calc(var(--space-4) + var(--safe-bottom));
+  padding-left: calc(var(--space-4) + var(--safe-left));
+  padding-right: calc(var(--space-4) + var(--safe-right));
   z-index: 999;
   animation: slideDown var(--transition-base) ease-out;
 }
 
 .mobile-nav.open {
   display: block;
+}
+
+.mobile-nav[hidden] {
+  display: none !important;
 }
 
 .mobile-nav-list {
@@ -2364,9 +2447,10 @@ a:hover {
   display: flex;
   align-items: center;
   gap: var(--space-3);
+  min-height: var(--touch-min);
   padding: var(--space-3) var(--space-4);
   border-radius: var(--radius-sm);
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   color: var(--text-secondary);
   text-decoration: none;
@@ -2379,6 +2463,11 @@ a:hover {
   background: rgba(212, 168, 67, 0.08);
 }
 
+.mobile-nav-list a:focus-visible {
+  outline: 2px solid var(--gold-300);
+  outline-offset: 2px;
+}
+
 .mobile-nav-logout {
   margin-top: var(--space-4);
   padding-top: var(--space-4);
@@ -2388,18 +2477,19 @@ a:hover {
 .mobile-nav-logout-btn {
   width: 100%;
   justify-content: center;
+  min-height: var(--touch-min);
   padding: var(--space-3) var(--space-4);
 }
 
 /* ---- Main Content ---- */
 .main-content {
   position: relative;
-  padding-top: calc(var(--nav-height) + var(--space-6));
+  padding-top: calc(var(--nav-height) + var(--safe-top) + var(--space-6));
   max-width: var(--max-width);
   margin: 0 auto;
-  padding-left: var(--space-6);
-  padding-right: var(--space-6);
-  padding-bottom: var(--space-12);
+  padding-left: calc(var(--space-6) + var(--safe-left));
+  padding-right: calc(var(--space-6) + var(--safe-right));
+  padding-bottom: calc(var(--space-12) + var(--safe-bottom));
   z-index: 1;
 }
 
@@ -2444,7 +2534,7 @@ a:hover {
 .main-content::before {
   content: '';
   position: fixed;
-  inset: var(--nav-height) 0 0 0;
+  inset: calc(var(--nav-height) + var(--safe-top)) 0 0 0;
   background: radial-gradient(
     ellipse 120% 80% at 50% 0%,
     rgba(0, 24, 52, 0.35) 0%,
@@ -4674,6 +4764,9 @@ a:hover {
 
 .schedule-wrapper {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
 }
 
 .schedule-table {
@@ -5552,7 +5645,10 @@ a:hover {
 }
 
 .subject-list-table.data-table-wrap {
-  overflow: visible;
+  overflow-x: auto;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
 }
 
 .data-table {
@@ -6160,14 +6256,21 @@ a:hover {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: var(--touch-min);
+  height: var(--touch-min);
+  min-width: var(--touch-min);
+  min-height: var(--touch-min);
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-default);
   background: transparent;
   color: var(--text-secondary);
   cursor: pointer;
   transition: all var(--transition-fast);
+}
+
+.calendar-nav-btn:focus-visible {
+  outline: 2px solid var(--gold-300);
+  outline-offset: 2px;
 }
 
 .calendar-nav-btn:hover {
@@ -9802,13 +9905,20 @@ a:hover {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: var(--touch-min);
+  height: var(--touch-min);
+  min-width: var(--touch-min);
+  min-height: var(--touch-min);
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-default);
   background: transparent;
   color: var(--text-secondary);
   cursor: pointer;
+}
+
+.modal-close:focus-visible {
+  outline: 2px solid var(--gold-300);
+  outline-offset: 2px;
 }
 
 .modal-close:hover {
@@ -11279,17 +11389,161 @@ a:hover {
     display: flex;
   }
 
+  .navbar-logout-btn--desktop {
+    display: none;
+  }
+
+  .navbar-brand-text--full {
+    display: none;
+  }
+
+  .navbar-brand-text--short {
+    display: inline;
+    font-size: 0.9375rem;
+  }
+
+  .navbar-brand .brand-logo-img {
+    width: 40px;
+    height: 40px;
+  }
+
+  .navbar-inner {
+    padding: 0 var(--space-3);
+    gap: var(--space-2);
+  }
+
+  .navbar-actions {
+    gap: var(--space-1);
+  }
+
+  .navbar-sync-btn {
+    min-width: var(--touch-min);
+    padding-left: var(--space-2);
+    padding-right: var(--space-2);
+  }
+
   .navbar-sync-btn span:last-child {
     display: none;
+  }
+
+  /* Disciplinas: scroll horizontal + colunas secundárias ocultas */
+  .subject-list-table .col-professor,
+  .subject-list-table .col-room {
+    display: none;
+  }
+
+  .subject-list-table .data-table {
+    table-layout: auto;
+    min-width: 560px;
+  }
+
+  .subject-list-table .col-subject {
+    width: 28%;
+  }
+
+  .subject-list-table .col-schedule {
+    width: 22%;
+  }
+
+  .subject-list-table .col-grade-risk {
+    min-width: 160px;
+  }
+
+  .page-toolbar,
+  .subject-list-toolbar {
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+
+  .schedule-scroll-hint {
+    display: block;
+  }
+
+  .mapa-view-toggle button {
+    min-height: var(--touch-min);
+    min-width: var(--touch-min);
+  }
+
+  .pix-qr-frame {
+    width: min(256px, 100%);
+    height: auto;
+    aspect-ratio: 1;
+  }
+
+  .pix-qr-image {
+    width: 100%;
+    height: auto;
+    max-width: 100%;
   }
 
   h1 { font-size: 1.65rem; }
   h2 { font-size: 1.25rem; }
 
   .main-content {
-    padding-left: var(--space-4);
-    padding-right: var(--space-4);
+    padding-left: calc(var(--space-4) + var(--safe-left));
+    padding-right: calc(var(--space-4) + var(--safe-right));
   }
+}
+
+/* F28 — faixa telefone (~375px) */
+@media (max-width: 480px) {
+  .dashboard-page .col-stat {
+    grid-column: span 12;
+  }
+
+  .stat-card {
+    padding: var(--space-4);
+  }
+
+  .subjects-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .calendar-grid {
+    gap: 2px;
+    grid-auto-rows: minmax(52px, auto);
+  }
+
+  .calendar-day-btn:not(.empty),
+  .calendar-day.empty {
+    min-height: 52px;
+  }
+
+  .calendar-day-btn {
+    padding: var(--space-1);
+    font-size: 0.75rem;
+  }
+
+  .course-map-row {
+    grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+  }
+
+  .login-page {
+    padding-left: var(--space-3);
+    padding-right: var(--space-3);
+  }
+
+  .login-submit {
+    min-height: var(--touch-min);
+  }
+
+  .planos-hero-actions .btn,
+  .auth-submit {
+    width: 100%;
+    min-height: var(--touch-min);
+  }
+
+  .notification-bell-panel {
+    right: -8px;
+    width: min(100vw - 16px, 320px);
+  }
+}
+
+.schedule-scroll-hint {
+  display: none;
+  margin: 0 0 var(--space-2);
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
 }
 
 /* ---- Painel /dev (F41) ---- */
