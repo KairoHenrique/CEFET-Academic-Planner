@@ -1697,7 +1697,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [ ] Telas: dashboard, disciplinas, calendário, mapa
 - [ ] Testar no Expo Go (**Android**; sem iOS)
 - [ ] *(Opcional pós-MVP)* APK sideload pelo site — **sem** loja (**M10**)
-- [ ] **Alternativa sem instalar:** site adaptado ao celular (**F28** · Bloco 4)
+- [@] **Alternativa sem instalar:** site adaptado ao celular (**F28** · Bloco 4 · push jul/2026)
 
 ---
 
