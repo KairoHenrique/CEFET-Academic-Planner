@@ -11057,8 +11057,18 @@ body.mobile-nav-open {
 .sync-progress-header {
   display: flex;
   justify-content: space-between;
+  gap: var(--space-2);
   font-size: 0.75rem;
   color: var(--text-secondary);
+}
+
+.sync-progress-label {
+  min-width: 0;
+}
+
+.sync-progress-pct {
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
 }
 
 .add-event-form {
@@ -13079,13 +13089,23 @@ body.mobile-nav-open {
     justify-content: space-between;
     gap: var(--space-3);
     width: 100%;
-    max-width: none;
+    max-width: none !important;
     min-width: 0;
     padding: 0;
     text-align: left;
     white-space: normal;
     font-size: 0.875rem;
     border: none;
+    word-break: normal;
+    overflow-wrap: anywhere;
+  }
+
+  /* Anula o truque desktop max-width:1px que quebra o texto em letras verticais */
+  .grades-table-wrap .data-table th:first-child,
+  .grades-table-wrap .data-table td:first-child {
+    max-width: none !important;
+    width: 100% !important;
+    word-break: normal;
   }
 
   .grades-table-wrap .data-table td::before,
@@ -13620,3 +13640,286 @@ body.mobile-nav-open {
     transition: none;
   }
 }
+
+/* ============================================================
+   F28 — Fixes prints (só ≤768) + agenda mobile
+   ============================================================ */
+
+.schedule-mobile-agenda {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  /* Brand curto: ACME HUB */
+  .navbar-brand-text--short {
+    font-size: 0.8125rem;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+
+  /* Sync progress: sem cortar texto/% */
+  .navbar-sync-progress {
+    position: fixed;
+    top: calc(var(--nav-height) + var(--safe-top) + var(--space-2));
+    left: calc(var(--space-3) + var(--safe-left));
+    right: calc(var(--space-3) + var(--safe-right));
+    width: auto;
+    max-width: none;
+    z-index: 1100;
+  }
+
+  .sync-progress-header {
+    gap: var(--space-2);
+    align-items: flex-start;
+  }
+
+  .sync-progress-label {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .sync-progress-pct {
+    flex: 0 0 auto;
+  }
+
+  /* Drawer full-height até o fundo da tela */
+  .mobile-nav {
+    top: 0 !important;
+    right: 0 !important;
+    left: auto !important;
+    bottom: 0 !important;
+    height: 100dvh !important;
+    max-height: none !important;
+    width: min(300px, 85vw) !important;
+    display: flex !important;
+    flex-direction: column;
+    transform: translateX(110%);
+    padding-top: calc(var(--nav-height) + var(--safe-top) + var(--space-5));
+    padding-bottom: calc(var(--space-5) + var(--safe-bottom));
+  }
+
+  .mobile-nav.open {
+    transform: translateX(0);
+    display: flex !important;
+  }
+
+  .mobile-nav[hidden] {
+    display: none !important;
+  }
+
+  .mobile-nav-list {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .mobile-nav-logout {
+    margin-top: auto;
+    flex-shrink: 0;
+  }
+
+  /* Matéria: header compacto */
+  .subject-detail-header {
+    padding: var(--space-3);
+  }
+
+  .subject-detail-top {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-2);
+    margin-bottom: var(--space-3);
+  }
+
+  .subject-detail-top-aside {
+    margin-left: 0;
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .subject-detail-title {
+    font-size: 1.15rem;
+    line-height: 1.25;
+  }
+
+  .subject-detail-actions {
+    gap: var(--space-2);
+    margin-top: 0;
+  }
+
+  .subject-detail-meta {
+    gap: var(--space-2);
+    flex-wrap: wrap;
+  }
+
+  .subject-detail-meta .subject-meta-item {
+    font-size: 0.75rem;
+  }
+
+  /* Notas: cards mais compactos + grid Máx/Nota/Necessário */
+  .grades-table-wrap .data-table tr {
+    gap: var(--space-2);
+    padding: var(--space-3);
+  }
+
+  .grades-table-wrap .data-table td[data-label="Avaliação"] {
+    display: block;
+    font-size: 0.875rem;
+    line-height: 1.35;
+  }
+
+  .grades-table-wrap .data-table td[data-label="Máx."],
+  .grades-table-wrap .data-table td[data-label="Nota"],
+  .grades-table-wrap .data-table td[data-label="Necessário"] {
+    font-size: 0.8125rem;
+  }
+
+  .grades-panel-actions .btn-outline {
+    font-size: 0.75rem;
+    padding-inline: var(--space-2);
+  }
+
+  .grade-risk-panel {
+    padding: var(--space-3);
+  }
+
+  .grade-risk-panel .card-stat,
+  .grade-risk-panel .subject-stat-value {
+    font-size: 1.35rem;
+  }
+
+  /* Grade semana: agenda mobile (sem scroll lateral) */
+  .schedule-scroll-hint,
+  .schedule-scroll-hint--desktop,
+  .schedule-wrapper--desktop,
+  .schedule-wrapper {
+    display: none !important;
+  }
+
+  .schedule-mobile-agenda {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .schedule-mobile-day {
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    background: var(--bg-secondary);
+    padding: var(--space-3);
+  }
+
+  .schedule-mobile-day-title {
+    margin: 0 0 var(--space-2);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--gold-300);
+  }
+
+  .schedule-mobile-empty {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
+  }
+
+  .schedule-mobile-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .schedule-mobile-item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    width: 100%;
+    min-height: var(--touch-min);
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-sm);
+    border: 1px solid color-mix(in srgb, var(--slot-color) 45%, transparent);
+    background: color-mix(in srgb, var(--slot-color) 22%, transparent);
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .schedule-mobile-item--conflict {
+    border-color: rgba(248, 81, 73, 0.55);
+  }
+
+  .schedule-mobile-time {
+    flex: 0 0 auto;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    padding-top: 2px;
+  }
+
+  .schedule-mobile-body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .schedule-mobile-name {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.3;
+  }
+
+  .schedule-mobile-room {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+  }
+
+  /* Simulador: ações não sobrepõem o título */
+  .enrollment-schedule-actions {
+    position: static;
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: var(--space-2);
+  }
+
+  .enrollment-schedule-head-spacer {
+    display: none;
+  }
+
+  .enrollment-schedule-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .enrollment-schedule-head-main {
+    width: 100%;
+  }
+
+  .enrollment-download-btn,
+  .enrollment-clear-btn {
+    min-height: var(--touch-min);
+    flex: 1 1 calc(50% - var(--space-1));
+    justify-content: center;
+  }
+}
+
+@media (min-width: 769px) {
+  .schedule-mobile-agenda {
+    display: none !important;
+  }
+
+  .schedule-wrapper--desktop {
+    display: block;
+  }
+}
+

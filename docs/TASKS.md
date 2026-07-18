@@ -324,7 +324,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 - [x] **FRONT:** F25 *(loading skeletons — todas as telas)* — `SubjectDetailSkeleton` estruturado; demais telas já cobertas (dashboard, disciplinas, calendário, mapa, integralização, simulador/grade)
 - [x] **FRONT:** F26 *(transições de página entre rotas)* — fade-in keyed por `pathname` nas telas do aluno (`.route-transition`, respeita `prefers-reduced-motion`)
 - [x] **FRONT:** F27 *(favicon + título na aba)* — favicon já existente + `title` template `%s · ACME HUB` + `metadata` por página
-- [@] **FRONT:** F28 *(site mobile pre-APK — sem zoom · calendário/notas refatorados só ≤768 · desktop intacto · drawer · push jul/2026, aguardando aprovação)*
+- [@] **FRONT:** F28 *(site mobile pre-APK — agenda por dia · notas/drawer/sync · ACME HUB · grafo sem link perfil · push jul/2026, aguardando aprovação)*
 
 **Ordem Bloco 4:** `F25 → F26 → F27 → F28`
 
@@ -1295,7 +1295,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | F25 | Front | Loading skeletons | Placeholders em todas as telas | 6.4 | [x] |
 | F26 | Front | Transições de página | Animações entre rotas | 6.4 | [x] |
 | F27 | Front | Favicon + título | Identidade na aba do browser | 6.4 | [x] |
-| F28 | Front | Site mobile | Pre-APK mobile · sem zoom · calendário/notas usáveis · desktop intacto | 6.4 | [@] |
+| F28 | Front | Site mobile | Pre-APK · agenda sem scroll lateral · notas/drawer/sync fixes · grafo sem link | 6.4 | [@] |
 
 **Ordem:** `F25 → F26 → F27 → F28`
 
@@ -1684,7 +1684,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Adicionar loading skeletons em todas as telas — dashboard, disciplinas (lista + `SubjectDetailSkeleton` estruturado), calendário, mapa, integralização, grade/simulador (**F25**)
 - [x] Responsividade básica (breakpoints mobile/tablet/desktop)
 - [x] Favicon e título na aba — favicon `favicon.ico`/`icon.png` · `title` template `%s · ACME HUB` + `metadata` por página (**F27**)
-- [@] Site mobile — pre-APK no browser (sem zoom, calendário/notas usáveis, desktop intacto) (**F28** · push jul/2026, aguardando aprovação)
+- [@] Site mobile — pre-APK (agenda sem scroll lateral, notas/drawer, ACME HUB; grafo sem abrir perfil) (**F28** · push jul/2026, aguardando aprovação)
 
 ---
 

@@ -2,9 +2,7 @@
 
 import { memo } from "react";
 import { Handle, Position, type NodeProps, type Node } from "@xyflow/react";
-import Link from "next/link";
 import { Icon } from "@/components/ui/Icon";
-import { disciplinaDetailPath } from "@/lib/disciplinas/disciplina-path";
 import type { MapaGrafoNodeData } from "@/lib/types/mapa-grafo-api";
 import type { NodeEmphasis } from "@/lib/mapa/course-map-flow-transforms";
 
@@ -51,19 +49,9 @@ function CourseFlowNodeComponent({ data }: NodeProps<CourseFlowNodeType>) {
     <div className={className} aria-label={`${data.name} — ${data.status}`}>
       <span className="cmap-node__accent" aria-hidden />
       <Handle type="target" position={Position.Left} className="cmap-node__handle" />
-      {data.status === "locked" ? (
-        <span className="cmap-node__inner">
-          <NodeBody data={data} />
-        </span>
-      ) : (
-        <Link
-          href={disciplinaDetailPath(data.code)}
-          className="cmap-node__inner cmap-node__link"
-          onClick={(event) => event.stopPropagation()}
-        >
-          <NodeBody data={data} />
-        </Link>
-      )}
+      <span className="cmap-node__inner">
+        <NodeBody data={data} />
+      </span>
       <Handle type="source" position={Position.Right} className="cmap-node__handle" />
     </div>
   );
