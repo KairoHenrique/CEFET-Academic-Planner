@@ -6,7 +6,12 @@ import type { SubjectDetailResponse } from "@acme/api-contracts";
 import { ApiClientError, requestJson } from "../auth/api";
 import type { DisciplinasStackParamList } from "../navigation/types";
 import { brand } from "../theme/brand";
-import { cardStyles, formatGrade, formatPtDate } from "../ui/cards";
+import {
+  cardStyles,
+  formatGrade,
+  formatPtDate,
+  gradeRiskLabel,
+} from "../ui/cards";
 import { EmptyState } from "../ui/EmptyState";
 import { ErrorBox } from "../ui/ErrorBox";
 import { LoadingBlock } from "../ui/LoadingBlock";
@@ -48,12 +53,17 @@ export function DisciplinaDetailScreen() {
   );
 
   const subject = data?.subject;
-  const pendingTasks = data?.tasks.filter((t) => !t.done) ?? [];
+  const tasks = data?.tasks ?? [];
+  const att = data?.attendance;
 
   return (
     <Screen
       title={subject?.displayName ?? params.name ?? params.code}
-      subtitle={subject?.code}
+      subtitle={
+        subject
+          ? `${subject.code}${subject.shortLabel ? ` · ${subject.shortLabel}` : ""}`
+          : params.code
+      }
       scrollProps={{
         refreshControl: (
           <RefreshControl
@@ -62,7 +72,7 @@ export function DisciplinaDetailScreen() {
               setRefreshing(true);
               void load();
             }}
-            tintColor={brand.blue}
+            tintColor={brand.gold}
           />
         ),
       }}
@@ -72,18 +82,31 @@ export function DisciplinaDetailScreen() {
         <ErrorBox message={error} onRetry={() => void load()} />
       ) : null}
 
-      {subject ? (
+      {subject && att ? (
         <>
-          <View style={cardStyles.card}>
+          <View
+            style={[
+              cardStyles.card,
+              { borderLeftColor: subject.color, borderLeftWidth: 3 },
+            ]}
+          >
             <Text style={cardStyles.sectionTitle}>Resumo</Text>
+            {subject.nickname ? (
+              <Text style={cardStyles.cardMeta}>
+                Apelido: {subject.nickname}
+              </Text>
+            ) : null}
             <Text style={cardStyles.cardMeta}>
-              Nota {formatGrade(subject.grade, subject.gradeMax)} · Mínima{" "}
-              {subject.passingGrade}
+              Nota {formatGrade(subject.grade, subject.gradeMax)} (mín.{" "}
+              {subject.passingGrade}) · {gradeRiskLabel(subject.gradeRisk)}
             </Text>
             <Text style={cardStyles.cardMeta}>
-              Faltas {data!.attendance.absences}/{data!.attendance.maxAbsences}{" "}
-              ({data!.attendance.remaining} restantes)
+              Faltas {att.absences}/{att.maxAbsences} · {att.percentUsed}% ·{" "}
+              {att.remaining} restantes
             </Text>
+            {subject.ch != null ? (
+              <Text style={cardStyles.cardMeta}>CH {subject.ch}h</Text>
+            ) : null}
             {subject.professor ? (
               <Text style={cardStyles.cardMeta}>Prof. {subject.professor}</Text>
             ) : null}
@@ -95,6 +118,15 @@ export function DisciplinaDetailScreen() {
             ) : null}
           </View>
 
+          {subject.ementa ? (
+            <>
+              <Text style={cardStyles.sectionTitle}>Ementa</Text>
+              <View style={cardStyles.card}>
+                <Text style={cardStyles.cardMeta}>{subject.ementa}</Text>
+              </View>
+            </>
+          ) : null}
+
           <Text style={cardStyles.sectionTitle}>Notas / avaliações</Text>
           {subject.evaluations.length === 0 ? (
             <EmptyState title="Sem avaliações registradas" />
@@ -102,7 +134,10 @@ export function DisciplinaDetailScreen() {
             subject.evaluations.map((ev, idx) => (
               <View key={`${ev.name}-${idx}`} style={cardStyles.card}>
                 <View style={cardStyles.row}>
-                  <Text style={cardStyles.cardTitle}>{ev.name}</Text>
+                  <Text style={[cardStyles.cardTitle, { flex: 1 }]}>
+                    {ev.name}
+                    {ev.extra ? " (extra)" : ""}
+                  </Text>
                   <Text style={styles.score}>
                     {ev.score != null ? ev.score.toFixed(1) : "—"}/{ev.max}
                   </Text>
@@ -111,29 +146,48 @@ export function DisciplinaDetailScreen() {
             ))
           )}
 
-          <Text style={cardStyles.sectionTitle}>Tarefas pendentes</Text>
-          {pendingTasks.length === 0 ? (
-            <EmptyState title="Sem tarefas pendentes" />
+          <Text style={cardStyles.sectionTitle}>Tarefas</Text>
+          {tasks.length === 0 ? (
+            <EmptyState title="Sem tarefas" />
           ) : (
-            pendingTasks.map((task) => (
+            tasks.map((task) => (
               <View key={task.id} style={cardStyles.card}>
-                <Text style={cardStyles.cardTitle}>{task.title}</Text>
+                <View style={cardStyles.row}>
+                  <Text style={[cardStyles.cardTitle, { flex: 1 }]}>
+                    {task.title}
+                  </Text>
+                  {task.done ? (
+                    <Text style={styles.done}>Feita</Text>
+                  ) : (
+                    <Text style={styles.pending}>Pendente</Text>
+                  )}
+                </View>
                 <Text style={cardStyles.cardMeta}>
                   {formatPtDate(task.dueDateIso)}
                   {task.dueTime ? ` · ${task.dueTime}` : ""}
+                  {task.type === "grupo" ? " · Grupo" : " · Individual"}
                 </Text>
+                {task.description ? (
+                  <Text style={cardStyles.cardMeta}>{task.description}</Text>
+                ) : null}
               </View>
             ))
           )}
 
           {data!.grupo.membros.length > 0 ? (
             <>
-              <Text style={cardStyles.sectionTitle}>Grupo</Text>
+              <Text style={cardStyles.sectionTitle}>
+                Grupo{data!.grupo.nome ? ` · ${data!.grupo.nome}` : ""}
+              </Text>
               <View style={cardStyles.card}>
                 {data!.grupo.membros.map((m, i) => (
-                  <Text key={`${m.matricula ?? m.nome}-${i}`} style={cardStyles.cardMeta}>
+                  <Text
+                    key={`${m.matricula ?? m.nome}-${i}`}
+                    style={cardStyles.cardMeta}
+                  >
                     {m.nome}
                     {m.matricula ? ` · ${m.matricula}` : ""}
+                    {m.email ? ` · ${m.email}` : ""}
                   </Text>
                 ))}
               </View>
@@ -149,6 +203,16 @@ const styles = StyleSheet.create({
   score: {
     fontSize: 15,
     fontWeight: "800",
-    color: brand.blue,
+    color: brand.gold,
+  },
+  done: {
+    color: brand.success,
+    fontWeight: "700",
+    fontSize: 12,
+  },
+  pending: {
+    color: brand.gold,
+    fontWeight: "700",
+    fontSize: 12,
   },
 });

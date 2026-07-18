@@ -314,6 +314,26 @@ export interface CalendarApiResponse {
 }
 
 /* -------------------------------------------------------------------------- */
+/* Grade semanal (horários)                                                   */
+/* -------------------------------------------------------------------------- */
+
+export interface ScheduleApiSlot {
+  code: string;
+  name: string;
+  room: string;
+  color: string;
+  professor?: string;
+  ch?: number;
+  displayName?: string;
+}
+
+export interface ScheduleApiResponse {
+  days: string[];
+  timeSlots: string[];
+  grid: (ScheduleApiSlot | null)[][];
+}
+
+/* -------------------------------------------------------------------------- */
 /* Mapa / Integralização                                                      */
 /* -------------------------------------------------------------------------- */
 

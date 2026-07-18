@@ -1,18 +1,29 @@
 import { useCallback, useState } from "react";
 import { RefreshControl, StyleSheet, Text, View } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
+import type {
+  DashboardResponse,
+  ScheduleApiResponse,
+} from "@acme/api-contracts";
 import { ApiClientError } from "../auth/api";
-import { fetchDashboard } from "../cache/fetchers";
-import type { DashboardResponse } from "@acme/api-contracts";
+import { fetchDashboard, fetchSchedule } from "../cache/fetchers";
 import { brand } from "../theme/brand";
-import { cardStyles, formatPtDate, StatCard } from "../ui/cards";
+import {
+  cardStyles,
+  formatGrade,
+  formatPtDate,
+  gradeRiskLabel,
+  StatCard,
+} from "../ui/cards";
 import { EmptyState } from "../ui/EmptyState";
 import { ErrorBox } from "../ui/ErrorBox";
 import { LoadingBlock } from "../ui/LoadingBlock";
 import { Screen } from "../ui/Screen";
+import { WeeklyScheduleGrid } from "../ui/WeeklyScheduleGrid";
 
 export function DashboardScreen() {
   const [data, setData] = useState<DashboardResponse | null>(null);
+  const [schedule, setSchedule] = useState<ScheduleApiResponse | null>(null);
   const [fromCache, setFromCache] = useState(false);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -22,9 +33,13 @@ export function DashboardScreen() {
     if (!silent) setLoading(true);
     setError(null);
     try {
-      const result = await fetchDashboard();
-      setData(result.data);
-      setFromCache(result.fromCache);
+      const [dash, sched] = await Promise.all([
+        fetchDashboard(),
+        fetchSchedule().catch(() => null),
+      ]);
+      setData(dash.data);
+      setFromCache(dash.fromCache || Boolean(sched?.fromCache));
+      if (sched) setSchedule(sched.data);
     } catch (err) {
       setError(
         err instanceof ApiClientError
@@ -43,16 +58,16 @@ export function DashboardScreen() {
     }, [load])
   );
 
-  const pendingTasks =
-    data?.tarefas.filter((t) => !t.done).slice(0, 6) ?? [];
+  const pendingTasks = data?.tarefas.filter((t) => !t.done).slice(0, 8) ?? [];
+  const integ = data?.integralizacao;
 
   return (
     <Screen
-      title={`Olá, ${data?.aluno.nome.split(" ")[0] ?? "…"}`}
+      title={data ? `Olá, ${data.aluno.nome.split(" ")[0]}` : "Início"}
       subtitle={
         data
-          ? `${data.aluno.curso} · ${data.aluno.semestreAtual}`
-          : "Seu resumo acadêmico"
+          ? `${data.aluno.curso} · ${data.aluno.semestreAtual} · mat. ${data.aluno.matricula}`
+          : "Resumo acadêmico"
       }
       cacheHint={fromCache ? "Dados do cache offline" : null}
       scrollProps={{
@@ -63,7 +78,7 @@ export function DashboardScreen() {
               setRefreshing(true);
               void load(true);
             }}
-            tintColor={brand.blue}
+            tintColor={brand.gold}
           />
         ),
       }}
@@ -82,74 +97,114 @@ export function DashboardScreen() {
               accent={brand.gold}
             />
             <StatCard
-              label="Matérias cursando"
+              label="Cursando"
               value={data.stats.disciplinasCursando}
             />
             <StatCard
-              label="Tarefas pendentes"
+              label="Tarefas"
               value={data.stats.tarefasPendentes}
             />
             <StatCard label="RG" value={data.stats.rg} />
           </View>
 
-          <Text style={cardStyles.sectionTitle}>Próximas entregas</Text>
-          {pendingTasks.length === 0 ? (
-            <EmptyState
-              title="Nenhuma tarefa pendente"
-              message="Tudo em dia por aqui."
-            />
-          ) : (
-            pendingTasks.map((task) => (
-              <View key={task.id} style={cardStyles.card}>
-                <View style={cardStyles.row}>
-                  <Text style={cardStyles.cardTitle}>{task.title}</Text>
-                  <View
-                    style={[
-                      cardStyles.badge,
-                      { backgroundColor: `${task.subjectColor}22` },
-                    ]}
-                  >
-                    <Text
-                      style={[cardStyles.badgeText, { color: task.subjectColor }]}
-                    >
-                      {task.subject}
+          {integ ? (
+            <>
+              <Text style={cardStyles.sectionTitle}>Integralização (CH)</Text>
+              <View style={cardStyles.card}>
+                <Text style={cardStyles.cardTitle}>
+                  {integ.totalDone}/{integ.totalHours}h · {integ.percent}%
+                </Text>
+                {integ.categories.map((cat) => (
+                  <View key={cat.id} style={styles.barBlock}>
+                    <View style={cardStyles.row}>
+                      <Text style={styles.catLabel}>{cat.label}</Text>
+                      <Text style={styles.catPct}>{cat.percent}%</Text>
+                    </View>
+                    <View style={styles.barTrack}>
+                      <View
+                        style={[
+                          styles.barFill,
+                          { width: `${Math.min(100, cat.percent)}%` },
+                        ]}
+                      />
+                    </View>
+                    <Text style={cardStyles.cardMeta}>
+                      {cat.done}/{cat.hours}h
                     </Text>
                   </View>
-                </View>
+                ))}
+              </View>
+            </>
+          ) : null}
+
+          <Text style={cardStyles.sectionTitle}>Grade da Semana</Text>
+          {schedule ? (
+            <View style={cardStyles.card}>
+              <WeeklyScheduleGrid schedule={schedule} />
+            </View>
+          ) : (
+            <EmptyState
+              title="Grade indisponível"
+              message="Puxe para atualizar ou sincronize no site."
+            />
+          )}
+
+          <Text style={cardStyles.sectionTitle}>Próximas entregas</Text>
+          {pendingTasks.length === 0 ? (
+            <EmptyState title="Nenhuma tarefa pendente" />
+          ) : (
+            pendingTasks.map((task) => (
+              <View
+                key={task.id}
+                style={[
+                  cardStyles.card,
+                  { borderLeftColor: task.subjectColor, borderLeftWidth: 3 },
+                ]}
+              >
+                <Text style={cardStyles.cardTitle}>{task.title}</Text>
                 <Text style={cardStyles.cardMeta}>
-                  {formatPtDate(task.dueDateIso)}
+                  {task.subject} · {formatPtDate(task.dueDateIso)}
                   {task.dueTime ? ` · ${task.dueTime}` : ""}
                   {task.type === "grupo" ? " · Grupo" : ""}
                 </Text>
+                {task.description ? (
+                  <Text style={cardStyles.cardMeta} numberOfLines={2}>
+                    {task.description}
+                  </Text>
+                ) : null}
               </View>
             ))
           )}
 
-          <Text style={cardStyles.sectionTitle}>Atalhos</Text>
-          <View style={cardStyles.card}>
-            <Text style={styles.hint}>
-              Use as abas abaixo para navegar:{"\n"}•{" "}
-              <Text style={styles.bold}>Agenda</Text> — calendário e datas
-              acadêmicas{"\n"}• <Text style={styles.bold}>Matérias</Text> —
-              notas, faltas e tarefas{"\n"}• <Text style={styles.bold}>Mais</Text>{" "}
-              — mapa PPC, integralização, simulador, planos e perfil
-            </Text>
-          </View>
-
-          {data.disciplinas.length > 0 ? (
-            <>
-              <Text style={cardStyles.sectionTitle}>Matérias em andamento</Text>
-              {data.disciplinas.slice(0, 4).map((d) => (
-                <View key={d.code} style={cardStyles.card}>
-                  <Text style={cardStyles.cardTitle}>{d.displayName}</Text>
-                  <Text style={cardStyles.cardMeta}>
-                    Nota {d.grade ?? "—"}/{d.gradeMax} · Faltas {d.absences}/
-                    {d.maxAbsences}
-                  </Text>
-                </View>
-              ))}
-            </>
-          ) : null}
+          <Text style={cardStyles.sectionTitle}>Matérias em andamento</Text>
+          {data.disciplinas.length === 0 ? (
+            <EmptyState title="Nenhuma matéria cursando" />
+          ) : (
+            data.disciplinas.map((d) => (
+              <View
+                key={d.code}
+                style={[
+                  cardStyles.card,
+                  { borderLeftColor: d.color, borderLeftWidth: 3 },
+                ]}
+              >
+                <Text style={cardStyles.cardTitle}>{d.displayName}</Text>
+                <Text style={cardStyles.cardMeta}>
+                  {d.code}
+                  {d.shortLabel ? ` · ${d.shortLabel}` : ""}
+                </Text>
+                <Text style={cardStyles.cardMeta}>
+                  Nota {formatGrade(d.grade, d.gradeMax)} ·{" "}
+                  {gradeRiskLabel(d.gradeRisk)} · Faltas {d.absences}/
+                  {d.maxAbsences}
+                  {d.tasks > 0 ? ` · ${d.tasks} tarefa(s)` : ""}
+                </Text>
+                {d.room ? (
+                  <Text style={cardStyles.cardMeta}>Sala {d.room}</Text>
+                ) : null}
+              </View>
+            ))
+          )}
         </>
       ) : null}
     </Screen>
@@ -163,13 +218,30 @@ const styles = StyleSheet.create({
     gap: 10,
     marginBottom: 8,
   },
-  hint: {
-    fontSize: 14,
-    color: brand.muted,
-    lineHeight: 22,
+  barBlock: {
+    marginTop: 12,
   },
-  bold: {
-    fontWeight: "700",
-    color: brand.navy,
+  catLabel: {
+    color: brand.text,
+    fontSize: 13,
+    fontWeight: "600",
+    flex: 1,
+  },
+  catPct: {
+    color: brand.gold,
+    fontWeight: "800",
+    fontSize: 13,
+  },
+  barTrack: {
+    marginTop: 6,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "rgba(255,255,255,0.08)",
+    overflow: "hidden",
+  },
+  barFill: {
+    height: "100%",
+    backgroundColor: brand.gold,
+    borderRadius: 4,
   },
 });

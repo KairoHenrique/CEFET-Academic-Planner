@@ -6,6 +6,7 @@ import type {
   IntegralizacaoResponse,
   MapaResponse,
   NotificationsSnapshotResponse,
+  ScheduleApiResponse,
 } from "@acme/api-contracts";
 
 const ROOT_PREFIX = "acme-hub.cache.v1";
@@ -16,6 +17,7 @@ export interface AcademicSnapshot {
   dashboard?: DashboardResponse;
   disciplinas?: DisciplinaListResponse;
   calendar?: CalendarApiResponse;
+  schedule?: ScheduleApiResponse;
   mapa?: MapaResponse;
   integralizacao?: IntegralizacaoResponse;
   notifications?: NotificationsSnapshotResponse;

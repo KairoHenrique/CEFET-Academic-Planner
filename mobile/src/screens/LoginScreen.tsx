@@ -105,12 +105,12 @@ export function LoginScreen({ apiConfigured }: Props) {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: brand.blue,
+    backgroundColor: brand.bg,
     justifyContent: "center",
     paddingHorizontal: 24,
   },
   brand: {
-    color: brand.white,
+    color: brand.text,
     fontSize: 36,
     fontWeight: "800",
     letterSpacing: 1,
@@ -125,14 +125,13 @@ const styles = StyleSheet.create({
   },
   hint: {
     marginTop: 6,
-    color: brand.white,
-    opacity: 0.75,
+    color: brand.textSecondary,
     fontSize: 13,
     textAlign: "center",
   },
   warn: {
     marginTop: 16,
-    color: "#ffb4b4",
+    color: brand.danger,
     textAlign: "center",
     fontSize: 13,
   },
@@ -145,11 +144,12 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.35)",
+    borderColor: brand.border,
+    backgroundColor: brand.glass,
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 12,
-    color: brand.white,
+    color: brand.text,
     fontSize: 16,
   },
   button: {
@@ -162,13 +162,13 @@ const styles = StyleSheet.create({
   },
   disabled: { opacity: 0.55 },
   buttonText: {
-    color: brand.blue,
+    color: brand.bg,
     fontWeight: "700",
     fontSize: 16,
   },
   error: {
     marginTop: 16,
-    color: "#ffb4b4",
+    color: brand.danger,
     textAlign: "center",
     fontSize: 14,
   },

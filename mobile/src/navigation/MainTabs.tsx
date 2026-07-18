@@ -11,7 +11,7 @@ const Tab = createBottomTabNavigator<MainTabsParamList>();
 
 const TAB_ICONS: Record<keyof MainTabsParamList, string> = {
   Inicio: "⌂",
-  Agenda: "◷",
+  Agenda: "▦",
   Materias: "☰",
   Mais: "⋯",
 };
@@ -21,13 +21,14 @@ export function MainTabs() {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: brand.blue,
-        tabBarInactiveTintColor: brand.muted,
+        tabBarActiveTintColor: brand.gold,
+        tabBarInactiveTintColor: brand.textMuted,
         tabBarStyle: {
-          backgroundColor: brand.white,
-          borderTopColor: "rgba(0,96,177,0.12)",
+          backgroundColor: brand.bgSecondary,
+          borderTopColor: brand.border,
+          borderTopWidth: 1,
         },
-        tabBarLabelStyle: { fontSize: 11, fontWeight: "600" },
+        tabBarLabelStyle: { fontSize: 11, fontWeight: "700" },
         tabBarIcon: ({ color }) => (
           <Text style={[styles.icon, { color }]}>{TAB_ICONS[route.name]}</Text>
         ),
@@ -41,7 +42,7 @@ export function MainTabs() {
       <Tab.Screen
         name="Agenda"
         component={CalendarScreen}
-        options={{ title: "Agenda" }}
+        options={{ title: "Calendário" }}
       />
       <Tab.Screen
         name="Materias"

@@ -102,7 +102,7 @@ export default function App() {
 const styles = StyleSheet.create({
   boot: {
     flex: 1,
-    backgroundColor: brand.blue,
+    backgroundColor: brand.bg,
     alignItems: "center",
     justifyContent: "center",
   },

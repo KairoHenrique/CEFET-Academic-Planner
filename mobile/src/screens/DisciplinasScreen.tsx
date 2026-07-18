@@ -13,7 +13,11 @@ import { ApiClientError } from "../auth/api";
 import { fetchDisciplinas } from "../cache/fetchers";
 import type { DisciplinasStackParamList } from "../navigation/types";
 import { brand } from "../theme/brand";
-import { cardStyles, formatGrade } from "../ui/cards";
+import {
+  cardStyles,
+  formatGrade,
+  gradeRiskLabel,
+} from "../ui/cards";
 import { EmptyState } from "../ui/EmptyState";
 import { ErrorBox } from "../ui/ErrorBox";
 import { LoadingBlock } from "../ui/LoadingBlock";
@@ -57,17 +61,10 @@ export function DisciplinasScreen() {
     }, [load])
   );
 
-  function openDetail(item: SubjectListItem) {
-    navigation.navigate("DisciplinaDetail", {
-      code: item.code,
-      name: item.displayName,
-    });
-  }
-
   return (
     <Screen
       title="Matérias"
-      subtitle="Toque para ver notas, faltas e tarefas"
+      subtitle="Notas, faltas, horários e tarefas"
       cacheHint={fromCache ? "Dados do cache offline" : null}
       scrollProps={{
         refreshControl: (
@@ -77,7 +74,7 @@ export function DisciplinasScreen() {
               setRefreshing(true);
               void load(true);
             }}
-            tintColor={brand.blue}
+            tintColor={brand.gold}
           />
         ),
       }}
@@ -90,7 +87,7 @@ export function DisciplinasScreen() {
       {items.length === 0 && !loading && !error ? (
         <EmptyState
           title="Nenhuma matéria"
-          message="Sincronize seus dados no site ou aguarde a próxima sync."
+          message="Sincronize seus dados com o SIGAA."
         />
       ) : null}
 
@@ -99,33 +96,43 @@ export function DisciplinasScreen() {
           key={item.code}
           style={({ pressed }) => [
             cardStyles.card,
-            styles.rowCard,
             pressed && styles.pressed,
-            { borderLeftColor: item.color, borderLeftWidth: 4 },
+            { borderLeftColor: item.color, borderLeftWidth: 3 },
           ]}
-          onPress={() => openDetail(item)}
+          onPress={() =>
+            navigation.navigate("DisciplinaDetail", {
+              code: item.code,
+              name: item.displayName,
+            })
+          }
         >
-          <View style={styles.main}>
-            <Text style={cardStyles.cardTitle}>{item.displayName}</Text>
-            <Text style={cardStyles.cardMeta}>
-              {item.code}
-              {item.professor ? ` · ${item.professor}` : ""}
+          <View style={cardStyles.row}>
+            <Text style={[cardStyles.cardTitle, { flex: 1 }]}>
+              {item.displayName}
             </Text>
-            {item.schedule ? (
-              <Text style={cardStyles.cardMeta}>{item.schedule}</Text>
-            ) : null}
-          </View>
-          <View style={styles.side}>
             <Text style={styles.grade}>
               {formatGrade(item.grade, item.gradeMax)}
             </Text>
-            <Text style={cardStyles.cardMeta}>
-              Faltas {item.absences}/{item.maxAbsences}
-            </Text>
-            {item.tasks > 0 ? (
-              <Text style={styles.tasks}>{item.tasks} tarefa(s)</Text>
-            ) : null}
           </View>
+          <Text style={cardStyles.cardMeta}>
+            {item.code}
+            {item.shortLabel ? ` · ${item.shortLabel}` : ""}
+            {item.ch != null ? ` · ${item.ch}h` : ""}
+          </Text>
+          <Text style={cardStyles.cardMeta}>
+            {gradeRiskLabel(item.gradeRisk)} · Faltas {item.absences}/
+            {item.maxAbsences}
+            {item.tasks > 0 ? ` · ${item.tasks} tarefa(s)` : ""}
+          </Text>
+          {item.professor ? (
+            <Text style={cardStyles.cardMeta}>Prof. {item.professor}</Text>
+          ) : null}
+          {item.schedule ? (
+            <Text style={cardStyles.cardMeta}>{item.schedule}</Text>
+          ) : null}
+          {item.room ? (
+            <Text style={cardStyles.cardMeta}>Sala {item.room}</Text>
+          ) : null}
         </Pressable>
       ))}
     </Screen>
@@ -133,23 +140,10 @@ export function DisciplinasScreen() {
 }
 
 const styles = StyleSheet.create({
-  rowCard: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 12,
-  },
   pressed: { opacity: 0.85 },
-  main: { flex: 1 },
-  side: { alignItems: "flex-end" },
   grade: {
     fontSize: 16,
     fontWeight: "800",
-    color: brand.blue,
-  },
-  tasks: {
-    marginTop: 4,
-    fontSize: 11,
     color: brand.gold,
-    fontWeight: "700",
   },
 });

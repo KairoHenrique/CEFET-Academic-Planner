@@ -57,13 +57,13 @@ export function Screen({
   );
 
   return (
-    <SafeAreaView style={styles.safe} edges={["left", "right"]}>
+    <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
       {scroll ? (
         <ScrollView
           style={styles.flex}
           contentContainerStyle={[
             paddingStyle,
-            { paddingBottom: Math.max(insets.bottom, 16) + 8 },
+            { paddingBottom: Math.max(insets.bottom, 16) + 72 },
             contentContainerStyle,
           ]}
           keyboardShouldPersistTaps="handled"
@@ -91,12 +91,12 @@ export function Screen({
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: brand.surface,
+    backgroundColor: brand.bg,
   },
   flex: { flex: 1 },
   padded: {
     paddingHorizontal: 16,
-    paddingTop: 12,
+    paddingTop: 8,
   },
   header: {
     marginBottom: 16,
@@ -104,12 +104,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: "800",
-    color: brand.navy,
+    color: brand.text,
   },
   subtitle: {
     marginTop: 4,
     fontSize: 14,
-    color: brand.muted,
+    color: brand.textSecondary,
     lineHeight: 20,
   },
   cacheHint: {

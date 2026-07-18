@@ -14,10 +14,11 @@ export function MoreStack() {
   return (
     <Stack.Navigator
       screenOptions={{
-        headerStyle: { backgroundColor: brand.blue },
-        headerTintColor: brand.white,
-        headerTitleStyle: { fontWeight: "700" },
-        contentStyle: { backgroundColor: brand.surface },
+        headerStyle: { backgroundColor: brand.bg },
+        headerTintColor: brand.gold,
+        headerTitleStyle: { fontWeight: "700", color: brand.text },
+        contentStyle: { backgroundColor: brand.bg },
+        headerShadowVisible: false,
       }}
     >
       <Stack.Screen

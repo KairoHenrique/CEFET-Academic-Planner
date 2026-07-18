@@ -3,27 +3,28 @@ import { brand } from "../theme/brand";
 
 export const cardStyles = StyleSheet.create({
   card: {
-    backgroundColor: brand.white,
-    borderRadius: 12,
+    backgroundColor: brand.glass,
+    borderRadius: 14,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: "rgba(0,96,177,0.1)",
+    borderColor: brand.border,
   },
   cardTitle: {
     fontSize: 15,
     fontWeight: "700",
-    color: brand.navy,
+    color: brand.text,
   },
   cardMeta: {
     marginTop: 4,
     fontSize: 13,
-    color: brand.muted,
+    color: brand.textSecondary,
+    lineHeight: 18,
   },
   sectionTitle: {
     fontSize: 17,
     fontWeight: "700",
-    color: brand.navy,
+    color: brand.gold,
     marginBottom: 10,
     marginTop: 8,
   },
@@ -34,15 +35,15 @@ export const cardStyles = StyleSheet.create({
     gap: 8,
   },
   badge: {
-    borderRadius: 999,
+    borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: 4,
-    backgroundColor: "rgba(0,96,177,0.1)",
+    backgroundColor: "rgba(0,96,177,0.35)",
   },
   badgeText: {
     fontSize: 12,
     fontWeight: "700",
-    color: brand.blue,
+    color: brand.gold,
   },
 });
 
@@ -56,7 +57,13 @@ export function StatCard({
   accent?: string;
 }) {
   return (
-    <View style={[cardStyles.card, styles.stat, accent ? { borderLeftColor: accent, borderLeftWidth: 4 } : null]}>
+    <View
+      style={[
+        cardStyles.card,
+        styles.stat,
+        accent ? { borderLeftColor: accent, borderLeftWidth: 3 } : null,
+      ]}
+    >
       <Text style={styles.statValue}>{value}</Text>
       <Text style={styles.statLabel}>{label}</Text>
     </View>
@@ -65,7 +72,7 @@ export function StatCard({
 
 export function formatPtDate(iso: string): string {
   if (!iso) return "—";
-  const d = new Date(iso);
+  const d = new Date(iso.includes("T") ? iso : `${iso}T12:00:00`);
   if (Number.isNaN(d.getTime())) return iso;
   return d.toLocaleDateString("pt-BR", {
     day: "2-digit",
@@ -78,6 +85,18 @@ export function formatGrade(value: number | null, max = 10): string {
   return `${value.toFixed(1)}/${max}`;
 }
 
+export function gradeRiskLabel(risk: string): string {
+  const map: Record<string, string> = {
+    seguro: "Seguro",
+    atencao: "Atenção",
+    critico: "Crítico",
+    recuperacao: "Recuperação",
+    reprovado: "Reprovado",
+    sem_nota: "Sem nota",
+  };
+  return map[risk] ?? risk;
+}
+
 const styles = StyleSheet.create({
   stat: {
     flex: 1,
@@ -87,12 +106,12 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 22,
     fontWeight: "800",
-    color: brand.blue,
+    color: brand.gold,
   },
   statLabel: {
     marginTop: 4,
     fontSize: 12,
-    color: brand.muted,
+    color: brand.textMuted,
     fontWeight: "600",
   },
 });
