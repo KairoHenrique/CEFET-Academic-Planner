@@ -44,6 +44,7 @@ export function ProfileModal({
           saveError={error}
           onSaveContact={handleSaveContact}
           onToggleNotification={handleToggleNotification}
+          onClose={onClose}
         />
       )}
       {!loading && !data && (

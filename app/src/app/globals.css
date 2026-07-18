@@ -13487,6 +13487,25 @@ body.mobile-nav-open {
     font-size: 0.75rem;
   }
 
+  /* Datas institucionais: label em cima, intervalo numa linha só */
+  .academic-date-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.15rem;
+  }
+
+  .academic-date-label {
+    line-height: 1.35;
+  }
+
+  .academic-date-value {
+    text-align: left;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+    font-size: 0.75rem;
+    color: var(--gold-300);
+  }
+
   /* Lista de eventos: altura natural (sem sync com o mês) */
   .calendar-events-card {
     height: auto !important;
