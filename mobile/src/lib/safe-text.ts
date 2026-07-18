@@ -10,27 +10,34 @@ export function asText(value: unknown, fallback = "—"): string {
   return fallback;
 }
 
-/** Aceita objeto da API (`{ label, zone, … }`) ou string legada. */
+/** Aceita objeto da API (`{ label, zone, … }`) ou string legada. Nunca retorna objeto. */
 export function gradeRiskLabel(
-  risk: GradeRisk | string | null | undefined
+  risk: GradeRisk | string | null | undefined | unknown
 ): string {
-  if (risk == null) return "—";
-  if (typeof risk === "string") {
-    const map: Record<string, string> = {
-      seguro: "Seguro",
-      atencao: "Atenção",
-      critico: "Crítico",
-      recuperacao: "Recuperação",
-      reprovado: "Reprovado",
-      sem_nota: "Sem nota",
-      safe: "Seguro",
-      warning: "Atenção",
-      danger: "Crítico",
-      unknown: "Sem nota",
-    };
-    return map[risk] ?? risk;
+  try {
+    if (risk == null) return "—";
+    if (typeof risk === "string") {
+      const map: Record<string, string> = {
+        seguro: "Seguro",
+        atencao: "Atenção",
+        critico: "Crítico",
+        recuperacao: "Recuperação",
+        reprovado: "Reprovado",
+        sem_nota: "Sem nota",
+        safe: "Seguro",
+        warning: "Atenção",
+        danger: "Crítico",
+        unknown: "Sem nota",
+      };
+      return map[risk] ?? risk;
+    }
+    if (typeof risk === "object" && risk !== null && "label" in risk) {
+      return asText((risk as { label?: unknown }).label);
+    }
+    return "—";
+  } catch {
+    return "—";
   }
-  return asText(risk.label);
 }
 
 export function categoryPercent(done: number, total: number): number {

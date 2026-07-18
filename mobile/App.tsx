@@ -1,173 +1,145 @@
-import { StatusBar } from "expo-status-bar";
-import { useCallback, useMemo, useRef, useState } from "react";
 import {
-  ActivityIndicator,
-  BackHandler,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
-import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-import { WebView, type WebViewNavigation } from "react-native-webview";
-import { useEffect } from "react";
-import { getWebBaseUrl, hasWebBaseUrl } from "./src/config/env";
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_700Bold,
+} from "@expo-google-fonts/inter";
+import {
+  Outfit_700Bold,
+  Outfit_800ExtraBold,
+} from "@expo-google-fonts/outfit";
+import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
+import { useFonts } from "expo-font";
+import { StatusBar } from "expo-status-bar";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import { resolveAppDestination } from "./src/auth/access";
+import {
+  ensureFreshSession,
+  syncSubscriptionFromPerfil,
+} from "./src/auth/api";
+import {
+  getSession,
+  hydrateSession,
+  isAuthenticated,
+  subscribeSession,
+  type MobileAuthSession,
+} from "./src/auth/session";
+import { hasApiBaseUrl } from "./src/config/env";
+import { MainTabs } from "./src/navigation/MainTabs";
+import { registerPushForCurrentSession } from "./src/push/register";
+import { LoginScreen } from "./src/screens/LoginScreen";
+import { PaywallScreen } from "./src/screens/PaywallScreen";
+import { brand } from "./src/theme/brand";
 
-const BG = "#001020";
-const GOLD = "#E8C66A";
+const navTheme = {
+  ...DefaultTheme,
+  dark: true,
+  colors: {
+    ...DefaultTheme.colors,
+    primary: brand.gold,
+    background: brand.bg,
+    card: brand.glass,
+    text: brand.text,
+    border: brand.border,
+    notification: brand.danger,
+  },
+};
 
 /**
- * App = site mobile F28 dentro do WebView.
- * Sem telas nativas reinventadas — login, dados e UI são os do site.
+ * App nativo Android — mesmas funções do site (API cloud).
+ * Login local · sessão SecureStore · tabs · cache · mutações.
  */
 export default function App() {
-  const configured = hasWebBaseUrl();
-  const uri = useMemo(() => (configured ? getWebBaseUrl() : ""), [configured]);
-  const webRef = useRef<WebView>(null);
-  const [canGoBack, setCanGoBack] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const onAndroidBack = useCallback(() => {
-    if (canGoBack && webRef.current) {
-      webRef.current.goBack();
-      return true;
-    }
-    return false;
-  }, [canGoBack]);
+  const [fontsLoaded] = useFonts({
+    Outfit_700Bold,
+    Outfit_800ExtraBold,
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
+  });
+  const [ready, setReady] = useState(false);
+  const [session, setSessionState] = useState<MobileAuthSession | null>(null);
+  const apiOk = hasApiBaseUrl();
 
   useEffect(() => {
-    if (Platform.OS !== "android") return;
-    const sub = BackHandler.addEventListener("hardwareBackPress", onAndroidBack);
-    return () => sub.remove();
-  }, [onAndroidBack]);
+    const unsub = subscribeSession((next) => {
+      setSessionState(next);
+      if (next && resolveAppDestination(next.subscription.status) === "home") {
+        void registerPushForCurrentSession();
+      }
+    });
+    void (async () => {
+      const stored = await hydrateSession();
+      if (stored) {
+        try {
+          await ensureFreshSession();
+          await syncSubscriptionFromPerfil();
+        } catch {
+          // Mantém snapshot local.
+        }
+      }
+      const current = getSession();
+      setSessionState(current);
+      if (
+        current &&
+        resolveAppDestination(current.subscription.status) === "home"
+      ) {
+        void registerPushForCurrentSession();
+      }
+      setReady(true);
+    })();
+    return unsub;
+  }, []);
 
-  if (!configured) {
+  if (!ready) {
     return (
-      <View style={styles.center}>
-        <Text style={styles.title}>ACME HUB</Text>
-        <Text style={styles.msg}>
-          Configure EXPO_PUBLIC_API_BASE_URL em mobile/.env com a URL do site
-          (ex.: https://acme-hub.khfm.workers.dev).
-        </Text>
+      <View style={styles.boot}>
+        <ActivityIndicator color={brand.gold} size="large" />
         <StatusBar style="light" />
       </View>
     );
   }
 
+  // Fontes: se falharem, segue com fallback do sistema.
+  void fontsLoaded;
+
+  if (!isAuthenticated(session) || !session) {
+    return (
+      <SafeAreaProvider>
+        <LoginScreen apiConfigured={apiOk} />
+        <StatusBar style="light" />
+      </SafeAreaProvider>
+    );
+  }
+
+  const destination = resolveAppDestination(session.subscription.status);
+
+  if (destination === "paywall") {
+    return (
+      <SafeAreaProvider>
+        <PaywallScreen session={session} />
+        <StatusBar style="light" />
+      </SafeAreaProvider>
+    );
+  }
+
   return (
     <SafeAreaProvider>
-      <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
-        {error ? (
-          <View style={styles.center}>
-            <Text style={styles.title}>Falha ao carregar</Text>
-            <Text style={styles.msg}>{error}</Text>
-            <Pressable
-              style={styles.btn}
-              onPress={() => {
-                setError(null);
-                setLoading(true);
-                webRef.current?.reload();
-              }}
-            >
-              <Text style={styles.btnText}>Tentar de novo</Text>
-            </Pressable>
-          </View>
-        ) : (
-          <>
-            <WebView
-              ref={webRef}
-              source={{ uri }}
-              style={styles.web}
-              onLoadStart={() => setLoading(true)}
-              onLoadEnd={() => setLoading(false)}
-              onNavigationStateChange={(nav: WebViewNavigation) => {
-                setCanGoBack(nav.canGoBack);
-              }}
-              onError={(e) => {
-                setLoading(false);
-                setError(
-                  e.nativeEvent.description ||
-                    "Não foi possível abrir o site."
-                );
-              }}
-              onHttpError={(e) => {
-                if (e.nativeEvent.statusCode >= 500) {
-                  setError(`HTTP ${e.nativeEvent.statusCode}`);
-                }
-              }}
-              startInLoadingState
-              renderLoading={() => (
-                <View style={styles.loadingOverlay}>
-                  <ActivityIndicator color={GOLD} size="large" />
-                </View>
-              )}
-              javaScriptEnabled
-              domStorageEnabled
-              sharedCookiesEnabled
-              thirdPartyCookiesEnabled
-              allowsBackForwardNavigationGestures
-              setSupportMultipleWindows={false}
-              applicationNameForUserAgent="ACMEHubAndroid"
-            />
-            {loading ? (
-              <View style={styles.loadingOverlay} pointerEvents="none">
-                <ActivityIndicator color={GOLD} size="large" />
-              </View>
-            ) : null}
-          </>
-        )}
-        <StatusBar style="light" />
-      </SafeAreaView>
+      <NavigationContainer theme={navTheme}>
+        <MainTabs />
+      </NavigationContainer>
+      <StatusBar style="light" />
     </SafeAreaProvider>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: {
+  boot: {
     flex: 1,
-    backgroundColor: BG,
-  },
-  web: {
-    flex: 1,
-    backgroundColor: BG,
-  },
-  center: {
-    flex: 1,
-    backgroundColor: BG,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 24,
-  },
-  title: {
-    color: GOLD,
-    fontSize: 22,
-    fontWeight: "800",
-    textAlign: "center",
-  },
-  msg: {
-    marginTop: 12,
-    color: "#C2CDD8",
-    fontSize: 14,
-    lineHeight: 20,
-    textAlign: "center",
-  },
-  btn: {
-    marginTop: 20,
-    backgroundColor: GOLD,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  btnText: {
-    color: BG,
-    fontWeight: "700",
-    fontSize: 15,
-  },
-  loadingOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: BG,
+    backgroundColor: brand.bg,
     alignItems: "center",
     justifyContent: "center",
   },
