@@ -5020,6 +5020,37 @@ body.mobile-nav-open {
   letter-spacing: -0.02em;
 }
 
+/* Labels dual desktop/mobile — defaults (desktop) */
+.schedule-time-short,
+.schedule-day-short,
+.schedule-slot-name-short {
+  display: none;
+}
+
+.schedule-time-range--desktop {
+  display: none;
+}
+
+.schedule-table-compact .schedule-time-full {
+  display: none;
+}
+
+.schedule-table-compact .schedule-time-range--desktop {
+  display: block;
+}
+
+.schedule-table-compact .schedule-day-full {
+  display: none;
+}
+
+.schedule-table-compact .schedule-day-short {
+  display: inline;
+}
+
+.schedule-slot-name-full {
+  display: block;
+}
+
 .schedule-table-compact th {
   padding: 2px;
   vertical-align: bottom;
@@ -13004,35 +13035,134 @@ body.mobile-nav-open {
   }
 }
 
-/* ---- 2. Schedule Table Mobile Scroll ---- */
+/* ---- 2. Schedule Table Mobile — grade real compacta (sem scroll lateral) ---- */
 @media (max-width: 768px) {
+  .schedule-scroll-hint,
+  .schedule-scroll-hint--desktop {
+    display: none !important;
+  }
+
   .schedule-wrapper {
     position: relative;
+    display: block !important;
+    width: 100%;
+    overflow: visible;
+    -webkit-overflow-scrolling: auto;
   }
 
-  /* Indicador de sombra de fade no lado direito */
   .schedule-wrapper::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    width: 32px;
-    background: linear-gradient(
-      90deg,
-      transparent 0%,
-      rgba(0, 16, 32, 0.85) 100%
-    );
-    pointer-events: none;
-    z-index: 2;
-    border-radius: 0 var(--radius-md) var(--radius-md) 0;
-    opacity: 1;
-    transition: opacity var(--transition-fast);
+    display: none !important;
   }
 
-  /* Schedule table compact — reduz min-width para caber melhor */
-  .schedule-table-compact {
-    min-width: 600px;
+  .schedule-table,
+  .schedule-table-compact,
+  .schedule-table--responsive {
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: 100%;
+    table-layout: fixed;
+    border-spacing: 2px;
+    border-collapse: separate;
+  }
+
+  .schedule-table .schedule-day-col,
+  .schedule-table-compact .schedule-day-col,
+  .schedule-table-compact .day-label.schedule-day-col {
+    width: 2rem;
+    min-width: 2rem;
+    max-width: 2rem;
+    padding: 2px 1px;
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .schedule-table th.schedule-time-col,
+  .schedule-table td.schedule-cell,
+  .schedule-table-compact th.schedule-time-col,
+  .schedule-table-compact td.schedule-cell {
+    width: auto;
+    min-width: 0;
+    max-width: none;
+    padding: 1px;
+    vertical-align: middle;
+  }
+
+  .schedule-time-full,
+  .schedule-time-range,
+  .schedule-time-range--desktop,
+  .schedule-day-full,
+  .schedule-slot-name-full,
+  .schedule-slot-room {
+    display: none !important;
+  }
+
+  .schedule-time-short {
+    display: block !important;
+    font-size: 0.5rem;
+    font-weight: 700;
+    line-height: 1.15;
+    color: var(--text-secondary);
+    letter-spacing: -0.03em;
+    white-space: nowrap;
+  }
+
+  .schedule-day-short {
+    display: inline !important;
+  }
+
+  .schedule-slot-name-short {
+    display: block !important;
+    font-size: 0.5rem;
+    font-weight: 700;
+    line-height: 1.15;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+  }
+
+  .schedule-slot-btn,
+  .schedule-slot-empty-btn,
+  .schedule-table-compact .schedule-slot-btn,
+  .schedule-table-compact .schedule-slot-empty-btn {
+    width: 100%;
+    height: 2.5rem;
+    min-height: 2.5rem;
+    max-height: 2.5rem;
+    padding: 2px;
+    box-sizing: border-box;
+  }
+
+  .schedule-slot,
+  .schedule-table-compact .schedule-slot {
+    padding: 2px;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .schedule-slot-empty,
+  .schedule-table-compact .schedule-slot-empty {
+    height: 2.5rem;
+    min-height: 2.5rem;
+    max-height: 2.5rem;
+  }
+
+  .schedule-slot-name {
+    width: 100%;
+  }
+
+  .enrollment-schedule .schedule-table-compact {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  .enrollment-schedule .schedule-table-compact th.schedule-time-col,
+  .enrollment-schedule .schedule-table-compact td.schedule-cell {
+    width: auto;
+    min-width: 0;
+    max-width: none;
   }
 }
 
@@ -13784,11 +13914,6 @@ body.mobile-nav-open {
     padding: var(--space-3);
   }
 
-  /* Weekly schedule preview */
-  .schedule-table {
-    min-width: 560px;
-  }
-
   /* Back link */
   .back-link {
     font-size: 0.75rem;
@@ -13982,7 +14107,7 @@ body.mobile-nav-open {
 }
 
 /* ============================================================
-   F28 — Fixes prints (só ≤768) + agenda mobile
+   F28 — Fixes prints (só ≤768)
    ============================================================ */
 
 .schedule-mobile-agenda {
@@ -14157,99 +14282,6 @@ body.mobile-nav-open {
     font-size: 0.875rem;
   }
 
-  /* Grade semana: agenda mobile (sem scroll lateral) */
-  .schedule-scroll-hint,
-  .schedule-scroll-hint--desktop,
-  .schedule-wrapper--desktop,
-  .schedule-wrapper {
-    display: none !important;
-  }
-
-  .schedule-mobile-agenda {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
-  }
-
-  .schedule-mobile-day {
-    border: 1px solid var(--border-default);
-    border-radius: var(--radius-md);
-    background: var(--bg-secondary);
-    padding: var(--space-3);
-  }
-
-  .schedule-mobile-day-title {
-    margin: 0 0 var(--space-2);
-    font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--gold-300);
-  }
-
-  .schedule-mobile-empty {
-    margin: 0;
-    font-size: 0.8125rem;
-    color: var(--text-tertiary);
-  }
-
-  .schedule-mobile-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-  }
-
-  .schedule-mobile-item {
-    display: flex;
-    align-items: flex-start;
-    gap: var(--space-3);
-    width: 100%;
-    min-height: var(--touch-min);
-    padding: var(--space-2) var(--space-3);
-    border-radius: var(--radius-sm);
-    border: 1px solid color-mix(in srgb, var(--slot-color) 45%, transparent);
-    background: color-mix(in srgb, var(--slot-color) 22%, transparent);
-    color: inherit;
-    font: inherit;
-    text-align: left;
-    cursor: pointer;
-  }
-
-  .schedule-mobile-item--conflict {
-    border-color: rgba(248, 81, 73, 0.55);
-  }
-
-  .schedule-mobile-time {
-    flex: 0 0 auto;
-    font-size: 0.6875rem;
-    font-weight: 700;
-    color: var(--text-secondary);
-    white-space: nowrap;
-    padding-top: 2px;
-  }
-
-  .schedule-mobile-body {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    min-width: 0;
-  }
-
-  .schedule-mobile-name {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: var(--text-primary);
-    line-height: 1.3;
-  }
-
-  .schedule-mobile-room {
-    font-size: 0.75rem;
-    color: var(--text-tertiary);
-  }
-
   /* Simulador: ações não sobrepõem o título */
   .enrollment-schedule-actions {
     position: static;
@@ -14280,13 +14312,4 @@ body.mobile-nav-open {
   }
 }
 
-@media (min-width: 769px) {
-  .schedule-mobile-agenda {
-    display: none !important;
-  }
-
-  .schedule-wrapper--desktop {
-    display: block;
-  }
-}
 
