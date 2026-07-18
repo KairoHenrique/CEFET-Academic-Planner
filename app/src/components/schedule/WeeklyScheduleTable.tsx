@@ -130,16 +130,11 @@ export function WeeklyScheduleTable({
       {/* Mobile: agenda por dia — tudo visível sem scroll horizontal */}
       <div className="schedule-mobile-agenda" aria-label="Grade da semana">
         {weekDays.map((day, dayIdx) => {
-          const daySlots = timeSlots
-            .map((time, slotIdx) => {
-              const slot = schedule[dayIdx]?.[slotIdx];
-              if (!slot) return null;
-              return { time, slot, slotIdx };
-            })
-            .filter(
-              (entry): entry is { time: string; slot: ScheduleSlotData; slotIdx: number } =>
-                entry !== null
-            );
+          const daySlots = timeSlots.flatMap((time, slotIdx) => {
+            const slot = schedule[dayIdx]?.[slotIdx];
+            if (!slot) return [];
+            return [{ time, slot, slotIdx }];
+          });
 
           return (
             <section key={day} className="schedule-mobile-day">
