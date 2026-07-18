@@ -10407,6 +10407,8 @@ body.mobile-nav-open {
 }
 
 .main-content-login::before {
+  content: "";
+  position: fixed;
   inset: 0;
   background:
     radial-gradient(
@@ -10419,6 +10421,8 @@ body.mobile-nav-open {
       rgba(0, 8, 18, 0.95) 0%,
       rgba(0, 8, 18, 0.88) 100%
     );
+  pointer-events: none;
+  z-index: -1;
 }
 
 .login-page {
@@ -10945,10 +10949,10 @@ body.mobile-nav-open {
 }
 
 @media (max-width: 480px) {
-  .main-content-login {
+  .main-content.main-content-login {
     padding: var(--space-4);
+    padding-top: calc(var(--space-8) + var(--safe-top));
     align-items: flex-start;
-    padding-top: var(--space-12);
   }
 
   .login-head {
@@ -11540,6 +11544,23 @@ body.mobile-nav-open {
 
   .main-content::before {
     inset: calc(var(--nav-height) + var(--safe-top)) 0 0 0;
+  }
+
+  /* Login não tem navbar — não reservar faixa vazia no topo */
+  .main-content.main-content-login {
+    padding-top: calc(var(--space-4) + var(--safe-top));
+    padding-left: calc(var(--space-4) + var(--safe-left));
+    padding-right: calc(var(--space-4) + var(--safe-right));
+    padding-bottom: calc(var(--space-6) + var(--safe-bottom));
+  }
+
+  .main-content.main-content-login::before {
+    inset: 0;
+  }
+
+  .dev-panel-entry {
+    top: calc(var(--space-3) + var(--safe-top));
+    right: calc(var(--space-3) + var(--safe-right));
   }
 
   .notification-bell-btn {
