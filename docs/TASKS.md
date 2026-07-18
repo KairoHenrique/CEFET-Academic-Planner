@@ -334,17 +334,17 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ---
 
-### #8 — Bloco 8 · Mobile Android (Expo Go) `🟡 2/16`
+### #8 — Bloco 8 · Mobile Android (Expo Go) `🟡 3/16`
 
 > **Requer #6d + #6e + #7 + #9 + #10** (site **v1.0** maduro, incl. **F28**). Mesmo backend Supabase / API Next.  
 > **Ordem de execução:** **#9 → #10 → #8** — ver [ordem oficial](#ordem-oficial-de-execução-v3).  
 > **Decisão (jul/2026):** app nativo **só Android** · **sem** Play/App Store · alternativa = **site mobile** (**F28**).  
 > **Princípio (v1.0 → app):** **paridade de funções** com o site (tudo que o desktop faz), **não** clonar o layout do site mobile (**F28**). No nativo: só herdar **cores / marca / tipografia de produto**; IA e telas podem ser **mais modulares, visíveis e intuitivas** (bottom nav, home por “o que fazer agora”, módulos grandes). Sessão persistente · cache local · push (silencioso se deslogado). Ver detalhe § UX nativa.  
-> **Progresso:** **M1** `[x]` · **M2** `[x]`. **Local:** **M3** `[%]` — SecureStore + `POST /api/auth/refresh` (commit local).
+> **Progresso:** **M1–M3** `[x]` (scaffold · contratos · SecureStore + refresh). **Próximo:** **M4** (auth + gate).
 
 - [x] **SETUP:** M1 *(projeto Expo TypeScript — `mobile/` · **Android only** · **SDK 54** p/ Expo Go da Play Store)*
 - [x] **SHARED:** M2 *(tipos/contratos compartilhados — `packages/api-contracts` · `@acme/api-contracts`)*
-- [%] **SETUP:** M3 *(sessão persistente — SecureStore + refresh; login até logout explícito)*
+- [x] **SETUP:** M3 *(sessão persistente — SecureStore + refresh; login até logout explícito)*
 - [ ] **FRONT:** M4 *(auth + gate assinatura — login CPF, trial/pago, logout limpa tokens/cache/push)*
 - [ ] **SHARED:** M5 *(cache local — snapshot acadêmico no device; invalida/atualiza pós-sync/API)*
 - [ ] **SHARED:** M6 *(push E2E — Expo Notifications + tokens no backend; dispara pós-sync/novidades; sem push se deslogado)*
@@ -572,7 +572,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | **#12** | 2f | **Sync real Postgres (B72)** | ✅ B72a–e `[x]` · **ops = PC + cloudflared** | 5/5 |
 | **#9** | 3 | Inteligência acadêmica | **B36/B37** `[x]` (sino) · **F24 descartado** · demais `[x]` · próximo **#10** | 10/10 |
 | **#10** | 4 | Polimento UX + site mobile (**F28**) | **F25–F28** `[x]` (aprovado jul/2026) | 4/4 |
-| **#8** | 8 | Mobile Android (Expo Go) | **M1–M2** `[x]` · **M3** `[%]` · paridade site **v1.0** + push + sessão · **sem Play/App Store** | 2/16 |
+| **#8** | 8 | Mobile Android (Expo Go) | **M1–M3** `[x]` · próximo **M4** · paridade site **v1.0** + push + sessão · **sem Play/App Store** | 3/16 |
 | **#11** | 9 | Multi-PPC (Mecatrônica, Moda) | **🔒 Só após #8** | 0/4 |
 
 > **Atalho:** [Roadmap detalhado topo](#roadmap-detalhado--ordem-de-execução-0--11) · [Checklist #1](#1--bloco-1--api--ui--sqlite-4949) · [#2–#3](#2-3--bloco-2--scraper-sigaa-detalhe) · [#6d](#6d--orquestração-sync--catálogo-global-pré-mobile) · [#4–#6](#4-6--bloco-6--cloud--supabase-detalhe) · [#7](#7--bloco-7--assinatura-pix-detalhe) · [#9](#9--bloco-3--inteligência-acadêmica-detalhe) · [#10](#10--bloco-4--polimento-ux--site-mobile-detalhe) · [#8](#8--bloco-8--mobile-android-detalhe) · [#11](#11--expansão-multi-ppc-detalhe)
@@ -638,7 +638,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 > **Calendário — rótulos e datas (jul/2026, sobre B66) `[x]`:** renomeação **só na exibição** (nome bruto do SIGAA segue no banco): `Matrícula OnLine → Matrícula Fase 1`, `Rematrícula → Matrícula Fase 2`, `Processamento de Matrícula/Rematrícula → Resultado Matrícula Fase 1/2` (`event-label-overrides.ts`). Scraper passa a captar os eventos de "processamento" (`calendario-event-filter.ts`) e há fallback de datas institucionais conhecidas sem duplicar quando o SIGAA publica (`known-institutional-dates.ts`).
 
-**Próximo:** **#8 — Mobile Android** — **M1–M2** `[x]` · **M3** `[%]` (SecureStore + refresh). Site **v1.0.0**. **F25–F28** `[x]`.
+**Próximo:** **#8 — Mobile Android** — **M1–M3** `[x]` · **M4** (auth + gate). Site **v1.0.0**. **F25–F28** `[x]`.
 
 ---
 
@@ -773,15 +773,15 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 ---
 
-### #8 — Bloco 8 · Mobile Android (Expo Go) `🟡 2/16`
+### #8 — Bloco 8 · Mobile Android (Expo Go) `🟡 3/16`
 
 > **Pré-mobile (#8):** site **v1.0** (**#6d + #7 + #9 + #10** + **F28**).  
 > **Meta:** mesma função do desktop, UX nativa melhor · sessão que fica · dados no aparelho · push de sync/novidades (só logado).  
-> **Progresso:** **M1–M2** `[x]`. **Local:** **M3** `[%]` (SecureStore + refresh).
+> **Progresso:** **M1–M3** `[x]`. **Próximo:** **M4** (auth + gate).
 
 - [x] **SETUP:** M1 *(Expo `mobile/` · Android only · SDK 54)*
 - [x] **SETUP/SHARED:** M2 *(tipos `@acme/api-contracts`)*
-- [%] **SETUP:** M3 *(sessão SecureStore + refresh)* → M4 *(auth)*
+- [x] **SETUP:** M3 *(sessão SecureStore + refresh)* → **M4** *(auth)*
 - [ ] **SHARED:** M5 → M6 *(cache local · push E2E)*
 - [ ] **FRONT:** M7 → M8 → M9 → M10 → M11 → M12 → M13 → M14 *(paridade de telas)*
 - [ ] **TEST:** M15 *(Expo Go · Android)*
@@ -821,7 +821,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | **#12** | **2f — Sync real Postgres (B72)** | ✅ B72a–e `[x]` · **ops = PC + cloudflared** | 5 / 5 |
 | #9 | 3 — Inteligência | ✅ **B36/B37** `[x]` (sino) · **F24 descartado** · próximo **#10** | 10 / 10 |
 | #10 | 4 — Polimento + site mobile | **F25–F28** `[x]` | 4 / 4 |
-| #8 | 8 — Mobile Android | 🟡 **M1–M2** `[x]` · **M3** `[%]` · paridade + push + sessão · sem lojas | 2 / 16 |
+| #8 | 8 — Mobile Android | 🟡 **M1–M3** `[x]` · próximo **M4** · paridade + push + sessão · sem lojas | 3 / 16 |
 | #11 | 9 — Multi-PPC | 🔒 *(após #8)* | 0 / 4 |
 
 ---
@@ -1046,7 +1046,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] `worker/Dockerfile` (Playwright jammy) · `worker/README.md`
 - [x] Testes `tests/worker-b54.test.ts`
 
-> **Próximo (produto):** **#8 — Mobile Android** — **M1–M2** `[x]` · **M3** `[%]` · depois M4+ (paridade v1.0 + push + sessão). Site desktop **v1.0.0**. **F25–F28** `[x]`.
+> **Próximo (produto):** **#8 — Mobile Android** — **M1–M3** `[x]` · **M4** auth/gate (paridade v1.0 + push + sessão). Site desktop **v1.0.0**. **F25–F28** `[x]`.
 
 #### B55 — API fila sync `[x]`
 
@@ -1056,7 +1056,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Dispatcher assíncrono → worker B54 (`SIGAA_WORKER_URL`) ou **inline** (`SYNC_QUEUE_DISPATCH=inline`)
 - [x] Testes `tests/sync-queue-b55.test.ts` · `npm run test:sync-queue`
 
-> **Próximo (produto):** **#8 — Mobile Android** — **M1–M2** `[x]` · **M3** `[%]` · depois M4+ (paridade v1.0 + push + sessão). Site desktop **v1.0.0**. **F25–F28** `[x]`.
+> **Próximo (produto):** **#8 — Mobile Android** — **M1–M3** `[x]` · **M4** auth/gate (paridade v1.0 + push + sessão). Site desktop **v1.0.0**. **F25–F28** `[x]`.
 
 #### B56 — Pipeline no worker `[x]`
 
@@ -1368,7 +1368,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 |---|------|------|--------|--------|
 | M1 | Setup | Projeto Expo | `mobile/` TypeScript · **Android only** · **SDK 54** (Expo Go Play Store) | [x] |
 | M2 | Shared | Tipos | Contratos API — `packages/api-contracts` (`@acme/api-contracts`) | [x] |
-| M3 | Setup | Sessão persistente | SecureStore + `POST /api/auth/refresh` · sessão até logout | [%] |
+| M3 | Setup | Sessão persistente | SecureStore + `POST /api/auth/refresh` · sessão até logout | [x] |
 | M4 | Front | Auth + gate | Login CPF · trial/pago · logout limpa tudo | [ ] |
 | M5 | Shared | Cache local | Snapshot acadêmico no device · sync/API invalida | [ ] |
 | M6 | Shared | Push E2E | Tokens + Expo Notifications · push pós-sync/novidades | [ ] |
@@ -1757,7 +1757,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 - [x] **M1** — Expo TypeScript **SDK 54** em `mobile/` (Android only · compatível Play Store)
 - [x] **M2** — tipos compartilhados `@acme/api-contracts` (`packages/api-contracts`)
-- [%] **M3** — sessão SecureStore + refresh API — aguardando push
+- [x] **M3** — sessão SecureStore + refresh API
 - [ ] **M4** — auth/gate UI (login fica até logout)
 - [ ] **M5–M6** — cache local dos dados do aluno + push no telefone (só se logado)
 - [ ] **M7–M14** — telas: dashboard, disciplinas, calendário, mapa, integralização, simulador, planos, perfil
@@ -2044,7 +2044,7 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 8. **Próximo passo do roadmap:** informe **depois do push** (tasks em `[@]` ou `[x]`). Com commits locais só `[x]`, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v3](#ordem-oficial-de-execução-v3) — **Bloco 2 (sync) antes do Bloco 6 (Supabase)**. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy **após** sync validado; RLS ✅ **6c** (antes do PIX). Marco “site no ar p/ testes gerais” → [final do TASKS.md](#marco--site-no-ar-para-testes-gerais).
-11. **Próximo passo:** aguardar push/aprovação de **M3** `[%]` (SecureStore + `POST /api/auth/refresh`). **M1–M2** `[x]`. Site **v1.0.0**. Bloco 8 `2/16`. **F28** `[x]`.
+11. **Próximo passo:** **M4** — auth + gate (login CPF, trial/pago, logout limpa tokens). **M1–M3** `[x]`. Site **v1.0.0**. Bloco 8 `3/16`. **F28** `[x]`.
 12. **Integralização:** CH concluída = `historico` + PPC (`computeChDoneFromDisciplinas`); portal SIGAA só % / total currículo; matérias já passadas = **B30** ✅.
 13. **Gift + painel dev:** **B68–B71** ✅ · **F39–F41** ✅ — painel sem senha SIGAA (`credentialSaved` + `accountRef`).
 14. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial. **Polish em task `[x]`** (ex.: F38, dashboard) também exige nota no TASKS no mesmo ciclo do push.
