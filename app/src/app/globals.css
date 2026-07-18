@@ -13436,33 +13436,55 @@ body.mobile-nav-open {
   }
 
   .calendar-filters-card {
-    padding: var(--space-3);
+    padding: var(--space-2) var(--space-3);
   }
 
   .calendar-filters-header {
     flex-direction: column;
     align-items: stretch;
-    gap: var(--space-3);
-  }
-
-  .calendar-filters-header .filter-bar {
-    display: flex;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    padding-bottom: var(--space-1);
-    flex-wrap: nowrap;
     gap: var(--space-2);
   }
 
-  .calendar-filters-header .filter-bar::-webkit-scrollbar {
+  .calendar-filters-header .section-header {
+    margin-bottom: 0;
+  }
+
+  .calendar-filters-header .section-header-icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .calendar-filters-header .section-header-title {
+    font-size: 0.75rem;
+  }
+
+  /* Scroll horizontal no container — chips não cortam sem poder deslizar */
+  .calendar-filters-header .filter-bar,
+  .calendar-filters-header .filter-bar--nowrap,
+  .calendar-event-filters {
+    display: flex;
+    width: 100% !important;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    flex-wrap: nowrap;
+    gap: var(--space-2);
+    padding-bottom: 0;
+  }
+
+  .calendar-filters-header .filter-bar::-webkit-scrollbar,
+  .calendar-event-filters::-webkit-scrollbar {
     display: none;
   }
 
   .calendar-filters-header .filter-chip {
     flex-shrink: 0;
     white-space: nowrap;
-    min-height: var(--touch-min);
+    min-height: 2rem;
+    padding: var(--space-1) var(--space-3);
+    font-size: 0.75rem;
   }
 
   /* Lista de eventos: altura natural (sem sync com o mês) */
