@@ -1406,9 +1406,18 @@ a:hover {
 @media (max-width: 560px) {
   .planos-promo {
     padding: var(--space-4);
+    /* flex-basis 260px no eixo vertical gerava buraco enorme */
+    align-items: stretch;
   }
+
+  .planos-promo-body {
+    flex: 0 1 auto;
+    width: 100%;
+  }
+
   .planos-promo-deadline {
     order: 3;
+    align-self: flex-start;
   }
 }
 
@@ -2050,16 +2059,18 @@ a:hover {
 
 .gift-key-redeem--compact .gift-key-redeem-form {
   display: flex;
-  flex: 1 1 16rem;
+  flex: 1 1 auto;
+  min-width: min(100%, 12rem);
   align-items: center;
   gap: var(--space-2);
-  min-width: 0;
 }
 
 .gift-key-redeem-input {
-  flex: 1 1 9rem;
+  flex: 1 1 auto;
   min-width: 0;
   height: 2.5rem;
+  min-height: 2.5rem;
+  max-height: 2.75rem;
   padding: 0 var(--space-4);
   border-radius: var(--radius-md);
   border: 1px solid var(--border-default);
@@ -2157,16 +2168,28 @@ a:hover {
   .gift-key-redeem--compact {
     flex-direction: column;
     align-items: stretch;
+    gap: var(--space-2);
+    padding: var(--space-3);
   }
 
   .gift-key-redeem--compact .gift-key-redeem-form {
-    flex-direction: column;
-    align-items: stretch;
+    /* Não usar flex-basis alto no eixo vertical — inflava o input */
+    flex: 0 1 auto;
+    flex-direction: row;
+    align-items: center;
     width: 100%;
   }
 
+  .gift-key-redeem--compact .gift-key-redeem-input {
+    flex: 1 1 auto;
+    height: 2.5rem;
+    min-height: 2.5rem;
+    max-height: 2.75rem;
+  }
+
   .gift-key-redeem--compact .gift-key-redeem-submit {
-    width: 100%;
+    width: auto;
+    flex-shrink: 0;
   }
 }
 
@@ -2298,15 +2321,56 @@ a:hover {
 @media (max-width: 640px) {
   .planos-page {
     padding-bottom: var(--space-8);
+    gap: var(--space-4);
   }
 
   .planos-showcase {
-    padding: var(--space-6) var(--space-4);
+    padding: var(--space-5) var(--space-4);
+    gap: var(--space-1);
+  }
+
+  .planos-showcase-price {
+    font-size: clamp(1.75rem, 8vw, 2.25rem);
+  }
+
+  .planos-showcase-copy {
+    margin: var(--space-2) 0 var(--space-3);
+  }
+
+  /* Todos os planos visíveis — sem scroll horizontal */
+  .planos-picker {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-1);
+    padding: var(--space-1);
+    overflow-x: visible;
+    scrollbar-width: none;
+  }
+
+  .planos-picker::-webkit-scrollbar {
+    display: none;
   }
 
   .planos-picker-btn {
-    min-width: 4.75rem;
-    padding: var(--space-2) var(--space-2);
+    min-width: 0;
+    width: 100%;
+    flex: none;
+    padding: var(--space-2) 2px;
+    gap: 2px;
+  }
+
+  .planos-picker-label {
+    font-size: 0.6875rem;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.2;
+  }
+
+  .planos-picker-price {
+    font-size: 0.625rem;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.2;
   }
 
   .pix-copy-row {
@@ -13353,6 +13417,12 @@ body.mobile-nav-open {
     flex-direction: column;
     align-items: flex-start;
     text-align: left;
+    gap: var(--space-3);
+  }
+
+  .planos-promo-body {
+    flex: 0 1 auto;
+    width: 100%;
   }
 
   .planos-promo-actions {
