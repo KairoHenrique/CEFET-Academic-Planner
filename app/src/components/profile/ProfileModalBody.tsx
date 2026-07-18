@@ -13,6 +13,7 @@ interface ProfileModalBodyProps {
     key: keyof PerfilResponse["notifications"],
     enabled: boolean
   ) => void;
+  onClose?: () => void;
 }
 
 export function ProfileModalBody({
@@ -21,6 +22,7 @@ export function ProfileModalBody({
   saveError,
   onSaveContact,
   onToggleNotification,
+  onClose,
 }: ProfileModalBodyProps) {
   const { profile, account, subscription, sync, notifications } = data;
 
@@ -51,7 +53,10 @@ export function ProfileModalBody({
         onSaveContact={onSaveContact}
       />
 
-      <ProfileSubscriptionSection subscription={subscription} />
+      <ProfileSubscriptionSection
+        subscription={subscription}
+        onNavigateAway={onClose}
+      />
 
       <ProfileNotificationSection
         preferences={notifications}

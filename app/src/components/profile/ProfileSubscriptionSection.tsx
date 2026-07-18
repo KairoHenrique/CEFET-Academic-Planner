@@ -20,10 +20,12 @@ function subscriptionStatusLabel(
 
 interface ProfileSubscriptionSectionProps {
   subscription: PerfilSubscription;
+  onNavigateAway?: () => void;
 }
 
 export function ProfileSubscriptionSection({
   subscription,
+  onNavigateAway,
 }: ProfileSubscriptionSectionProps) {
   return (
     <section
@@ -57,7 +59,11 @@ export function ProfileSubscriptionSection({
           Válido até{" "}
           {formatDateTime(subscription.expiresAt).split(",")[0] ?? "—"}
         </p>
-        <Link href={subscription.renewHref} className="btn-gold btn-sm profile-plan-renew">
+        <Link
+          href={subscription.renewHref}
+          className="btn-gold btn-sm profile-plan-renew"
+          onClick={onNavigateAway}
+        >
           Renovar ou assinar plano
         </Link>
       </div>
