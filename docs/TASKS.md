@@ -41,6 +41,8 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 **Marco site desktop v1.0.0 (jul/2026):** web Eng. Computação considerada **finalizada** para paridade mobile — release GitHub `v1.0.0`. **Polish sino:** eventos/datas só cadastro · D-1 · no dia; painel 24h após vista (`00576a7`).
 
+**Polish tutoriais (jul/2026):** passos desktop + mobile (≤768) atualizados ao produto v1.0 — PIX, sino, mapa grade/grafo, âncoras no calendário; botão ? em Disciplinas / Calendário / Mapa / Integralização / Planos.
+
 ---
 
 ## Roadmap detalhado — ordem de execução (#0 → #11)

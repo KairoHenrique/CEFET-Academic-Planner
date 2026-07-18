@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { PageTutorialHelpButton } from "@/components/tutorial/PageTutorialHelpButton";
 
 interface PlanosHeroProps {
   subtitle: string;
@@ -8,9 +11,14 @@ interface PlanosHeroProps {
 export function PlanosHero({ subtitle, showExploreLink = false }: PlanosHeroProps) {
   return (
     <header className="planos-hero">
-      <div>
-        <p className="planos-hero-eyebrow">Assinatura</p>
-        <h1 className="planos-hero-title">Escolha seu plano</h1>
+      <div className="planos-hero-copy">
+        <div className="planos-hero-title-row">
+          <div>
+            <p className="planos-hero-eyebrow">Assinatura</p>
+            <h1 className="planos-hero-title">Escolha seu plano</h1>
+          </div>
+          <PageTutorialHelpButton tutorialId="planos" label="Como assinar" />
+        </div>
         <p className="planos-hero-subtitle">{subtitle}</p>
       </div>
 

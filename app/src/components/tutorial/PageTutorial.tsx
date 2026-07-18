@@ -6,7 +6,10 @@ import { Icon } from "@/components/ui/Icon";
 import {
   getPageTutorialSteps,
   type PageTutorialId,
+  type PageTutorialVariant,
 } from "@/components/tutorial/page-tutorial-steps";
+
+const MOBILE_QUERY = "(max-width: 768px)";
 
 interface SpotlightRect {
   top: number;
@@ -19,6 +22,11 @@ interface PageTutorialProps {
   tutorialId: PageTutorialId;
   open: boolean;
   onClose: () => void;
+}
+
+function resolveTutorialVariant(): PageTutorialVariant {
+  if (typeof window === "undefined") return "desktop";
+  return window.matchMedia(MOBILE_QUERY).matches ? "mobile" : "desktop";
 }
 
 function findTargetRect(targetId: string | null): SpotlightRect | null {
@@ -40,7 +48,8 @@ function findTargetRect(targetId: string | null): SpotlightRect | null {
 }
 
 export function PageTutorial({ tutorialId, open, onClose }: PageTutorialProps) {
-  const steps = getPageTutorialSteps(tutorialId);
+  const [variant, setVariant] = useState<PageTutorialVariant>("desktop");
+  const steps = getPageTutorialSteps(tutorialId, { variant });
   const [stepIndex, setStepIndex] = useState(0);
   const [spotlight, setSpotlight] = useState<SpotlightRect | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -69,6 +78,12 @@ export function PageTutorial({ tutorialId, open, onClose }: PageTutorialProps) {
 
   useEffect(() => {
     setMounted(true);
+    setVariant(resolveTutorialVariant());
+
+    const media = window.matchMedia(MOBILE_QUERY);
+    const onChange = () => setVariant(media.matches ? "mobile" : "desktop");
+    media.addEventListener("change", onChange);
+    return () => media.removeEventListener("change", onChange);
   }, []);
 
   useEffect(() => {
@@ -78,6 +93,13 @@ export function PageTutorial({ tutorialId, open, onClose }: PageTutorialProps) {
       return;
     }
 
+    setStepIndex(0);
+    setVariant(resolveTutorialVariant());
+  }, [open, tutorialId]);
+
+  useEffect(() => {
+    if (!open) return;
+
     refreshSpotlight();
     const onLayoutChange = () => refreshSpotlight();
     window.addEventListener("resize", onLayoutChange);
@@ -86,7 +108,7 @@ export function PageTutorial({ tutorialId, open, onClose }: PageTutorialProps) {
       window.removeEventListener("resize", onLayoutChange);
       window.removeEventListener("scroll", onLayoutChange, true);
     };
-  }, [open, stepIndex, refreshSpotlight]);
+  }, [open, stepIndex, variant, refreshSpotlight]);
 
   useEffect(() => {
     if (!open) return;
@@ -111,6 +133,7 @@ export function PageTutorial({ tutorialId, open, onClose }: PageTutorialProps) {
       role="dialog"
       aria-modal="true"
       aria-label="Tutorial da página"
+      data-tutorial-variant={variant}
     >
       <div className="site-tutorial-backdrop" onClick={onClose} aria-hidden="true" />
 
@@ -130,6 +153,9 @@ export function PageTutorial({ tutorialId, open, onClose }: PageTutorialProps) {
       <div className={tooltipClass}>
         <p className="site-tutorial-step-count">
           {stepIndex + 1} / {steps.length}
+          <span className="site-tutorial-variant-label">
+            {variant === "mobile" ? " · celular" : " · desktop"}
+          </span>
         </p>
         <h2 className="site-tutorial-title">{step.title}</h2>
         <p className="site-tutorial-body">{step.body}</p>

@@ -99,6 +99,8 @@ export function CalendarioView() {
             ? "Atualizando eventos…"
             : "Clique em qualquer atividade para ver detalhes"
         }
+        tutorial="calendario"
+        tutorialLabel="Como usar o Calendário"
       />
 
       {calendar.error && (
@@ -110,7 +112,10 @@ export function CalendarioView() {
       )}
 
       <div className="col-12 calendar-page-filters">
-        <div className="calendar-filters-card card">
+        <div
+          className="calendar-filters-card card"
+          data-tutorial-id="tutorial-calendar-filters"
+        >
           <div className="calendar-filters-header">
             <SectionHeader title="Filtrar eventos" icon="filter" />
             <FilterBar
@@ -125,7 +130,11 @@ export function CalendarioView() {
       </div>
 
       <div className="col-7">
-        <div ref={calendarPanelRef} className="card calendar-panel-card">
+        <div
+          ref={calendarPanelRef}
+          className="card calendar-panel-card"
+          data-tutorial-id="tutorial-calendar-month"
+        >
           <CalendarMonth
             filter={filter}
             events={calendar.events}
@@ -148,7 +157,10 @@ export function CalendarioView() {
         />
       </div>
 
-      <div className="col-12 calendar-academic-dates-col">
+      <div
+        className="col-12 calendar-academic-dates-col"
+        data-tutorial-id="tutorial-calendar-academic"
+      >
         <CalendarAcademicDates
           groups={calendar.academicDateGroups}
           isLoading={calendar.isLoading}
