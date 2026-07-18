@@ -2337,11 +2337,11 @@ a:hover {
     margin: var(--space-2) 0 var(--space-3);
   }
 
-  /* Todos os planos visíveis — sem scroll horizontal */
+  /* Todos os 5 planos visíveis — sem scroll horizontal */
   .planos-picker {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: var(--space-1);
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 2px;
     padding: var(--space-1);
     overflow-x: visible;
     scrollbar-width: none;
@@ -2355,22 +2355,22 @@ a:hover {
     min-width: 0;
     width: 100%;
     flex: none;
-    padding: var(--space-2) 2px;
+    padding: var(--space-2) 1px;
     gap: 2px;
   }
 
   .planos-picker-label {
-    font-size: 0.6875rem;
-    white-space: normal;
-    text-align: center;
-    line-height: 1.2;
-  }
-
-  .planos-picker-price {
     font-size: 0.625rem;
     white-space: normal;
     text-align: center;
-    line-height: 1.2;
+    line-height: 1.15;
+  }
+
+  .planos-picker-price {
+    font-size: 0.5625rem;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.15;
   }
 
   .pix-copy-row {
