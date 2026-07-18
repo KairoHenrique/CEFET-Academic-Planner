@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { brand } from "@/config/brand";
 import { navLinks } from "@/config/navigation";
 import { BrandLogo } from "@/components/ui/BrandLogo";
@@ -27,22 +27,52 @@ function tutorialIdForHref(href: string): string {
 export function Navbar() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const menuId = useId();
 
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
+
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    document.body.classList.toggle("mobile-nav-open", mobileOpen);
+    return () => {
+      document.body.classList.remove("mobile-nav-open");
+    };
+  }, [mobileOpen]);
+
+  useEffect(() => {
+    if (!mobileOpen) {
+      return;
+    }
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setMobileOpen(false);
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [mobileOpen]);
 
   return (
     <>
       <nav className="navbar" role="navigation" aria-label="Navegação principal">
         <div className="navbar-inner">
-          <Link href="/" className="navbar-brand">
+          <Link href="/" className="navbar-brand" onClick={() => setMobileOpen(false)}>
             <BrandLogo />
-            <span style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", lineHeight: "1.1" }}>
+            <span className="navbar-brand-text navbar-brand-text--full">
               {brand.name.split(" ").map((word, index) => (
-                <span key={index} style={{ display: "block" }}>
+                <span key={index} className="navbar-brand-word">
                   {word}
                 </span>
               ))}
+            </span>
+            <span className="navbar-brand-text navbar-brand-text--short">
+              ACME
             </span>
           </Link>
 
@@ -67,9 +97,10 @@ export function Navbar() {
             <button
               type="button"
               className="navbar-menu-btn"
-              onClick={() => setMobileOpen((o) => !o)}
+              onClick={() => setMobileOpen((open) => !open)}
               aria-label={mobileOpen ? "Fechar menu" : "Abrir menu"}
               aria-expanded={mobileOpen}
+              aria-controls={menuId}
             >
               <Icon name={mobileOpen ? "close" : "menu"} size={18} />
             </button>
@@ -80,15 +111,26 @@ export function Navbar() {
 
             <ProfileMenu />
 
-            <LogoutButton />
+            <LogoutButton className="navbar-logout-btn navbar-logout-btn--desktop" />
           </div>
         </div>
       </nav>
 
+      <button
+        type="button"
+        className={`mobile-nav-backdrop ${mobileOpen ? "open" : ""}`}
+        aria-label="Fechar menu"
+        tabIndex={mobileOpen ? 0 : -1}
+        onClick={() => setMobileOpen(false)}
+      />
+
       <div
+        id={menuId}
         className={`mobile-nav ${mobileOpen ? "open" : ""}`}
         role="dialog"
+        aria-modal="true"
         aria-label="Menu de navegação"
+        hidden={!mobileOpen}
       >
         <ul className="mobile-nav-list">
           {navLinks.map((link) => (
