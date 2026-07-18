@@ -12,9 +12,9 @@
 
 O **ACME HUB** é uma plataforma web (**v1.0.0**) — e em seguida app Android (Bloco 8) — que centraliza a vida acadêmica do aluno fora do portal SIGAA.
 
-**Hoje:** site em produção (Cloudflare Workers + Supabase) com sync SIGAA via worker no PC; Eng. Computação completa (dashboard, disciplinas, calendário, mapa, integralização, simulador, planos PIX, sino).
+**Hoje:** site em produção (Cloudflare Workers + Supabase) com sync SIGAA via worker no PC; Eng. Computação completa (dashboard, disciplinas, calendário, mapa, integralização, simulador, planos PIX, sino). App Android em `mobile/` (**Bloco 8** · Expo · M1+).
 
-**Próximo:** app mobile Android (Expo) com **paridade total** do site, sessão persistente, cache local e push no telefone — ver [`docs/TASKS.md`](docs/TASKS.md) Bloco 8 e [`docs/SCOPE-CLOUD.md`](docs/SCOPE-CLOUD.md) §7.
+**Próximo:** app mobile Android (Expo) com **paridade total** do site, sessão persistente, cache local e push no telefone — ver [`docs/TASKS.md`](docs/TASKS.md) Bloco 8 e [`mobile/README.md`](mobile/README.md).
 
 ---
 

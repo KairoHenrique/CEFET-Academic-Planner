@@ -522,13 +522,14 @@ UI (**F41**): seção **Orquestração sync** — formulário da tabela acima + 
 
 ### 7.1 Objetivo da fase mobile
 
-- App nativo **Android** com **paridade funcional** do site desktop **v1.0** (todas as funções), UX **mais intuitiva** no telefone.
-- **Sessão persistente:** tokens em armazenamento seguro; o aluno **não** redigita senha a cada abertura — só no login e após logout.
-- **Cache local:** dados da conta no aparelho; quando houver sync/atualização na conta, o app atualiza o cache e **notifica no sistema** (push).
-- **Push:** chega no telefone se o usuário estiver **logado**; deslogado = sem push (tokens revogados no logout).
-- **Pré-requisito:** site web Eng. Computação **v1.0** (**#9 + #10**, incl. **F28**).
-- **Quem não instalar** usa o **site mobile** (**F28**).
-- Consome a **mesma API** Next/Supabase (cliente fino — não reimplementar regras de negócio).
+- App nativo **Android** com **paridade de funções** do site desktop **v1.0** — **não** clonar o layout do site mobile (**F28**).
+- **Identidade:** cores / marca / visual premium do produto; **IA e componentes livres** (mais modular, intuitivo e visível que o browser).
+- **Sessão persistente:** tokens seguros; senha só no login e após logout.
+- **Cache local** + **push** pós-sync/novidades (só se logado).
+- **Navegação:** **bottom tabs** apenas — **sem** barra/drawer lateral (decisão de produto jul/2026).
+- Home orientada a **jobs** (“hoje / prazos / notas”), não à ordem de rotas do Next.js — ver `TASKS.md` § UX nativa (Bloco 8).
+- **Pré-requisito:** site web **v1.0**. Alternativa sem instalar: **F28**.
+- Mesma API Next/Supabase (cliente fino).
 
 ### 7.2 Escopo mobile (paridade site v1.0)
 
