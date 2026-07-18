@@ -13133,18 +13133,97 @@ body.mobile-nav-open {
     gap: var(--space-3);
   }
 
-  .integration-table {
-    min-width: 560px;
+  .integration-detail-card {
+    overflow: visible;
   }
 
-  .integration-detail-card {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+  .integration-detail-card .integration-table {
+    min-width: 0;
+    width: 100%;
+    table-layout: auto;
+  }
+
+  .integration-detail-card .integration-table thead {
+    display: none;
+  }
+
+  .integration-detail-card .integration-table,
+  .integration-detail-card .integration-table tbody {
+    display: block;
+    width: 100%;
+  }
+
+  .integration-detail-card .integration-table tr {
+    display: grid;
+    gap: var(--space-2);
+    width: 100%;
+    margin-bottom: var(--space-3);
+    padding: var(--space-3);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    background: var(--bg-secondary);
+  }
+
+  .integration-detail-card .integration-table tr:last-child {
+    margin-bottom: 0;
+  }
+
+  .integration-detail-card .integration-table td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    width: 100%;
+    min-width: 0;
+    padding: 0;
+    text-align: left;
+    white-space: normal;
+    font-size: 0.875rem;
+    border: none;
+  }
+
+  .integration-detail-card .integration-table td::before {
+    content: attr(data-label);
+    flex-shrink: 0;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+  }
+
+  .integration-detail-card .integration-table td[data-label="Categoria"] {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    padding-bottom: var(--space-2);
+    margin-bottom: var(--space-1);
+    border-bottom: 1px solid var(--border-muted);
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .integration-detail-card .integration-table td[data-label="Progresso"] .table-progress {
+    flex: 1;
+    min-width: 0;
+    max-width: 11rem;
+    margin-left: auto;
   }
 
   .integration-table-header {
     flex-wrap: wrap;
     gap: var(--space-3);
+  }
+
+  .integration-detail-card .table-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-3);
+  }
+
+  .integration-detail-card .table-toolbar .btn-gold {
+    width: 100%;
+    justify-content: center;
   }
 }
 
@@ -13201,20 +13280,21 @@ body.mobile-nav-open {
 
 /* ---- 7. Data Tables Scroll ---- */
 @media (max-width: 768px) {
-  .data-table-wrap:not(.grades-table-wrap):not(.attendance-table-wrap) {
+  .data-table-wrap:not(.grades-table-wrap):not(.attendance-table-wrap):not(.integration-detail-card) {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-x: contain;
     scrollbar-width: thin;
   }
 
-  .data-table-wrap:not(.grades-table-wrap):not(.attendance-table-wrap) .data-table {
+  .data-table-wrap:not(.grades-table-wrap):not(.attendance-table-wrap):not(.integration-detail-card) .data-table {
     min-width: 480px;
   }
 
-  /* Notas + frequência: cards empilhados (sem scroll horizontal) */
+  /* Notas + frequência + integralização: cards empilhados (sem scroll horizontal) */
   .grades-table-wrap,
-  .attendance-table-wrap {
+  .attendance-table-wrap,
+  .integration-detail-card {
     overflow: visible;
   }
 

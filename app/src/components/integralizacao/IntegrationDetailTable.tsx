@@ -46,7 +46,7 @@ export function IntegrationDetailTable({
 
             return (
               <tr key={cat.label}>
-                <td>
+                <td data-label="Categoria">
                   <span className="integration-table-category">{cat.label}</span>
                   {manualCount > 0 ? (
                     <span className="integration-manual-badge">
@@ -57,10 +57,10 @@ export function IntegrationDetailTable({
                     </span>
                   ) : null}
                 </td>
-                <td>{cat.done}h</td>
-                <td>{cat.total}h</td>
-                <td>{cat.pending}h</td>
-                <td>
+                <td data-label="Concluído">{cat.done}h</td>
+                <td data-label="Necessário">{cat.total}h</td>
+                <td data-label="Pendente">{cat.pending}h</td>
+                <td data-label="Progresso">
                   <div className="table-progress">
                     <div className="progress-bar">
                       <div
