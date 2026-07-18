@@ -113,6 +113,16 @@ function CourseMapFlowGraphInner({ grafo }: { grafo: MapaGrafoResponse }) {
   }, [cancelClear]);
 
   const handleLeave = useCallback(() => scheduleClear(), [scheduleClear]);
+
+  const handleNodeClick = useCallback<NodeMouseHandler>(
+    (_, node) => {
+      if (node.type !== "course") return;
+      cancelClear();
+      setActiveId((previous) => (previous === node.id ? null : node.id));
+    },
+    [cancelClear]
+  );
+
   const handlePane = useCallback(() => {
     cancelClear();
     setActiveId(null);
@@ -160,9 +170,13 @@ function CourseMapFlowGraphInner({ grafo }: { grafo: MapaGrafoResponse }) {
         </span>
       </div>
 
-      <p className="cmap-hint" role="note">
+      <p className="cmap-hint cmap-hint--desktop" role="note">
         Passe o mouse sobre uma disciplina para ver <strong>pré-requisitos</strong> e o que ela{" "}
         <strong>desbloqueia</strong>.
+      </p>
+      <p className="cmap-hint cmap-hint--touch" role="note">
+        Toque em uma disciplina para destacar <strong>pré-requisitos</strong> e o que ela{" "}
+        <strong>desbloqueia</strong>. Arraste com um dedo · pinça para zoom.
       </p>
 
       <div
@@ -179,7 +193,14 @@ function CourseMapFlowGraphInner({ grafo }: { grafo: MapaGrafoResponse }) {
           elementsSelectable
           onNodeMouseEnter={handleEnter}
           onNodeMouseLeave={handleLeave}
+          onNodeClick={handleNodeClick}
           onPaneClick={handlePane}
+          panOnDrag
+          panOnScroll={false}
+          zoomOnScroll={false}
+          zoomOnPinch
+          zoomOnDoubleClick={false}
+          preventScrolling
           minZoom={0.2}
           maxZoom={1.75}
           proOptions={{ hideAttribution: true }}

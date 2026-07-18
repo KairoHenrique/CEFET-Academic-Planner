@@ -94,6 +94,10 @@ export function Navbar() {
           </ul>
 
           <div className="navbar-actions">
+            <NotificationBell />
+            <SyncButton />
+            <ProfileMenu />
+            <LogoutButton className="navbar-logout-btn navbar-logout-btn--desktop" />
             <button
               type="button"
               className="navbar-menu-btn"
@@ -104,14 +108,6 @@ export function Navbar() {
             >
               <Icon name={mobileOpen ? "close" : "menu"} size={18} />
             </button>
-
-            <NotificationBell />
-
-            <SyncButton />
-
-            <ProfileMenu />
-
-            <LogoutButton className="navbar-logout-btn navbar-logout-btn--desktop" />
           </div>
         </div>
       </nav>

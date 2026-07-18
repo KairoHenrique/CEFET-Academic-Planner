@@ -2375,14 +2375,25 @@ a:hover {
   transition: all var(--transition-fast);
 }
 
-.navbar-menu-btn:hover {
-  color: var(--gold-300);
-  border-color: var(--border-emphasis);
-}
-
 .navbar-menu-btn:focus-visible {
   outline: 2px solid var(--gold-300);
   outline-offset: 2px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .navbar-menu-btn:hover {
+    color: var(--gold-300);
+    border-color: var(--border-emphasis);
+  }
+
+  .mobile-nav-list a:hover {
+    color: var(--gold-300);
+    background: rgba(212, 168, 67, 0.08);
+  }
+
+  .course-map-flow-canvas .react-flow__controls-button:hover {
+    background: rgba(0, 96, 177, 0.6);
+  }
 }
 
 .mobile-nav-backdrop {
@@ -2457,7 +2468,6 @@ body.mobile-nav-open {
   transition: all var(--transition-fast);
 }
 
-.mobile-nav-list a:hover,
 .mobile-nav-list a.active {
   color: var(--gold-300);
   background: rgba(212, 168, 67, 0.08);
@@ -5450,6 +5460,72 @@ body.mobile-nav-open {
   margin-top: var(--space-1);
 }
 
+.subject-list-cards {
+  display: none;
+  gap: var(--space-3);
+  margin-top: var(--space-1);
+}
+
+.subject-list-card {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+  background: var(--bg-secondary);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.subject-list-card:focus-visible {
+  outline: 2px solid var(--gold-300);
+  outline-offset: 2px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .subject-list-card:hover {
+    border-color: var(--border-emphasis);
+    background: var(--bg-elevated);
+  }
+}
+
+.subject-list-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.subject-list-card-meta {
+  display: grid;
+  gap: var(--space-2);
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+}
+
+.subject-list-card-meta > div {
+  display: grid;
+  gap: 2px;
+}
+
+.subject-list-card-meta strong {
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.subject-list-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
 .subject-list-table .data-table {
   table-layout: fixed;
 }
@@ -7240,8 +7316,12 @@ body.mobile-nav-open {
   margin-bottom: var(--space-3);
 }
 
+.cmap-hint--touch {
+  display: none;
+}
+
 .cmap-hint strong {
-  color: var(--text-secondary);
+  color: var(--gold-200);
   font-weight: 700;
 }
 
@@ -7269,10 +7349,10 @@ body.mobile-nav-open {
   border-bottom-color: var(--border-default);
   fill: #dce7f5;
   transition: background var(--transition-fast);
-}
-
-.course-map-flow-canvas .react-flow__controls-button:hover {
-  background: rgba(0, 96, 177, 0.6);
+  width: var(--touch-min);
+  height: var(--touch-min);
+  min-width: var(--touch-min);
+  min-height: var(--touch-min);
 }
 
 .course-map-flow-canvas .react-flow__minimap {
@@ -7416,6 +7496,13 @@ body.mobile-nav-open {
   border: 1px solid rgba(255, 255, 255, 0.4) !important;
   background: var(--gold-300) !important;
   opacity: 0.5;
+}
+
+/* Hit area expandida p/ toque (F28 / mobile-app-adapter) */
+.cmap-node__handle::before {
+  content: "";
+  position: absolute;
+  inset: -14px;
 }
 
 /* Status */
@@ -11426,7 +11513,15 @@ body.mobile-nav-open {
     display: none;
   }
 
-  /* Disciplinas: scroll horizontal + colunas secundárias ocultas */
+  /* Disciplinas: cards no mobile (mesma linguagem visual dos cards do site) */
+  .subject-list-table {
+    display: none;
+  }
+
+  .subject-list-cards {
+    display: grid;
+  }
+
   .subject-list-table .col-professor,
   .subject-list-table .col-room {
     display: none;
@@ -11462,6 +11557,34 @@ body.mobile-nav-open {
   .mapa-view-toggle button {
     min-height: var(--touch-min);
     min-width: var(--touch-min);
+  }
+
+  .cmap-hint--desktop {
+    display: none;
+  }
+
+  .cmap-hint--touch {
+    display: block;
+  }
+
+  .course-map-flow-canvas {
+    height: min(62vh, 560px);
+    min-height: 320px;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .course-map-flow-canvas .react-flow__minimap {
+    display: none;
+  }
+
+  .cmap-node {
+    width: 168px;
+  }
+
+  .cmap-node__name {
+    font-size: 0.72rem;
   }
 
   .pix-qr-frame {
