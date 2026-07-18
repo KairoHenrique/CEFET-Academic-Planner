@@ -1365,7 +1365,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 | # | Tipo | Task | Resumo | Status |
 |---|------|------|--------|--------|
-| M1 | Setup | Projeto Expo | `mobile/` TypeScript · **Android only** | [%] |
+| M1 | Setup | Projeto Expo | `mobile/` TypeScript · **Android only** · **SDK 54** (Expo Go Play Store) | [%] |
 | M2 | Shared | Tipos | Contratos API compartilhados (`packages/` ou copy tipado) | [ ] |
 | M3 | Setup | Sessão persistente | SecureStore + refresh · sessão até logout | [ ] |
 | M4 | Front | Auth + gate | Login CPF · trial/pago · logout limpa tudo | [ ] |
@@ -1754,7 +1754,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 > **Resumo:** App **Android only** · paridade com site **v1.0** · sessão persistente · cache local · **push** pós-sync — **Bloco 8** (`M1–M16`). Escopo: [`docs/SCOPE-CLOUD.md`](./SCOPE-CLOUD.md) §7. **Sem** lojas. Alternativa web: **F28** ✅.
 
-- [%] **M1** — Expo TypeScript em `mobile/` (Android only) — aguardando push
+- [%] **M1** — Expo TypeScript **SDK 54** em `mobile/` (Android only · compatível Play Store) — aguardando push
 - [ ] **M2–M4** — tipos + sessão SecureStore + auth/gate (login fica até logout)
 - [ ] **M5–M6** — cache local dos dados do aluno + push no telefone (só se logado)
 - [ ] **M7–M14** — telas: dashboard, disciplinas, calendário, mapa, integralização, simulador, planos, perfil
