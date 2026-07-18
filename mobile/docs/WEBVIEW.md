@@ -1,8 +1,9 @@
-# App Android = site mobile (F28) em WebView
+# App Android nativo (não WebView)
 
-Reinício jul/2026: **não** reinventar UI/API nativa.
+O app Expo é **nativo separado do navegador**:
+- Login CPF/senha → API cloud
+- Sessão SecureStore
+- Telas: Início, Agenda, Matérias, Mais (Mapa, Integralização, Simulador, Planos, Sync, Notificações, Perfil)
+- Mesmas APIs do site (`/api/dashboard`, `/api/disciplinas`, …)
 
-O `App.tsx` abre `EXPO_PUBLIC_API_BASE_URL` (ex. `https://acme-hub.khfm.workers.dev`)
-num `WebView`. Login, dados, módulos e visual = **exatamente o site mobile**.
-
-Código legado em `src/` (telas nativas) fica arquivado e **não** é montado.
+**Não** embute o site em WebView. Visual alinhado ao F28; funções via API.

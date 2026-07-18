@@ -47,11 +47,17 @@ export function DashboardScreen() {
       setFromCache(dash.fromCache || Boolean(sched?.fromCache));
       if (sched) setSchedule(sched.data);
     } catch (err) {
-      setError(
-        err instanceof ApiClientError
-          ? err.message
-          : "Não foi possível carregar o dashboard."
-      );
+      if (err instanceof ApiClientError && err.status === 404) {
+        setError(
+          "Nenhum dado sincronizado. Abra Mais → Sync SIGAA e sincronize."
+        );
+      } else {
+        setError(
+          err instanceof ApiClientError
+            ? err.message
+            : "Não foi possível carregar o dashboard."
+        );
+      }
     } finally {
       setLoading(false);
       setRefreshing(false);

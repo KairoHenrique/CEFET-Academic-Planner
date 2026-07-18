@@ -44,6 +44,11 @@ export async function requestJson<T>(
   init: RequestInit & { auth?: boolean } = {}
 ): Promise<T> {
   const base = getApiBaseUrl();
+
+  if (init.auth !== false) {
+    await ensureFreshSession().catch(() => null);
+  }
+
   const headers: Record<string, string> = {
     Accept: "application/json",
     ...(init.body ? { "Content-Type": "application/json" } : {}),
