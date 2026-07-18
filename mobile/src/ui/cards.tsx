@@ -85,16 +85,30 @@ export function formatGrade(value: number | null, max = 10): string {
   return `${value.toFixed(1)}/${max}`;
 }
 
-export function gradeRiskLabel(risk: string): string {
-  const map: Record<string, string> = {
-    seguro: "Seguro",
-    atencao: "Atenção",
-    critico: "Crítico",
-    recuperacao: "Recuperação",
-    reprovado: "Reprovado",
-    sem_nota: "Sem nota",
-  };
-  return map[risk] ?? risk;
+/** Aceita objeto da API (`{ label, zone, ... }`) ou string legada. */
+export function gradeRiskLabel(
+  risk: { label?: string } | string | null | undefined
+): string {
+  if (risk == null) return "—";
+  if (typeof risk === "string") {
+    const map: Record<string, string> = {
+      seguro: "Seguro",
+      atencao: "Atenção",
+      critico: "Crítico",
+      recuperacao: "Recuperação",
+      reprovado: "Reprovado",
+      sem_nota: "Sem nota",
+      safe: "Seguro",
+      warning: "Atenção",
+      danger: "Crítico",
+      unknown: "Sem nota",
+    };
+    return map[risk] ?? risk;
+  }
+  if (typeof risk.label === "string" && risk.label.trim()) {
+    return risk.label;
+  }
+  return "—";
 }
 
 const styles = StyleSheet.create({

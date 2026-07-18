@@ -92,19 +92,22 @@ export function DashboardScreen() {
         <>
           <View style={styles.statsGrid}>
             <StatCard
+              key="stat-integ"
               label="Integralização"
               value={`${data.stats.integralizacaoPercent}%`}
               accent={brand.gold}
             />
             <StatCard
+              key="stat-cursando"
               label="Cursando"
               value={data.stats.disciplinasCursando}
             />
             <StatCard
+              key="stat-tarefas"
               label="Tarefas"
               value={data.stats.tarefasPendentes}
             />
-            <StatCard label="RG" value={data.stats.rg} />
+            <StatCard key="stat-rg" label="RG" value={data.stats.rg} />
           </View>
 
           {integ ? (
@@ -114,8 +117,11 @@ export function DashboardScreen() {
                 <Text style={cardStyles.cardTitle}>
                   {integ.totalDone}/{integ.totalHours}h · {integ.percent}%
                 </Text>
-                {integ.categories.map((cat) => (
-                  <View key={cat.id} style={styles.barBlock}>
+                {integ.categories.map((cat, idx) => (
+                  <View
+                    key={cat.id || `cat-${cat.label}-${idx}`}
+                    style={styles.barBlock}
+                  >
                     <View style={cardStyles.row}>
                       <Text style={styles.catLabel}>{cat.label}</Text>
                       <Text style={styles.catPct}>{cat.percent}%</Text>
@@ -153,9 +159,9 @@ export function DashboardScreen() {
           {pendingTasks.length === 0 ? (
             <EmptyState title="Nenhuma tarefa pendente" />
           ) : (
-            pendingTasks.map((task) => (
+            pendingTasks.map((task, idx) => (
               <View
-                key={task.id}
+                key={String(task.id ?? `task-${idx}`)}
                 style={[
                   cardStyles.card,
                   { borderLeftColor: task.subjectColor, borderLeftWidth: 3 },

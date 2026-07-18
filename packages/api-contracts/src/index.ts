@@ -12,13 +12,24 @@ export type AppCursoId =
   | "eng-mecatronica"
   | "design-moda";
 
-export type GradeRisk =
-  | "seguro"
-  | "atencao"
-  | "critico"
-  | "recuperacao"
-  | "reprovado"
-  | "sem_nota";
+/** Espelha `app/src/lib/types/grade-risk.ts` (objeto, não string). */
+export type GradeRiskZone = "safe" | "warning" | "danger" | "unknown";
+
+export interface GradeRisk {
+  zone: GradeRiskZone;
+  label: string;
+  pointsNeeded: number;
+  passingGrade: number;
+  currentTotal: number;
+  passingProgress: number;
+  remainingMax: number;
+  canStillPass: boolean;
+  fullyDistributed?: boolean;
+  recoveryScoreNeeded?: number;
+  recoveryScore?: number | null;
+  recoveryAverage?: number;
+  awaitingRecovery?: boolean;
+}
 
 /* -------------------------------------------------------------------------- */
 /* Auth                                                                       */
