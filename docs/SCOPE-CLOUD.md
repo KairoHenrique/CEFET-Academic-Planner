@@ -522,37 +522,41 @@ UI (**F41**): seção **Orquestração sync** — formulário da tabela acima + 
 
 ### 7.1 Objetivo da fase mobile
 
-- **Testes no celular Android** durante o desenvolvimento usando **Expo Go**.
-- **Pré-requisito:** site web Eng. Computação maduro (**#9 inteligência + #10 polimento**, incl. **F28 site mobile**) — mobile é cliente fino da API estável, não laboratório de UX.
-- **Quem não instalar** (ou não puder instalar) usa o **site adaptado ao celular** (**F28** · Bloco 4) — zero custo de loja.
-- Mesmas telas principais: dashboard, disciplinas, calendário, mapa.
-- Consome **Supabase** diretamente (ou via API Next.js — definir na implementação).
+- App nativo **Android** com **paridade funcional** do site desktop **v1.0** (todas as funções), UX **mais intuitiva** no telefone.
+- **Sessão persistente:** tokens em armazenamento seguro; o aluno **não** redigita senha a cada abertura — só no login e após logout.
+- **Cache local:** dados da conta no aparelho; quando houver sync/atualização na conta, o app atualiza o cache e **notifica no sistema** (push).
+- **Push:** chega no telefone se o usuário estiver **logado**; deslogado = sem push (tokens revogados no logout).
+- **Pré-requisito:** site web Eng. Computação **v1.0** (**#9 + #10**, incl. **F28**).
+- **Quem não instalar** usa o **site mobile** (**F28**).
+- Consome a **mesma API** Next/Supabase (cliente fino — não reimplementar regras de negócio).
 
-### 7.2 Escopo mobile v1 (MVP testável)
+### 7.2 Escopo mobile (paridade site v1.0)
 
-| Inclui | Não inclui (v1) |
+| Inclui | Não inclui |
 |---|---|
-| Login conta app + checagem assinatura | Sync SIGAA no device |
-| Dashboard, disciplinas, calendário | Download automático de PDFs na nuvem pessoal |
-| Leitura/edição de notas e tarefas manuais | Simulador de matrícula completo |
-| Expo Go para dev (**Android only**) | **iOS** · **Play Store** · **App Store** |
-| *(Opcional pós-MVP)* APK sideload pelo site | Publicação em lojas oficiais |
+| Sessão persistente + logout limpa cache/push | Sync SIGAA **no** device (continua no worker/cloud) |
+| Cache local do snapshot acadêmico | **iOS** · **Play Store** · **App Store** |
+| Push OS (sync, notas/tarefas, calendário D-1/dia) | Download automático de PDFs na nuvem pessoal |
+| Dashboard, disciplinas, calendário, mapa, integralização | — |
+| Simulador de matrícula, planos/PIX, perfil/prefs | — |
+| Expo Go (**Android only**) | Publicação em lojas oficiais |
+| *(Opcional)* APK sideload pelo site (**M16**) | — |
 
 ### 7.3 Estrutura do monorepo (proposta)
 
 ```
 /
-├── app/          # Next.js web (existente)
-├── mobile/       # Expo (novo · Android only)
+├── app/          # Next.js web (v1.0)
+├── mobile/       # Expo (Android only)
 └── packages/     # (opcional) tipos e utils compartilhados
 ```
 
 ### 7.4 Distribuição (sem lojas)
 
 - **Padrão:** testar e usar via **Expo Go** (Android).
-- **Opcional (M10):** gerar **APK sideload** — link de download no site; **sem** Play Store (zero taxa de loja).
-- **Alternativa web:** **F28** — site responsivo/touch no browser; não exige instalar app.
-- Mesmo backend Supabase em todos os canais.
+- **Opcional (M16):** **APK sideload** — link no site; **sem** Play Store.
+- **Alternativa web:** **F28** — site no browser; não exige instalar app.
+- Mesmo backend em todos os canais.
 
 ---
 
@@ -694,7 +698,8 @@ Durante beta/testes com URL pública:
 - [ ] **Orquestração sync + catálogo global** — policy **§6.6** (jul/2026); implementar **B68d–f** + worker **B54–B56**; painel policy **B70/F41**
 - [ ] Onde hospedar worker Playwright (Railway / Fly.io / VPS — ver §6.3 fila 1×)
 - [x] Política de fila: 1 job global, auto 3h/usuário, manual fim da fila + cooldown 5 min, prioridade 1º login (§6.3)
-- [ ] Mobile: Supabase client direto vs. API Next.js
+- [x] Mobile: API Next.js (mesmo backend do site) + SecureStore; push via Expo Notifications
+- [ ] Detalhe de payload push (categorias alinhadas ao sino web)
 - [@] Provedor de e-mail transacional — **Brevo** (grátis 300/dia, sem domínio) com fallback **Resend** (REST via `fetch`, sem SDK; HTML anti-XSS + retry backoff) — **B62b** (deploy jul/2026; secrets `BREVO_API_KEY`/`EMAIL_FROM` no `acme-hub`; teste real ok `provider=brevo`)
 - [ ] **Provedor de nuvem v1 para PDFs:** Google Drive vs. Dropbox vs. OneDrive (ou todos)
 
