@@ -536,6 +536,7 @@ UI (**F41**): seção **Orquestração sync** — formulário da tabela acima + 
 | Inclui | Não inclui |
 |---|---|
 | Sessão persistente + logout limpa cache/push | Sync SIGAA **no** device (continua no worker/cloud) |
+| Tokens em **SecureStore** + `POST /api/auth/refresh` (**M3**) | Senha no device (só no formulário de login) |
 | Cache local do snapshot acadêmico | **iOS** · **Play Store** · **App Store** |
 | Push OS (sync, notas/tarefas, calendário D-1/dia) | Download automático de PDFs na nuvem pessoal |
 | Dashboard, disciplinas, calendário, mapa, integralização | — |

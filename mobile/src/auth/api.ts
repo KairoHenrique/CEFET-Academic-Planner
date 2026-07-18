@@ -1,0 +1,144 @@
+import type {
+  AccountAuthResponse,
+  LoginAccountBody,
+  RefreshAccountBody,
+  RefreshAuthResponse,
+} from "@acme/api-contracts";
+import { getApiBaseUrl } from "../config/env";
+import {
+  applySessionTokens,
+  buildAuthHeaders,
+  clearSession,
+  getSession,
+  persistFromAuthResponse,
+  type MobileAuthSession,
+} from "./session";
+
+export class ApiClientError extends Error {
+  readonly status: number;
+  readonly code?: string;
+
+  constructor(message: string, status: number, code?: string) {
+    super(message);
+    this.name = "ApiClientError";
+    this.status = status;
+    this.code = code;
+  }
+}
+
+async function parseJson(response: Response): Promise<unknown> {
+  const text = await response.text();
+  if (!text) return null;
+  try {
+    return JSON.parse(text) as unknown;
+  } catch {
+    return null;
+  }
+}
+
+async function requestJson<T>(
+  path: string,
+  init: RequestInit & { auth?: boolean } = {}
+): Promise<T> {
+  const base = getApiBaseUrl();
+  const headers: Record<string, string> = {
+    Accept: "application/json",
+    ...(init.body ? { "Content-Type": "application/json" } : {}),
+    ...(init.headers as Record<string, string> | undefined),
+  };
+
+  if (init.auth !== false) {
+    Object.assign(headers, buildAuthHeaders());
+  }
+
+  const response = await fetch(`${base}${path}`, {
+    ...init,
+    headers,
+  });
+
+  const payload = await parseJson(response);
+
+  if (!response.ok) {
+    const err = payload as { message?: string; code?: string } | null;
+    throw new ApiClientError(
+      err?.message ?? `HTTP ${response.status}`,
+      response.status,
+      err?.code
+    );
+  }
+
+  return payload as T;
+}
+
+export async function postAuthLogin(
+  body: LoginAccountBody
+): Promise<AccountAuthResponse> {
+  return requestJson<AccountAuthResponse>("/api/auth/login", {
+    method: "POST",
+    body: JSON.stringify(body),
+    auth: false,
+  });
+}
+
+export async function postAuthRefresh(
+  body: RefreshAccountBody
+): Promise<RefreshAuthResponse> {
+  return requestJson<RefreshAuthResponse>("/api/auth/refresh", {
+    method: "POST",
+    body: JSON.stringify(body),
+    auth: false,
+  });
+}
+
+/** Margem antes do expiry para renovar (segundos). */
+const REFRESH_SKEW_SEC = 120;
+
+export function isAccessTokenFresh(
+  session: MobileAuthSession | null,
+  nowSec = Math.floor(Date.now() / 1000)
+): boolean {
+  if (!session?.expiresAt) return false;
+  return session.expiresAt - nowSec > REFRESH_SKEW_SEC;
+}
+
+/**
+ * Garante access token válido: refresh se perto do expiry ou forçado.
+ * Em falha de refresh, limpa a sessão (exige novo login — M4).
+ */
+export async function ensureFreshSession(
+  options: { force?: boolean } = {}
+): Promise<MobileAuthSession | null> {
+  const current = getSession();
+  if (!current) return null;
+
+  if (!options.force && isAccessTokenFresh(current)) {
+    return current;
+  }
+
+  try {
+    const refreshed = await postAuthRefresh({
+      refreshToken: current.refreshToken,
+    });
+    return applySessionTokens(current, refreshed.session);
+  } catch (error) {
+    if (
+      error instanceof ApiClientError &&
+      (error.status === 401 || error.code === "UNAUTHORIZED")
+    ) {
+      await clearSession();
+      return null;
+    }
+    throw error;
+  }
+}
+
+export async function loginAndPersist(
+  body: LoginAccountBody
+): Promise<MobileAuthSession> {
+  const auth = await postAuthLogin(body);
+  return persistFromAuthResponse(auth);
+}
+
+export async function logoutLocal(): Promise<void> {
+  await clearSession();
+}
