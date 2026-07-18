@@ -96,7 +96,10 @@ export function DashboardScreen() {
       {data ? (
         <>
           <StatsModule stats={data.stats} />
-          <UpcomingTasksModule tasks={data.tarefas} />
+          <UpcomingTasksModule
+            tasks={data.tarefas}
+            onChanged={() => void load(true)}
+          />
           <IntegrationModule integralizacao={data.integralizacao} />
 
           <Text style={cardStyles.sectionTitle}>Grade da Semana</Text>

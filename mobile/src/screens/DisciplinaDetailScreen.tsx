@@ -60,6 +60,9 @@ export function DisciplinaDetailScreen() {
   );
 
   const subject = data?.subject;
+  const reload = useCallback(() => {
+    void load();
+  }, [load]);
 
   return (
     <Screen
@@ -93,20 +96,34 @@ export function DisciplinaDetailScreen() {
 
           {tab === "info" ? (
             <SubjectInfoTab
+              code={params.code}
               subject={subject}
               grupo={data.grupo}
               catalogOnly={data.catalogOnly}
+              onChanged={reload}
             />
           ) : null}
-          {tab === "notas" ? <SubjectNotasTab subject={subject} /> : null}
+          {tab === "notas" ? (
+            <SubjectNotasTab
+              code={params.code}
+              subject={subject}
+              onChanged={reload}
+            />
+          ) : null}
           {tab === "faltas" ? (
             <SubjectFaltasTab
+              code={params.code}
               subject={subject}
               attendance={data.attendance}
+              onChanged={reload}
             />
           ) : null}
           {tab === "tarefas" ? (
-            <SubjectTarefasTab tasks={data.tasks} />
+            <SubjectTarefasTab
+              code={params.code}
+              tasks={data.tasks}
+              onChanged={reload}
+            />
           ) : null}
         </>
       ) : null}

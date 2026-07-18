@@ -340,7 +340,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 > **Ordem de execução:** **#9 → #10 → #8** — ver [ordem oficial](#ordem-oficial-de-execução-v3).  
 > **Decisão (jul/2026):** app nativo **só Android** · **sem** Play/App Store · alternativa = **site mobile** (**F28**).  
 > **Princípio (v1.0 → app):** **paridade de funções** com o site (tudo que o desktop faz), **não** clonar o layout do site mobile (**F28**). No nativo: só herdar **cores / marca / tipografia de produto**; IA e telas podem ser **mais modulares, visíveis e intuitivas** (bottom nav, home por “o que fazer agora”, módulos grandes). Sessão persistente · cache local · push (silencioso se deslogado). Ver detalhe § UX nativa.  
-> **Progresso:** **M1–M3** `[x]`. **Local:** **M4–M15** `[%]` (auth → QA Expo Go — aguardando push/aprovação). **Hotfix jul/2026:** contratos `@acme/api-contracts` alinhados ao site (mapa/`subjects`, attendance/`records`, integ/`total|pending`); UI Expo modular (`features/`) espelhando seções F28.
+> **Progresso:** **M1–M3** `[x]`. **Local:** **M4–M15** `[%]` (auth → QA Expo Go — aguardando push/aprovação). **Hotfix jul/2026:** contratos alinhados ao site; UI modular F28; **paridade funcional** (mutações notas/faltas/tarefas/agenda, sync, sino, grafo, simulador choques/salvas, integ. horas manuais) — ver `mobile/docs/PARIDADE-SITE.md`.
 
 - [x] **SETUP:** M1 *(projeto Expo TypeScript — `mobile/` · **Android only** · **SDK 54** p/ Expo Go da Play Store)*
 - [x] **SHARED:** M2 *(tipos/contratos compartilhados — `packages/api-contracts` · `@acme/api-contracts`)*
@@ -777,7 +777,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 > **Pré-mobile (#8):** site **v1.0** (**#6d + #7 + #9 + #10** + **F28**).  
 > **Meta:** mesma função do desktop, UX nativa melhor · sessão que fica · dados no aparelho · push de sync/novidades (só logado).  
-> **Progresso:** **M1–M3** `[x]`. **Local:** **M4–M15** `[%]` (auth → QA). Contratos + módulos F28 alinhados (hotfix).
+> **Progresso:** **M1–M3** `[x]`. **Local:** **M4–M15** `[%]` (auth → QA). Paridade funcional site↔app (`mobile/docs/PARIDADE-SITE.md`).
 
 - [x] **SETUP:** M1 *(Expo `mobile/` · Android only · SDK 54)*
 - [x] **SETUP/SHARED:** M2 *(tipos `@acme/api-contracts`)*
