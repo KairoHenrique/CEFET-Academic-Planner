@@ -1,27 +1,23 @@
-import { useCallback, useState } from "react";
-import {
-  Pressable,
-  RefreshControl,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { useCallback, useMemo, useState } from "react";
+import { RefreshControl, TextInput, StyleSheet, View } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { SubjectListItem } from "@acme/api-contracts";
 import { ApiClientError } from "../auth/api";
 import { fetchDisciplinas } from "../cache/fetchers";
+import { DisciplinaCard } from "../features/disciplinas/DisciplinaCard";
+import {
+  DISCIPLINA_FILTERS,
+  subjectMatchesFilter,
+  type DisciplinaFilterLabel,
+} from "../lib/disciplina-filters";
 import type { DisciplinasStackParamList } from "../navigation/types";
 import { brand } from "../theme/brand";
-import {
-  cardStyles,
-  formatGrade,
-  gradeRiskLabel,
-} from "../ui/cards";
 import { EmptyState } from "../ui/EmptyState";
 import { ErrorBox } from "../ui/ErrorBox";
 import { LoadingBlock } from "../ui/LoadingBlock";
 import { Screen } from "../ui/Screen";
+import { SegmentTabs } from "../ui/SegmentTabs";
 
 type Nav = NativeStackNavigationProp<
   DisciplinasStackParamList,
@@ -31,6 +27,8 @@ type Nav = NativeStackNavigationProp<
 export function DisciplinasScreen() {
   const navigation = useNavigation<Nav>();
   const [items, setItems] = useState<SubjectListItem[]>([]);
+  const [filter, setFilter] = useState<DisciplinaFilterLabel>("Todas");
+  const [query, setQuery] = useState("");
   const [fromCache, setFromCache] = useState(false);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -61,6 +59,16 @@ export function DisciplinasScreen() {
     }, [load])
   );
 
+  const visible = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return items.filter((item) => {
+      if (!subjectMatchesFilter(item, filter)) return false;
+      if (!q) return true;
+      const hay = `${item.displayName} ${item.name} ${item.code} ${item.shortLabel}`.toLowerCase();
+      return hay.includes(q);
+    });
+  }, [items, filter, query]);
+
   return (
     <Screen
       title="Matérias"
@@ -79,71 +87,63 @@ export function DisciplinasScreen() {
         ),
       }}
     >
+      <TextInput
+        value={query}
+        onChangeText={setQuery}
+        placeholder="Buscar matéria…"
+        placeholderTextColor={brand.textMuted}
+        style={styles.search}
+      />
+
+      <SegmentTabs
+        tabs={DISCIPLINA_FILTERS.map((label) => ({ id: label, label }))}
+        value={filter}
+        onChange={setFilter}
+      />
+
       {loading && items.length === 0 ? <LoadingBlock /> : null}
       {error && items.length === 0 ? (
         <ErrorBox message={error} onRetry={() => void load()} />
       ) : null}
 
-      {items.length === 0 && !loading && !error ? (
+      {visible.length === 0 && !loading && !error ? (
         <EmptyState
           title="Nenhuma matéria"
-          message="Sincronize seus dados com o SIGAA."
+          message={
+            items.length === 0
+              ? "Sincronize seus dados com o SIGAA."
+              : "Nenhum resultado para este filtro."
+          }
         />
       ) : null}
 
-      {items.map((item) => (
-        <Pressable
-          key={item.code}
-          style={({ pressed }) => [
-            cardStyles.card,
-            pressed && styles.pressed,
-            { borderLeftColor: item.color, borderLeftWidth: 3 },
-          ]}
-          onPress={() =>
-            navigation.navigate("DisciplinaDetail", {
-              code: item.code,
-              name: item.displayName,
-            })
-          }
-        >
-          <View style={cardStyles.row}>
-            <Text style={[cardStyles.cardTitle, { flex: 1 }]}>
-              {item.displayName}
-            </Text>
-            <Text style={styles.grade}>
-              {formatGrade(item.grade, item.gradeMax)}
-            </Text>
-          </View>
-          <Text style={cardStyles.cardMeta}>
-            {item.code}
-            {item.shortLabel ? ` · ${item.shortLabel}` : ""}
-            {item.ch != null ? ` · ${item.ch}h` : ""}
-          </Text>
-          <Text style={cardStyles.cardMeta}>
-            {gradeRiskLabel(item.gradeRisk)} · Faltas {item.absences}/
-            {item.maxAbsences}
-            {item.tasks > 0 ? ` · ${item.tasks} tarefa(s)` : ""}
-          </Text>
-          {item.professor ? (
-            <Text style={cardStyles.cardMeta}>Prof. {item.professor}</Text>
-          ) : null}
-          {item.schedule ? (
-            <Text style={cardStyles.cardMeta}>{item.schedule}</Text>
-          ) : null}
-          {item.room ? (
-            <Text style={cardStyles.cardMeta}>Sala {item.room}</Text>
-          ) : null}
-        </Pressable>
+      {visible.map((item, idx) => (
+        <View key={`${item.code}-${idx}`}>
+          <DisciplinaCard
+            item={item}
+            onPress={() =>
+              navigation.navigate("DisciplinaDetail", {
+                code: item.code,
+                name: item.displayName,
+              })
+            }
+          />
+        </View>
       ))}
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  pressed: { opacity: 0.85 },
-  grade: {
-    fontSize: 16,
-    fontWeight: "800",
-    color: brand.gold,
+  search: {
+    backgroundColor: brand.glass,
+    borderWidth: 1,
+    borderColor: brand.border,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    color: brand.text,
+    fontSize: 15,
+    marginBottom: 12,
   },
 });

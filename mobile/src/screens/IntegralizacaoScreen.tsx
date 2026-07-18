@@ -4,6 +4,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import type { IntegralizacaoResponse } from "@acme/api-contracts";
 import { ApiClientError } from "../auth/api";
 import { fetchIntegralizacao } from "../cache/fetchers";
+import { categoryPercent } from "../lib/safe-text";
 import { brand } from "../theme/brand";
 import { cardStyles } from "../ui/cards";
 import { EmptyState } from "../ui/EmptyState";
@@ -77,6 +78,11 @@ export function IntegralizacaoScreen() {
             <Text style={cardStyles.cardMeta}>
               {data.totalDone} horas cumpridas de {data.totalHours} horas totais
             </Text>
+            {data.percentSigaa != null ? (
+              <Text style={cardStyles.cardMeta}>
+                SIGAA: {data.percentSigaa}%
+              </Text>
+            ) : null}
             <View style={styles.totalBarTrack}>
               <View
                 style={[
@@ -90,25 +96,35 @@ export function IntegralizacaoScreen() {
           {data.categories.length === 0 ? (
             <EmptyState title="Sem categorias" />
           ) : (
-            data.categories.map((cat) => (
-              <View key={cat.id} style={cardStyles.card}>
-                <View style={cardStyles.row}>
-                  <Text style={cardStyles.cardTitle}>{cat.label}</Text>
-                  <Text style={styles.catPercent}>{cat.percent}%</Text>
+            data.categories.map((cat, idx) => {
+              const pct = categoryPercent(cat.done, cat.total);
+              return (
+                <View key={`${cat.label}-${idx}`} style={cardStyles.card}>
+                  <View style={cardStyles.row}>
+                    <Text style={cardStyles.cardTitle}>{cat.label}</Text>
+                    <Text style={styles.catPercent}>{pct}%</Text>
+                  </View>
+                  <Text style={cardStyles.cardMeta}>
+                    {cat.pending > 0
+                      ? `${cat.pending}h pendentes · ${cat.done}h / ${cat.total}h`
+                      : `${cat.done}h / ${cat.total}h`}
+                  </Text>
+                  <View style={styles.barTrack}>
+                    <View
+                      style={[
+                        styles.barFill,
+                        { width: `${Math.min(100, pct)}%` },
+                      ]}
+                    />
+                  </View>
+                  {cat.manualEntries?.length ? (
+                    <Text style={cardStyles.cardMeta}>
+                      {cat.manualEntries.length} lançamento(s) manual(is)
+                    </Text>
+                  ) : null}
                 </View>
-                <Text style={cardStyles.cardMeta}>
-                  {cat.done}h / {cat.hours}h
-                </Text>
-                <View style={styles.barTrack}>
-                  <View
-                    style={[
-                      styles.barFill,
-                      { width: `${Math.min(100, cat.percent)}%` },
-                    ]}
-                  />
-                </View>
-              </View>
-            ))
+              );
+            })
           )}
         </>
       ) : null}

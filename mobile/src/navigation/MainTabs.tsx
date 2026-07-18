@@ -42,7 +42,7 @@ export function MainTabs() {
       <Tab.Screen
         name="Agenda"
         component={CalendarScreen}
-        options={{ title: "Calendário" }}
+        options={{ title: "Agenda" }}
       />
       <Tab.Screen
         name="Materias"

@@ -5,19 +5,25 @@ import type { MapaDisciplineStatus, MapaResponse } from "@acme/api-contracts";
 import { ApiClientError } from "../auth/api";
 import { fetchMapa } from "../cache/fetchers";
 import { brand } from "../theme/brand";
-import { cardStyles } from "../ui/cards";
+import { cardStyles, StatCard } from "../ui/cards";
 import { EmptyState } from "../ui/EmptyState";
 import { ErrorBox } from "../ui/ErrorBox";
 import { LoadingBlock } from "../ui/LoadingBlock";
 import { Screen } from "../ui/Screen";
 
 const STATUS_COLOR: Record<MapaDisciplineStatus, string> = {
-  concluida: brand.success,
-  cursando: brand.blue,
-  liberada: brand.gold,
-  bloqueada: brand.danger,
-  optativa: "#7b61a8",
+  done: brand.success,
+  current: brand.blue,
+  unlocked: brand.gold,
+  locked: brand.danger,
 };
+
+const STATUS_ORDER: MapaDisciplineStatus[] = [
+  "done",
+  "current",
+  "unlocked",
+  "locked",
+];
 
 export function MapaScreen() {
   const [data, setData] = useState<MapaResponse | null>(null);
@@ -51,10 +57,17 @@ export function MapaScreen() {
     }, [load])
   );
 
+  const donePct =
+    data && data.stats.total > 0
+      ? Math.round((data.stats.done / data.stats.total) * 100)
+      : 0;
+
   return (
     <Screen
       title="Mapa PPC"
-      subtitle={data ? `${data.curso} · ${data.stats.percent}% concluído` : undefined}
+      subtitle={
+        data ? `${data.curso} · ${donePct}% concluído` : undefined
+      }
       cacheHint={fromCache ? "Dados do cache offline" : null}
       scrollProps={{
         refreshControl: (
@@ -76,33 +89,61 @@ export function MapaScreen() {
 
       {data ? (
         <>
+          {!data.historicoSynced ? (
+            <View style={cardStyles.card}>
+              <Text style={cardStyles.cardMeta}>
+                Histórico ainda não sincronizado — o mapa pode estar incompleto
+                até o PDF do SIGAA ser importado.
+              </Text>
+            </View>
+          ) : null}
+
+          <View style={styles.statsGrid}>
+            <StatCard label="Total" value={data.stats.total} />
+            <StatCard
+              label="Concluídas"
+              value={data.stats.done}
+              accent={brand.success}
+            />
+            <StatCard
+              label="Cursando"
+              value={data.stats.current}
+              accent={brand.blue}
+            />
+            <StatCard
+              label="Liberadas"
+              value={data.stats.unlocked}
+              accent={brand.gold}
+            />
+          </View>
+
           <View style={styles.legend}>
-            {(Object.keys(data.statusLabels) as MapaDisciplineStatus[]).map(
-              (status) => (
-                <View key={status} style={styles.legendItem}>
-                  <View
-                    style={[
-                      styles.dot,
-                      { backgroundColor: STATUS_COLOR[status] ?? brand.textMuted },
-                    ]}
-                  />
-                  <Text style={styles.legendText}>
-                    {data.statusLabels[status] ?? status}
-                  </Text>
-                </View>
-              )
-            )}
+            {STATUS_ORDER.map((status) => (
+              <View key={status} style={styles.legendItem}>
+                <View
+                  style={[
+                    styles.dot,
+                    { backgroundColor: STATUS_COLOR[status] },
+                  ]}
+                />
+                <Text style={styles.legendText}>
+                  {data.statusLabels[status] ?? status}
+                </Text>
+              </View>
+            ))}
           </View>
 
           {data.periods.length === 0 ? (
             <EmptyState title="Mapa vazio" message="Nenhum período encontrado." />
           ) : (
             data.periods.map((period) => (
-              <View key={period.period} style={styles.periodBlock}>
-                <Text style={styles.periodTitle}>{period.label}</Text>
-                {period.disciplines.map((d) => (
+              <View key={`p-${period.period}`} style={styles.periodBlock}>
+                <Text style={styles.periodTitle}>
+                  {period.period}º período
+                </Text>
+                {period.subjects.map((d, idx) => (
                   <View
-                    key={d.code}
+                    key={`${d.code}-${idx}`}
                     style={[
                       cardStyles.card,
                       styles.disciplineRow,
@@ -113,8 +154,17 @@ export function MapaScreen() {
                     ]}
                   >
                     <View style={styles.disciplineMain}>
-                      <Text style={cardStyles.cardTitle}>{d.name}</Text>
-                      <Text style={cardStyles.cardMeta}>{d.code}</Text>
+                      <Text style={cardStyles.cardTitle}>
+                        {d.shortLabel || d.name}
+                      </Text>
+                      <Text style={cardStyles.cardMeta}>
+                        {d.name} · {d.ch}h
+                        {d.blockedBy === "prereq"
+                          ? " · pré-requisito"
+                          : d.blockedBy === "ch"
+                            ? ` · faltam ${d.chRemaining ?? "?"}h`
+                            : ""}
+                      </Text>
                     </View>
                     <View
                       style={[
@@ -145,6 +195,12 @@ export function MapaScreen() {
 }
 
 const styles = StyleSheet.create({
+  statsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+    marginBottom: 8,
+  },
   legend: {
     flexDirection: "row",
     flexWrap: "wrap",

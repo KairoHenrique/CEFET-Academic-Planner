@@ -16,11 +16,11 @@ import type {
 import {
   ApiClientError,
   getPerfil,
-  logoutLocal,
   requestJson,
 } from "../auth/api";
 import { subscriptionStatusLabel } from "../auth/access";
 import { maskCpf } from "../auth/cpf";
+import { logoutLocal } from "../auth/logout";
 import { brand } from "../theme/brand";
 import { cardStyles } from "../ui/cards";
 import { ErrorBox } from "../ui/ErrorBox";

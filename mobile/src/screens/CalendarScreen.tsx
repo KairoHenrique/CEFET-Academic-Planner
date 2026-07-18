@@ -1,11 +1,5 @@
 import { useCallback, useState } from "react";
-import {
-  Pressable,
-  RefreshControl,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { RefreshControl, StyleSheet, Text, View } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import type {
   AcademicDateSemesterGroup,
@@ -20,9 +14,16 @@ import { EmptyState } from "../ui/EmptyState";
 import { ErrorBox } from "../ui/ErrorBox";
 import { LoadingBlock } from "../ui/LoadingBlock";
 import { Screen } from "../ui/Screen";
+import { SegmentTabs } from "../ui/SegmentTabs";
 import { WeeklyScheduleGrid } from "../ui/WeeklyScheduleGrid";
 
-type Tab = "eventos" | "datas" | "grade";
+type Tab = "grade" | "eventos" | "datas";
+
+const TABS = [
+  { id: "grade" as const, label: "Grade" },
+  { id: "eventos" as const, label: "Eventos" },
+  { id: "datas" as const, label: "Datas" },
+];
 
 const EVENT_TYPE_LABEL: Record<string, string> = {
   tarefa: "Tarefa",
@@ -81,7 +82,7 @@ export function CalendarScreen() {
 
   return (
     <Screen
-      title="Calendário"
+      title="Agenda"
       subtitle="Grade semanal, eventos e datas acadêmicas"
       cacheHint={fromCache ? "Dados do cache offline" : null}
       scrollProps={{
@@ -97,25 +98,7 @@ export function CalendarScreen() {
         ),
       }}
     >
-      <View style={styles.tabs}>
-        {(
-          [
-            ["grade", "Grade"],
-            ["eventos", "Eventos"],
-            ["datas", "Datas"],
-          ] as const
-        ).map(([id, label]) => (
-          <Pressable
-            key={id}
-            style={[styles.tab, tab === id && styles.tabActive]}
-            onPress={() => setTab(id)}
-          >
-            <Text style={[styles.tabText, tab === id && styles.tabTextActive]}>
-              {label}
-            </Text>
-          </Pressable>
-        ))}
-      </View>
+      <SegmentTabs tabs={TABS} value={tab} onChange={setTab} />
 
       {loading && !schedule && events.length === 0 ? <LoadingBlock /> : null}
       {error && !schedule && events.length === 0 ? (
@@ -126,7 +109,7 @@ export function CalendarScreen() {
         schedule ? (
           <View style={cardStyles.card}>
             <Text style={cardStyles.sectionTitle}>Grade da Semana</Text>
-            <WeeklyScheduleGrid schedule={schedule} />
+            <WeeklyScheduleGrid schedule={schedule} compact />
           </View>
         ) : (
           <EmptyState
@@ -140,9 +123,9 @@ export function CalendarScreen() {
         events.length === 0 && !loading ? (
           <EmptyState title="Nenhum evento" />
         ) : (
-          events.map((ev) => (
+          events.map((ev, idx) => (
             <View
-              key={ev.id}
+              key={`ev-${ev.id}-${idx}`}
               style={[
                 cardStyles.card,
                 ev.color
@@ -182,11 +165,17 @@ export function CalendarScreen() {
         academicGroups.length === 0 && !loading ? (
           <EmptyState title="Sem datas acadêmicas" />
         ) : (
-          academicGroups.map((group) => (
-            <View key={group.semestre} style={styles.semesterBlock}>
+          academicGroups.map((group, gIdx) => (
+            <View
+              key={`sem-${group.semestre}-${gIdx}`}
+              style={styles.semesterBlock}
+            >
               <Text style={styles.semesterTitle}>{group.semestre}</Text>
-              {group.items.map((item) => (
-                <View key={item.id} style={cardStyles.card}>
+              {group.items.map((item, iIdx) => (
+                <View
+                  key={`date-${item.id}-${iIdx}`}
+                  style={cardStyles.card}
+                >
                   <Text style={cardStyles.cardTitle}>{item.label}</Text>
                   <Text style={cardStyles.cardMeta}>
                     {formatPtDate(item.date)}
@@ -202,35 +191,7 @@ export function CalendarScreen() {
 }
 
 const styles = StyleSheet.create({
-  tabs: {
-    flexDirection: "row",
-    gap: 8,
-    marginBottom: 16,
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: 10,
-    borderRadius: 10,
-    backgroundColor: brand.glass,
-    borderWidth: 1,
-    borderColor: brand.border,
-    alignItems: "center",
-  },
-  tabActive: {
-    backgroundColor: "rgba(0,96,177,0.45)",
-    borderColor: brand.gold,
-  },
-  tabText: {
-    color: brand.textMuted,
-    fontWeight: "700",
-    fontSize: 13,
-  },
-  tabTextActive: {
-    color: brand.gold,
-  },
-  semesterBlock: {
-    marginBottom: 12,
-  },
+  semesterBlock: { marginBottom: 12 },
   semesterTitle: {
     fontSize: 15,
     fontWeight: "700",
