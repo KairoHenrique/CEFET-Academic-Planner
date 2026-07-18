@@ -548,8 +548,9 @@ UI (**F41**): seção **Orquestração sync** — formulário da tabela acima + 
 ```
 /
 ├── app/          # Next.js web (v1.0)
-├── mobile/       # Expo (Android only)
-└── packages/     # (opcional) tipos e utils compartilhados
+├── mobile/       # Expo (Android only · SDK 54)
+└── packages/
+    └── api-contracts/   # @acme/api-contracts — DTOs tipados (M2)
 ```
 
 ### 7.4 Distribuição (sem lojas)
