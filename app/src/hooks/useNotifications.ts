@@ -8,6 +8,7 @@ import {
   isNotificationMarkedReadInBaseline,
   mergeNotificationBaseline,
   migrateCalendarNotificationSlotsV2,
+  migrateAcademicDateAlertStableV1,
   migrateLegacyNotificationBaseline,
   readNotificationBaseline,
   seedNotificationBaselineIfMissing,
@@ -160,6 +161,9 @@ export function useNotifications() {
       bumped = true;
     }
     if (migrateCalendarNotificationSlotsV2(stableFingerprints)) {
+      bumped = true;
+    }
+    if (migrateAcademicDateAlertStableV1(stableFingerprints)) {
       bumped = true;
     } else if (preSync === null) {
       seedNotificationBaselineIfMissing(stableFingerprints);

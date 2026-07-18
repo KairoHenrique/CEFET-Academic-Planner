@@ -5,6 +5,7 @@ import {
 import { mergeKnownInstitutionalDates } from "@/lib/calendar/known-institutional-dates";
 import {
   buildAcademicDateAlertFingerprint,
+  buildAcademicDateStableKey,
   type AcademicDateAlertSlot,
 } from "@/lib/notifications/notification-fingerprint";
 import type { CalendarioAcademicoRow } from "@/lib/types/db";
@@ -77,8 +78,7 @@ export function buildAcademicDateAlertItems(
     for (const slot of slots) {
       items.push({
         fingerprint: buildAcademicDateAlertFingerprint(
-          String(row.id),
-          startIso,
+          buildAcademicDateStableKey(row.evento, startIso, row.semestre),
           slot
         ),
         kind: "calendar-date-alert",

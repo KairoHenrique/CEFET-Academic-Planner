@@ -4,34 +4,35 @@ import { buildAcademicDateAlertItems } from "../src/lib/notifications/build-acad
 import type { CalendarioAcademicoRow } from "../src/lib/types/db";
 
 function row(
-  partial: Pick<CalendarioAcademicoRow, "id" | "data_inicio" | "evento">
+  partial: Pick<CalendarioAcademicoRow, "id" | "data_inicio" | "evento"> & {
+    semestre?: string;
+  }
 ): CalendarioAcademicoRow {
   return {
     id: partial.id,
     evento: partial.evento,
     data_inicio: partial.data_inicio,
     data_fim: null,
-    semestre: "2026.1",
+    semestre: partial.semestre ?? "2026.1",
   };
 }
 
 function forEvent(
   items: ReturnType<typeof buildAcademicDateAlertItems>,
-  id: number
+  evento: string
 ) {
-  return items.filter((item) =>
-    item.fingerprint.startsWith(`calendar-date-alert:${id}|`)
-  );
+  const needle = evento.trim().toLowerCase();
+  return items.filter((item) => item.fingerprint.toLowerCase().includes(needle));
 }
 
 describe("buildAcademicDateAlertItems", () => {
   test("data longe só gera aviso de nova data", () => {
     const items = forEvent(
       buildAcademicDateAlertItems(
-        [row({ id: 1, data_inicio: "2026-03-20", evento: "Matrícula Extra" })],
+        [row({ id: 1, data_inicio: "2026-03-20", evento: "Matricula Extra" })],
         new Date("2026-03-01T12:00:00")
       ),
-      1
+      "matricula extra"
     );
 
     assert.equal(items.length, 1);
@@ -39,13 +40,29 @@ describe("buildAcademicDateAlertItems", () => {
     assert.match(items[0]?.title ?? "", /Nova data/i);
   });
 
+  test("fingerprint nao usa id do banco (sobrevive a re-sync)", () => {
+    const a = buildAcademicDateAlertItems(
+      [row({ id: 10, data_inicio: "2026-03-20", evento: "Prova Extra" })],
+      new Date("2026-03-01T12:00:00")
+    );
+    const b = buildAcademicDateAlertItems(
+      [row({ id: 999, data_inicio: "2026-03-20", evento: "Prova Extra" })],
+      new Date("2026-03-01T12:00:00")
+    );
+
+    const fa = forEvent(a, "prova extra")[0]?.fingerprint;
+    const fb = forEvent(b, "prova extra")[0]?.fingerprint;
+    assert.equal(fa, fb);
+    assert.ok(fa && !fa.includes("|10|") && !fa.includes("|999|"));
+  });
+
   test("1 dia antes gera new + 1d", () => {
     const items = forEvent(
       buildAcademicDateAlertItems(
-        [row({ id: 2, data_inicio: "2026-03-02", evento: "Rematrícula Extra" })],
+        [row({ id: 2, data_inicio: "2026-03-02", evento: "Rematricula Extra" })],
         new Date("2026-03-01T12:00:00")
       ),
-      2
+      "rematricula extra"
     );
 
     assert.equal(items.length, 2);
@@ -62,7 +79,7 @@ describe("buildAcademicDateAlertItems", () => {
         ],
         new Date("2026-03-02T12:00:00")
       ),
-      3
+      "provas extra"
     );
 
     assert.equal(items.length, 2);
@@ -74,7 +91,7 @@ describe("buildAcademicDateAlertItems", () => {
           [row({ id: 4, data_inicio: "2026-02-28", evento: "Passado Extra" })],
           new Date("2026-03-02T12:00:00")
         ),
-        4
+        "passado extra"
       ).length,
       0
     );

@@ -1,4 +1,4 @@
-import { getSession } from "@/lib/auth/session";
+import { notificationStorageIdentity } from "@/lib/notifications/notification-baseline";
 import type { NotificationSnapshotItem } from "@/lib/types/notifications-api";
 
 const STORAGE_PREFIX = "planner:notifications:recent-panel:";
@@ -10,9 +10,9 @@ export interface RecentPanelEntry {
 }
 
 function storageKey(): string | null {
-  const username = getSession()?.username?.trim();
-  if (!username || typeof window === "undefined") return null;
-  return `${STORAGE_PREFIX}${username}`;
+  const identity = notificationStorageIdentity();
+  if (!identity || typeof window === "undefined") return null;
+  return `${STORAGE_PREFIX}${identity}`;
 }
 
 function readEntries(): RecentPanelEntry[] {

@@ -1,4 +1,5 @@
 import { getSession } from "@/lib/auth/session";
+import { normalizeCpf } from "@/lib/auth/account/cpf";
 import {
   isGradeFingerprintMarkedReadInBaseline,
   normalizeStoredBaselineFingerprint,
@@ -6,10 +7,20 @@ import {
 
 const STORAGE_PREFIX = "planner:notifications:baseline:";
 
+/** CPF só dígitos quando possível — evita baseline “sumir” se o username mudar de formato. */
+export function notificationStorageIdentity(): string | null {
+  const session = getSession();
+  if (!session) return null;
+  const raw = (session.cpf ?? session.username)?.trim();
+  if (!raw) return null;
+  const digits = normalizeCpf(raw);
+  return digits.length >= 11 ? digits : raw.toLowerCase();
+}
+
 function storageKey(): string | null {
-  const username = getSession()?.username?.trim();
-  if (!username) return null;
-  return `${STORAGE_PREFIX}${username}`;
+  const identity = notificationStorageIdentity();
+  if (!identity) return null;
+  return `${STORAGE_PREFIX}${identity}`;
 }
 
 export function readNotificationBaseline(): Set<string> | null {
@@ -102,6 +113,7 @@ function isLegacyCalendarSlotMarkedRead(
 }
 
 const CALENDAR_SLOTS_V2_FLAG = "meta:calendar-notification-slots-v2";
+const ACADEMIC_STABLE_V1_FLAG = "meta:academic-alert-stable-v1";
 
 /**
  * One-shot: marca todos os `|new` atuais como lidos para quem já tinha baseline,
@@ -125,9 +137,30 @@ export function migrateCalendarNotificationSlotsV2(
   return true;
 }
 
+/**
+ * One-shot após fingerprint acadêmico sem id do banco: evita flood no próximo sync
+ * (calendario_academico é DELETE+INSERT a cada sync).
+ */
+export function migrateAcademicDateAlertStableV1(
+  stableFingerprints: string[]
+): boolean {
+  const baseline = readNotificationBaseline();
+  if (!baseline || baseline.has(ACADEMIC_STABLE_V1_FLAG)) return false;
+
+  const academic = stableFingerprints.filter((fp) =>
+    fp.startsWith("calendar-date-alert:")
+  );
+  mergeNotificationBaseline([...academic, ACADEMIC_STABLE_V1_FLAG]);
+  return true;
+}
+
 export function seedNotificationBaselineIfMissing(fingerprints: string[]): void {
   if (readNotificationBaseline() !== null) return;
-  writeNotificationBaseline([...fingerprints, CALENDAR_SLOTS_V2_FLAG]);
+  writeNotificationBaseline([
+    ...fingerprints,
+    CALENDAR_SLOTS_V2_FLAG,
+    ACADEMIC_STABLE_V1_FLAG,
+  ]);
 }
 
 /** Primeira baseline após sync: só o que já existia antes, não notas novas do scrape. */
@@ -135,6 +168,10 @@ export function initializeNotificationBaselineFromPreSync(
   preSyncFingerprints: string[]
 ): boolean {
   if (readNotificationBaseline() !== null) return false;
-  writeNotificationBaseline([...preSyncFingerprints, CALENDAR_SLOTS_V2_FLAG]);
+  writeNotificationBaseline([
+    ...preSyncFingerprints,
+    CALENDAR_SLOTS_V2_FLAG,
+    ACADEMIC_STABLE_V1_FLAG,
+  ]);
   return true;
 }

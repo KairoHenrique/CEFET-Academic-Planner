@@ -81,13 +81,22 @@ export function buildIntegralizacaoAlertFingerprint(
   return `integralizacao-alert:${normalizeNotificationText(categoria)}|${band}`;
 }
 
-/** B37 — chave estável por (evento, data, momento: new / 1d / 0d). */
-export function buildAcademicDateAlertFingerprint(
-  eventId: string,
+/** B37 — chave estável por (evento, semestre, data, momento). Sem id do banco (recriado a cada sync). */
+export function buildAcademicDateStableKey(
+  evento: string,
   startDateIso: string,
+  semestre?: string | null
+): string {
+  const event = normalizeNotificationText(evento);
+  const sem = (semestre ?? "").trim().toLowerCase();
+  return `${event}|${sem}|${startDateIso.trim()}`;
+}
+
+export function buildAcademicDateAlertFingerprint(
+  stableKey: string,
   slot: AcademicDateAlertSlot
 ): string {
-  return `calendar-date-alert:${eventId}|${startDateIso}|${slot}`;
+  return `calendar-date-alert:${stableKey}|${slot}`;
 }
 
 export function isUrgentClassReminderFingerprint(fingerprint: string): boolean {
