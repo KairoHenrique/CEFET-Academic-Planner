@@ -63,18 +63,34 @@ Alternativa ao PIX para liberar acesso: **chave de resgate** gerada **somente pe
 | **Uso único** | Cada chave **funciona uma vez**. Após resgate → status `resgatada`; não pode ser reutilizada nem transferida. |
 | **Benefício** | Cada chave carrega um **pacote configurável** na criação: tipo de plano (ex.: semestre, ano), **duração em dias** ou data fim fixa, rótulo interno (ex.: “promo lançamento”). |
 | **Quem cria** | **Somente o operador** via painel dev (§10). Alunos **não** geram chaves. |
-| **Onde resgatar** | Cadastro, login (trial expirado), `/planos` ou modal “Tenho uma chave de plano”. |
+| **Onde resgatar** | `/planos` (e painel operador). **Não** no criar conta (lá fica **matrícula do amigo** — §2.1.2). |
 | **Efeito** | Estende ou ativa assinatura (`active`) pelo período da chave — **sem PIX** naquele resgate. |
 | **Anti-abuso** | Chave inválida, expirada (se tiver validade) ou já usada → mensagem genérica; log interno no painel dev. |
 
 **Fluxo resumo:**
 
 1. Operador cria chave no painel dev → sistema gera código + grava pacote (dias/plano).
-2. Aluno informa a chave na autenticação ou em `/planos`.
+2. Aluno informa a chave em `/planos`.
 3. Sistema valida → vincula `subscription` ao CPF → marca chave como `resgatada` + `resgatada_por_cpf` + timestamp.
 4. Gate de acesso (§2.0) passa a tratar como assinatura ativa até o fim do período da chave.
 
 > Detalhes de schema, promoções globais e segurança do painel: `SCOPE-CLOUD.md` §3.6 e §8.
+
+### 2.1.2 Indicação por matrícula do amigo *(decisão de produto — jul/2026)*
+
+No **criar conta**, em vez de chave gift: campo opcional **Matrícula do amigo** (matrícula SIGAA de quem já usa o app e sincronizou ao menos uma vez).
+
+| Regra | Detalhe |
+|---|---|
+| **Quando ganha** | Só quando o **indicado paga** algum plano (PIX aprovado / assinatura ativada). Cadastro + trial **não** disparam bônus. |
+| **Bônus** | **+3 dias** de acesso para o **indicador** e **+3 dias** para o **indicado**. |
+| **Teto** | No máximo **30 dias** acumulados de bônus de indicação por usuário (soma como indicador e/ou indicado). |
+| **Trial** | Os **7 dias** de trial por CPF **continuam** valendo por completo — indicação e pagamento **não** consomem nem cancelam o trial. |
+| **Limite** | Uma indicação por conta nova (um amigo); não dá para indicar a si mesmo. |
+
+**Fluxo:** cadastro grava `account_referrals` `pending` → 1º pagamento aprovado do indicado → `rewarded` + extensão de assinatura (ou bônus empilhado após o trial).
+
+> Schema/API: `SCOPE-CLOUD.md` §3.7 · tasks **B74** / **F43**.
 
 ### 2.2 Login e persistência de credenciais
 

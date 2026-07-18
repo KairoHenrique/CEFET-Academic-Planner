@@ -9,6 +9,7 @@ import {
   findPlanDurationDays,
   findSubscriptionById,
 } from "@/lib/billing/checkout/billing-subscription-repository";
+import { applyReferralRewardsAfterPaidActivation } from "@/lib/billing/referrals/apply-referral-rewards";
 import type { PaymentGateway } from "@/lib/billing/schema/billing-schema-catalog";
 import type { PaymentStatus } from "@/lib/billing/schema/billing-schema-catalog";
 import type { PaymentRow } from "@/lib/billing/schema/billing-row-types";
@@ -118,6 +119,12 @@ export async function confirmBillingPayment(
       userId: payment.user_id,
       planId: payment.plan_id,
     });
+
+    if (activated) {
+      await applyReferralRewardsAfterPaidActivation({
+        referredUserId: payment.user_id,
+      }).catch(() => undefined);
+    }
 
     return {
       ok: true,

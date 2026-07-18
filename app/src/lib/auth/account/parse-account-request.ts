@@ -8,6 +8,10 @@ import {
   normalizeTelefone,
 } from "@/lib/auth/account/contact-fields";
 import type { LoginAccountInput, RegisterAccountInput } from "@/lib/auth/account/types";
+import {
+  isValidFriendMatricula,
+  normalizeFriendMatricula,
+} from "@/lib/billing/referrals/normalize-friend-matricula";
 import { parseLegalConsent } from "@/lib/legal/parse-legal-consent";
 
 function readStringField(
@@ -27,6 +31,31 @@ function readStringField(
   return trimmed;
 }
 
+function parseOptionalFriendMatricula(
+  payload: Record<string, unknown>
+): string | undefined {
+  const raw = payload.friendMatricula;
+  if (raw == null || raw === "") {
+    return undefined;
+  }
+  if (typeof raw !== "string") {
+    throw validationError("Matrícula do amigo inválida.");
+  }
+
+  const matricula = normalizeFriendMatricula(raw);
+  if (!matricula) {
+    return undefined;
+  }
+
+  if (!isValidFriendMatricula(matricula)) {
+    throw validationError(
+      "Matrícula do amigo inválida. Use a matrícula do SIGAA (sem espaços)."
+    );
+  }
+
+  return matricula;
+}
+
 export function parseRegisterAccountRequest(
   body: unknown
 ): RegisterAccountInput {
@@ -40,6 +69,7 @@ export function parseRegisterAccountRequest(
   const cpf = normalizeCpf(readStringField(payload, "cpf"));
   const cursoIdRaw = readStringField(payload, "cursoId");
   const password = readStringField(payload, "password");
+  const friendMatricula = parseOptionalFriendMatricula(payload);
 
   if (!isValidEmail(email)) {
     throw validationError("E-mail inválido.");
@@ -69,6 +99,7 @@ export function parseRegisterAccountRequest(
     cpf,
     cursoId: cursoIdRaw,
     password,
+    friendMatricula,
     legalConsent,
   };
 }
