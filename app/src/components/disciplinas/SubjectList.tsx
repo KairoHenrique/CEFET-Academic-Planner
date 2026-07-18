@@ -81,45 +81,46 @@ export function SubjectList() {
           actionHref={search || activeFilter !== "Todas" ? undefined : "/login"}
         />
       ) : (
-        <div
-          className={`data-table-wrap card subject-list-table ${isFetching ? "data-table-fetching" : ""}`}
-        >
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th className="col-priority" aria-label="Prioridade" />
-                <th className="col-subject">Disciplina</th>
-                <th className="col-professor">Professor</th>
-                <th className="col-schedule">Horário</th>
-                <th className="col-room">Sala</th>
-                <th className="col-grade-risk">Nota</th>
-                <th className="col-absences">Faltas</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sortedItems.map((subject, index) => {
-                const absenceRisk = computeAbsenceRisk(
-                  subject.absences,
-                  subject.maxAbsences
-                );
-                return (
-                  <tr
-                    key={subject.code}
-                    className="data-table-row-clickable subject-table-row"
-                    data-tutorial-id={index === 0 ? "tutorial-discipline-row" : undefined}
-                    data-discipline-code={index === 0 ? subject.code : undefined}
-                    onClick={() => openSubject(subject.code)}
-                    role="link"
-                    tabIndex={0}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        openSubject(subject.code);
-                      }
-                    }}
-                    aria-label={`Abrir detalhes de ${subject.name}`}
-                  >
-                    <td className="col-priority">
+        <>
+          <div
+            className={`subject-list-cards ${isFetching ? "data-table-fetching" : ""}`}
+          >
+            {sortedItems.map((subject, index) => {
+              const absenceRisk = computeAbsenceRisk(
+                subject.absences,
+                subject.maxAbsences
+              );
+              return (
+                <article
+                  key={`card-${subject.code}`}
+                  className="subject-list-card"
+                  data-tutorial-id={
+                    index === 0 ? "tutorial-discipline-row" : undefined
+                  }
+                  data-discipline-code={index === 0 ? subject.code : undefined}
+                  onClick={() => openSubject(subject.code)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      openSubject(subject.code);
+                    }
+                  }}
+                  role="link"
+                  tabIndex={0}
+                  aria-label={`Abrir detalhes de ${subject.name}`}
+                >
+                  <div className="subject-list-card-top">
+                    <div className="table-subject">
+                      <span
+                        className="subject-dot"
+                        style={{ background: subject.color }}
+                      />
+                      <div>
+                        <p className="table-subject-name">{subject.name}</p>
+                        <p className="table-subject-code">{subject.shortLabel}</p>
+                      </div>
+                    </div>
+                    <div onClick={(event) => event.stopPropagation()}>
                       <PrioritySelect
                         level={getPriority(subject.code)}
                         compact
@@ -127,44 +128,125 @@ export function SubjectList() {
                           setSubjectPriority(subject.code, level)
                         }
                       />
-                    </td>
-                    <td className="col-subject">
-                      <div className="table-subject">
-                        <span
-                          className="subject-dot"
-                          style={{ background: subject.color }}
-                        />
-                        <div>
-                          <p className="table-subject-name">{subject.name}</p>
-                          <p className="table-subject-code">{subject.shortLabel}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="col-professor">{subject.professor ?? "—"}</td>
-                    <td className="col-schedule">
+                    </div>
+                  </div>
+                  <div className="subject-list-card-meta">
+                    <div>
+                      <strong>Horário</strong>
                       <SubjectScheduleCell schedule={subject.schedule} />
-                    </td>
-                    <td className="col-room">
+                    </div>
+                    <div>
+                      <strong>Sala</strong>
                       <SubjectRoomCell room={subject.room} />
-                    </td>
-                    <td
-                      className="col-grade-risk"
-                      onClick={(event) => event.stopPropagation()}
-                      onKeyDown={(event) => event.stopPropagation()}
+                    </div>
+                  </div>
+                  <div
+                    className="subject-list-card-foot"
+                    onClick={(event) => event.stopPropagation()}
+                  >
+                    <SubjectGradeCell subject={subject} />
+                    <span className={`badge ${absenceRisk.badgeClass}`}>
+                      {subject.absences}/{subject.maxAbsences} faltas
+                    </span>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+
+          <div
+            className={`data-table-wrap card subject-list-table ${isFetching ? "data-table-fetching" : ""}`}
+          >
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th className="col-priority" aria-label="Prioridade" />
+                  <th className="col-subject">Disciplina</th>
+                  <th className="col-professor">Professor</th>
+                  <th className="col-schedule">Horário</th>
+                  <th className="col-room">Sala</th>
+                  <th className="col-grade-risk">Nota</th>
+                  <th className="col-absences">Faltas</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sortedItems.map((subject, index) => {
+                  const absenceRisk = computeAbsenceRisk(
+                    subject.absences,
+                    subject.maxAbsences
+                  );
+                  return (
+                    <tr
+                      key={subject.code}
+                      className="data-table-row-clickable subject-table-row"
+                      data-tutorial-id={
+                        index === 0 ? "tutorial-discipline-row" : undefined
+                      }
+                      data-discipline-code={
+                        index === 0 ? subject.code : undefined
+                      }
+                      onClick={() => openSubject(subject.code)}
+                      role="link"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          openSubject(subject.code);
+                        }
+                      }}
+                      aria-label={`Abrir detalhes de ${subject.name}`}
                     >
-                      <SubjectGradeCell subject={subject} />
-                    </td>
-                    <td className="col-absences">
-                      <span className={`badge ${absenceRisk.badgeClass}`}>
-                        {subject.absences}/{subject.maxAbsences}
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                      <td className="col-priority">
+                        <PrioritySelect
+                          level={getPriority(subject.code)}
+                          compact
+                          onChange={(level) =>
+                            setSubjectPriority(subject.code, level)
+                          }
+                        />
+                      </td>
+                      <td className="col-subject">
+                        <div className="table-subject">
+                          <span
+                            className="subject-dot"
+                            style={{ background: subject.color }}
+                          />
+                          <div>
+                            <p className="table-subject-name">{subject.name}</p>
+                            <p className="table-subject-code">
+                              {subject.shortLabel}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="col-professor">
+                        {subject.professor ?? "—"}
+                      </td>
+                      <td className="col-schedule">
+                        <SubjectScheduleCell schedule={subject.schedule} />
+                      </td>
+                      <td className="col-room">
+                        <SubjectRoomCell room={subject.room} />
+                      </td>
+                      <td
+                        className="col-grade-risk"
+                        onClick={(event) => event.stopPropagation()}
+                        onKeyDown={(event) => event.stopPropagation()}
+                      >
+                        <SubjectGradeCell subject={subject} />
+                      </td>
+                      <td className="col-absences">
+                        <span className={`badge ${absenceRisk.badgeClass}`}>
+                          {subject.absences}/{subject.maxAbsences}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
     </div>
   );
