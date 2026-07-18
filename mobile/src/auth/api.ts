@@ -1,16 +1,20 @@
 import type {
   AccountAuthResponse,
   LoginAccountBody,
+  PerfilResponse,
   RefreshAccountBody,
   RefreshAuthResponse,
+  SubscriptionAccessView,
 } from "@acme/api-contracts";
 import { getApiBaseUrl } from "../config/env";
+import { clearLocalAppData } from "./logout";
 import {
   applySessionTokens,
   buildAuthHeaders,
   clearSession,
   getSession,
   persistFromAuthResponse,
+  updateSubscription,
   type MobileAuthSession,
 } from "./session";
 
@@ -36,7 +40,7 @@ async function parseJson(response: Response): Promise<unknown> {
   }
 }
 
-async function requestJson<T>(
+export async function requestJson<T>(
   path: string,
   init: RequestInit & { auth?: boolean } = {}
 ): Promise<T> {
@@ -90,7 +94,33 @@ export async function postAuthRefresh(
   });
 }
 
-/** Margem antes do expiry para renovar (segundos). */
+export async function getPerfil(): Promise<PerfilResponse> {
+  return requestJson<PerfilResponse>("/api/perfil");
+}
+
+function perfilToSubscriptionView(
+  perfil: PerfilResponse
+): SubscriptionAccessView {
+  const sub = perfil.subscription;
+  return {
+    planId: sub.planId,
+    planLabel: sub.planLabel,
+    status: sub.status,
+    expiresAt: sub.expiresAt,
+    daysRemaining: sub.daysRemaining,
+    renewHref: sub.renewHref,
+    inGracePeriod: sub.inGracePeriod,
+    renewalEligible: sub.renewalEligible,
+  };
+}
+
+/** Atualiza snapshot de assinatura via GET /api/perfil (isento do gate server). */
+export async function syncSubscriptionFromPerfil(): Promise<MobileAuthSession | null> {
+  if (!getSession()) return null;
+  const perfil = await getPerfil();
+  return updateSubscription(perfilToSubscriptionView(perfil));
+}
+
 const REFRESH_SKEW_SEC = 120;
 
 export function isAccessTokenFresh(
@@ -101,10 +131,6 @@ export function isAccessTokenFresh(
   return session.expiresAt - nowSec > REFRESH_SKEW_SEC;
 }
 
-/**
- * Garante access token válido: refresh se perto do expiry ou forçado.
- * Em falha de refresh, limpa a sessão (exige novo login — M4).
- */
 export async function ensureFreshSession(
   options: { force?: boolean } = {}
 ): Promise<MobileAuthSession | null> {
@@ -139,6 +165,15 @@ export async function loginAndPersist(
   return persistFromAuthResponse(auth);
 }
 
+/** Logout local: tokens + cache/push (hooks M5/M6). */
 export async function logoutLocal(): Promise<void> {
+  await clearLocalAppData();
   await clearSession();
+}
+
+/** Monta URL absoluta para abrir planos no browser. */
+export function resolveWebHref(href: string): string {
+  if (/^https?:\/\//i.test(href)) return href;
+  const base = getApiBaseUrl();
+  return `${base}${href.startsWith("/") ? href : `/${href}`}`;
 }

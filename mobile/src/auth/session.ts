@@ -5,11 +5,12 @@ import type {
   LoginAccountBody,
   RefreshAccountBody,
   RefreshAuthResponse,
+  SubscriptionAccessView,
 } from "@acme/api-contracts";
 
 const SESSION_KEY = "acme-hub.auth.session";
 
-/** Sessão cloud persistida no SecureStore (M3). Senha nunca é gravada. */
+/** Sessão cloud persistida no SecureStore. Senha nunca é gravada. */
 export interface MobileAuthSession {
   mode: "cloud";
   userId: string;
@@ -21,6 +22,8 @@ export interface MobileAuthSession {
   expiresAt: number;
   tokenType: string;
   loggedAt: string;
+  /** Snapshot da assinatura (login / perfil) — gate M4. */
+  subscription: SubscriptionAccessView;
 }
 
 export type SessionListener = (session: MobileAuthSession | null) => void;
@@ -79,6 +82,7 @@ function toMobileSession(
     expiresAt: auth.session.expiresAt,
     tokenType: auth.session.tokenType,
     loggedAt,
+    subscription: auth.subscription,
   };
 }
 
@@ -133,6 +137,24 @@ export async function applySessionTokens(
   return next;
 }
 
+export async function updateSubscription(
+  subscription: SubscriptionAccessView
+): Promise<MobileAuthSession | null> {
+  const current = memorySession;
+  if (!current) return null;
+  const next = { ...current, subscription };
+  await setSession(next);
+  return next;
+}
+
+function hasSubscription(
+  value: unknown
+): value is SubscriptionAccessView {
+  if (!value || typeof value !== "object") return false;
+  const status = (value as SubscriptionAccessView).status;
+  return typeof status === "string" && status.length > 0;
+}
+
 export async function hydrateSession(): Promise<MobileAuthSession | null> {
   try {
     const SecureStore = await import("expo-secure-store");
@@ -150,6 +172,17 @@ export async function hydrateSession(): Promise<MobileAuthSession | null> {
     ) {
       await clearSession();
       return null;
+    }
+    if (!hasSubscription(parsed.subscription)) {
+      // Sessão antiga (M3): força sync de perfil no boot antes do gate.
+      parsed.subscription = {
+        planId: "",
+        planLabel: "",
+        status: "expired",
+        expiresAt: "",
+        daysRemaining: 0,
+        renewHref: "/planos",
+      };
     }
     memorySession = parsed;
     notify();
