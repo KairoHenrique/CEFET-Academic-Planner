@@ -342,7 +342,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 > **Princípio (v1.0 → app):** **paridade de funções** com o site (tudo que o desktop faz), **não** clonar o layout do site mobile (**F28**). No nativo: só herdar **cores / marca / tipografia de produto**; IA e telas podem ser **mais modulares, visíveis e intuitivas** (bottom nav, home por “o que fazer agora”, módulos grandes). Sessão persistente · cache local · push (silencioso se deslogado). Ver detalhe § UX nativa.  
 > **Em andamento / local:** **M1** `[%]` — scaffold Expo em `mobile/` (commit local).
 
-- [%] **SETUP:** M1 *(projeto Expo TypeScript — `mobile/` · **Android only**)*
+- [%] **SETUP:** M1 *(projeto Expo TypeScript — `mobile/` · **Android only** · **SDK 54** p/ Expo Go da Play Store)*
 - [ ] **SHARED:** M2 *(tipos/contratos compartilhados — `packages/` ou copy tipado da API)*
 - [ ] **SETUP:** M3 *(sessão persistente — SecureStore + refresh; login até logout explícito)*
 - [ ] **FRONT:** M4 *(auth + gate assinatura — login CPF, trial/pago, logout limpa tokens/cache/push)*

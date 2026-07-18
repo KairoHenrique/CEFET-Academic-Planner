@@ -7,8 +7,10 @@ Roadmap: [`docs/TASKS.md`](../docs/TASKS.md) · Bloco 8 · escopo [`docs/SCOPE-C
 ## Pré-requisitos
 
 - Node.js 20+
-- [Expo Go](https://expo.dev/go) no celular Android
+- [Expo Go](https://play.google.com/store/apps/details?id=host.exp.exponent) no Android (**Play Store** — SDK **54**)
 - Mesma rede Wi‑Fi do PC (ou tunnel)
+
+> O projeto usa **Expo SDK 54** de propósito: a Play Store ainda não entrega Expo Go para SDK 55+. Com SDK 57 o app mostra “Project is incompatible…”.
 
 ## Rodar
 
@@ -28,6 +30,7 @@ npm run android
 
 - Projeto Expo TypeScript em `mobile/`
 - Target **Android only** (`platforms: ["android"]`)
+- **SDK 54** (compatível com Expo Go da loja)
 - Identidade Cruzeiro (`#0060B1` / `#D4A843`)
 
 Próximas tasks: **M2** tipos · **M3** sessão · **M4** auth · …
