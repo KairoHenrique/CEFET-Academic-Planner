@@ -124,7 +124,7 @@ export function PerfilScreen() {
               setRefreshing(true);
               void load();
             }}
-            tintColor={brand.blue}
+            tintColor={brand.gold}
           />
         ),
       }}
@@ -179,15 +179,15 @@ export function PerfilScreen() {
               <Switch
                 value={perfil.notifications[key]}
                 onValueChange={(v) => void togglePref(key, v)}
-                trackColor={{ false: "#ccd6e0", true: brand.gold }}
-                thumbColor={brand.white}
+                trackColor={{ false: "rgba(255,255,255,0.14)", true: brand.gold }}
+                thumbColor={brand.text}
                 disabled={saving}
               />
             </View>
           ))}
 
           {saving ? (
-            <ActivityIndicator color={brand.blue} style={styles.saving} />
+            <ActivityIndicator color={brand.gold} style={styles.saving} />
           ) : null}
           {message ? <Text style={styles.message}>{message}</Text> : null}
 
@@ -197,7 +197,7 @@ export function PerfilScreen() {
             disabled={logoutBusy}
           >
             {logoutBusy ? (
-              <ActivityIndicator color={brand.white} />
+              <ActivityIndicator color={brand.text} />
             ) : (
               <Text style={styles.logoutText}>Sair da conta</Text>
             )}
@@ -218,7 +218,7 @@ const styles = StyleSheet.create({
   prefLabel: {
     flex: 1,
     fontSize: 14,
-    color: brand.navy,
+    color: brand.text,
     fontWeight: "600",
     paddingRight: 12,
   },
@@ -226,12 +226,12 @@ const styles = StyleSheet.create({
   message: {
     marginTop: 8,
     fontSize: 13,
-    color: brand.blue,
+    color: brand.gold,
     textAlign: "center",
   },
   logout: {
     marginTop: 20,
-    backgroundColor: "#c45c5c",
+    backgroundColor: brand.danger,
     borderRadius: 10,
     paddingVertical: 14,
     alignItems: "center",
@@ -240,7 +240,7 @@ const styles = StyleSheet.create({
   },
   disabled: { opacity: 0.55 },
   logoutText: {
-    color: brand.white,
+    color: brand.text,
     fontWeight: "700",
     fontSize: 15,
   },

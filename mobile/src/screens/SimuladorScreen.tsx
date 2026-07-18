@@ -91,7 +91,7 @@ export function SimuladorScreen() {
               setRefreshing(true);
               void load();
             }}
-            tintColor={brand.blue}
+            tintColor={brand.gold}
           />
         ),
       }}
@@ -154,22 +154,22 @@ export function SimuladorScreen() {
 
 const styles = StyleSheet.create({
   note: {
-    backgroundColor: "rgba(212,168,67,0.18)",
+    backgroundColor: brand.glass,
     borderRadius: 10,
     padding: 12,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: "rgba(212,168,67,0.35)",
+    borderColor: brand.border,
   },
   noteText: {
     fontSize: 13,
-    color: brand.navy,
+    color: brand.textSecondary,
     lineHeight: 18,
   },
   status: {
     marginTop: 4,
     fontSize: 12,
     fontWeight: "700",
-    color: brand.blue,
+    color: brand.gold,
   },
 });
