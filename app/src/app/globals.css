@@ -13140,15 +13140,18 @@ body.mobile-nav-open {
   }
 
   .grades-table-wrap .data-table td.grades-score-cell {
-    align-items: stretch;
+    align-items: center;
   }
 
   .grades-table-wrap .grades-score-input,
   .grades-table-wrap .grades-sim-input {
-    max-width: none;
-    width: min(120px, 40vw);
-    min-height: var(--touch-min);
-    font-size: 16px;
+    width: 3.25rem;
+    max-width: 3.25rem;
+    min-height: 2rem;
+    height: 2rem;
+    padding: 0 0.35rem;
+    font-size: 0.875rem;
+    line-height: 1;
     margin-inline: 0;
   }
 
