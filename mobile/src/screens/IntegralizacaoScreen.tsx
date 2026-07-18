@@ -60,7 +60,7 @@ export function IntegralizacaoScreen() {
               setRefreshing(true);
               void load(true);
             }}
-            tintColor={brand.blue}
+            tintColor={brand.gold}
           />
         ),
       }}
@@ -124,14 +124,14 @@ const styles = StyleSheet.create({
   percent: {
     fontSize: 36,
     fontWeight: "800",
-    color: brand.blue,
+    color: brand.gold,
   },
   totalBarTrack: {
     marginTop: 12,
     width: "100%",
     height: 10,
     borderRadius: 999,
-    backgroundColor: "rgba(0,96,177,0.12)",
+    backgroundColor: "rgba(255,255,255,0.08)",
     overflow: "hidden",
   },
   totalBarFill: {
@@ -142,18 +142,18 @@ const styles = StyleSheet.create({
   catPercent: {
     fontSize: 15,
     fontWeight: "800",
-    color: brand.blue,
+    color: brand.gold,
   },
   barTrack: {
     marginTop: 10,
     height: 8,
     borderRadius: 999,
-    backgroundColor: "rgba(0,96,177,0.1)",
+    backgroundColor: "rgba(255,255,255,0.08)",
     overflow: "hidden",
   },
   barFill: {
     height: "100%",
-    backgroundColor: brand.blue,
+    backgroundColor: brand.gold,
     borderRadius: 999,
   },
 });

@@ -12,10 +12,10 @@ import { LoadingBlock } from "../ui/LoadingBlock";
 import { Screen } from "../ui/Screen";
 
 const STATUS_COLOR: Record<MapaDisciplineStatus, string> = {
-  concluida: "#3fb950",
+  concluida: brand.success,
   cursando: brand.blue,
   liberada: brand.gold,
-  bloqueada: "#c45c5c",
+  bloqueada: brand.danger,
   optativa: "#7b61a8",
 };
 
@@ -64,7 +64,7 @@ export function MapaScreen() {
               setRefreshing(true);
               void load(true);
             }}
-            tintColor={brand.blue}
+            tintColor={brand.gold}
           />
         ),
       }}
@@ -83,7 +83,7 @@ export function MapaScreen() {
                   <View
                     style={[
                       styles.dot,
-                      { backgroundColor: STATUS_COLOR[status] ?? brand.muted },
+                      { backgroundColor: STATUS_COLOR[status] ?? brand.textMuted },
                     ]}
                   />
                   <Text style={styles.legendText}>
@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
   },
   legendText: {
     fontSize: 12,
-    color: brand.muted,
+    color: brand.textMuted,
     fontWeight: "600",
   },
   periodBlock: {
@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
   periodTitle: {
     fontSize: 16,
     fontWeight: "800",
-    color: brand.navy,
+    color: brand.gold,
     marginBottom: 8,
   },
   disciplineRow: {

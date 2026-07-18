@@ -147,7 +147,7 @@ export function PlanosScreen() {
               setRefreshing(true);
               void load();
             }}
-            tintColor={brand.blue}
+            tintColor={brand.gold}
           />
         ),
       }}
@@ -185,7 +185,7 @@ export function PlanosScreen() {
               disabled={!!checkoutBusy}
             >
               {checkoutBusy === plan.id ? (
-                <ActivityIndicator color={brand.white} />
+                <ActivityIndicator color={brand.bg} />
               ) : (
                 <Text style={styles.buttonText}>Pagar com PIX</Text>
               )}
@@ -217,7 +217,7 @@ export function PlanosScreen() {
         <TextInput
           style={styles.input}
           placeholder="Código da chave"
-          placeholderTextColor={brand.muted}
+          placeholderTextColor={brand.textMuted}
           value={giftCode}
           onChangeText={setGiftCode}
           autoCapitalize="characters"
@@ -229,7 +229,7 @@ export function PlanosScreen() {
           disabled={giftBusy}
         >
           {giftBusy ? (
-            <ActivityIndicator color={brand.white} />
+            <ActivityIndicator color={brand.bg} />
           ) : (
             <Text style={styles.buttonText}>Resgatar</Text>
           )}
@@ -243,22 +243,22 @@ export function PlanosScreen() {
 
 const styles = StyleSheet.create({
   promo: {
-    backgroundColor: "rgba(0,96,177,0.08)",
+    backgroundColor: brand.glass,
     borderRadius: 12,
     padding: 14,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: "rgba(0,96,177,0.15)",
+    borderColor: brand.border,
   },
   promoTitle: {
     fontSize: 15,
     fontWeight: "800",
-    color: brand.blue,
+    color: brand.gold,
   },
   promoBody: {
     marginTop: 4,
     fontSize: 13,
-    color: brand.muted,
+    color: brand.textMuted,
     lineHeight: 18,
   },
   featured: {
@@ -269,11 +269,11 @@ const styles = StyleSheet.create({
     marginTop: 4,
     fontSize: 20,
     fontWeight: "800",
-    color: brand.navy,
+    color: brand.gold,
   },
   button: {
     marginTop: 12,
-    backgroundColor: brand.blue,
+    backgroundColor: brand.gold,
     borderRadius: 10,
     paddingVertical: 12,
     alignItems: "center",
@@ -282,43 +282,46 @@ const styles = StyleSheet.create({
   },
   secondary: {
     marginTop: 10,
-    backgroundColor: "rgba(0,96,177,0.1)",
+    backgroundColor: brand.glass,
+    borderWidth: 1,
+    borderColor: brand.border,
     borderRadius: 10,
     paddingVertical: 12,
     alignItems: "center",
   },
   disabled: { opacity: 0.55 },
   buttonText: {
-    color: brand.white,
+    color: brand.bg,
     fontWeight: "700",
     fontSize: 15,
   },
   secondaryText: {
-    color: brand.blue,
+    color: brand.text,
     fontWeight: "700",
     fontSize: 14,
   },
   input: {
     borderWidth: 1,
-    borderColor: "rgba(0,96,177,0.2)",
+    borderColor: brand.border,
+    backgroundColor: brand.glass,
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 15,
-    color: brand.navy,
+    color: brand.text,
     marginBottom: 10,
   },
   pixCode: {
     marginTop: 10,
     fontSize: 11,
-    color: brand.navy,
+    color: brand.textSecondary,
     lineHeight: 16,
     fontFamily: "monospace",
   },
   message: {
     marginTop: 12,
     fontSize: 13,
-    color: brand.blue,
+    color: brand.gold,
     textAlign: "center",
     lineHeight: 18,
   },

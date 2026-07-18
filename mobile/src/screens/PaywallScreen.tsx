@@ -86,7 +86,7 @@ export function PaywallScreen({ session }: Props) {
           disabled={busy}
         >
           {busy ? (
-            <ActivityIndicator color={brand.white} />
+            <ActivityIndicator color={brand.text} />
           ) : (
             <Text style={styles.secondaryText}>Já paguei — atualizar</Text>
           )}
@@ -156,7 +156,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   secondary: {
-    backgroundColor: "rgba(255,255,255,0.14)",
+    backgroundColor: brand.glass,
+    borderWidth: 1,
+    borderColor: brand.border,
     borderRadius: 10,
     paddingVertical: 14,
     alignItems: "center",
@@ -165,26 +167,24 @@ const styles = StyleSheet.create({
   },
   disabled: { opacity: 0.55 },
   buttonText: {
-    color: brand.navy,
+    color: brand.bg,
     fontWeight: "700",
     fontSize: 16,
   },
   secondaryText: {
-    color: brand.white,
+    color: brand.text,
     fontWeight: "700",
     fontSize: 15,
   },
   message: {
     marginTop: 16,
-    color: brand.white,
+    color: brand.textSecondary,
     textAlign: "center",
     fontSize: 13,
-    opacity: 0.9,
   },
   hint: {
     marginTop: 24,
-    color: brand.white,
-    opacity: 0.65,
+    color: brand.textMuted,
     fontSize: 12,
     textAlign: "center",
     lineHeight: 18,
