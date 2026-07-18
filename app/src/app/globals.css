@@ -13265,29 +13265,57 @@ body.mobile-nav-open {
     font-size: 0.75rem;
   }
 
-  /* Mantém 2 colunas; só ajusta escala do card para caber sem sobrepor */
+  /* Mantém 2 colunas; escala menor + badges bem compactos */
   .enrollment-sidebar {
-    --enrollment-card-height: 110px;
-    --enrollment-card-code-size: 0.625rem;
-    --enrollment-card-title-size: 0.75rem;
-    --enrollment-card-foot-size: 0.625rem;
-    --enrollment-card-badge-size: 0.5625rem;
-    --enrollment-card-row-meta: 1.05rem;
-    --enrollment-card-row-title: calc(0.75rem * 1.2 * 2);
+    --enrollment-card-height: 112px;
+    --enrollment-card-code-size: 0.6rem;
+    --enrollment-card-title-size: 0.7rem;
+    --enrollment-card-foot-size: 0.6rem;
+    --enrollment-card-badge-size: 0.5rem;
+    --enrollment-card-row-meta: 0.95rem;
+    --enrollment-card-row-title: calc(0.7rem * 1.2 * 2);
   }
 
   .enrollment-course-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .enrollment-status-pill {
-    padding: 0 4px;
+  .enrollment-course-head {
+    gap: 4px;
+  }
+
+  .enrollment-course-badges {
     gap: 2px;
+    max-width: 55%;
+  }
+
+  .enrollment-status-pill {
+    padding: 0 3px;
+    gap: 1px;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .enrollment-status-pill > span:last-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+  }
+
+  .enrollment-status-pill svg {
+    width: 9px;
+    height: 9px;
+    flex-shrink: 0;
+  }
+
+  .enrollment-course-slot-chip {
+    padding: 0 2px;
   }
 
   .enrollment-course-slot-chip-time {
-    font-size: 0.5625rem;
-    letter-spacing: -0.02em;
+    font-size: 0.5rem;
+    letter-spacing: -0.03em;
   }
 
   .enrollment-selection-float-shell {
