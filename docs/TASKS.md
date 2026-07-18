@@ -340,14 +340,14 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 > **Ordem de execução:** **#9 → #10 → #8** — ver [ordem oficial](#ordem-oficial-de-execução-v3).  
 > **Decisão (jul/2026):** app nativo **só Android** · **sem** Play/App Store · alternativa = **site mobile** (**F28**).  
 > **Princípio (v1.0 → app):** **paridade de funções** com o site (tudo que o desktop faz), **não** clonar o layout do site mobile (**F28**). No nativo: só herdar **cores / marca / tipografia de produto**; IA e telas podem ser **mais modulares, visíveis e intuitivas** (bottom nav, home por “o que fazer agora”, módulos grandes). Sessão persistente · cache local · push (silencioso se deslogado). Ver detalhe § UX nativa.  
-> **Progresso:** **M1–M3** `[x]`. **Local:** **M4–M5** `[%]` (auth/gate · cache AsyncStorage).
+> **Progresso:** **M1–M3** `[x]`. **Local:** **M4–M6** `[%]` (auth · cache · push).
 
 - [x] **SETUP:** M1 *(projeto Expo TypeScript — `mobile/` · **Android only** · **SDK 54** p/ Expo Go da Play Store)*
 - [x] **SHARED:** M2 *(tipos/contratos compartilhados — `packages/api-contracts` · `@acme/api-contracts`)*
 - [x] **SETUP:** M3 *(sessão persistente — SecureStore + refresh; login até logout explícito)*
 - [%] **FRONT:** M4 *(auth + gate assinatura — login CPF, trial/pago, logout limpa tokens/cache/push)*
 - [%] **SHARED:** M5 *(cache local — snapshot acadêmico no device; invalida/atualiza pós-sync/API)*
-- [ ] **SHARED:** M6 *(push E2E — Expo Notifications + tokens no backend; dispara pós-sync/novidades; sem push se deslogado)*
+- [%] **SHARED:** M6 *(push E2E — Expo Notifications + tokens no backend; dispara pós-sync/novidades; sem push se deslogado)*
 - [ ] **FRONT:** M7 *(dashboard — stats, entregas, cards, atalhos)*
 - [ ] **FRONT:** M8 *(disciplinas — lista + detalhe: notas, tarefas, faltas)*
 - [ ] **FRONT:** M9 *(calendário — agenda + eventos; alertas alinhados ao sino web)*
@@ -1372,7 +1372,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | M3 | Setup | Sessão persistente | SecureStore + `POST /api/auth/refresh` · sessão até logout | [x] |
 | M4 | Front | Auth + gate | Login CPF · trial/pago · logout limpa tudo | [%] |
 | M5 | Shared | Cache local | Snapshot acadêmico AsyncStorage · fallback offline | [%] |
-| M6 | Shared | Push E2E | Tokens + Expo Notifications · push pós-sync/novidades | [ ] |
+| M6 | Shared | Push E2E | Tokens + Expo Notifications · push pós-sync | [%] |
 | M7 | Front | Dashboard | Stats, entregas, cards, atalhos | [ ] |
 | M8 | Front | Disciplinas | Lista + detalhe (notas, tarefas, faltas) | [ ] |
 | M9 | Front | Calendário | Agenda + eventos · alertas alinhados ao web | [ ] |
@@ -1761,6 +1761,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] **M3** — sessão SecureStore + refresh API
 - [%] **M4** — auth/gate UI (login · paywall · logout) — aguardando push
 - [%] **M5** — cache local AsyncStorage — aguardando push
+- [%] **M6** — push Expo + `POST /api/push/register` — aguardando push
 - [ ] **M5–M6** — cache local dos dados do aluno + push no telefone (só se logado)
 - [ ] **M7–M14** — telas: dashboard, disciplinas, calendário, mapa, integralização, simulador, planos, perfil
 - [ ] **M15** — QA Expo Go Android (paridade + push + sessão)
@@ -2046,7 +2047,7 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 8. **Próximo passo do roadmap:** informe **depois do push** (tasks em `[@]` ou `[x]`). Com commits locais só `[x]`, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v3](#ordem-oficial-de-execução-v3) — **Bloco 2 (sync) antes do Bloco 6 (Supabase)**. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy **após** sync validado; RLS ✅ **6c** (antes do PIX). Marco “site no ar p/ testes gerais” → [final do TASKS.md](#marco--site-no-ar-para-testes-gerais).
-11. **Próximo passo:** aguardar push/aprovação de **M4–M5** `[%]` (auth · cache). **M1–M3** `[x]`. Site **v1.0.0**. Bloco 8 `3/16`. **F28** `[x]`.
+11. **Próximo passo:** aguardar push/aprovação de **M4–M6** `[%]` (auth · cache · push). **M1–M3** `[x]`. Site **v1.0.0**. Bloco 8 `3/16`. **F28** `[x]`.
 12. **Integralização:** CH concluída = `historico` + PPC (`computeChDoneFromDisciplinas`); portal SIGAA só % / total currículo; matérias já passadas = **B30** ✅.
 13. **Gift + painel dev:** **B68–B71** ✅ · **F39–F41** ✅ — painel sem senha SIGAA (`credentialSaved` + `accountRef`).
 14. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial. **Polish em task `[x]`** (ex.: F38, dashboard) também exige nota no TASKS no mesmo ciclo do push.

@@ -1,4 +1,5 @@
 import { ApiError } from "@/lib/api/errors";
+import { notifySyncCompletedPush } from "@/lib/push/notify-sync-completed";
 import { getMirrorPool, isSyncMirrorEnabled } from "@/lib/sync-mirror/mirror-config";
 import {
   pgClaimSyncJob,
@@ -66,6 +67,7 @@ async function executeAsyncJob(
     console.info(
       `[worker] Job async ${request.jobId} concluído em ${Math.round(result.durationMs / 1000)}s.`
     );
+    void notifySyncCompletedPush(request.username);
     return;
   }
 
