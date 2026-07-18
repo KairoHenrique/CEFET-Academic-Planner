@@ -3,6 +3,8 @@ import {
   authUnavailableError,
   internalError,
   invalidCredentialsError,
+  unauthorizedError,
+  validationError,
 } from "@/lib/api/errors";
 import { assertCloudAccountAuthAvailable } from "@/lib/auth/account/cloud-auth-guard";
 import { buildInternalAuthEmail } from "@/lib/auth/account/internal-auth-email";
@@ -18,6 +20,7 @@ import {
 } from "@/lib/auth/account/supabase-auth-client";
 import type {
   AccountAuthResult,
+  AuthSessionPayload,
   LoginAccountInput,
   RegisterAccountInput,
 } from "@/lib/auth/account/types";
@@ -74,6 +77,31 @@ async function resolveAccountSubscription(
   }
   // …mas retorna o acesso real: assinatura paga ativa tem precedência sobre trial.
   return resolveSubscriptionAccessForCpf(cpf);
+}
+
+/**
+ * Renova access/refresh via Supabase (usado pelo app mobile · M3).
+ * Logout continua só no client (não há revogação server-side no MVP).
+ */
+export async function refreshAccountSession(
+  refreshToken: string
+): Promise<AuthSessionPayload> {
+  assertCloudAccountAuthAvailable();
+  const token = refreshToken.trim();
+  if (!token) {
+    throw validationError("refreshToken é obrigatório.");
+  }
+
+  const supabase = createAnonSupabaseClient();
+  const { data, error } = await supabase.auth.refreshSession({
+    refresh_token: token,
+  });
+
+  if (error || !data.session) {
+    throw unauthorizedError("Sessão expirada. Faça login novamente.");
+  }
+
+  return mapSupabaseSession(data.session);
 }
 
 async function signInWithInternalEmail(

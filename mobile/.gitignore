@@ -3,6 +3,11 @@
 # dependencies
 node_modules/
 
+# env local (URL da API, etc.)
+.env
+.env.local
+.env.*.local
+
 # Expo
 .expo/
 dist/

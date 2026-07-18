@@ -99,6 +99,16 @@ export interface LoginAccountBody {
   password: string;
 }
 
+export interface RefreshAccountBody {
+  refreshToken: string;
+}
+
+/** Resposta de `POST /api/auth/refresh` (M3 · mobile). */
+export interface RefreshAuthResponse {
+  ok: true;
+  session: AuthSessionPayload;
+}
+
 /* -------------------------------------------------------------------------- */
 /* Dashboard                                                                  */
 /* -------------------------------------------------------------------------- */

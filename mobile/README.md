@@ -39,12 +39,25 @@ Próximas tasks: **M2** tipos · **M3** sessão · **M4** auth · …
 
 ```
 mobile/
-├── App.tsx
-├── app.json                 # Expo · Android only · SDK 54
-├── metro.config.js          # monorepo → packages/api-contracts
-├── src/theme/brand.ts
-├── src/contracts/           # reexport @acme/api-contracts (M2)
+├── App.tsx                 # smoke UI (sessão M3; auth UI → M4)
+├── app.json
+├── metro.config.js
+├── .env.example            # EXPO_PUBLIC_API_BASE_URL
+├── src/
+│   ├── auth/               # SecureStore + login/refresh (M3)
+│   ├── config/env.ts
+│   ├── contracts/
+│   └── theme/brand.ts
 └── assets/
 ```
 
-Contratos compartilhados: [`packages/api-contracts`](../packages/api-contracts).
+Contratos: [`packages/api-contracts`](../packages/api-contracts).
+
+## Sessão (M3)
+
+1. Copie `.env.example` → `.env` (URL da API).
+2. `npx expo start -c` → Expo Go.
+3. Login smoke → tokens no SecureStore; feche o app e reabra (deve continuar logado).
+4. **Forçar refresh** / **Logout local**.
+
+`POST /api/auth/refresh` precisa estar no cloud (deploy após push).
