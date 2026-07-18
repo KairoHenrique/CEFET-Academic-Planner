@@ -1,0 +1,31 @@
+{
+  "expo": {
+    "name": "ACME HUB",
+    "slug": "acme-hub",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "scheme": "acmehub",
+    "platforms": ["android"],
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0060B1"
+    },
+    "android": {
+      "package": "br.cefethub.acme",
+      "adaptiveIcon": {
+        "backgroundColor": "#0060B1",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "androidStatusBar": {
+      "backgroundColor": "#0060B1",
+      "barStyle": "light-content"
+    }
+  }
+}
