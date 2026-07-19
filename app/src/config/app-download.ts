@@ -6,10 +6,10 @@
  */
 export const APP_RELEASE = {
   version: "1.0.0",
-  apkFile: "acme-hub-1.0.0.apk",
+  apkFile: "ACME-HUB-1.0.0.apk",
   /** Download permanente (R2). */
   apkPath:
-    "https://pub-b2b330087a284ca886367469abf1924b.r2.dev/acme-hub-1.0.0.apk",
+    "https://pub-b2b330087a284ca886367469abf1924b.r2.dev/ACME-HUB-1.0.0.apk",
   pagePath: "/download",
   label: "Baixar app Android",
   shortLabel: "Baixar app",
