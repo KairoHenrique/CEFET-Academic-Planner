@@ -1,9 +1,10 @@
 import { getPostgresPool } from "@/lib/db/postgres/pool";
-import {
-  countGlobalDisciplinas,
-  seedAllPpcGlobalToPostgres,
-} from "@/lib/db/postgres/seed-ppc-global";
+import { seedAllPpcGlobalToPostgres } from "@/lib/db/postgres/seed-ppc-global";
 import { APP_CURSO_IDS } from "@/lib/auth/account/curso-catalog";
+
+/** Evita rechecar/seeds caros em toda request do withDb (DoS/perf). */
+let multiPpcSeedReady = false;
+let multiPpcSeedInflight: Promise<void> | null = null;
 
 export async function ensurePostgresReady(): Promise<void> {
   const pool = getPostgresPool();
@@ -39,23 +40,45 @@ export async function ensurePostgresReady(): Promise<void> {
   await ensureMultiPpcSeedsIfMissing();
 }
 
-/** Garante seed dos 3 PPCs no catálogo global (idempotente). */
+/**
+ * Garante seed dos 3 PPCs no catálogo global.
+ * Uma query agregada + lock em memória (sem N counts por request).
+ */
 async function ensureMultiPpcSeedsIfMissing(): Promise<void> {
-  let needsSeed = false;
-  for (const cursoId of APP_CURSO_IDS) {
-    const count = await countGlobalDisciplinas(cursoId);
-    if (count === 0) {
-      needsSeed = true;
-      break;
-    }
+  if (multiPpcSeedReady) return;
+  if (multiPpcSeedInflight) {
+    await multiPpcSeedInflight;
+    return;
   }
-  if (!needsSeed) return;
 
-  const results = await seedAllPpcGlobalToPostgres();
-  console.info(
-    "[bootstrap-pg] seed Multi-PPC:",
-    results
-      .map((r) => `${r.cursoId}=${r.disciplinas}d/${r.requisitos}r`)
-      .join(" · ")
-  );
+  multiPpcSeedInflight = (async () => {
+    const pool = getPostgresPool();
+    const result = await pool.query<{ missing: number }>(
+      `SELECT COUNT(*)::int AS missing
+       FROM unnest($1::text[]) AS c(curso_id)
+       WHERE NOT EXISTS (
+         SELECT 1 FROM disciplinas d WHERE d.curso_id = c.curso_id LIMIT 1
+       )`,
+      [APP_CURSO_IDS as unknown as string[]]
+    );
+
+    const missing = Number(result.rows[0]?.missing ?? 0);
+    if (missing > 0) {
+      const results = await seedAllPpcGlobalToPostgres();
+      console.info(
+        "[bootstrap-pg] seed Multi-PPC:",
+        results
+          .map((r) => `${r.cursoId}=${r.disciplinas}d/${r.requisitos}r`)
+          .join(" · ")
+      );
+    }
+
+    multiPpcSeedReady = true;
+  })();
+
+  try {
+    await multiPpcSeedInflight;
+  } finally {
+    multiPpcSeedInflight = null;
+  }
 }

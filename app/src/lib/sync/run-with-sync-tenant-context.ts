@@ -1,6 +1,6 @@
 import "server-only";
 import { isAppCursoId } from "@/lib/auth/account/curso-catalog";
-import { findProfileByCpf } from "@/lib/auth/account/profile-repository";
+import { findSyncTenantByCpf } from "@/lib/auth/account/profile-repository";
 import { runWithQueryCursoId } from "@/lib/auth/account/query-curso-context";
 import type { AppCursoId } from "@/lib/auth/account/types";
 import { normalizeSigaaUsername } from "@/lib/db/connection-manager";
@@ -14,6 +14,7 @@ export interface SyncTenantContext {
 /**
  * Resolve curso/user da conta cloud a partir do CPF do sync.
  * Sem Postgres ou sem perfil → undefined (ALS cai no default Eng. Comp.).
+ * Minimiza PII: só user_id + curso_id (sem e-mail/telefone).
  */
 export async function resolveSyncTenantContext(
   username: string
@@ -27,14 +28,14 @@ export async function resolveSyncTenantContext(
       return { cursoId: undefined, userId: undefined };
     }
 
-    const profile = await findProfileByCpf(cpf);
-    if (!profile) {
+    const tenant = await findSyncTenantByCpf(cpf);
+    if (!tenant) {
       return { cursoId: undefined, userId: undefined };
     }
 
     return {
-      cursoId: isAppCursoId(profile.cursoId) ? profile.cursoId : undefined,
-      userId: profile.userId,
+      cursoId: isAppCursoId(tenant.cursoId) ? tenant.cursoId : undefined,
+      userId: tenant.userId,
     };
   } catch {
     return { cursoId: undefined, userId: undefined };
