@@ -182,7 +182,7 @@ function CourseMapFlowGraphInner({ grafo }: { grafo: MapaGrafoResponse }) {
 
       <p className="cmap-hint cmap-hint--desktop" role="note">
         Passe o mouse sobre uma disciplina para ver <strong>pré-requisitos</strong> e o que ela{" "}
-        <strong>desbloqueia</strong>.
+        <strong>desbloqueia</strong>. Role a rodinha no grafo para <strong>zoom</strong>.
       </p>
       <p className="cmap-hint cmap-hint--touch" role="note">
         Toque em uma disciplina para destacar <strong>pré-requisitos</strong> e o que ela{" "}
@@ -207,7 +207,9 @@ function CourseMapFlowGraphInner({ grafo }: { grafo: MapaGrafoResponse }) {
           onPaneClick={handlePane}
           zoomOnScroll={!isTouchMap}
           zoomOnPinch
-          preventScrolling={isTouchMap}
+          panOnScroll={false}
+          /* Sem isto no desktop a rodinha sobe a página e o zoom não engata. */
+          preventScrolling
           minZoom={0.2}
           maxZoom={1.75}
           proOptions={{ hideAttribution: true }}
