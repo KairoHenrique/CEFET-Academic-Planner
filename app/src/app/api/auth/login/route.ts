@@ -12,6 +12,12 @@ export const runtime = "nodejs";
 export const POST = async (request: Request) => {
   try {
     guardCloudAccountRoute();
+    
+    // Cybersec: Rate Limiting
+    const ip = request.headers.get("cf-connecting-ip") ?? request.headers.get("x-forwarded-for") ?? "unknown";
+    const { consumeIpRateLimit } = await import("@/lib/security/rate-limit");
+    await consumeIpRateLimit(ip);
+
     const body = await request.json();
     const input = parseLoginAccountRequest(body);
     const result = await loginAccount(input);

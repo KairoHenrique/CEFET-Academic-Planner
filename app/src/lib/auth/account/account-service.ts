@@ -113,6 +113,10 @@ async function signInWithInternalEmail(
     throw invalidCredentialsError("CPF ou senha incorretos.");
   }
 
+  // Cybersec: Verifica se a conta está bloqueada por excesso de tentativas
+  const { checkAccountLockout, recordFailedLogin, resetFailedLogin } = await import("@/lib/security/rate-limit");
+  await checkAccountLockout(cpf);
+
   const authEmail = buildInternalAuthEmail(cpf);
   const supabase = createAnonSupabaseClient();
   const { data, error } = await supabase.auth.signInWithPassword({
@@ -121,8 +125,13 @@ async function signInWithInternalEmail(
   });
 
   if (error || !data.session) {
+    // Cybersec: Registra falha de login para possível bloqueio da conta
+    await recordFailedLogin(cpf);
     throw invalidCredentialsError("CPF ou senha incorretos.");
   }
+
+  // Cybersec: Reset das falhas ao logar com sucesso
+  await resetFailedLogin(cpf);
 
   await persistServerSigaaCredentials(cpf, password).catch(() => undefined);
   const subscription = await resolveAccountSubscription(cpf);
