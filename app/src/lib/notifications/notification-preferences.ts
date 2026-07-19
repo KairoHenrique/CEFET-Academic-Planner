@@ -15,6 +15,7 @@ const CONFIG_KEYS = {
   classReminders: "notifications.pref.class_reminders",
   integralizacaoAlerts: "notifications.pref.integralizacao_alerts",
   academicDateAlerts: "notifications.pref.academic_date_alerts",
+  personalEvents: "notifications.pref.personal_events",
 } as const;
 
 function readBooleanConfig(key: string, fallback: boolean): boolean {
@@ -49,6 +50,10 @@ export function getNotificationPreferences(): NotificationPreferences {
       CONFIG_KEYS.academicDateAlerts,
       DEFAULT_NOTIFICATION_PREFERENCES.academicDateAlerts
     ),
+    personalEvents: readBooleanConfig(
+      CONFIG_KEYS.personalEvents,
+      DEFAULT_NOTIFICATION_PREFERENCES.personalEvents
+    ),
   };
 }
 
@@ -73,6 +78,7 @@ export function saveNotificationPreferences(
     next.integralizacaoAlerts ? "1" : "0"
   );
   setConfig(CONFIG_KEYS.academicDateAlerts, next.academicDateAlerts ? "1" : "0");
+  setConfig(CONFIG_KEYS.personalEvents, next.personalEvents ? "1" : "0");
 
   return next;
 }
