@@ -96,9 +96,6 @@ export interface TarefaRow {
   instrucoes: string | null;
   entregaveis: string | null;
   pontuacao_maxima: number | null;
-  arquivo_url?: string | null;
-  arquivo_nome?: string | null;
-  arquivo_mime?: string | null;
 }
 
 export interface GrupoMembroRow {

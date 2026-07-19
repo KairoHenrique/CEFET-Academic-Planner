@@ -16,7 +16,7 @@ const main = path.join(appRoot, "worker", "main.ts");
 
 const child = spawn(
   process.execPath,
-  [tsxCli, "-C", "react-server", "--env-file=.env.local", main],
+  [tsxCli, "--env-file=.env.local", main],
   {
     cwd: appRoot,
     stdio: "inherit",

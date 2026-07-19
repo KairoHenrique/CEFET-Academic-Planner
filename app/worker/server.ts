@@ -17,40 +17,6 @@ import { runWorkerSyncJob } from "@/lib/worker/run-sync-job";
 import { parseWorkerJobRequest } from "@/lib/worker/validate-job-request";
 import { WorkerRuntimeState } from "@/lib/worker/worker-runtime-state";
 
-// Rate Limiting: 30 requests per minute per IP
-const RATE_LIMIT_WINDOW_MS = 60_000;
-const MAX_REQUESTS_PER_WINDOW = 30;
-const rateLimiter = new Map<string, { count: number; expiresAt: number }>();
-
-function checkRateLimit(ip: string): boolean {
-  if (!ip) return true; // Se não conseguir identificar, deixa passar (evitar block global)
-  
-  const now = Date.now();
-  const record = rateLimiter.get(ip);
-  
-  if (!record || now > record.expiresAt) {
-    rateLimiter.set(ip, { count: 1, expiresAt: now + RATE_LIMIT_WINDOW_MS });
-    return true;
-  }
-  
-  if (record.count >= MAX_REQUESTS_PER_WINDOW) {
-    return false; // Rate limit exceeded
-  }
-  
-  record.count++;
-  return true;
-}
-
-// Limpeza periodica do Map para evitar memory leak
-setInterval(() => {
-  const now = Date.now();
-  for (const [ip, record] of rateLimiter.entries()) {
-    if (now > record.expiresAt) {
-      rateLimiter.delete(ip);
-    }
-  }
-}, 60_000).unref();
-
 function readJsonBody(request: IncomingMessage): Promise<unknown> {
   return new Promise((resolve, reject) => {
     const chunks: Buffer[] = [];
@@ -134,23 +100,8 @@ export function createWorkerServer(options?: {
   const server = http.createServer(async (request, response) => {
     const method = request.method ?? "GET";
     const url = new URL(request.url ?? "/", "http://localhost");
-    
-    // Captura do IP via CF-Connecting-IP (Cloudflare) ou X-Forwarded-For
-    const clientIp = (request.headers["cf-connecting-ip"] as string) 
-                  || (request.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() 
-                  || request.socket.remoteAddress 
-                  || "unknown";
 
     try {
-      // Aplicar Rate Limit globalmente para qualquer request (menos health)
-      if (url.pathname !== "/health" && !checkRateLimit(clientIp)) {
-        sendJson(response, 429, {
-          ok: false,
-          code: "TOO_MANY_REQUESTS",
-          message: "Limite de requisições excedido. Tente novamente mais tarde.",
-        });
-        return;
-      }
       if (method === "GET" && url.pathname === "/health") {
         sendJson(response, 200, { ok: true, service: "sigaa-worker" });
         return;

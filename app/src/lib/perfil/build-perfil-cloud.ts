@@ -14,7 +14,7 @@ import type { PerfilResponse, PerfilSubscription } from "@/lib/types/perfil-api"
 import { pgGetSubjectPriorities } from "@/lib/priority/subject-priorities-store";
 import { hasEncryptedPasswordByCpf } from "@/lib/auth/account/profile-repository";
 
-export async function buildCloudSubscription(cpf: string): Promise<PerfilSubscription> {
+async function buildCloudSubscription(cpf: string): Promise<PerfilSubscription> {
   const access = await resolveSubscriptionAccessForCpf(cpf);
   const renewalEligible = await isCheckoutRenewalForUser(cpf);
 

@@ -5,22 +5,11 @@ import {
   getNotasForSemestreAtual,
   getSemestreAtual,
   getTarefas,
-  countFaltasByDisciplina,
 } from "@/lib/db/queries";
 import { buildIntegralizacao } from "@/lib/integralizacao/build-integralizacao";
-import { buildAbsenceNotificationItems, type AbsenceNotificationInput } from "@/lib/notifications/build-absence-alert-items";
 import { buildAcademicDateAlertItems } from "@/lib/notifications/build-academic-date-alert-items";
-import { buildGraduationAlertItems } from "@/lib/notifications/build-graduation-alert-items";
-import { buildGradeRiskNotificationItems, calcularMediaParcial, type GradeRiskInput } from "@/lib/notifications/build-grade-risk-items";
 import { buildIntegralizacaoAlertItems } from "@/lib/notifications/build-integralizacao-alert-items";
-import { buildTaskLateNotificationItems } from "@/lib/notifications/build-task-late-items";
-import { buildMorningSummaryItems } from "@/lib/notifications/build-morning-summary-items";
-import { buildPlanExpiringItems } from "@/lib/notifications/build-plan-expiring-items";
-import { buildInvalidPasswordItems } from "@/lib/notifications/build-invalid-password-items";
 import { buildPendingCalendarReminderSources } from "@/lib/notifications/build-pending-calendar-reminder-sources";
-import { buildPerfilAccount } from "@/lib/perfil/build-account";
-import { buildPerfilSubscription } from "@/lib/perfil/build-subscription-dev";
-import type { PerfilAccount, PerfilSubscription } from "@/lib/types/perfil-api";
 import {
   buildGradeNotificationFingerprint,
   buildTaskNotificationFingerprint,
@@ -69,11 +58,6 @@ export interface NotificationSnapshotData {
   integralizacao: IntegralizacaoResponse | null;
   /** B37 — linhas do calendário acadêmico (datas institucionais próximas). */
   academicRows: CalendarioAcademicoRow[];
-  /** v1.0.7 — total de faltas por disciplina (chave = disciplina_id). */
-  faltasPorDisciplina?: Map<string, number>;
-  /** v1.0.7 — account e subscription para billing alerts */
-  account?: PerfilAccount;
-  subscription?: PerfilSubscription;
 }
 
 /** Tasks antes de notas; alertas derivados ao final, ordenados por data. */
@@ -199,79 +183,6 @@ export function buildNotificationSnapshotFromData(
     items.push(...buildAcademicDateAlertItems(data.academicRows));
   }
 
-  // v1.0.7 — Faltas (absence + absence-failed)
-  if (data.faltasPorDisciplina) {
-    const absenceInputs: AbsenceNotificationInput[] = [];
-    for (const row of semestreRows) {
-      const totalFaltas = data.faltasPorDisciplina.get(row.disciplina_id) ?? 0;
-      if (totalFaltas > 0) {
-        absenceInputs.push({
-          disciplinaId: row.disciplina_id,
-          disciplinaNome: nameByCode.get(row.disciplina_id) ?? row.disciplina_id,
-          totalFaltas,
-          maxFaltas: row.max_faltas,
-        });
-      }
-    }
-    items.push(...buildAbsenceNotificationItems(absenceInputs));
-  }
-
-  // v1.0.7 — Risco de reprovação por nota
-  {
-    const gradeRiskInputs: GradeRiskInput[] = [];
-    const notasByDisciplina = new Map<string, NotaRow[]>();
-    for (const nota of notasSemestre) {
-      const list = notasByDisciplina.get(nota.disciplina_id) ?? [];
-      list.push(nota);
-      notasByDisciplina.set(nota.disciplina_id, list);
-    }
-    for (const row of semestreRows) {
-      const notas = notasByDisciplina.get(row.disciplina_id);
-      if (!notas || notas.length === 0) continue;
-      const media = calcularMediaParcial(notas);
-      if (media === null) continue;
-      const notaMaxima = row.nota_maxima ?? 100;
-      const notaAprovacao = row.nota_aprovacao ?? (notaMaxima >= 100 ? 60 : 6);
-      gradeRiskInputs.push({
-        disciplinaId: row.disciplina_id,
-        disciplinaNome: nameByCode.get(row.disciplina_id) ?? row.disciplina_id,
-        mediaAtual: media,
-        notaMaxima,
-        notaAprovacao,
-      });
-    }
-    items.push(...buildGradeRiskNotificationItems(gradeRiskInputs));
-  }
-
-  // v1.0.7 — Tarefas atrasadas
-  {
-    const taskLateInputs = tarefas
-      .filter((row) => activeIds.has(row.disciplina_id.toLowerCase()))
-      .filter((row) => row.data_fim?.trim())
-      .map((row) => ({
-        disciplinaId: row.disciplina_id,
-        disciplinaNome: nameByCode.get(row.disciplina_id) ?? row.disciplina_id,
-        titulo: row.titulo,
-        dataFim: row.data_fim!,
-        concluida: row.concluida === 1,
-      }));
-    items.push(...buildTaskLateNotificationItems(taskLateInputs));
-  }
-
-  // v1.0.7 — Alerta de formatura (>= 90%)
-  items.push(...buildGraduationAlertItems(data.integralizacao));
-
-  // v1.0.7 — Resumo matinal (apenas se for de manhã)
-  items.push(...buildMorningSummaryItems(semestreRows));
-
-  // v1.0.7 — Alertas de conta e assinatura
-  if (data.subscription) {
-    items.push(...buildPlanExpiringItems(data.subscription));
-  }
-  if (data.account) {
-    items.push(...buildInvalidPasswordItems(data.account));
-  }
-
   items.sort((a, b) => {
     const orderA = KIND_DISPLAY_ORDER[a.kind];
     const orderB = KIND_DISPLAY_ORDER[b.kind];
@@ -292,28 +203,15 @@ export function buildNotificationSnapshotFromData(
 /** Caminho SQLite (dev/PC) — carrega os dados e delega ao núcleo puro. */
 export function buildNotificationSnapshot(): NotificationSnapshot {
   const aluno = getAluno();
-  const semestreRows = getSemestreAtual();
-
-  // v1.0.7 — Carregar total de faltas por disciplina
-  const faltasPorDisciplina = new Map<string, number>();
-  for (const row of semestreRows) {
-    faltasPorDisciplina.set(
-      row.disciplina_id,
-      countFaltasByDisciplina(row.disciplina_id)
-    );
-  }
 
   return buildNotificationSnapshotFromData({
     aluno,
     preferences: getNotificationPreferences(),
-    semestreRows,
+    semestreRows: getSemestreAtual(),
     tarefas: getTarefas(),
     notasSemestre: getNotasForSemestreAtual(),
     calendarSources: buildPendingCalendarReminderSources(),
     integralizacao: aluno ? buildIntegralizacao() : null,
     academicRows: aluno ? getCalendarioAcademico() : [],
-    faltasPorDisciplina,
-    account: buildPerfilAccount(),
-    subscription: buildPerfilSubscription(),
   });
 }

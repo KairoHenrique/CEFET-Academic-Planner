@@ -1,4 +1,4 @@
-
+import "server-only";
 import { getActiveQueryCursoId } from "@/lib/auth/account/query-curso-context";
 import { isAppCursoId } from "@/lib/auth/account/curso-catalog";
 import { resolveDefaultCursoId } from "@/lib/db/backend/config";

@@ -9,12 +9,8 @@ import { DEFAULT_NOTIFICATION_PREFERENCES } from "@/lib/notifications/notificati
 import { pgGetNotificationPreferences } from "@/lib/notifications/notification-preferences-store";
 import { postgresQueryDeps } from "@/lib/db/postgres/query-port";
 import { getActiveTenantUserId } from "@/lib/db/postgres/tenant-context";
-import { findProfileByUserId, hasEncryptedPasswordByCpf } from "@/lib/auth/account/profile-repository";
-import { buildCloudSubscription } from "@/lib/perfil/build-perfil-cloud";
-import type { PerfilAccount, PerfilSubscription } from "@/lib/types/perfil-api";
 import {
   pgGetAllNotas,
-  pgGetAllFaltas,
   pgGetAluno,
   pgGetCalendarioAcademico,
   pgGetEventosCalendario,
@@ -38,40 +34,22 @@ export async function buildNotificationSnapshotCloud(): Promise<NotificationSnap
     semestreRows,
     tarefas,
     allNotas,
-    allFaltas,
     academicRows,
     calendarTarefas,
     eventosManuais,
     integralizacao,
     preferences,
-    profile,
   ] = await Promise.all([
     pgGetAluno(),
     pgGetSemestreAtual(),
     pgGetTarefas(),
     pgGetAllNotas(),
-    pgGetAllFaltas(),
     pgGetCalendarioAcademico(),
     pgGetTarefasForCalendar(),
     pgGetEventosCalendario(),
     buildIntegralizacaoFromQueries(postgresQueryDeps),
     preferencesPromise,
-    userId ? findProfileByUserId(userId) : Promise.resolve(null),
   ]);
-
-  let account: PerfilAccount | undefined;
-  let subscription: PerfilSubscription | undefined;
-
-  if (profile) {
-    const hasPassword = await hasEncryptedPasswordByCpf(profile.cpf);
-    account = {
-      cpf: profile.cpf,
-      email: profile.email,
-      phone: profile.telefone,
-      sigaaAuthError: !hasPassword,
-    };
-    subscription = await buildCloudSubscription(profile.cpf);
-  }
 
   const activeIds = new Set(
     semestreRows.map((row) => row.disciplina_id.toLowerCase())
@@ -79,16 +57,6 @@ export async function buildNotificationSnapshotCloud(): Promise<NotificationSnap
   const notasSemestre = allNotas.filter((nota) =>
     activeIds.has(nota.disciplina_id.toLowerCase())
   );
-
-  const faltasPorDisciplina = new Map<string, number>();
-  for (const falta of allFaltas) {
-    if (!activeIds.has(falta.disciplina_id.toLowerCase())) continue;
-    let count = faltasPorDisciplina.get(falta.disciplina_id) ?? 0;
-    if (falta.status === "falta") {
-      count += falta.quantidade && falta.quantidade > 0 ? falta.quantidade : 1;
-    }
-    faltasPorDisciplina.set(falta.disciplina_id, count);
-  }
 
   const { events } = buildCalendarFromData({
     academicRows,
@@ -106,8 +74,5 @@ export async function buildNotificationSnapshotCloud(): Promise<NotificationSnap
     calendarSources: buildPendingCalendarReminderSourcesFromEvents(events),
     integralizacao,
     academicRows,
-    faltasPorDisciplina,
-    account,
-    subscription,
   });
 }
