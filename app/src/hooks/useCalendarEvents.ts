@@ -92,6 +92,15 @@ export function useCalendarEvents() {
     },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) =>
+      apiPatchCalendarEvent(id, { action: "delete" }),
+    onSuccess: () => {
+      void invalidateTaskSyncQueries(queryClient);
+      void queryClient.invalidateQueries({ queryKey: queryKeys.calendar() });
+    },
+  });
+
   const toggleDone = (id: string) => {
     if (!canToggleEvent(id)) return;
     const event = events.find((item) => item.id === id);
@@ -101,6 +110,16 @@ export function useCalendarEvents() {
       done: !event.done,
       subjectCode: event.subjectCode,
     });
+  };
+
+  const deleteEvent = (id: string) => {
+    const event = events.find((item) => item.id === id);
+    if (!event) return;
+    const confirmed = window.confirm(
+      `Excluir “${event.title}”? Esta ação não pode ser desfeita.`
+    );
+    if (!confirmed) return;
+    deleteMutation.mutate(id);
   };
 
   const addManualEvent = (event: ManualCalendarEventInput): void => {
@@ -116,7 +135,9 @@ export function useCalendarEvents() {
           ? addMutation.error.message
           : toggleMutation.error instanceof ApiClientError
             ? toggleMutation.error.message
-            : null;
+            : deleteMutation.error instanceof ApiClientError
+              ? deleteMutation.error.message
+              : null;
 
   return {
     events,
@@ -126,9 +147,11 @@ export function useCalendarEvents() {
     isFetching: query.isFetching,
     isAdding: addMutation.isPending,
     isToggling: toggleMutation.isPending,
+    isDeleting: deleteMutation.isPending,
     error: errorMessage,
     hydrated: !query.isLoading,
     toggleDone,
+    deleteEvent,
     addManualEvent,
     refetch: query.refetch,
   };

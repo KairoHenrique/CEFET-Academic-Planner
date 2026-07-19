@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import {
+  Alert,
   Modal,
   Pressable,
   ScrollView,
@@ -17,6 +18,15 @@ import {
   CreateCalendarEventModal,
   type CreateCalendarEventInput,
 } from "./CreateCalendarEventModal";
+
+function canDeleteCalendarEvent(event: CalendarEvent): boolean {
+  if (event.id.startsWith("academico-") || event.id.startsWith("aula-")) {
+    return false;
+  }
+  if (event.id.startsWith("evento-")) return true;
+  if (event.id.startsWith("tarefa-")) return event.manual === true;
+  return event.manual === true;
+}
 
 const WEEKDAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
@@ -83,8 +93,10 @@ type Props = {
   events: CalendarEvent[];
   filter: EventTypeFilter;
   busyCreate?: boolean;
+  busyDelete?: boolean;
   subjects?: SubjectListItem[];
   onToggleDone?: (ev: CalendarEvent) => void;
+  onDeleteEvent?: (ev: CalendarEvent) => Promise<void> | void;
   onCreateEvent?: (input: CreateCalendarEventInput) => Promise<void> | void;
 };
 
@@ -106,8 +118,10 @@ export function CalendarMonthModule({
   events,
   filter,
   busyCreate = false,
+  busyDelete = false,
   subjects = [],
   onToggleDone,
+  onDeleteEvent,
   onCreateEvent,
 }: Props) {
   const [cursor, setCursor] = useState(() => {
@@ -384,6 +398,35 @@ export function CalendarMonthModule({
                     </Text>
                   </Pressable>
                 ) : null}
+                {onDeleteEvent && canDeleteCalendarEvent(selected) ? (
+                  <Pressable
+                    style={[styles.deleteBtn, busyDelete && { opacity: 0.6 }]}
+                    disabled={busyDelete}
+                    onPress={() => {
+                      Alert.alert(
+                        "Excluir evento",
+                        `Remover “${selected.title}”? Esta ação não pode ser desfeita.`,
+                        [
+                          { text: "Cancelar", style: "cancel" },
+                          {
+                            text: "Excluir",
+                            style: "destructive",
+                            onPress: () => {
+                              void (async () => {
+                                await onDeleteEvent(selected);
+                                setSelected(null);
+                              })();
+                            },
+                          },
+                        ]
+                      );
+                    }}
+                  >
+                    <Text style={styles.deleteBtnText}>
+                      {busyDelete ? "Excluindo…" : "Excluir"}
+                    </Text>
+                  </Pressable>
+                ) : null}
                 <Pressable
                   style={styles.closeBtn}
                   onPress={() => setSelected(null)}
@@ -625,4 +668,21 @@ const styles = StyleSheet.create({
   },
   saveText: { color: brand.text, fontWeight: "800" },
   formError: { color: brand.danger, marginBottom: 8, fontWeight: "600" },
+  deleteBtn: {
+    marginTop: 8,
+    minHeight: brand.touchMin,
+    borderRadius: brand.radiusSm,
+    borderWidth: 1,
+    borderColor: "rgba(248,81,73,0.55)",
+    backgroundColor: "rgba(248,81,73,0.12)",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 12,
+  },
+  deleteBtnText: {
+    fontSize: 14,
+    fontFamily: brand.fontBodyBold,
+    fontWeight: "700",
+    color: brand.danger,
+  },
 });

@@ -14,6 +14,7 @@ import type {
 import { ApiClientError } from "../auth/api";
 import {
   createCalendarEvent,
+  deleteCalendarEvent,
   toggleCalendarEvent,
 } from "../api/mutations";
 import { fetchCalendar, fetchDisciplinas } from "../cache/fetchers";
@@ -55,6 +56,7 @@ export function CalendarScreen() {
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<EventTypeFilter>("todas");
   const [busyCreate, setBusyCreate] = useState(false);
+  const [busyDelete, setBusyDelete] = useState(false);
   const [subjects, setSubjects] = useState<SubjectListItem[]>([]);
 
   const activeLabel =
@@ -113,6 +115,16 @@ export function CalendarScreen() {
       await load(true);
     } catch {
       /* ignore */
+    }
+  }
+
+  async function onDelete(ev: CalendarEvent) {
+    setBusyDelete(true);
+    try {
+      await deleteCalendarEvent(ev.id);
+      await load(true);
+    } finally {
+      setBusyDelete(false);
     }
   }
 
@@ -187,8 +199,10 @@ export function CalendarScreen() {
             events={events}
             filter={filter}
             busyCreate={busyCreate}
+            busyDelete={busyDelete}
             subjects={subjects}
             onToggleDone={(ev) => void onToggle(ev)}
+            onDeleteEvent={(ev) => onDelete(ev)}
             onCreateEvent={onCreate}
           />
           <AcademicCalendarModule groups={academicGroups} />

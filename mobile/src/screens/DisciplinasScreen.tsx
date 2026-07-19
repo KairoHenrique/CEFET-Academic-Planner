@@ -14,7 +14,7 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { SubjectListItem } from "@acme/api-contracts";
 import { ApiClientError } from "../auth/api";
-import { fetchDisciplinas } from "../cache/fetchers";
+import { fetchDashboard, fetchDisciplinas } from "../cache/fetchers";
 import { DisciplinaCard } from "../features/disciplinas/DisciplinaCard";
 import {
   DISCIPLINA_FILTERS,
@@ -43,6 +43,7 @@ export function DisciplinasScreen() {
   const { getPriority, setSubjectPriority, sortByPriority } =
     useSubjectPriorities();
   const [items, setItems] = useState<SubjectListItem[]>([]);
+  const [semestreLabel, setSemestreLabel] = useState<string | null>(null);
   const [filter, setFilter] = useState<DisciplinaFilterLabel>("Todas");
   const [query, setQuery] = useState("");
   const [fromCache, setFromCache] = useState(false);
@@ -54,9 +55,15 @@ export function DisciplinasScreen() {
     if (!silent) setLoading(true);
     setError(null);
     try {
-      const result = await fetchDisciplinas();
+      const [result, dashboard] = await Promise.all([
+        fetchDisciplinas(),
+        fetchDashboard().catch(() => null),
+      ]);
       setItems(result.data.items);
       setFromCache(result.fromCache);
+      if (dashboard?.data.aluno.semestreAtual) {
+        setSemestreLabel(dashboard.data.aluno.semestreAtual);
+      }
     } catch (err) {
       setError(
         err instanceof ApiClientError
@@ -189,7 +196,7 @@ export function DisciplinasScreen() {
   return (
     <Screen
       title="Disciplinas"
-      eyebrow="Semestre"
+      eyebrow={semestreLabel ? `Semestre ${semestreLabel}` : "Semestre"}
       subtitle={subtitle}
       cacheHint={fromCache ? "Dados do cache offline" : null}
       scroll={false}

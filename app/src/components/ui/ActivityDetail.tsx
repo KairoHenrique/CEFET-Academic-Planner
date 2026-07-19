@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { CalendarEvent } from "@/lib/types/calendar";
 import { formatCalendarEventDateLabel } from "@/lib/types/calendar";
 import {
+  canDeleteCalendarEvent,
   canToggleCalendarEvent,
 } from "@/lib/calendar/event-types";
 import type { ScheduleSlotData } from "@/config/mock/schedule";
@@ -16,9 +17,17 @@ interface EventDetailContentProps {
   event: CalendarEvent;
   onClose: () => void;
   onToggleDone?: (id: string) => void;
+  onDelete?: (id: string) => void;
+  isDeleting?: boolean;
 }
 
-export function EventDetailContent({ event, onClose, onToggleDone }: EventDetailContentProps) {
+export function EventDetailContent({
+  event,
+  onClose,
+  onToggleDone,
+  onDelete,
+  isDeleting = false,
+}: EventDetailContentProps) {
   return (
   <>
       <div className="detail-meta-row">
@@ -57,6 +66,17 @@ export function EventDetailContent({ event, onClose, onToggleDone }: EventDetail
         >
           <Icon name="check" size={14} />
           {event.done ? "Marcar pendente" : "Marcar concluída"}
+        </button>
+      )}
+      {canDeleteCalendarEvent(event) && onDelete && (
+        <button
+          type="button"
+          className="btn-outline btn-danger"
+          disabled={isDeleting}
+          onClick={() => onDelete(event.id)}
+        >
+          <Icon name="close" size={14} />
+          {isDeleting ? "Excluindo…" : "Excluir"}
         </button>
       )}
       <button type="button" className="btn-outline" onClick={onClose}>

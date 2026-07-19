@@ -1,4 +1,5 @@
 import type { IntegralizacaoQueryDeps } from "@/lib/integralizacao/build-integralizacao-from-queries";
+import type { DashboardQueryDeps } from "@/lib/dashboard/build-dashboard-async";
 import type { MapaQueryDeps } from "@/lib/mapa/build-mapa";
 import * as pg from "@/lib/db/postgres/queries-read";
 import { pgReadSigaaIntegralizacaoResumo } from "@/lib/db/postgres/pg-sigaa-config";
@@ -13,6 +14,11 @@ export const postgresQueryDeps: IntegralizacaoQueryDeps = {
   getSigaaResumo: pgReadSigaaIntegralizacaoResumo,
   getAllNotas: pg.pgGetAllNotas,
   getAllFaltas: pg.pgGetAllFaltas,
+};
+
+export const postgresDashboardQueryDeps: DashboardQueryDeps = {
+  ...postgresQueryDeps,
+  getCalendarioAcademico: pg.pgGetCalendarioAcademico,
 };
 
 export const postgresMapaQueryDeps: MapaQueryDeps = {

@@ -57,3 +57,16 @@ export function isAcademicTaskType(type: CalendarEventType): boolean {
 export function canToggleCalendarEvent(id: string): boolean {
   return !id.startsWith("academico-") && !id.startsWith("aula-");
 }
+
+/** Eventos criados pelo aluno (manuais) — excluir no detalhe. */
+export function canDeleteCalendarEvent(event: {
+  id: string;
+  manual?: boolean;
+}): boolean {
+  if (event.id.startsWith("academico-") || event.id.startsWith("aula-")) {
+    return false;
+  }
+  if (event.id.startsWith("evento-")) return true;
+  if (event.id.startsWith("tarefa-")) return event.manual === true;
+  return event.manual === true;
+}

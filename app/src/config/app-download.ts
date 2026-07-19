@@ -3,16 +3,13 @@
  *
  * APK (~77 MiB) fica no **Cloudflare R2** (Workers Assets = máx. 25 MiB).
  * URL pública r2.dev — permanente enquanto o objeto existir no bucket.
- *
- * Site **v1.0.1** (jul/2026): correções de bugs web + app (Expo Go).
- * APK no R2 ainda `ACME-HUB-1.0.0.apk` até rebuild EAS aprovado.
  */
 export const APP_RELEASE = {
   version: "1.0.1",
-  apkFile: "ACME-HUB-1.0.0.apk",
+  apkFile: "ACME-HUB-1.0.1.apk",
   /** Download permanente (R2). */
   apkPath:
-    "https://pub-b2b330087a284ca886367469abf1924b.r2.dev/ACME-HUB-1.0.0.apk",
+    "https://pub-b2b330087a284ca886367469abf1924b.r2.dev/ACME-HUB-1.0.1.apk",
   pagePath: "/download",
   label: "Baixar app Android",
   shortLabel: "Baixar app",

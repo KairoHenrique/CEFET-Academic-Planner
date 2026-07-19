@@ -93,6 +93,14 @@ export function resolveCurrentSemesterFromPeriodStarts(
   return current;
 }
 
+/** Semestre corrente para UI (dashboard, disciplinas): calendário → heurística mês. */
+export function resolveCurrentAcademicSemesterLabel(
+  rows: CalendarioAcademicoRow[] = [],
+  referenceDate = new Date()
+): string {
+  return resolveAcademicSemesterDisplayPair(referenceDate, rows)[0];
+}
+
 /** Par exibido no card: semestre corrente (esquerda) + próximo (direita). */
 export function resolveAcademicSemesterDisplayPair(
   referenceDate = new Date(),

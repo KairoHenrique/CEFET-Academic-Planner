@@ -177,6 +177,11 @@ export function CalendarioView() {
             event={selectedLive}
             onClose={() => setSelectedEvent(null)}
             onToggleDone={calendar.toggleDone}
+            onDelete={(id) => {
+              calendar.deleteEvent(id);
+              setSelectedEvent(null);
+            }}
+            isDeleting={calendar.isDeleting}
           />
         )}
       </Modal>
