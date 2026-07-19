@@ -51,8 +51,9 @@
     ],
     "extra": {
       "eas": {
-        "projectId": ""
+        "projectId": "9e0eaddd-a802-465e-8474-cfd6ae69d75d"
       }
-    }
+    },
+    "owner": "kairohfm"
   }
 }
