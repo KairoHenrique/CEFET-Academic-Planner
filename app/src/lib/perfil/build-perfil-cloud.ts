@@ -11,6 +11,7 @@ import {
   resolveCloudSyncLastAt,
 } from "@/lib/perfil/build-perfil-cloud-data";
 import type { PerfilResponse, PerfilSubscription } from "@/lib/types/perfil-api";
+import { pgGetSubjectPriorities } from "@/lib/priority/subject-priorities-store";
 
 async function buildCloudSubscription(cpf: string): Promise<PerfilSubscription> {
   const access = await resolveSubscriptionAccessForCpf(cpf);
@@ -32,6 +33,7 @@ export async function buildPerfilCloud(
   profile: AppProfileRecord
 ): Promise<PerfilResponse> {
   const aluno = await resolveCloudPerfilAluno();
+  const subjectPriorities = await pgGetSubjectPriorities(profile.userId);
 
   return {
     profile: aluno
@@ -57,5 +59,6 @@ export async function buildPerfilCloud(
       lastSyncAt: resolveCloudSyncLastAt(),
     },
     notifications: resolveCloudNotificationPreferences(),
+    subjectPriorities,
   };
 }

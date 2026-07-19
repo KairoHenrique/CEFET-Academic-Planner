@@ -435,6 +435,13 @@ export interface NotificationSnapshotItem {
   notaMaxima?: number | null;
 }
 
+export type PriorityLevel =
+  | "high"
+  | "medium_high"
+  | "neutral"
+  | "medium_low"
+  | "low";
+
 export interface NotificationPreferences {
   tasks: boolean;
   grades: boolean;
@@ -516,12 +523,14 @@ export interface PerfilResponse {
   subscription: PerfilSubscription;
   sync: PerfilSyncStatus;
   notifications: NotificationPreferences;
+  subjectPriorities: Record<string, PriorityLevel>;
 }
 
 export interface PatchPerfilBody {
   email?: string | null;
   phone?: string | null;
   notifications?: Partial<NotificationPreferences>;
+  subjectPriorities?: Record<string, PriorityLevel>;
 }
 
 /* -------------------------------------------------------------------------- */

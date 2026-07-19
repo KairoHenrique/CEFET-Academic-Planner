@@ -1,11 +1,13 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import type { PriorityLevel } from "./priority";
 import {
   DEFAULT_PRIORITY,
   isPriorityLevel,
   PRIORITY_RANK,
-  type PriorityLevel,
 } from "./priority";
+import { getPerfil, requestJson } from "../auth/api";
+import type { PerfilResponse } from "@acme/api-contracts";
 
 const STORAGE_KEY = "acme-hub.subject-priorities";
 
@@ -46,11 +48,46 @@ export async function hydrateSubjectPriorities(): Promise<void> {
   }
 }
 
+export async function hydrateSubjectPrioritiesFromCloud(
+  map: Record<string, PriorityLevel> | undefined | null
+): Promise<void> {
+  if (!map) return;
+  const next: PriorityMap = { ...memoryMap };
+  for (const [code, level] of Object.entries(map)) {
+    if (isPriorityLevel(level)) next[code] = level;
+  }
+  await persist(next);
+}
+
+/** Busca GET /api/perfil e aplica subjectPriorities; migra local→nuvem se vazia. */
+export async function syncSubjectPrioritiesFromApi(): Promise<void> {
+  try {
+    const perfil = await getPerfil();
+    const cloud = perfil.subjectPriorities ?? {};
+    await hydrateSubjectPrioritiesFromCloud(cloud);
+
+    if (Object.keys(cloud).length > 0) return;
+    if (Object.keys(memoryMap).length === 0) return;
+
+    await requestJson<PerfilResponse>("/api/perfil", {
+      method: "PATCH",
+      body: JSON.stringify({ subjectPriorities: memoryMap }),
+    });
+  } catch {
+    /* offline */
+  }
+}
+
 export function useSubjectPriorities() {
   const [map, setMap] = useState<PriorityMap>(() => memoryMap);
+  const syncedOnce = useRef(false);
 
   useEffect(() => {
     void hydrateSubjectPriorities().then(() => setMap({ ...memoryMap }));
+    if (!syncedOnce.current) {
+      syncedOnce.current = true;
+      void syncSubjectPrioritiesFromApi().then(() => setMap({ ...memoryMap }));
+    }
     const onChange = () => setMap({ ...memoryMap });
     listeners.add(onChange);
     return () => {
@@ -65,7 +102,14 @@ export function useSubjectPriorities() {
 
   const setSubjectPriority = useCallback(
     (code: string, level: PriorityLevel) => {
-      void persist({ ...memoryMap, [code]: level });
+      const next = { ...memoryMap, [code]: level };
+      void persist(next);
+      void requestJson<PerfilResponse>("/api/perfil", {
+        method: "PATCH",
+        body: JSON.stringify({ subjectPriorities: { [code]: level } }),
+      }).catch(() => {
+        /* offline — local já gravado */
+      });
     },
     []
   );
