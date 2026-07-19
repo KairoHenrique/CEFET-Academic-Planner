@@ -70,7 +70,6 @@ export function NotificationsScreen() {
   return (
     <Screen
       title="Notificações"
-      subtitle="Mesmo feed do sino do site"
       cacheHint={fromCache ? "Dados do cache offline" : null}
       scrollProps={{
         refreshControl: (

@@ -29,10 +29,21 @@ import {
 import { hasApiBaseUrl } from "./src/config/env";
 import { AppShell } from "./src/navigation/AppShell";
 import { PaywallStack } from "./src/navigation/PaywallStack";
-import { registerPushForCurrentSession } from "./src/push/register";
+import { registerPushForCurrentSession, setupPushNotifications } from "./src/push/register";
 import { hydrateAvatarInitials } from "./src/perfil/avatar-store";
 import { LoginScreen } from "./src/screens/LoginScreen";
 import { brand } from "./src/theme/brand";
+
+async function lockAppPortrait(): Promise<void> {
+  try {
+    const ScreenOrientation = await import("expo-screen-orientation");
+    await ScreenOrientation.lockAsync(
+      ScreenOrientation.OrientationLock.PORTRAIT_UP
+    );
+  } catch {
+    /* Expo Go / web */
+  }
+}
 
 const navTheme = {
   ...DefaultTheme,
@@ -66,6 +77,8 @@ export default function App() {
   const apiOk = hasApiBaseUrl();
 
   useEffect(() => {
+    void lockAppPortrait();
+    void setupPushNotifications();
     const unsub = subscribeSession((next) => {
       setSessionState(next);
       if (next && resolveAppDestination(next.subscription.status) === "home") {
