@@ -107,11 +107,25 @@ export function buildCompletedDisciplinaSet(
 export function buildCursandoDisciplinaSet(
   historico: HistoricoRow[]
 ): Set<string> {
-  const cursando = new Set<string>();
+  // Só a tentativa mais recente conta — histórico antigo com MATR não
+  // mantém "cursando" depois de uma aprovação posterior.
+  const latestByCode = new Map<string, HistoricoRow>();
 
   for (const row of historico) {
-    if (isHistoricoCursando(row)) {
-      cursando.add(normalizeCode(row.disciplina_id));
+    const code = normalizeCode(row.disciplina_id);
+    const existing = latestByCode.get(code);
+    if (
+      !existing ||
+      compareHistoricoSemestre(row.semestre, existing.semestre) > 0
+    ) {
+      latestByCode.set(code, row);
+    }
+  }
+
+  const cursando = new Set<string>();
+  for (const [code, row] of latestByCode) {
+    if (isHistoricoCursando(row) && !isHistoricoApproved(row)) {
+      cursando.add(code);
     }
   }
 
@@ -196,12 +210,13 @@ export function resolveCourseMapStatusResult(
 ): CourseMapStatusResult {
   const code = normalizeCode(context.disciplina.codigo);
 
-  if (context.current.has(code)) {
-    return { status: "current" };
-  }
-
+  // Aprovado/concluído vence "cursando" (semestre_atual / MATR residual).
   if (context.completed.has(code)) {
     return { status: "done" };
+  }
+
+  if (context.current.has(code)) {
+    return { status: "current" };
   }
 
   if (!arePreRequisitosMet(code, context.preRequisitos, context.completed)) {

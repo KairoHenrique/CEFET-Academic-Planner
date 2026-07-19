@@ -144,11 +144,14 @@ function assembleMapaFromData(input: MapaAssemblyInput): MapaResponse {
     );
   }
 
+  const completed = buildCompletedDisciplinaSet(historico);
   const current = mergeDisciplinaSets(
     buildCurrentDisciplinaSet(semestreAtual.map((row) => row.disciplina_id)),
     buildCursandoDisciplinaSet(historico)
   );
-  const completed = buildCompletedDisciplinaSet(historico);
+  for (const code of completed) {
+    current.delete(code);
+  }
   const preRequisitos = buildPreRequisitoMap(requisitos);
   const catalog = getChCatalogForCurso(resolveQueryCursoId());
   const syncedObrigatoria =
