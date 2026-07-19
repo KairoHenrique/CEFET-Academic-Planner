@@ -16,5 +16,12 @@
       "binding": "WORKER_SELF_REFERENCE",
       "service": "acme-hub"
     }
-  ]
+  ],
+  "vars": {
+    "PLANNER_DATABASE": "postgres",
+    "NEXT_PUBLIC_SUPABASE_URL": "https://xxtdifoltfipaerexosq.supabase.co",
+    "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY": "***REMOVED***",
+    "PLANNER_CLOUD": "true",
+    "PLANNER_CURSO_ID": "eng-computacao"
+  }
 }

@@ -24,6 +24,7 @@ import {
   pgListSyncJobsByStatus,
   type PgSyncJobRow,
 } from "@/lib/sync-queue/pg-sync-jobs-store";
+import { pgReclaimStaleSyncJobs } from "@/lib/sync-queue/reclaim-stale-sync-jobs";
 import { SYNC_QUEUE_DEFAULT_ETA_SECONDS } from "@/lib/sync-queue/types";
 import type { SyncQueueJobRecord } from "@/lib/sync-queue/types";
 
@@ -78,6 +79,7 @@ async function loadCloudQueue(): Promise<{
   failed: DevQueueJobView[];
 }> {
   const pool = getPostgresPool();
+  await pgReclaimStaleSyncJobs(pool);
   const [running, queued, failed] = await Promise.all([
     pgListSyncJobsByStatus(pool, {
       statuses: ["running"],

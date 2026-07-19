@@ -7,6 +7,7 @@ import {
 } from "@/lib/sync-queue/cloud-sync-queue";
 import { kickSyncQueueDispatcher } from "@/lib/sync-queue/sync-queue-dispatcher";
 import { enqueueSyncJob } from "@/lib/sync-queue/enqueue-sync-job";
+import { pgReclaimStaleSyncJobs } from "@/lib/sync-queue/reclaim-stale-sync-jobs";
 import {
   pgGetOrchestratorState,
   pgSetOrchestratorState,
@@ -148,6 +149,11 @@ export async function runSyncOrchestratorTick(options?: {
   now?: Date;
 }): Promise<OrchestratorTickResult> {
   const now = options?.now ?? new Date();
+
+  if (isPostgresBackend()) {
+    await pgReclaimStaleSyncJobs(getPostgresPool());
+  }
+
   const policy = await readEffectiveSyncPolicyAsync();
   const state = await loadOrchestratorState();
   const eligibleCpfs = await listEligibleCpfsForDeepSync();

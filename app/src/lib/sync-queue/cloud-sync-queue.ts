@@ -12,6 +12,7 @@ import {
   pgSyncJobRowToView,
   type PgSyncJobRobot,
 } from "@/lib/sync-queue/pg-sync-jobs-store";
+import { pgReclaimStaleSyncJobs } from "@/lib/sync-queue/reclaim-stale-sync-jobs";
 import type {
   EnqueueSyncJobResult,
   SyncQueueJobView,
@@ -167,6 +168,7 @@ export async function enqueueCloudSyncJob(
   }
 
   const pool = getPostgresPool();
+  await pgReclaimStaleSyncJobs(pool);
 
   if (input.idempotencyKey) {
     const existingByKey = await pgFindActiveSyncJobByIdempotencyKey(
@@ -314,6 +316,7 @@ export async function getCloudSyncJobView(
   requesterUsername?: string | null
 ): Promise<SyncQueueJobView> {
   const pool = getPostgresPool();
+  await pgReclaimStaleSyncJobs(pool);
   const row = await pgFindSyncJobById(pool, jobId);
 
   // Escopo por usuário: não vaza status/CPF de jobs de terceiros.
