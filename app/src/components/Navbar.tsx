@@ -11,6 +11,7 @@ import { SyncButton } from "@/components/ui/SyncButton";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { LogoutButton } from "@/components/auth/LogoutButton";
 import { ProfileMenu } from "@/components/profile/ProfileMenu";
+import { APP_RELEASE } from "@/config/app-download";
 
 function tutorialIdForHref(href: string): string {
   const map: Record<string, string> = {
@@ -142,6 +143,17 @@ export function Navbar() {
               </Link>
             </li>
           ))}
+          <li className="mobile-nav-download">
+            <a
+              href={APP_RELEASE.apkPath}
+              className="mobile-nav-download-btn"
+              download={APP_RELEASE.apkFile}
+              onClick={() => setMobileOpen(false)}
+            >
+              <Icon name="download" size={18} />
+              <span>{APP_RELEASE.shortLabel}</span>
+            </a>
+          </li>
           <li className="mobile-nav-logout">
             <LogoutButton
               className="mobile-nav-logout-btn"

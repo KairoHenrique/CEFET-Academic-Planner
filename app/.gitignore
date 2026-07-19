@@ -42,3 +42,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# APK sideload (M16) — artefactos grandes fora do git
+app/public/releases/*.apk
+mobile/*.apk
+
