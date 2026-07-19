@@ -18,7 +18,7 @@ export function AppDownloadFab() {
     >
       <div className="app-dl-qr-card">
         <div className="app-dl-qr-card-frame">
-          <AppDownloadQr size={112} className="app-dl-qr-card-img" />
+          <AppDownloadQr size={80} className="app-dl-qr-card-img" />
         </div>
         <span className="app-dl-qr-card-label">Baixar app</span>
       </div>
