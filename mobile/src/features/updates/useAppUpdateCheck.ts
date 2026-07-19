@@ -7,7 +7,7 @@ import {
   isUpdateSessionSnoozed,
   snoozeUpdateForSession,
 } from "./update-preferences";
-import type { UpdatePromptChoice } from "./UpdateAvailableModal";
+import type { UpdatePromptChoice } from "./AppUpdateModal";
 import { isRemoteNewer } from "./version-compare";
 
 export type UpdatePromptState = {

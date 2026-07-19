@@ -1,4 +1,4 @@
 export { AppUpdateProvider, useUpdateCheck } from "./AppUpdateProvider";
 export { SoftToast } from "./SoftToast";
-export { UpdateAvailableModal } from "./UpdateAvailableModal";
+export { AppUpdateModal } from "./AppUpdateModal";
 export { useAppUpdateCheck } from "./useAppUpdateCheck";
