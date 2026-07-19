@@ -2,7 +2,7 @@
   "expo": {
     "name": "ACME HUB",
     "slug": "acme-hub",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -16,7 +16,8 @@
       "backgroundColor": "#000814"
     },
     "android": {
-      "package": "br.cefethub.acme",`n      "googleServicesFile": "./google-services.json",
+      "package": "br.cefethub.acme",
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "backgroundColor": "#000814",
         "foregroundImage": "./assets/android-icon-foreground.png",
