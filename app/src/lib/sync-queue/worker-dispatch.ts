@@ -2,6 +2,7 @@ import type { WorkerJobResult } from "@/lib/worker/job-types";
 import type { SyncQueueJobRecord } from "@/lib/sync-queue/types";
 import { openQueuePassword } from "@/lib/sync-queue/queue-credential-seal";
 import { runSync } from "@/lib/sync/run-sync";
+import { runWithSyncTenantContext } from "@/lib/sync/run-with-sync-tenant-context";
 import { ensureDbReady } from "@/lib/db/bootstrap";
 import { runWithUserDb } from "@/lib/db/connection-manager";
 
@@ -65,18 +66,20 @@ export async function dispatchJobInline(
   const startedAt = Date.now();
 
   try {
-    const pipeline = await runWithUserDb(job.username, () => {
-      ensureDbReady();
-      return runSync(
-        {
-          username: job.username,
-          password,
-          savePassword: job.savePassword === 1,
-          mode: job.mode,
-        },
-        { mode: job.mode }
-      );
-    });
+    const pipeline = await runWithSyncTenantContext(job.username, () =>
+      runWithUserDb(job.username, () => {
+        ensureDbReady();
+        return runSync(
+          {
+            username: job.username,
+            password,
+            savePassword: job.savePassword === 1,
+            mode: job.mode,
+          },
+          { mode: job.mode }
+        );
+      })
+    );
 
     return {
       jobId: job.id,

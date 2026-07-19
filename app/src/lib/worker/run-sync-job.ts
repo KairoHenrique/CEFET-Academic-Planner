@@ -5,6 +5,7 @@ import { runWithUserDb } from "@/lib/db/connection-manager";
 import { runCalendarioSync } from "@/lib/sync/run-calendario-sync";
 import { runSync } from "@/lib/sync/run-sync";
 import { runTurmasOfertadasSync } from "@/lib/sync/run-turmas-ofertadas-sync";
+import { runWithSyncTenantContext } from "@/lib/sync/run-with-sync-tenant-context";
 import type { BrowserJobSlot } from "@/lib/worker/browser-job-slot";
 import type {
   WorkerJobFailure,
@@ -110,10 +111,12 @@ export async function runWorkerSyncJob(
     const pipeline = await slot.run(() =>
       withTimeout(
         runWithScraperSqlite(() =>
-          runWithUserDb(request.username, () => {
-            ensureDbReady();
-            return runRobotPipeline(request, password);
-          })
+          runWithSyncTenantContext(request.username, () =>
+            runWithUserDb(request.username, () => {
+              ensureDbReady();
+              return runRobotPipeline(request, password);
+            })
+          )
         ),
         jobTimeoutMs,
         request.jobId

@@ -1,6 +1,11 @@
 import { validationError } from "@/lib/api/errors";
 import { buildIntegralizacao } from "@/lib/integralizacao/build-integralizacao";
-import { getChCatalog, isChType, isManualChType } from "@/lib/integralizacao/ch-catalog";
+import {
+  getChCatalogForCurso,
+  isChType,
+  isManualChType,
+} from "@/lib/integralizacao/ch-catalog";
+import { resolveQueryCursoId } from "@/lib/db/resolve-query-curso-id";
 import { insertManualIntegralizacaoHoras } from "@/lib/db/queries";
 import type {
   IntegralizacaoResponse,
@@ -19,8 +24,10 @@ function assertValidManualHours(horas: number): void {
   }
 }
 
-function assertCategoryAllowsManual(tipoCh: PostIntegralizacaoBody["tipoCh"]): void {
-  const catalog = getChCatalog();
+function assertCategoryAllowsManual(
+  tipoCh: PostIntegralizacaoBody["tipoCh"]
+): void {
+  const catalog = getChCatalogForCurso(resolveQueryCursoId());
   if (!catalog.some((entry) => entry.tipoCh === tipoCh)) {
     throw validationError("Categoria de carga horária inválida.");
   }

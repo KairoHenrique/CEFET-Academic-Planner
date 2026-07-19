@@ -3,8 +3,14 @@ import { countDisciplinas, saveDisciplina, saveRequisito } from "./queries";
 import { normalizeCefetCh } from "@/lib/disciplinas/cefet-ch";
 import { resolvePpcEmenta } from "@/lib/disciplinas/resolve-ppc-ementa";
 import { loadPpcSeedData, type PpcSeedItem } from "@/lib/db/ppc-seed-loader";
+import { resolveQueryCursoId } from "@/lib/db/resolve-query-curso-id";
+
+function activeCursoId(): string {
+  return resolveQueryCursoId();
+}
 
 function withResolvedEmenta(item: PpcSeedItem): PpcSeedItem["disciplina"] {
+  const cursoId = activeCursoId();
   const { codigo, nome, periodo, tipo } = item.disciplina;
   const carga_horaria = normalizeCefetCh(item.disciplina.carga_horaria);
   return {
@@ -13,12 +19,12 @@ function withResolvedEmenta(item: PpcSeedItem): PpcSeedItem["disciplina"] {
     tipo,
     carga_horaria,
     periodo,
-    ementa: resolvePpcEmenta(codigo, nome, carga_horaria),
+    ementa: resolvePpcEmenta(codigo, nome, carga_horaria, cursoId),
   };
 }
 
 export function syncPpcEmentasToDb(): void {
-  const data = loadPpcSeedData();
+  const data = loadPpcSeedData(activeCursoId());
 
   const syncAll = db.transaction(() => {
     for (const item of data) {
@@ -30,7 +36,7 @@ export function syncPpcEmentasToDb(): void {
 }
 
 export function syncPpcRequisitosToDb(): void {
-  const data = loadPpcSeedData();
+  const data = loadPpcSeedData(activeCursoId());
 
   const syncAll = db.transaction(() => {
     db.prepare("DELETE FROM requisitos").run();
@@ -51,7 +57,7 @@ export function syncPpcRequisitosToDb(): void {
 }
 
 export function seedPpcIfEmpty(): number {
-  const data = loadPpcSeedData();
+  const data = loadPpcSeedData(activeCursoId());
 
   if (countDisciplinas() === 0) {
     const insertAll = db.transaction(() => {

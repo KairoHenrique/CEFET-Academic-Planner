@@ -367,12 +367,12 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ### #11 — Multi-PPC (Mecatrônica + Moda) `🟡 4/4 [%]`
 
-> **Commit local** — PDFs em `docs/referencias/` · seeds Meca/Moda · CH por curso · turmas com `curso_id` da conta · smoke `tests/multi-ppc-bloco-11.test.ts`. Aguardando push/aprovação.
+> **Commit local** — PDFs em `docs/referencias/` · seeds Meca/Moda · CH por curso · turmas com `curso_id` da conta · sync worker ALS · glossário por curso · smoke `tests/multi-ppc-bloco-11.test.ts`. Aguardando push/aprovação.
 
 - [%] **PLAN:** PPC Eng. Mecatrônica (Divinópolis) — PDF em `docs/referencias/PPC-mecatrônica-revisado.pdf`
 - [%] **PLAN:** PPC Design de Moda (Divinópolis) — PDF em `docs/referencias/PPC-Design-de-Moda-Alteração-2024-v09-Versão-CGRAD.pdf`
-- [%] **BACK:** indexar disciplinas + requisitos + metas CH (Meca + Moda) — JSON + `loadPpcSeedData(cursoId)` + `ch-catalog` + seed PG `--curso=all`
-- [%] **BACK/FRONT:** smoke mapa/integralização Meca + Moda (filtro **B63** ✅; seed + CH + turmas `curso_id`)
+- [%] **BACK:** indexar disciplinas + requisitos + metas CH (Meca + Moda) — JSON + `loadPpcSeedData(cursoId)` + `ch-catalog` + seed PG `--curso=all` + sync worker com ALS `cursoId` + glossário por curso
+- [%] **BACK/FRONT:** smoke mapa/integralização Meca + Moda (filtro **B63** ✅; seed + CH + turmas `curso_id`; `tests/multi-ppc-bloco-11.test.ts`)
 
 **Ordem #11:** `PLAN PPCs` → `indexar seeds` → `curso_id` → smoke por curso
 
@@ -796,11 +796,11 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 ### #11 — Expansão multi-PPC (Mecatrônica + Moda) `🟡 4/4 [%]`
 
-> **Commit local** — pós-#8. Seeds + CH + turmas `curso_id`. Ver `SCOPE.md` §6.2.
+> **Commit local** — pós-#8. Seeds + CH + turmas `curso_id` + worker ALS + glossário por curso. Ver `SCOPE.md` §6.2.
 
 - [%] **PLAN:** PPC oficial Eng. Mecatrônica — `docs/referencias/PPC-mecatrônica-revisado.pdf`
 - [%] **PLAN:** PPC oficial Design de Moda — `docs/referencias/PPC-Design-de-Moda-Alteração-2024-v09-Versão-CGRAD.pdf`
-- [%] **BACK:** Indexar disciplinas + requisitos + metas de CH (Mecatrônica e Moda)
+- [%] **BACK:** Indexar disciplinas + requisitos + metas de CH (Mecatrônica e Moda) + sync ALS + auto-seed PG
 - [%] **BACK/FRONT:** smoke mapa/integralização Meca/Moda (filtro **B63** ✅)
 
 **Ordem #11:** `PLAN PPCs` → `indexar seeds` → `curso_id` → smoke por curso
@@ -1400,7 +1400,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 |---|------|------|--------|--------|
 | — | Plan | PPC Eng. Mecatrônica | PDF em `docs/referencias/PPC-mecatrônica-revisado.pdf` | [%] |
 | — | Plan | PPC Design de Moda | PDF em `docs/referencias/PPC-Design-de-Moda-…-CGRAD.pdf` | [%] |
-| — | Back | Seeds multi-curso | JSON + loader + CH + seed PG `--curso=` / `all` | [%] |
+| — | Back | Seeds multi-curso | JSON + loader + CH + seed PG + worker ALS + glossário | [%] |
 | — | Back/Front | Smoke multi-curso | `tests/multi-ppc-bloco-11.test.ts` + turmas `curso_id` | [%] |
 
 **Ordem #11:** `PLAN PPCs` → `indexar seeds` → `curso_id` → smoke por curso

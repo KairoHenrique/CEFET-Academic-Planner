@@ -11,6 +11,7 @@ import {
   isCloudSyncWorkerConfigured,
 } from "@/lib/sync-queue/cloud-sync-queue";
 import { runTurmasOfertadasSync } from "@/lib/sync/run-turmas-ofertadas-sync";
+import { runWithSyncTenantContext } from "@/lib/sync/run-with-sync-tenant-context";
 import { withSyncLock } from "@/lib/sync/sync-lock";
 import { ApiError } from "@/lib/api/errors";
 
@@ -60,21 +61,23 @@ export const POST = async (request: Request) => {
     }
 
     return await runWithScraperSqlite(() =>
-      runWithUserDb(credentials.username, async () => {
-        ensureDbReady();
-        const result = await withSyncLock(() =>
-          runTurmasOfertadasSync(credentials, { force })
-        );
+      runWithSyncTenantContext(credentials.username, () =>
+        runWithUserDb(credentials.username, async () => {
+          ensureDbReady();
+          const result = await withSyncLock(() =>
+            runTurmasOfertadasSync(credentials, { force })
+          );
 
-        return apiSuccess({
-          ok: result.ok,
-          skipped: result.skipped,
-          partial: result.partial || undefined,
-          usedExampleData: result.usedExampleData || undefined,
-          rowsWritten: result.rowsWritten,
-          message: result.message,
-        });
-      })
+          return apiSuccess({
+            ok: result.ok,
+            skipped: result.skipped,
+            partial: result.partial || undefined,
+            usedExampleData: result.usedExampleData || undefined,
+            rowsWritten: result.rowsWritten,
+            message: result.message,
+          });
+        })
+      )
     );
   } catch (error) {
     if (error instanceof ApiError) {

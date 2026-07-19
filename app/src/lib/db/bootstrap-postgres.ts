@@ -1,4 +1,9 @@
 import { getPostgresPool } from "@/lib/db/postgres/pool";
+import {
+  countGlobalDisciplinas,
+  seedAllPpcGlobalToPostgres,
+} from "@/lib/db/postgres/seed-ppc-global";
+import { APP_CURSO_IDS } from "@/lib/auth/account/curso-catalog";
 
 export async function ensurePostgresReady(): Promise<void> {
   const pool = getPostgresPool();
@@ -30,4 +35,27 @@ export async function ensurePostgresReady(): Promise<void> {
       "Schema Postgres incompleto. Rode: npm run db:migrate"
     );
   }
+
+  await ensureMultiPpcSeedsIfMissing();
+}
+
+/** Garante seed dos 3 PPCs no catálogo global (idempotente). */
+async function ensureMultiPpcSeedsIfMissing(): Promise<void> {
+  let needsSeed = false;
+  for (const cursoId of APP_CURSO_IDS) {
+    const count = await countGlobalDisciplinas(cursoId);
+    if (count === 0) {
+      needsSeed = true;
+      break;
+    }
+  }
+  if (!needsSeed) return;
+
+  const results = await seedAllPpcGlobalToPostgres();
+  console.info(
+    "[bootstrap-pg] seed Multi-PPC:",
+    results
+      .map((r) => `${r.cursoId}=${r.disciplinas}d/${r.requisitos}r`)
+      .join(" · ")
+  );
 }
