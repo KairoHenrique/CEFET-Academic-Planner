@@ -16,7 +16,9 @@ import {
   createCalendarEvent,
   toggleCalendarEvent,
 } from "../api/mutations";
-import { fetchCalendar } from "../cache/fetchers";
+import { fetchCalendar, fetchDisciplinas } from "../cache/fetchers";
+import type { SubjectListItem } from "@acme/api-contracts";
+import type { CreateCalendarEventInput } from "../ui/CreateCalendarEventModal";
 import { useOnSyncComplete } from "../sync/useOnSyncComplete";
 import { brand } from "../theme/brand";
 import {
@@ -53,6 +55,7 @@ export function CalendarScreen() {
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<EventTypeFilter>("todas");
   const [busyCreate, setBusyCreate] = useState(false);
+  const [subjects, setSubjects] = useState<SubjectListItem[]>([]);
 
   const activeLabel =
     Object.entries(FILTER_LABEL_TO_TYPE).find(([, v]) => v === filter)?.[0] ??
@@ -62,10 +65,16 @@ export function CalendarScreen() {
     if (!silent) setLoading(true);
     setError(null);
     try {
-      const cal = await fetchCalendar();
+      const [cal, disciplinas] = await Promise.all([
+        fetchCalendar(),
+        fetchDisciplinas().catch(() => null),
+      ]);
       setEvents(sortEvents(cal.data.events));
       setAcademicGroups(cal.data.academicDateGroups);
       setFromCache(cal.fromCache);
+      if (disciplinas) {
+        setSubjects(disciplinas.data.items ?? []);
+      }
     } catch (err) {
       setError(
         err instanceof ApiClientError
@@ -88,11 +97,7 @@ export function CalendarScreen() {
     void load(true);
   });
 
-  async function onCreate(input: {
-    title: string;
-    date: string;
-    type: "evento" | "tarefa" | "prova" | "aula" | "outro";
-  }) {
+  async function onCreate(input: CreateCalendarEventInput) {
     setBusyCreate(true);
     try {
       await createCalendarEvent(input);
@@ -182,6 +187,7 @@ export function CalendarScreen() {
             events={events}
             filter={filter}
             busyCreate={busyCreate}
+            subjects={subjects}
             onToggleDone={(ev) => void onToggle(ev)}
             onCreateEvent={onCreate}
           />

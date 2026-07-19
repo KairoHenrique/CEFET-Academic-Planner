@@ -5,8 +5,10 @@ import {
   type NotificationSnapshot,
 } from "@/lib/notifications/build-notification-snapshot";
 import { buildPendingCalendarReminderSourcesFromEvents } from "@/lib/notifications/build-pending-calendar-reminder-sources";
-import { resolveCloudNotificationPreferences } from "@/lib/perfil/build-perfil-cloud-data";
+import { DEFAULT_NOTIFICATION_PREFERENCES } from "@/lib/notifications/notification-preferences-shared";
+import { pgGetNotificationPreferences } from "@/lib/notifications/notification-preferences-store";
 import { postgresQueryDeps } from "@/lib/db/postgres/query-port";
+import { getActiveTenantUserId } from "@/lib/db/postgres/tenant-context";
 import {
   pgGetAllNotas,
   pgGetAluno,
@@ -22,6 +24,11 @@ import {
  * escopado por tenant, e reaproveita o núcleo puro — sem tocar no SQLite.
  */
 export async function buildNotificationSnapshotCloud(): Promise<NotificationSnapshot> {
+  const userId = getActiveTenantUserId();
+  const preferencesPromise = userId
+    ? pgGetNotificationPreferences(userId)
+    : Promise.resolve({ ...DEFAULT_NOTIFICATION_PREFERENCES });
+
   const [
     aluno,
     semestreRows,
@@ -31,6 +38,7 @@ export async function buildNotificationSnapshotCloud(): Promise<NotificationSnap
     calendarTarefas,
     eventosManuais,
     integralizacao,
+    preferences,
   ] = await Promise.all([
     pgGetAluno(),
     pgGetSemestreAtual(),
@@ -40,6 +48,7 @@ export async function buildNotificationSnapshotCloud(): Promise<NotificationSnap
     pgGetTarefasForCalendar(),
     pgGetEventosCalendario(),
     buildIntegralizacaoFromQueries(postgresQueryDeps),
+    preferencesPromise,
   ]);
 
   const activeIds = new Set(
@@ -58,7 +67,7 @@ export async function buildNotificationSnapshotCloud(): Promise<NotificationSnap
 
   return buildNotificationSnapshotFromData({
     aluno,
-    preferences: resolveCloudNotificationPreferences(),
+    preferences,
     semestreRows,
     tarefas,
     notasSemestre,

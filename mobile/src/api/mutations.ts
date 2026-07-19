@@ -82,10 +82,14 @@ export async function createCalendarEvent(body: {
   title: string;
   date: string;
   type: string;
+  dateEnd?: string | null;
   timeStart?: string | null;
   timeEnd?: string | null;
   description?: string;
   subjectCode?: string | null;
+  recurrence?: "none" | "daily" | "weekly";
+  recurrenceDays?: number[];
+  color?: string | null;
 }): Promise<CalendarEvent> {
   return requestJson("/api/calendar/events", {
     method: "POST",

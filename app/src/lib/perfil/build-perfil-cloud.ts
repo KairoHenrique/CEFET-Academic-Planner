@@ -58,7 +58,7 @@ export async function buildPerfilCloud(
       intervalMinutes: resolveCloudSyncIntervalMinutes(),
       lastSyncAt: resolveCloudSyncLastAt(),
     },
-    notifications: resolveCloudNotificationPreferences(),
+    notifications: await resolveCloudNotificationPreferences(profile.userId),
     subjectPriorities,
   };
 }

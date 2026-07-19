@@ -235,7 +235,8 @@ export function useEnrollmentSimulator(
     (partners: TurmaOfertadaCourse[]) => {
       if (partners.length > 1) {
         const group = buildEnrollmentGroupFromVariants(partners);
-        setSelectedCourse(null);
+        // Mantém representante para o card ALOCANDO (antes ficava null).
+        setSelectedCourse(group.variants[0] ?? null);
         setSelectedGroupId(group.id);
         setSelectedGroupVariants(group.variants);
         onScrollToSchedule?.();
@@ -488,9 +489,10 @@ export function useEnrollmentSimulator(
     (group: EnrollmentCourseGroup) => {
       if (!group.multiVariant || !visible) return;
 
-      const isDeselect = selectedGroupId === group.id && !selectedCourse;
+      const isDeselect = selectedGroupId === group.id;
       if (isDeselect) {
         clearGroupPreview();
+        setSelectedCourse(null);
         setConflictNotice(null);
         return;
       }
@@ -512,7 +514,7 @@ export function useEnrollmentSimulator(
         return;
       }
 
-      setSelectedCourse(null);
+      setSelectedCourse(placeable[0] ?? null);
       setSelectedGroupId(group.id);
       setSelectedGroupVariants(group.variants);
       setConflictNotice(null);
@@ -521,7 +523,6 @@ export function useEnrollmentSimulator(
     [
       visible,
       selectedGroupId,
-      selectedCourse,
       clearGroupPreview,
       schedule,
       placementContext,
@@ -568,7 +569,10 @@ export function useEnrollmentSimulator(
     selectedCourse,
     selectedGroupId,
     selectedShortLabel,
-    selectedHorario,
+    selectedHorario:
+      selectedGroupId && selectedGroupVariants.length > 1
+        ? "Várias turmas — toque em um horário destacado na grade"
+        : selectedHorario,
     canPlaceSelectedCourse,
     allowedEmptyCells,
     highlightEmpty,

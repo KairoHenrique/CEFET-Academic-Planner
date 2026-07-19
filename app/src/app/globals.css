@@ -349,22 +349,33 @@ a:hover {
 
 .notification-bell-root {
   position: relative;
+  display: flex;
+  align-items: center;
+  align-self: center;
 }
 
 .notification-bell-btn {
   position: relative;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: auto;
-  height: auto;
-  padding: var(--space-1);
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  min-height: 34px;
+  padding: 0;
   border: none;
   border-radius: var(--radius-sm);
   background: transparent;
   color: var(--gold-300);
   cursor: pointer;
   transition: color var(--transition-fast), transform var(--transition-fast);
+  line-height: 0;
+}
+
+.notification-bell-btn svg {
+  display: block;
+  flex-shrink: 0;
 }
 
 .notification-bell-btn:hover {

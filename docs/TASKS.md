@@ -49,7 +49,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ## Roadmap detalhado — ordem de execução (#0 → #11)
 
-> **🌐 Site desktop = v1.0.0** (jul/2026) — Eng. Computação web madura (**#1–#7 · #9 · #10 · #12**); release GitHub `v1.0.0`. **#8 Mobile** **M1–M15** `[x]` · **M16** `[@]`. **#11 Multi-PPC** `[x]` (Meca + Moda). **F28** `[x]`. **B74/F43** `[x]` · **B73/F42** `[x]`. **#9** `[x]`. Bloco **2f (B72a–e)** `[x]`. **Polish sino (jul/2026):** eventos/datas só em cadastro · D-1 · no dia; painel some 24h após vista.
+> **🌐 Site desktop = v1.0.1** (jul/2026 · bugfix) — Eng. Computação web madura (**#1–#7 · #9 · #10 · #12**); release GitHub `v1.0.0`. **#8 Mobile** **M1–M15** `[x]` · **M16** `[@]`. **#11 Multi-PPC** `[x]` (Meca + Moda). **F28** `[x]`. **B74/F43** `[x]` · **B73/F42** `[x]`. **#9** `[x]`. Bloco **2f (B72a–e)** `[x]`. **Polish sino (jul/2026):** eventos/datas só em cadastro · D-1 · no dia; painel some 24h após vista.
 > **Regra:** siga **#0 → #11** · dentro de cada bloco → **BACK (B) antes de FRONT (F)**. Checklist espelho: [Checklist mestre](#checklist-mestre-ordem-de-execução).
 
 ### #0 — Planejamento `✅`
@@ -640,7 +640,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 > **Calendário — rótulos e datas (jul/2026, sobre B66) `[x]`:** renomeação **só na exibição** (nome bruto do SIGAA segue no banco): `Matrícula OnLine → Matrícula Fase 1`, `Rematrícula → Matrícula Fase 2`, `Processamento de Matrícula/Rematrícula → Resultado Matrícula Fase 1/2` (`event-label-overrides.ts`). Scraper passa a captar os eventos de "processamento" (`calendario-event-filter.ts`) e há fallback de datas institucionais conhecidas sem duplicar quando o SIGAA publica (`known-institutional-dates.ts`).
 
-**Próximo:** **M16** `[@]` (download/APK). **#11 Multi-PPC** `[x]`. **M1–M15** `[x]`. Site **v1.0.0**. **F25–F28** `[x]`.
+**Próximo:** **M16** `[@]` (download/APK). **#11 Multi-PPC** `[x]`. **M1–M15** `[x]`. Site **v1.0.1**. **F25–F28** `[x]`.
 
 ---
 
@@ -1049,7 +1049,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] `worker/Dockerfile` (Playwright jammy) · `worker/README.md`
 - [x] Testes `tests/worker-b54.test.ts`
 
-> **Próximo (produto):** **M16** `[@]` (download/APK). **#11 Multi-PPC** `[x]`. **M1–M15** `[x]`. Site desktop **v1.0.0**. **F25–F28** `[x]`.
+> **Próximo (produto):** **M16** `[@]` (download/APK). **#11 Multi-PPC** `[x]`. **M1–M15** `[x]`. Site desktop **v1.0.1**. **F25–F28** `[x]`.
 
 #### B55 — API fila sync `[x]`
 
@@ -1059,7 +1059,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Dispatcher assíncrono → worker B54 (`SIGAA_WORKER_URL`) ou **inline** (`SYNC_QUEUE_DISPATCH=inline`)
 - [x] Testes `tests/sync-queue-b55.test.ts` · `npm run test:sync-queue`
 
-> **Próximo (produto):** **M16** `[@]` (download/APK). **#11 Multi-PPC** `[x]`. **M1–M15** `[x]`. Site desktop **v1.0.0**. **F25–F28** `[x]`.
+> **Próximo (produto):** **M16** `[@]` (download/APK). **#11 Multi-PPC** `[x]`. **M1–M15** `[x]`. Site desktop **v1.0.1**. **F25–F28** `[x]`.
 
 #### B56 — Pipeline no worker `[x]`
 
@@ -1768,7 +1768,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] **M15** — QA checklist Expo Go (`mobile/docs/M15-QA.md`)
 - [@] **M16** *(opcional)* — APK sideload · download site (/releases, QR, drawer) · v1.0.0
 - [x] **Alternativa sem instalar:** site adaptado ao celular (**F28** · aprovado jul/2026)
-- [x] **Site desktop v1.0.0** — base de paridade do app (jul/2026)
+- [x] **Site desktop v1.0.1** — patch de bugs (jul/2026); base v1.0.0
 
 ---
 
@@ -2048,7 +2048,7 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 8. **Próximo passo do roadmap:** informe **depois do push** (tasks em `[@]` ou `[x]`). Com commits locais só `[x]`, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v3](#ordem-oficial-de-execução-v3) — **Bloco 2 (sync) antes do Bloco 6 (Supabase)**. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy **após** sync validado; RLS ✅ **6c** (antes do PIX). Marco “site no ar p/ testes gerais” → [final do TASKS.md](#marco--site-no-ar-para-testes-gerais).
-11. **Próximo passo:** **M16** `[@]` (download/APK R2). **#11 Multi-PPC** `[x]` (Meca + Moda). Site **v1.0.0**. Bloco 8 **15/16**. **F28** `[x]`.
+11. **Próximo passo:** **M16** `[@]` (download/APK R2). **#11 Multi-PPC** `[x]` (Meca + Moda). Site **v1.0.1**. Bloco 8 **15/16**. **F28** `[x]`.
 12. **Integralização:** CH concluída = `historico` + PPC (`computeChDoneFromDisciplinas`); portal SIGAA só % / total currículo; matérias já passadas = **B30** ✅.
 13. **Gift + painel dev:** **B68–B71** ✅ · **F39–F41** ✅ — painel sem senha SIGAA (`credentialSaved` + `accountRef`).
 14. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial. **Polish em task `[x]`** (ex.: F38, dashboard) também exige nota no TASKS no mesmo ciclo do push.
@@ -2091,6 +2091,6 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 
 **Bloco 7** ✅ — PIX + planos + **L1** + **B71** aprovados.
 
-### Marco site desktop v1.0.0 (jul/2026)
+### Marco site desktop v1.0.1 (jul/2026)
 
-**Site web Eng. Computação = v1.0.0** — funcionalidades de produto no ar (auth, sync worker, dashboard, disciplinas, calendário, mapa, integralização, simulador, planos, sino, F28). Release GitHub `v1.0.0`. **#8 Mobile** **M1–M15** `[x]` · **M16** `[@]`. **#11 Multi-PPC** `[x]` (Meca + Moda).
+**Site web Eng. Computação = v1.0.1** — patch de bugs sobre v1.0.0; funcionalidades de produto no ar (auth, sync worker, dashboard, disciplinas, calendário, mapa, integralização, simulador, planos, sino, F28). Release GitHub `v1.0.0`. **#8 Mobile** **M1–M15** `[x]` · **M16** `[@]`. **#11 Multi-PPC** `[x]` (Meca + Moda).

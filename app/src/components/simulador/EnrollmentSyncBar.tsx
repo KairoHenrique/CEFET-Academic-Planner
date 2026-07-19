@@ -1,12 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Icon } from "@/components/ui/Icon";
 import { Modal } from "@/components/ui/Modal";
 import { Input } from "@/components/ui/Input";
 import { SyncProgress } from "@/components/ui/SyncProgress";
 import { formatTurmasSyncedAt } from "@/lib/simulador/turma-course-utils";
 import type { TurmasSyncFeedbackTone } from "@/lib/simulador/turmas-sync-feedback";
+
+/** Sucesso some sozinho; aviso/erro ficam até a próxima sync. */
+const SYNC_SUCCESS_FEEDBACK_MS = 4500;
 
 interface EnrollmentSyncBarProps {
   syncedAt: string | null;
@@ -41,6 +44,7 @@ export function EnrollmentSyncBar({
   onSubmitPassword,
 }: EnrollmentSyncBarProps) {
   const [password, setPassword] = useState("");
+  const [successDismissed, setSuccessDismissed] = useState(false);
   const formattedSync = formatTurmasSyncedAt(syncedAt);
 
   const syncStatusLabel = useMemo(() => {
@@ -48,6 +52,22 @@ export function EnrollmentSyncBar({
     if (formattedSync) return `Atualizado ${formattedSync}`;
     return "Sem sincronização recente";
   }, [syncing, formattedSync]);
+
+  useEffect(() => {
+    setSuccessDismissed(false);
+  }, [syncMessage, syncMessageTone]);
+
+  useEffect(() => {
+    if (syncMessageTone !== "success" || !syncMessage || successDismissed) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setSuccessDismissed(true);
+    }, SYNC_SUCCESS_FEEDBACK_MS);
+
+    return () => window.clearTimeout(timer);
+  }, [syncMessage, syncMessageTone, successDismissed]);
 
   const handlePasswordSubmit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -57,9 +77,10 @@ export function EnrollmentSyncBar({
   };
 
   const showFeedback =
-    syncMessage &&
-    syncMessageTone &&
-    (syncMessageTone === "warning" || syncMessageTone === "success");
+    Boolean(syncMessage) &&
+    Boolean(syncMessageTone) &&
+    (syncMessageTone === "warning" ||
+      (syncMessageTone === "success" && !successDismissed));
 
   return (
     <>

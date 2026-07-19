@@ -6,10 +6,8 @@ import {
   normalizeOptionalEmail,
   normalizeOptionalPhone,
 } from "@/lib/perfil/normalize-contact-patch";
-import { saveNotificationPreferences } from "@/lib/notifications/notification-preferences";
-import {
-  pgMergeSubjectPriorities,
-} from "@/lib/priority/subject-priorities-store";
+import { pgMergeNotificationPreferences } from "@/lib/notifications/notification-preferences-store";
+import { pgMergeSubjectPriorities } from "@/lib/priority/subject-priorities-store";
 import type { PatchPerfilBody, PerfilResponse } from "@/lib/types/perfil-api";
 
 export async function patchPerfilCloud(
@@ -40,7 +38,7 @@ export async function patchPerfilCloud(
   }
 
   if (hasNotificationPatch && body.notifications) {
-    saveNotificationPreferences(body.notifications);
+    await pgMergeNotificationPreferences(profile.userId, body.notifications);
   }
 
   if (hasPriorityPatch && body.subjectPriorities) {

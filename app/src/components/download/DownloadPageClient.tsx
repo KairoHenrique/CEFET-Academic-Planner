@@ -42,8 +42,8 @@ export function DownloadPageClient() {
         </div>
 
         <p className="app-dl-page-lead">
-          Instale o APK no celular (sideload · sem Play Store). No Android, pode
-          ser preciso permitir “fontes desconhecidas” para o instalador.
+          Instale o APK no celular. No Android, pode ser preciso permitir
+          “fontes desconhecidas” para o instalador.
         </p>
 
         <div className="app-dl-page-qr-wrap" aria-hidden={false}>
@@ -61,10 +61,6 @@ export function DownloadPageClient() {
           <Icon name="download" size={18} />
           Baixar APK {version}
         </a>
-
-        <p className="app-dl-page-meta">
-          Hospedagem permanente · Cloudflare R2
-        </p>
 
         <Link href="/login" className="app-dl-page-back">
           Voltar ao login

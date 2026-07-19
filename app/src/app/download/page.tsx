@@ -3,7 +3,7 @@ import { DownloadPageClient } from "@/components/download/DownloadPageClient";
 
 export const metadata: Metadata = {
   title: "Baixar app Android · ACME HUB",
-  description: "Download do APK ACME HUB (sideload Android).",
+  description: "Download do APK ACME HUB para Android.",
 };
 
 export default function DownloadPage() {

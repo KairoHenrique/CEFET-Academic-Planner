@@ -1,20 +1,22 @@
 import { useMemo, useState } from "react";
 import {
-  ActivityIndicator,
   Modal,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from "react-native";
-import type { CalendarEvent } from "@acme/api-contracts";
+import type { CalendarEvent, SubjectListItem } from "@acme/api-contracts";
 import { hexWithAlpha } from "../lib/color-mix";
 import { brand } from "../theme/brand";
 import { Card, formatPtDate } from "./cards";
 import { Icon } from "./Icon";
 import { SectionHeader } from "./SectionHeader";
+import {
+  CreateCalendarEventModal,
+  type CreateCalendarEventInput,
+} from "./CreateCalendarEventModal";
 
 const WEEKDAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
@@ -77,24 +79,13 @@ const TYPE_LABEL: Record<string, string> = {
   outro: "OUTRO",
 };
 
-const CREATE_TYPES = [
-  "evento",
-  "tarefa",
-  "prova",
-  "aula",
-  "outro",
-] as const;
-
 type Props = {
   events: CalendarEvent[];
   filter: EventTypeFilter;
   busyCreate?: boolean;
+  subjects?: SubjectListItem[];
   onToggleDone?: (ev: CalendarEvent) => void;
-  onCreateEvent?: (input: {
-    title: string;
-    date: string;
-    type: (typeof CREATE_TYPES)[number];
-  }) => Promise<void> | void;
+  onCreateEvent?: (input: CreateCalendarEventInput) => Promise<void> | void;
 };
 
 function toIso(year: number, month: number, day: number): string {
@@ -115,6 +106,7 @@ export function CalendarMonthModule({
   events,
   filter,
   busyCreate = false,
+  subjects = [],
   onToggleDone,
   onCreateEvent,
 }: Props) {
@@ -125,10 +117,6 @@ export function CalendarMonthModule({
   const [dayModal, setDayModal] = useState<number | null>(null);
   const [selected, setSelected] = useState<CalendarEvent | null>(null);
   const [addDate, setAddDate] = useState<string | null>(null);
-  const [newTitle, setNewTitle] = useState("");
-  const [newType, setNewType] =
-    useState<(typeof CREATE_TYPES)[number]>("evento");
-  const [formError, setFormError] = useState<string | null>(null);
 
   const year = cursor.getFullYear();
   const month = cursor.getMonth();
@@ -183,21 +171,10 @@ export function CalendarMonthModule({
 
   const dayEvents = dayModal != null ? eventsByDay[dayModal] ?? [] : [];
 
-  async function submitCreate() {
-    if (!addDate || !onCreateEvent) return;
-    if (!newTitle.trim()) {
-      setFormError("Informe o título.");
-      return;
-    }
-    setFormError(null);
-    await onCreateEvent({
-      title: newTitle.trim(),
-      date: addDate,
-      type: newType,
-    });
+  async function submitCreate(input: CreateCalendarEventInput) {
+    if (!onCreateEvent) return;
+    await onCreateEvent(input);
     setAddDate(null);
-    setNewTitle("");
-    setNewType("evento");
   }
 
   return (
@@ -419,60 +396,15 @@ export function CalendarMonthModule({
         </Pressable>
       </Modal>
 
-      {/* Novo evento */}
-      <Modal
+      {/* Novo evento — paridade com AddEventForm do site */}
+      <CreateCalendarEventModal
         visible={addDate != null}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setAddDate(null)}
-      >
-        <Pressable style={styles.modalBackdrop} onPress={() => setAddDate(null)}>
-          <Pressable style={styles.modalSheet} onPress={(e) => e.stopPropagation()}>
-            <Text style={styles.modalTitle}>Novo evento</Text>
-            <Text style={styles.eventMeta}>Data: {addDate}</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Título"
-              placeholderTextColor={brand.textMuted}
-              value={newTitle}
-              onChangeText={setNewTitle}
-            />
-            <View style={styles.typeRow}>
-              {CREATE_TYPES.map((t) => (
-                <Pressable
-                  key={t}
-                  style={[styles.typeChip, newType === t && styles.typeActive]}
-                  onPress={() => setNewType(t)}
-                >
-                  <Text
-                    style={[
-                      styles.typeText,
-                      newType === t && styles.typeTextActive,
-                    ]}
-                  >
-                    {TYPE_LABEL[t] ?? t}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
-            {formError ? <Text style={styles.formError}>{formError}</Text> : null}
-            <Pressable
-              style={[styles.saveBtn, busyCreate && { opacity: 0.6 }]}
-              disabled={busyCreate}
-              onPress={() => void submitCreate()}
-            >
-              {busyCreate ? (
-                <ActivityIndicator color={brand.text} />
-              ) : (
-                <Text style={styles.saveText}>Salvar</Text>
-              )}
-            </Pressable>
-            <Pressable style={styles.closeBtn} onPress={() => setAddDate(null)}>
-              <Text style={styles.closeBtnText}>Cancelar</Text>
-            </Pressable>
-          </Pressable>
-        </Pressable>
-      </Modal>
+        defaultDate={addDate}
+        subjects={subjects}
+        busy={busyCreate}
+        onClose={() => setAddDate(null)}
+        onSubmit={submitCreate}
+      />
     </>
   );
 }

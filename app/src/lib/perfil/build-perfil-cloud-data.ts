@@ -1,13 +1,16 @@
 import { pgGetAluno } from "@/lib/db/postgres/queries-read";
-import { DEFAULT_NOTIFICATION_PREFERENCES } from "@/lib/notifications/notification-preferences-shared";
+import { pgGetNotificationPreferences } from "@/lib/notifications/notification-preferences-store";
 import { getSyncAutoIntervalMinutes } from "@/lib/sync/sync-preferences";
+import type { NotificationPreferences } from "@/lib/types/perfil-api";
 
 export async function resolveCloudPerfilAluno() {
   return pgGetAluno();
 }
 
-export function resolveCloudNotificationPreferences() {
-  return { ...DEFAULT_NOTIFICATION_PREFERENCES };
+export async function resolveCloudNotificationPreferences(
+  userId: string
+): Promise<NotificationPreferences> {
+  return pgGetNotificationPreferences(userId);
 }
 
 export function resolveCloudSyncLastAt(): string | null {
