@@ -5,9 +5,9 @@ import { buildSimuladorPlacementContext } from "@/lib/simulador/corequisito-sche
 import {
   buildMultiVariantPreviewMap,
   buildPreviewCellSplitGradient,
-  ENROLLMENT_VARIANT_PREVIEW_COLORS,
   resolvePreviewCourseAtCell,
   resolvePreviewSegmentIndex,
+  resolveVariantPreviewColor,
 } from "@/lib/simulador/enrollment-multi-variant-preview";
 import type { TurmaOfertadaCourse } from "@/lib/types/turmas-ofertadas-api";
 
@@ -54,18 +54,18 @@ test("buildMultiVariantPreviewMap — cor por variante e empilha no mesmo slot",
   const shared = map.get("0:0");
   assert.equal(shared?.length, 2);
   assert.equal(shared?.[0]?.course.turmaSigaaId, "a");
-  assert.equal(shared?.[0]?.color, ENROLLMENT_VARIANT_PREVIEW_COLORS[0]);
+  assert.equal(shared?.[0]?.color, resolveVariantPreviewColor(variants[0]!, 0));
   assert.equal(shared?.[1]?.course.turmaSigaaId, "b");
-  assert.equal(shared?.[1]?.color, ENROLLMENT_VARIANT_PREVIEW_COLORS[1]);
+  assert.equal(shared?.[1]?.color, resolveVariantPreviewColor(variants[1]!, 1));
   assert.equal(map.get("0:1")?.[0]?.course.turmaSigaaId, "b");
 });
 
 test("buildPreviewCellSplitGradient — metade/metade e terços", () => {
-  const half = buildPreviewCellSplitGradient(["#3fb950", "#a371f7"]);
+  const half = buildPreviewCellSplitGradient(["#58a6ff", "#3d8fd4"]);
   assert.match(half ?? "", /linear-gradient\(to right/);
   assert.match(half ?? "", /50%/);
 
-  const thirds = buildPreviewCellSplitGradient(["#3fb950", "#a371f7", "#d4a843"]);
+  const thirds = buildPreviewCellSplitGradient(["#58a6ff", "#3d8fd4", "#d4a843"]);
   assert.match(thirds ?? "", /33\.333333333333336%/);
 });
 

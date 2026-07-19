@@ -242,12 +242,16 @@ export function isMutualCorequisitoPartnerScheduleLocked(
   return false;
 }
 
-export function resolvePendingCorequisitoPartner(
+/**
+ * Todas as turmas do co-req mutual faltante (ex.: LAOCII com 2 horários).
+ * O preview multi-variante filtra as que cabem; não escolha só a 1ª opção.
+ */
+export function resolvePendingCorequisitoPartners(
   placed: TurmaOfertadaCourse,
   schedule: ScheduleSlot[][],
   context: SimuladorPlacementContext,
   catalog: TurmaOfertadaCourse[]
-): TurmaOfertadaCourse | null {
+): TurmaOfertadaCourse[] {
   const missing = resolveMissingCorequisitesOnSchedule(
     placed.code,
     schedule,
@@ -260,14 +264,32 @@ export function resolvePendingCorequisitoPartner(
     const partners = turmasForDisciplinaCode(coCode, catalog);
     if (partners.length === 0) continue;
 
-    return (
-      partners.find((candidate) =>
-        canPlaceTurmaBasic(candidate, schedule, context)
-      ) ?? partners[0]!
-    );
+    return partners;
   }
 
-  return null;
+  return [];
+}
+
+export function resolvePendingCorequisitoPartner(
+  placed: TurmaOfertadaCourse,
+  schedule: ScheduleSlot[][],
+  context: SimuladorPlacementContext,
+  catalog: TurmaOfertadaCourse[]
+): TurmaOfertadaCourse | null {
+  const partners = resolvePendingCorequisitoPartners(
+    placed,
+    schedule,
+    context,
+    catalog
+  );
+
+  return (
+    partners.find((candidate) =>
+      canPlaceTurmaBasic(candidate, schedule, context)
+    ) ??
+    partners[0] ??
+    null
+  );
 }
 
 export interface CorequisitoObligation {
