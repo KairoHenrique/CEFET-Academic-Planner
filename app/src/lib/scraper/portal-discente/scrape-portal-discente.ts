@@ -45,6 +45,10 @@ export async function scrapePortalDiscente(
       `[scraper:portal] Semestre atual: ${snapshot.semestreAtual.length} disciplina(s) — ` +
         snapshot.semestreAtual.map((item) => item.codigo || item.nome).join(", ")
     );
+  } else {
+    console.info(
+      "[scraper:portal] Semestre sem turmas (Nenhuma turma neste semestre)."
+    );
   }
 
   if (snapshot.atividades.length > 0) {

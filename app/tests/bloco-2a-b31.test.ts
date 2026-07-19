@@ -59,7 +59,7 @@ describe("B31 — sync readiness", () => {
       "../src/lib/sync/sync-readiness"
     );
 
-    runWithUserDb("12345678901", () => {
+    await runWithUserDb("12345678901", async () => {
       ensureDbReady();
       await persistPortalSnapshot(buildMockPortalSnapshot("12345678901"));
       recordSyncCompletedAt();
@@ -124,7 +124,7 @@ describe("B31 — sync readiness", () => {
 });
 
 describe("B31 — snapshot policies", () => {
-  test("portal vazio não é persistível", async () => {
+  test("portal sem matrícula não é persistível", async () => {
     const { isPortalSnapshotPersistable } = await import(
       "../src/lib/sync/portal-snapshot-policy"
     );
@@ -133,8 +133,23 @@ describe("B31 — snapshot policies", () => {
     );
 
     const snapshot = buildMockPortalSnapshot("12345678901");
+    snapshot.aluno.matricula = "";
     snapshot.semestreAtual = [];
     assert.equal(isPortalSnapshotPersistable(snapshot), false);
+  });
+
+  test("portal com matrícula e zero turmas é persistível (semestre vazio)", async () => {
+    const { isPortalSnapshotPersistable, isPortalSemesterEmpty } = await import(
+      "../src/lib/sync/portal-snapshot-policy"
+    );
+    const { buildMockPortalSnapshot } = await import(
+      "../src/lib/scraper/portal-discente/mock-portal-snapshot"
+    );
+
+    const snapshot = buildMockPortalSnapshot("12345678901");
+    snapshot.semestreAtual = [];
+    assert.equal(isPortalSnapshotPersistable(snapshot), true);
+    assert.equal(isPortalSemesterEmpty(snapshot), true);
   });
 
   test("turma vazia não é persistível", async () => {
@@ -148,7 +163,9 @@ describe("B31 — snapshot policies", () => {
     );
   });
 
-  test("persist portal vazio preserva semestre anterior", async () => {
+  test("persist portal vazio limpa semestre anterior", async () => {
+    const { runWithUserDb } = await import("../src/lib/db/connection-manager");
+    const { ensureDbReady } = await import("../src/lib/db/bootstrap");
     const { persistPortalSnapshot } = await import(
       "../src/lib/sync/persist-portal-snapshot"
     );
@@ -157,15 +174,19 @@ describe("B31 — snapshot policies", () => {
     );
     const { getSemestreAtual } = await import("../src/lib/db/queries");
 
-    await persistPortalSnapshot(buildMockPortalSnapshot("12345678901"));
-    const before = getSemestreAtual().length;
-    assert.ok(before > 0);
+    await runWithUserDb("12345678901", async () => {
+      ensureDbReady();
+      await persistPortalSnapshot(buildMockPortalSnapshot("12345678901"));
+      const before = getSemestreAtual().length;
+      assert.ok(before > 0);
 
-    const empty = buildMockPortalSnapshot("12345678901");
-    empty.semestreAtual = [];
-    const result = await persistPortalSnapshot(empty);
-    assert.equal(result.persisted, false);
-    assert.equal(getSemestreAtual().length, before);
+      const empty = buildMockPortalSnapshot("12345678901");
+      empty.semestreAtual = [];
+      const result = await persistPortalSnapshot(empty);
+      assert.equal(result.persisted, true);
+      assert.equal(result.emptySemester, true);
+      assert.equal(getSemestreAtual().length, 0);
+    });
   });
 });
 
