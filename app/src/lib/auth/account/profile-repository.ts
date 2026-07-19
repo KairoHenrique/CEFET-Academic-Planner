@@ -117,6 +117,35 @@ export async function findProfileByCpf(
   return row ? mapProfileRow(row) : null;
 }
 
+/** Lookup mínimo para sync/worker — só tenant ids (minimização LGPD). */
+export async function findSyncTenantByCpf(
+  cpf: string
+): Promise<{ userId: string; cursoId: AppCursoId } | null> {
+  const pool = getPostgresPool();
+  const result = await pool.query<{ user_id: string; curso_id: string }>(
+    `SELECT user_id, curso_id
+     FROM app_profiles
+     WHERE cpf = $1
+     LIMIT 1`,
+    [cpf]
+  );
+
+  const row = result.rows[0];
+  if (!row?.user_id) {
+    return null;
+  }
+
+  const cursoId = row.curso_id;
+  if (!cursoId) {
+    return { userId: row.user_id, cursoId: "eng-computacao" };
+  }
+
+  return {
+    userId: row.user_id,
+    cursoId: cursoId as AppCursoId,
+  };
+}
+
 export async function findProfileByUserId(
   userId: string
 ): Promise<AppProfileRecord | null> {
