@@ -11,6 +11,8 @@ type Props = {
   conflictCellKeys?: ReadonlySet<string>;
   /** Cores empilhadas no preview multi-horário (site). */
   previewCellLayers?: Map<string, string[]> | null;
+  /** Cor da turma/grupo selecionado — fantasma igual ao web (sem texto). */
+  selectionTintColor?: string | null;
   onSlotPress: (payload: {
     slot: ScheduleSlotData;
     dayIdx: number;
@@ -21,6 +23,15 @@ type Props = {
   onEmptyPress: (dayIdx: number, slotIdx: number) => void;
 };
 
+/** Estilo de célula de matéria (preenchida) sem o rótulo — preview/seleção. */
+function ghostSubjectColors(color: string) {
+  const tint = color?.trim() || brand.jerseyLight;
+  return {
+    backgroundColor: hexWithAlpha(tint, 0.28),
+    borderColor: hexWithAlpha(tint, 0.5),
+  };
+}
+
 /** Grade interativa F28 — compacta, tap-to-place. */
 export function EnrollmentScheduleGrid({
   schedule,
@@ -28,6 +39,7 @@ export function EnrollmentScheduleGrid({
   allowedEmptyCells,
   conflictCellKeys,
   previewCellLayers,
+  selectionTintColor = null,
   onSlotPress,
   onEmptyPress,
 }: Props) {
@@ -54,24 +66,34 @@ export function EnrollmentScheduleGrid({
             const allowed = allowedEmptyCells?.has(key) ?? false;
             const conflict = conflictCellKeys?.has(key) ?? false;
             const previewColors = previewCellLayers?.get(key) ?? [];
+            const hasPreview = previewColors.length > 0;
+            const ghostTint =
+              (hasPreview ? previewColors[0] : null) ||
+              (allowed && selectionTintColor ? selectionTintColor : null);
 
             if (!cell) {
+              const ghost = ghostTint ? ghostSubjectColors(ghostTint) : null;
+
               return (
                 <Pressable
                   key={key}
                   style={[
                     styles.slotCol,
                     styles.emptyCell,
-                    highlightEmpty && allowed && styles.allowedCell,
-                    conflict && styles.conflictCell,
-                    previewColors.length > 0 && styles.previewCell,
+                    highlightEmpty && allowed && !ghost && styles.allowedCell,
+                    ghost && styles.ghostSubjectCell,
+                    ghost && {
+                      backgroundColor: ghost.backgroundColor,
+                      borderColor: conflict ? brand.danger : ghost.borderColor,
+                    },
+                    conflict && !ghost && styles.conflictCell,
                   ]}
                   onPress={() => {
                     if (highlightEmpty && allowed) onEmptyPress(dayIdx, slotIdx);
                   }}
                   disabled={!highlightEmpty || !allowed}
                 >
-                  {previewColors.length > 0 ? (
+                  {previewColors.length > 1 ? (
                     <View style={styles.previewLayers}>
                       {previewColors.map((color, idx) => (
                         <View
@@ -79,7 +101,7 @@ export function EnrollmentScheduleGrid({
                           style={[
                             styles.previewLayer,
                             {
-                              backgroundColor: hexWithAlpha(color, 0.55),
+                              backgroundColor: hexWithAlpha(color, 0.22),
                               flex: 1,
                             },
                           ]}
@@ -224,16 +246,14 @@ const styles = StyleSheet.create({
     borderColor: brand.gold,
     backgroundColor: "rgba(212,168,67,0.18)",
   },
-  previewCell: {
+  ghostSubjectCell: {
     borderStyle: "solid",
-    borderColor: brand.gold,
+    borderWidth: 1,
     padding: 0,
     overflow: "hidden",
   },
   previewLayers: {
-    flex: 1,
-    width: "100%",
-    height: "100%",
+    ...StyleSheet.absoluteFillObject,
     flexDirection: "row",
   },
   previewLayer: {

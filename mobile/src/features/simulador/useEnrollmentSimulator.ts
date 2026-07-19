@@ -220,6 +220,11 @@ export function useEnrollmentSimulator(
     ? formatTurmaHorarioDisplay(selectedCourse)
     : null;
 
+  const selectionTintColor =
+    selectedCourse?.color?.trim() ||
+    selectedGroupVariants[0]?.color?.trim() ||
+    null;
+
   const clearGroupPreview = useCallback(() => {
     setSelectedGroupId(null);
     setSelectedGroupVariants([]);
@@ -568,6 +573,7 @@ export function useEnrollmentSimulator(
     allowedEmptyCells,
     highlightEmpty,
     previewCellLayers,
+    selectionTintColor,
     availableCurso,
     availableOptativas,
     corequisitoObligation,

@@ -74,16 +74,11 @@ export function MapaScreen() {
     void load(true);
   });
 
-  const donePct =
-    data && data.stats.total > 0
-      ? Math.round((data.stats.done / data.stats.total) * 100)
-      : 0;
-
   return (
     <Screen
       title="Mapa do Curso"
       eyebrow="Currículo"
-      subtitle={data ? `${data.curso} · ${donePct}% concluído` : undefined}
+      subtitle={data?.curso}
       cacheHint={fromCache ? "Dados do cache offline" : null}
       scrollProps={{
         refreshControl: (

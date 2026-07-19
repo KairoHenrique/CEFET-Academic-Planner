@@ -17,14 +17,16 @@ type Props = {
   activeRoute: keyof RootStackParamList | string;
   onClose: () => void;
   onNavigate: (route: keyof RootStackParamList) => void;
+  onStartTutorial: () => void;
 };
 
-/** Drawer direito F28 — links do site + logout. */
+/** Drawer direito F28 — links do site + tutorial + logout. */
 export function MobileDrawer({
   open,
   activeRoute,
   onClose,
   onNavigate,
+  onStartTutorial,
 }: Props) {
   const insets = useSafeAreaInsets();
 
@@ -97,6 +99,19 @@ export function MobileDrawer({
           >
             <Icon name="star" size={18} color={brand.textSecondary} />
             <Text style={styles.linkLabel}>Planos</Text>
+          </Pressable>
+
+          <Pressable
+            style={styles.link}
+            onPress={() => {
+              onClose();
+              onStartTutorial();
+            }}
+            accessibilityRole="button"
+            accessibilityLabel="Abrir tutorial desta tela"
+          >
+            <Icon name="help-circle" size={18} color={brand.textSecondary} />
+            <Text style={styles.linkLabel}>Tutorial</Text>
           </Pressable>
 
           <Pressable style={styles.logout} onPress={() => void onLogout()}>
