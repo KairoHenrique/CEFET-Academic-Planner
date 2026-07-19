@@ -1,22 +1,43 @@
 import type { ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { brand } from "../theme/brand";
+import { Icon, type IconName } from "./Icon";
 
 export { gradeRiskLabel } from "../lib/safe-text";
 
-/** Card F28 — `.card` + hairline dourado superior. */
+/** Card F28 — glass + hairline + sombra do site. */
 export function Card({
   children,
   style,
   compact,
+  tight,
 }: {
   children: ReactNode;
   style?: object;
   compact?: boolean;
+  tight?: boolean;
 }) {
   return (
-    <View style={[styles.card, compact && styles.cardCompact, style]}>
-      <View style={styles.hairline} />
+    <View
+      style={[
+        styles.card,
+        compact && styles.cardCompact,
+        tight && styles.cardTight,
+        style,
+      ]}
+    >
+      <LinearGradient
+        colors={[
+          "rgba(232,198,106,0)",
+          "rgba(232,198,106,0.55)",
+          "rgba(232,198,106,0)",
+        ]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={[styles.hairline, tight && styles.hairlineTight]}
+        pointerEvents="none"
+      />
       {children}
     </View>
   );
@@ -26,34 +47,34 @@ export const cardStyles = StyleSheet.create({
   card: {
     backgroundColor: brand.bgSecondary,
     borderRadius: brand.radiusLg,
-    padding: brand.space4,
-    marginBottom: brand.space3,
+    padding: 12,
+    marginBottom: brand.space4,
     borderWidth: 1,
     borderColor: brand.border,
     overflow: "hidden",
   },
   cardTitle: {
-    fontSize: 15,
-    fontFamily: brand.fontBodyBold,
-    fontWeight: "700",
+    fontSize: 14,
+    fontFamily: brand.fontBodyMed,
+    fontWeight: "500",
     color: brand.text,
   },
   cardMeta: {
-    marginTop: 4,
+    marginTop: 2,
     fontSize: 12,
     fontFamily: brand.fontBody,
-    color: brand.textMuted,
-    lineHeight: 17,
+    color: brand.textSecondary,
+    lineHeight: 16,
   },
-  /** `.section-header-title` F28 */
+  /** Preferir `SectionHeader` — mantido p/ telas legadas */
   sectionTitle: {
     fontSize: 14,
     fontFamily: brand.fontBodySemi,
     fontWeight: "600",
     color: brand.text,
     textTransform: "uppercase",
-    letterSpacing: 0.9,
-    marginBottom: brand.space3,
+    letterSpacing: 0.84,
+    marginBottom: brand.space4,
     marginTop: brand.space2,
   },
   row: {
@@ -64,14 +85,14 @@ export const cardStyles = StyleSheet.create({
   },
   badge: {
     borderRadius: brand.radiusSm,
-    paddingHorizontal: 12,
-    paddingVertical: 3,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
     backgroundColor: "rgba(212,168,67,0.16)",
     borderWidth: 1,
     borderColor: brand.borderEmphasis,
   },
   badgeText: {
-    fontSize: 11,
+    fontSize: 10,
     fontFamily: brand.fontBodyBold,
     fontWeight: "700",
     color: brand.gold200,
@@ -107,17 +128,19 @@ export function PageHeader({
   );
 }
 
-/** Stat card F28 — label UPPER + valor Outfit grande + detail. */
+/** Stat card F28 — label UPPER + valor Outfit grande + detail + ícone do site. */
 export function StatCard({
   label,
   value,
   detail,
   tone = "gold",
+  icon = "star",
 }: {
   label: string;
   value: string | number;
   detail?: string;
   tone?: "gold" | "blue" | "danger" | "success";
+  icon?: IconName;
 }) {
   const valueColor =
     tone === "blue"
@@ -129,7 +152,7 @@ export function StatCard({
           : brand.gold;
 
   return (
-    <Card style={statStyles.card} compact>
+    <Card style={statStyles.card} tight>
       <Text style={statStyles.label}>{label}</Text>
       <View style={statStyles.row}>
         <View style={{ flex: 1 }}>
@@ -137,7 +160,7 @@ export function StatCard({
           {detail ? <Text style={statStyles.detail}>{detail}</Text> : null}
         </View>
         <View style={statStyles.icon}>
-          <Text style={statStyles.iconText}>◆</Text>
+          <Icon name={icon} size={18} color={brand.gold} />
         </View>
       </View>
     </Card>
@@ -163,23 +186,35 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: brand.bgSecondary,
     borderRadius: brand.radiusLg,
-    padding: brand.space5,
-    marginBottom: brand.space3,
+    padding: brand.space6,
+    marginBottom: brand.space4,
     borderWidth: 1,
     borderColor: brand.border,
     overflow: "hidden",
     position: "relative",
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
   },
   cardCompact: {
-    padding: brand.space4,
+    padding: brand.space5,
+  },
+  cardTight: {
+    padding: 12,
   },
   hairline: {
     position: "absolute",
     top: 0,
-    left: brand.space4,
-    right: brand.space4,
+    left: brand.space6,
+    right: brand.space6,
     height: 1,
-    backgroundColor: "rgba(232,198,106,0.45)",
+    opacity: 0.7,
+  },
+  hairlineTight: {
+    left: 12,
+    right: 12,
   },
 });
 
@@ -268,9 +303,5 @@ const statStyles = StyleSheet.create({
     borderColor: brand.borderEmphasis,
     alignItems: "center",
     justifyContent: "center",
-  },
-  iconText: {
-    color: brand.gold,
-    fontSize: 12,
   },
 });

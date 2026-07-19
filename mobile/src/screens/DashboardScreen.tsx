@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
-import { RefreshControl, Text, View } from "react-native";
-import { useFocusEffect } from "@react-navigation/native";
+import { RefreshControl } from "react-native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type {
   DashboardResponse,
   ScheduleApiResponse,
@@ -11,9 +12,11 @@ import { IntegrationModule } from "../features/dashboard/IntegrationModule";
 import { StatsModule } from "../features/dashboard/StatsModule";
 import { SubjectsModule } from "../features/dashboard/SubjectsModule";
 import { UpcomingTasksModule } from "../features/dashboard/UpcomingTasksModule";
+import type { RootStackParamList } from "../navigation/types";
+import { setAvatarFromNome } from "../perfil/avatar-store";
+import { startManualLiteSync } from "../sync/manual-lite-sync";
+import { useOnSyncComplete } from "../sync/useOnSyncComplete";
 import { brand } from "../theme/brand";
-import { cardStyles } from "../ui/cards";
-import { EmptyState } from "../ui/EmptyState";
 import { ErrorBox } from "../ui/ErrorBox";
 import { LoadingBlock } from "../ui/LoadingBlock";
 import { Screen } from "../ui/Screen";
@@ -26,8 +29,13 @@ function greeting(): string {
   return "Boa noite,";
 }
 
-/** Ordem F28: stats → tarefas → integralização → grade → matérias. */
+/**
+ * Dashboard F28 — ordem idêntica a `DashboardView`:
+ * header → StatsRow → UpcomingTasks → IntegrationProgress → WeeklySchedule → SubjectsGrid
+ */
 export function DashboardScreen() {
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [data, setData] = useState<DashboardResponse | null>(null);
   const [schedule, setSchedule] = useState<ScheduleApiResponse | null>(null);
   const [fromCache, setFromCache] = useState(false);
@@ -46,10 +54,13 @@ export function DashboardScreen() {
       setData(dash.data);
       setFromCache(dash.fromCache || Boolean(sched?.fromCache));
       if (sched) setSchedule(sched.data);
+      if (dash.data.aluno?.nome) {
+        void setAvatarFromNome(dash.data.aluno.nome);
+      }
     } catch (err) {
       if (err instanceof ApiClientError && err.status === 404) {
         setError(
-          "Nenhum dado sincronizado. Abra Mais → Sync SIGAA e sincronize."
+          "Nenhum dado sincronizado. Abra Sync (ícone na barra) e sincronize com o SIGAA."
         );
       } else {
         setError(
@@ -70,15 +81,33 @@ export function DashboardScreen() {
     }, [load])
   );
 
-  const firstName = data?.aluno.nome.split(" ")[0] ?? "";
+  useOnSyncComplete(() => {
+    void load(true);
+  });
+
+  const emptySchedule: ScheduleApiResponse = {
+    days: ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"],
+    timeSlots: [
+      "07:00 - 08:40",
+      "08:55 - 10:35",
+      "10:50 - 12:30",
+      "13:50 - 15:30",
+      "15:50 - 17:30",
+      "19:00 - 20:40",
+      "20:55 - 22:35",
+    ],
+    grid: Array.from({ length: 5 }, () =>
+      Array.from({ length: 7 }, () => null)
+    ),
+  };
 
   return (
     <Screen
       eyebrow={
         data ? `Semestre ${data.aluno.semestreAtual}` : "ACME HUB"
       }
-      title={data ? greeting() : "Início"}
-      highlight={data ? firstName : undefined}
+      title={data ? greeting() : "Dashboard"}
+      highlight={data ? data.aluno.nome : undefined}
       subtitle={
         data
           ? `${data.aluno.curso} · CEFET-MG Divinópolis`
@@ -100,7 +129,16 @@ export function DashboardScreen() {
     >
       {loading && !data ? <LoadingBlock /> : null}
       {error && !data ? (
-        <ErrorBox message={error} onRetry={() => void load()} />
+        <ErrorBox
+          message={error}
+          onRetry={() => {
+            if (error.includes("sincronizado")) {
+              void startManualLiteSync();
+              return;
+            }
+            void load();
+          }}
+        />
       ) : null}
 
       {data ? (
@@ -111,20 +149,17 @@ export function DashboardScreen() {
             onChanged={() => void load(true)}
           />
           <IntegrationModule integralizacao={data.integralizacao} />
-
-          <Text style={cardStyles.sectionTitle}>Grade da Semana</Text>
-          {schedule ? (
-            <View style={cardStyles.card}>
-              <WeeklyScheduleGrid schedule={schedule} compact />
-            </View>
-          ) : (
-            <EmptyState
-              title="Grade indisponível"
-              message="Puxe para atualizar ou sincronize no site."
-            />
-          )}
-
-          <SubjectsModule disciplinas={data.disciplinas} />
+          <WeeklyScheduleGrid
+            schedule={schedule ?? emptySchedule}
+            onOpenCalendar={() => navigation.navigate("Calendario")}
+          />
+          <SubjectsModule
+            disciplinas={data.disciplinas}
+            onSeeAll={() => navigation.navigate("Disciplinas")}
+            onOpenSubject={(code) =>
+              navigation.navigate("DisciplinaDetail", { code })
+            }
+          />
         </>
       ) : null}
     </Screen>

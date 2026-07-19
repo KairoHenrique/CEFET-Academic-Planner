@@ -1,6 +1,6 @@
 /**
  * Tokens F28 — espelho literal de `app/src/app/globals.css` (:root).
- * Visual do site mobile; só a navegação (tabs) muda.
+ * Visual + navegação do site mobile (navbar/drawer).
  */
 export const brand = {
   /* Azul jersey */

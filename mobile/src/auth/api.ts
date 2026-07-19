@@ -1,9 +1,11 @@
 import type {
   AccountAuthResponse,
+  AuthConfigResponse,
   LoginAccountBody,
   PerfilResponse,
   RefreshAccountBody,
   RefreshAuthResponse,
+  RegisterAccountBody,
   SubscriptionAccessView,
 } from "@acme/api-contracts";
 import { getApiBaseUrl } from "../config/env";
@@ -16,6 +18,7 @@ import {
   updateSubscription,
   type MobileAuthSession,
 } from "./session";
+import { queuePostAuthNavigation } from "./post-auth-nav";
 
 export class ApiClientError extends Error {
   readonly status: number;
@@ -84,6 +87,22 @@ export async function postAuthLogin(
   return requestJson<AccountAuthResponse>("/api/auth/login", {
     method: "POST",
     body: JSON.stringify(body),
+    auth: false,
+  });
+}
+
+export async function postAuthRegister(
+  body: RegisterAccountBody
+): Promise<AccountAuthResponse> {
+  return requestJson<AccountAuthResponse>("/api/auth/register", {
+    method: "POST",
+    body: JSON.stringify(body),
+    auth: false,
+  });
+}
+
+export async function getAuthConfig(): Promise<AuthConfigResponse> {
+  return requestJson<AuthConfigResponse>("/api/auth/config", {
     auth: false,
   });
 }
@@ -166,7 +185,18 @@ export async function loginAndPersist(
   body: LoginAccountBody
 ): Promise<MobileAuthSession> {
   const auth = await postAuthLogin(body);
-  return persistFromAuthResponse(auth);
+  const session = await persistFromAuthResponse(auth);
+  queuePostAuthNavigation(session.subscription.status);
+  return session;
+}
+
+export async function registerAndPersist(
+  body: RegisterAccountBody
+): Promise<MobileAuthSession> {
+  const auth = await postAuthRegister(body);
+  const session = await persistFromAuthResponse(auth);
+  queuePostAuthNavigation(session.subscription.status);
+  return session;
 }
 
 /** Monta URL absoluta para abrir planos no browser. */

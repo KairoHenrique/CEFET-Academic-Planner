@@ -3,8 +3,10 @@ import type {
   CalendarEvent,
   IntegralizacaoResponse,
   SubjectDetailResponse,
+  SyncQueueEnqueueResponse,
 } from "@acme/api-contracts";
-import { requestJson } from "../auth/api";
+import { ApiClientError, requestJson } from "../auth/api";
+import { getSession } from "../auth/session";
 
 export async function toggleTarefa(
   id: number,
@@ -118,19 +120,24 @@ export async function postIntegralizacaoHours(body: {
   });
 }
 
-export async function enqueueSync(body: {
-  username: string;
+export async function enqueueSync(body?: {
+  username?: string;
   password?: string;
   mode?: "lite" | "full";
   trigger?: "manual" | "auto" | "first_login";
-}): Promise<{ ok: true; reused: boolean; job: { id: string; status: string } }> {
-  return requestJson("/api/sync/queue", {
+}): Promise<SyncQueueEnqueueResponse> {
+  const session = getSession();
+  const username = body?.username ?? session?.cpf;
+  if (!username) {
+    throw new ApiClientError("Sessão inválida.", 401, "UNAUTHORIZED");
+  }
+  return requestJson<SyncQueueEnqueueResponse>("/api/sync/queue", {
     method: "POST",
     body: JSON.stringify({
-      username: body.username,
-      password: body.password,
-      mode: body.mode ?? "lite",
-      trigger: body.trigger ?? "manual",
+      username,
+      password: body?.password,
+      mode: body?.mode ?? "lite",
+      trigger: body?.trigger ?? "manual",
       lane: "normal",
     }),
   });
@@ -140,8 +147,14 @@ export async function fetchMapaGrafo(): Promise<{
   curso: string;
   historicoSynced: boolean;
   statusLabels: Record<string, string>;
+  layout: {
+    columnGap: number;
+    rowGap: number;
+    nodeWidth: number;
+  };
   nodes: Array<{
     id: string;
+    position: { x: number; y: number };
     data: {
       code: string;
       name: string;
@@ -149,6 +162,8 @@ export async function fetchMapaGrafo(): Promise<{
       status: string;
       period: number;
       ch: number;
+      blockedBy?: string;
+      chRemaining?: number;
     };
   }>;
   edges: Array<{
@@ -167,7 +182,12 @@ export async function checkChoques(turmaSigaaIds: string[]): Promise<{
   hasConflicts: boolean;
   conflicts: Array<{
     turmaSigaaIdA: string;
+    codeA?: string;
+    nameA?: string;
     turmaSigaaIdB: string;
+    codeB?: string;
+    nameB?: string;
+    cells?: Array<{ dayIdx: number; slotIdx: number; horario?: string }>;
   }>;
   invalidTurmaIds: string[];
 }> {
@@ -179,9 +199,27 @@ export async function checkChoques(turmaSigaaIds: string[]): Promise<{
 
 export async function listSimulacoes(): Promise<{
   ok: true;
-  items: Array<{ id: number; titulo: string; semestre: string }>;
+  items: Array<{
+    id: string | number;
+    titulo: string;
+    semestre: string;
+    turmaCount?: number;
+    totalCh?: number;
+  }>;
 }> {
   return requestJson("/api/simulador/simulacoes");
+}
+
+export async function getSimulacao(id: string | number): Promise<{
+  ok: true;
+  simulation: {
+    id: string | number;
+    titulo: string;
+    semestre: string;
+    payload: { semestre: string; turmaSigaaIds: string[] };
+  };
+}> {
+  return requestJson(`/api/simulador/simulacoes/${id}`);
 }
 
 export async function saveSimulacao(body: {
@@ -195,7 +233,7 @@ export async function saveSimulacao(body: {
   });
 }
 
-export async function deleteSimulacao(id: number): Promise<unknown> {
+export async function deleteSimulacao(id: string | number): Promise<unknown> {
   return requestJson(`/api/simulador/simulacoes/${id}`, {
     method: "DELETE",
   });

@@ -522,13 +522,12 @@ UI (**F41**): seção **Orquestração sync** — formulário da tabela acima + 
 
 ### 7.1 Objetivo da fase mobile
 
-- App nativo **Android** com **paridade de funções** do site desktop **v1.0** — **não** clonar o layout do site mobile (**F28**).
-- **Identidade:** cores / marca / visual premium do produto; **IA e componentes livres** (mais modular, intuitivo e visível que o browser).
+- App nativo **Android** = **clone visual e funcional do site mobile (**F28**)** (banda ≤768) — **sem** WebView.
+- **Identidade e IA:** mesmas telas/hierarquia do F28 (navbar topo + hamburger + drawer); **não** bottom tabs nem home “job-first” inventada.
 - **Sessão persistente:** tokens seguros; senha só no login e após logout.
 - **Cache local** + **push** pós-sync/novidades (só se logado).
-- **Navegação:** **bottom tabs** apenas — **sem** barra/drawer lateral (decisão de produto jul/2026).
-- Home orientada a **jobs** (“hoje / prazos / notas”), não à ordem de rotas do Next.js — ver `TASKS.md` § UX nativa (Bloco 8).
-- **Pré-requisito:** site web **v1.0**. Alternativa sem instalar: **F28**.
+- **Navegação:** **navbar + drawer** espelhando o site — **sem** bottom tabs.
+- **Pré-requisito:** site web **v1.0** + **F28**. Quem não instalar continua no browser (**F28**).
 - Mesma API Next/Supabase (cliente fino).
 
 ### 7.2 Escopo mobile (paridade site v1.0)

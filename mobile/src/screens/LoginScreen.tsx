@@ -1,203 +1,80 @@
-import { useState } from "react";
-import {
-  ActivityIndicator,
-  Linking,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
-import { ApiClientError, loginAndPersist, resolveWebHref } from "../auth/api";
-import { formatCpfInput, isValidCpf, normalizeCpf } from "../auth/cpf";
+import { useEffect, useState } from "react";
+import { StyleSheet, Text, View } from "react-native";
+import type { AuthCursoOption } from "@acme/api-contracts";
+import { getAuthConfig } from "../auth/api";
+import { AuthModeTabs, type AuthPanelMode } from "../features/auth/AuthModeTabs";
+import { CloudLoginForm } from "../features/auth/CloudLoginForm";
+import { DEFAULT_AUTH_CURSOS } from "../features/auth/auth-fields";
+import { LegalFooterLinks } from "../features/auth/LegalConsentField";
+import { LoginCard } from "../features/auth/LoginCard";
+import { RegisterForm } from "../features/auth/RegisterForm";
 import { brand } from "../theme/brand";
 
 type Props = {
   apiConfigured: boolean;
+  initialMode?: AuthPanelMode;
 };
 
-export function LoginScreen({ apiConfigured }: Props) {
-  const [cpf, setCpf] = useState("");
-  const [password, setPassword] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+/**
+ * Auth F28 — mesmo `/login` do site: card + tabs Entrar | Criar conta.
+ */
+export function LoginScreen({
+  apiConfigured,
+  initialMode = "login",
+}: Props) {
+  const [panel, setPanel] = useState<AuthPanelMode>(initialMode);
+  const [cursos, setCursos] =
+    useState<readonly AuthCursoOption[]>(DEFAULT_AUTH_CURSOS);
 
-  async function onSubmit() {
-    setError(null);
-    const normalized = normalizeCpf(cpf);
-    if (!isValidCpf(normalized) || !password.trim()) {
-      setError("Informe CPF e senha válidos.");
-      return;
-    }
-    if (!apiConfigured) {
-      setError("Configure EXPO_PUBLIC_API_BASE_URL em mobile/.env");
-      return;
-    }
+  useEffect(() => {
+    if (!apiConfigured) return;
+    void getAuthConfig()
+      .then((config) => {
+        if (config.cursos?.length) setCursos(config.cursos);
+      })
+      .catch(() => {
+        // Mantém fallback local.
+      });
+  }, [apiConfigured]);
 
-    setBusy(true);
-    try {
-      await loginAndPersist({ cpf: normalized, password });
-      setPassword("");
-    } catch (err) {
-      setError(
-        err instanceof ApiClientError
-          ? err.message
-          : "Não foi possível entrar. Tente novamente."
-      );
-    } finally {
-      setBusy(false);
-    }
-  }
+  const subtitle =
+    panel === "register"
+      ? "Cadastre-se com CPF e senha do SIGAA."
+      : "Entre com CPF e senha do SIGAA.";
 
   return (
-    <View style={styles.root}>
-      <Text style={styles.brand}>ACME HUB</Text>
-      <Text style={styles.subtitle}>Entrar com sua conta</Text>
-      <Text style={styles.hint}>Mesmo CPF e senha do site</Text>
-
+    <LoginCard subtitle={subtitle} foot={<LegalFooterLinks />}>
       {!apiConfigured ? (
-        <Text style={styles.warn}>
-          Falta EXPO_PUBLIC_API_BASE_URL no mobile/.env
-        </Text>
+        <View style={styles.warnBox}>
+          <Text style={styles.warn}>
+            Falta EXPO_PUBLIC_API_BASE_URL no mobile/.env
+          </Text>
+        </View>
       ) : null}
 
-      <View style={styles.form}>
-        <TextInput
-          style={styles.input}
-          placeholder="CPF"
-          placeholderTextColor="rgba(255,255,255,0.45)"
-          keyboardType="number-pad"
-          autoCapitalize="none"
-          autoComplete="username"
-          value={cpf}
-          onChangeText={(value) => setCpf(formatCpfInput(value))}
-          editable={!busy}
-          maxLength={14}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Senha"
-          placeholderTextColor="rgba(255,255,255,0.45)"
-          secureTextEntry
-          autoComplete="password"
-          value={password}
-          onChangeText={setPassword}
-          editable={!busy}
-          onSubmitEditing={() => void onSubmit()}
-        />
-        <Pressable
-          style={[styles.button, busy && styles.disabled]}
-          onPress={() => void onSubmit()}
-          disabled={busy || !apiConfigured}
-        >
-          {busy ? (
-            <ActivityIndicator color={brand.blue} />
-          ) : (
-            <Text style={styles.buttonText}>Entrar</Text>
-          )}
-        </Pressable>
-        <Pressable
-          style={styles.register}
-          onPress={() => void Linking.openURL(resolveWebHref("/login"))}
-          disabled={busy}
-        >
-          <Text style={styles.registerText}>
-            Criar conta no site (cadastro completo)
-          </Text>
-        </Pressable>
-      </View>
+      <AuthModeTabs mode={panel} onChange={setPanel} />
 
-      {error ? <Text style={styles.error}>{error}</Text> : null}
-    </View>
+      {panel === "login" ? (
+        <CloudLoginForm apiConfigured={apiConfigured} />
+      ) : (
+        <RegisterForm
+          cursos={cursos}
+          apiConfigured={apiConfigured}
+          onGoToLogin={() => setPanel("login")}
+        />
+      )}
+    </LoginCard>
   );
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: brand.bg,
-    justifyContent: "center",
-    paddingHorizontal: 24,
-  },
-  brand: {
-    color: brand.gold200,
-    fontSize: 36,
-    fontFamily: brand.fontDisplayExtra,
-    fontWeight: "800",
-    letterSpacing: 1,
-    textAlign: "center",
-  },
-  subtitle: {
-    marginTop: 10,
-    color: brand.text,
-    fontSize: 18,
-    fontFamily: brand.fontBodySemi,
-    fontWeight: "600",
-    textAlign: "center",
-  },
-  hint: {
-    marginTop: 6,
-    color: brand.textSecondary,
-    fontSize: 13,
-    fontFamily: brand.fontBody,
-    textAlign: "center",
+  warnBox: {
+    marginBottom: 4,
   },
   warn: {
-    marginTop: 16,
     color: brand.danger,
     textAlign: "center",
     fontSize: 13,
-  },
-  form: {
-    marginTop: 28,
-    gap: 10,
-    maxWidth: 400,
-    width: "100%",
-    alignSelf: "center",
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: brand.border,
-    backgroundColor: brand.bgSecondary,
-    borderRadius: brand.radiusMd,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    color: brand.text,
-    fontSize: 16,
     fontFamily: brand.fontBody,
-    minHeight: brand.touchMin,
-  },
-  button: {
-    backgroundColor: brand.gold,
-    borderRadius: brand.radiusSm,
-    paddingVertical: 14,
-    alignItems: "center",
-    minHeight: brand.touchMin,
-    justifyContent: "center",
-  },
-  disabled: { opacity: 0.55 },
-  buttonText: {
-    color: brand.textInverse,
-    fontFamily: brand.fontBodyBold,
-    fontWeight: "700",
-    fontSize: 15,
-  },
-  error: {
-    marginTop: 16,
-    color: brand.danger,
-    textAlign: "center",
-    fontSize: 14,
-  },
-  register: {
-    marginTop: 4,
-    paddingVertical: 10,
-    alignItems: "center",
-  },
-  registerText: {
-    color: brand.gold,
-    fontFamily: brand.fontBodyBold,
-    fontWeight: "700",
-    fontSize: 13,
-    textAlign: "center",
   },
 });

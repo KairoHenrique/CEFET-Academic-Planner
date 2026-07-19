@@ -6,11 +6,11 @@ import {
   View,
 } from "react-native";
 import type { AcademicTask } from "@acme/api-contracts";
-import { ApiClientError } from "../../auth/api";
 import { toggleTarefa } from "../../api/mutations";
 import { brand } from "../../theme/brand";
-import { cardStyles, formatPtDate } from "../../ui/cards";
+import { Card, formatPtDate } from "../../ui/cards";
 import { EmptyState } from "../../ui/EmptyState";
+import { SectionHeader } from "../../ui/SectionHeader";
 
 type Props = {
   tasks: AcademicTask[];
@@ -26,55 +26,83 @@ export function UpcomingTasksModule({ tasks, onChanged }: Props) {
     try {
       await toggleTarefa(task.id, true);
       onChanged?.();
-    } catch (err) {
-      // silent — parent can refresh
-      void err;
+    } catch {
+      /* parent refresh */
     } finally {
       setBusyId(null);
     }
   }
 
   return (
-    <>
-      <Text style={cardStyles.sectionTitle}>Próximas entregas</Text>
+    <View style={{ marginBottom: brand.space2 }}>
+      <SectionHeader title="Próximas Entregas" icon="tasks" />
       {pending.length === 0 ? (
         <EmptyState title="Nenhuma tarefa pendente" />
       ) : (
         pending.map((task, idx) => (
-          <View
+          <Card
             key={`task-${task.id}-${idx}`}
-            style={[
-              cardStyles.card,
-              { borderLeftColor: task.subjectColor, borderLeftWidth: 3 },
-            ]}
+            tight
+            style={{
+              borderLeftColor: task.subjectColor,
+              borderLeftWidth: 3,
+            }}
           >
-            <View style={cardStyles.row}>
-              <Text style={[cardStyles.cardTitle, { flex: 1 }]}>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 8,
+              }}
+            >
+              <Text
+                style={{
+                  flex: 1,
+                  fontSize: 14,
+                  fontFamily: brand.fontBodyMed,
+                  fontWeight: "500",
+                  color: brand.text,
+                }}
+              >
                 {task.title}
               </Text>
               {busyId === task.id ? (
                 <ActivityIndicator color={brand.gold} />
               ) : (
-                <Pressable onPress={() => void onToggle(task)}>
-                  <Text style={{ color: brand.gold, fontWeight: "700", fontSize: 12 }}>
+                <Pressable
+                  onPress={() => void onToggle(task)}
+                  hitSlop={8}
+                  style={{ minHeight: 44, justifyContent: "center" }}
+                >
+                  <Text
+                    style={{
+                      color: brand.gold,
+                      fontWeight: "700",
+                      fontSize: 12,
+                      fontFamily: brand.fontBodyBold,
+                    }}
+                  >
                     Concluir
                   </Text>
                 </Pressable>
               )}
             </View>
-            <Text style={cardStyles.cardMeta}>
+            <Text
+              style={{
+                marginTop: 4,
+                fontSize: 12,
+                color: brand.textSecondary,
+                fontFamily: brand.fontBody,
+              }}
+            >
               {task.subject} · {formatPtDate(task.dueDateIso)}
               {task.dueTime ? ` · ${task.dueTime}` : ""}
               {task.type === "grupo" ? " · Grupo" : ""}
             </Text>
-            {task.description ? (
-              <Text style={cardStyles.cardMeta} numberOfLines={2}>
-                {task.description}
-              </Text>
-            ) : null}
-          </View>
+          </Card>
         ))
       )}
-    </>
+    </View>
   );
 }

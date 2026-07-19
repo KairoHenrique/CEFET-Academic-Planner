@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ReactNode, RefObject } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -7,9 +7,11 @@ import {
   type StyleProp,
   type ViewStyle,
 } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import {
   SafeAreaView,
   useSafeAreaInsets,
+  type Edge,
 } from "react-native-safe-area-context";
 import { brand } from "../theme/brand";
 import { PageHeader } from "./cards";
@@ -18,20 +20,20 @@ type Props = {
   children: ReactNode;
   scroll?: boolean;
   padded?: boolean;
-  /** Eyebrow F28 (ex.: SEMESTRE 2026.1) */
   eyebrow?: string;
   title?: string;
   highlight?: string;
   subtitle?: string;
   cacheHint?: string | null;
   footer?: ReactNode;
+  /** Default sem top — navbar F28 já cobre safe area. Login/paywall passam top. */
+  safeEdges?: Edge[];
   contentContainerStyle?: StyleProp<ViewStyle>;
-  scrollProps?: Omit<ScrollViewProps, "children" | "contentContainerStyle">;
+  scrollRef?: RefObject<ScrollView | null>;
+  scrollProps?: Omit<ScrollViewProps, "children" | "contentContainerStyle" | "ref">;
 };
 
-/**
- * Shell de página F28 — fundo Cruzeiro + PageHeader (eyebrow/título/subtitle).
- */
+/** Shell F28 — atmosfera radial azul + header. */
 export function Screen({
   children,
   scroll = true,
@@ -42,7 +44,9 @@ export function Screen({
   subtitle,
   cacheHint,
   footer,
+  safeEdges = ["left", "right"],
   contentContainerStyle,
+  scrollRef,
   scrollProps,
 }: Props) {
   const insets = useSafeAreaInsets();
@@ -67,14 +71,25 @@ export function Screen({
   );
 
   return (
-    <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
-      <View style={styles.atmosphere} pointerEvents="none" />
+    <SafeAreaView style={styles.safe} edges={safeEdges}>
+      <LinearGradient
+        colors={["#001a36", brand.bg, "#000814"]}
+        locations={[0, 0.45, 1]}
+        style={StyleSheet.absoluteFill}
+        pointerEvents="none"
+      />
+      <LinearGradient
+        colors={["rgba(0,88,168,0.28)", "transparent"]}
+        style={styles.topGlow}
+        pointerEvents="none"
+      />
       {scroll ? (
         <ScrollView
+          ref={scrollRef}
           style={styles.flex}
           contentContainerStyle={[
             paddingStyle,
-            { paddingBottom: Math.max(insets.bottom, 16) + 72 },
+            { paddingBottom: Math.max(insets.bottom, 16) + 24 },
             contentContainerStyle,
           ]}
           keyboardShouldPersistTaps="handled"
@@ -104,12 +119,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: brand.bg,
   },
-  atmosphere: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "transparent",
-    // radial approx: leve vinheta superior navy
-    borderTopWidth: 120,
-    borderTopColor: "rgba(0,24,52,0.35)",
+  topGlow: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 180,
   },
   flex: { flex: 1 },
   padded: {

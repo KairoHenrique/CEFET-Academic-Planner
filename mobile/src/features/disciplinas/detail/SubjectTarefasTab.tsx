@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -16,8 +17,9 @@ import {
   toggleTarefa,
 } from "../../../api/mutations";
 import { brand } from "../../../theme/brand";
-import { cardStyles, formatPtDate } from "../../../ui/cards";
+import { formatPtDate } from "../../../ui/cards";
 import { EmptyState } from "../../../ui/EmptyState";
+import { Icon } from "../../../ui/Icon";
 
 type Props = {
   code: string;
@@ -25,6 +27,43 @@ type Props = {
   onChanged: () => void;
 };
 
+type DueFilter =
+  | "todas"
+  | "semana"
+  | "mes"
+  | "atrasadas"
+  | "concluidas";
+
+const FILTERS: { id: DueFilter; label: string }[] = [
+  { id: "todas", label: "Todas" },
+  { id: "semana", label: "Esta semana" },
+  { id: "mes", label: "Este mês" },
+  { id: "atrasadas", label: "Atrasadas" },
+  { id: "concluidas", label: "Concluídas" },
+];
+
+function startOfDay(d: Date): Date {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}
+
+function matchesFilter(task: AcademicTask, filter: DueFilter): boolean {
+  if (filter === "todas") return !task.done;
+  if (filter === "concluidas") return Boolean(task.done);
+  if (task.done) return false;
+
+  const today = startOfDay(new Date());
+  const due = startOfDay(new Date(task.dueDateIso + "T12:00:00"));
+  const diffDays = Math.round(
+    (due.getTime() - today.getTime()) / (24 * 60 * 60 * 1000)
+  );
+
+  if (filter === "atrasadas") return diffDays < 0;
+  if (filter === "semana") return diffDays >= 0 && diffDays <= 7;
+  if (filter === "mes") return diffDays >= 0 && diffDays <= 31;
+  return true;
+}
+
+/** Painel Tarefas F28 — título, badge pendentes, filtros, lista. */
 export function SubjectTarefasTab({ code, tasks, onChanged }: Props) {
   const [busyId, setBusyId] = useState<number | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -32,6 +71,24 @@ export function SubjectTarefasTab({ code, tasks, onChanged }: Props) {
   const [dataFim, setDataFim] = useState("");
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [filter, setFilter] = useState<DueFilter>("todas");
+
+  const pendingCount = useMemo(
+    () => tasks.filter((t) => !t.done).length,
+    [tasks]
+  );
+  const doneCount = useMemo(() => tasks.filter((t) => t.done).length, [tasks]);
+
+  const visible = useMemo(() => {
+    return tasks
+      .filter((t) => matchesFilter(t, filter))
+      .sort((a, b) => a.dueDateIso.localeCompare(b.dueDateIso));
+  }, [tasks, filter]);
+
+  const doneVisible =
+    filter === "todas"
+      ? tasks.filter((t) => t.done).sort((a, b) => a.dueDateIso.localeCompare(b.dueDateIso))
+      : [];
 
   async function onToggle(task: AcademicTask) {
     setBusyId(task.id);
@@ -100,16 +157,91 @@ export function SubjectTarefasTab({ code, tasks, onChanged }: Props) {
     }
   }
 
+  function renderTask(task: AcademicTask, faded = false) {
+    return (
+      <View
+        key={`task-${task.id}`}
+        style={[styles.taskCard, faded && styles.taskDone]}
+      >
+        <View style={styles.taskRow}>
+          <Text style={[styles.taskTitle, faded && styles.taskTitleDone]}>
+            {task.title}
+          </Text>
+          {busyId === task.id ? (
+            <ActivityIndicator color={brand.gold} />
+          ) : (
+            <Pressable onPress={() => void onToggle(task)}>
+              <Text style={task.done ? styles.done : styles.pending}>
+                {task.done ? "Feita ✓" : "Pendente"}
+              </Text>
+            </Pressable>
+          )}
+        </View>
+        <Text style={styles.taskMeta}>
+          {formatPtDate(task.dueDateIso)}
+          {task.dueTime ? ` · ${task.dueTime}` : ""}
+          {task.type === "grupo" ? " · Grupo" : " · Individual"}
+        </Text>
+        <Pressable onPress={() => onDelete(task)} style={styles.del}>
+          <Text style={styles.delText}>Excluir</Text>
+        </Pressable>
+      </View>
+    );
+  }
+
   return (
-    <>
-      <Pressable style={styles.addBtn} onPress={() => setShowForm((v) => !v)}>
-        <Text style={styles.addBtnText}>
-          {showForm ? "Cancelar" : "+ Nova tarefa"}
+    <View style={styles.panel}>
+      <View style={styles.header}>
+        <View style={styles.titleLeft}>
+          <Icon name="clipboard" size={16} color={brand.gold} />
+          <Text style={styles.panelTitle}>Tarefas e Atividades</Text>
+        </View>
+        {pendingCount > 0 ? (
+          <View style={styles.pendingBadge}>
+            <Text style={styles.pendingBadgeText}>
+              {pendingCount} pendente{pendingCount > 1 ? "s" : ""}
+            </Text>
+          </View>
+        ) : null}
+      </View>
+
+      <Pressable
+        style={styles.outlineBtn}
+        onPress={() => setShowForm((v) => !v)}
+      >
+        <Text style={styles.outlineBtnText}>
+          {showForm ? "Cancelar" : "+ Tarefa"}
         </Text>
       </Pressable>
 
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.filterRow}
+      >
+        {FILTERS.map((f) => {
+          const active = f.id === filter;
+          return (
+            <Pressable
+              key={f.id}
+              style={[styles.filterChip, active && styles.filterChipActive]}
+              onPress={() => setFilter(f.id)}
+            >
+              <Text
+                style={[
+                  styles.filterChipText,
+                  active && styles.filterChipTextActive,
+                ]}
+              >
+                {f.label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </ScrollView>
+
       {showForm ? (
-        <View style={cardStyles.card}>
+        <View style={styles.addBox}>
           <TextInput
             style={styles.input}
             placeholder="Título"
@@ -142,52 +274,122 @@ export function SubjectTarefasTab({ code, tasks, onChanged }: Props) {
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
       {tasks.length === 0 ? (
-        <EmptyState title="Sem tarefas" />
+        <EmptyState title="Nenhuma tarefa cadastrada nesta disciplina." />
+      ) : visible.length === 0 && doneVisible.length === 0 ? (
+        <EmptyState title="Nenhuma tarefa neste filtro." />
       ) : (
-        tasks.map((task, idx) => (
-          <View key={`task-${task.id}-${idx}`} style={cardStyles.card}>
-            <View style={cardStyles.row}>
-              <Text style={[cardStyles.cardTitle, { flex: 1 }]}>
-                {task.title}
+        <>
+          {visible.map((t) => renderTask(t))}
+          {filter === "todas" && doneVisible.length > 0 ? (
+            <>
+              <Text style={styles.doneHeader}>
+                Concluídas ({doneCount})
               </Text>
-              {busyId === task.id ? (
-                <ActivityIndicator color={brand.gold} />
-              ) : (
-                <Pressable onPress={() => void onToggle(task)}>
-                  <Text style={task.done ? styles.done : styles.pending}>
-                    {task.done ? "Feita ✓" : "Pendente"}
-                  </Text>
-                </Pressable>
-              )}
-            </View>
-            <Text style={cardStyles.cardMeta}>
-              {formatPtDate(task.dueDateIso)}
-              {task.dueTime ? ` · ${task.dueTime}` : ""}
-              {task.type === "grupo" ? " · Grupo" : " · Individual"}
-            </Text>
-            {task.description ? (
-              <Text style={cardStyles.cardMeta}>{task.description}</Text>
-            ) : null}
-            <Pressable onPress={() => onDelete(task)} style={styles.del}>
-              <Text style={styles.delText}>Excluir</Text>
-            </Pressable>
-          </View>
-        ))
+              {doneVisible.map((t) => renderTask(t, true))}
+            </>
+          ) : null}
+        </>
       )}
-    </>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  addBtn: {
-    marginBottom: 12,
-    paddingVertical: 10,
-    borderRadius: 10,
+  panel: {
+    backgroundColor: brand.glass,
     borderWidth: 1,
-    borderColor: brand.gold,
-    alignItems: "center",
+    borderColor: brand.border,
+    borderRadius: brand.radiusLg,
+    padding: brand.space3,
+    marginBottom: brand.space3,
   },
-  addBtnText: { color: brand.gold, fontWeight: "700" },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8,
+    marginBottom: 10,
+  },
+  titleLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    flexShrink: 1,
+  },
+  panelTitle: {
+    fontSize: 12.5,
+    fontFamily: brand.fontBodySemi,
+    fontWeight: "600",
+    color: brand.text,
+    textTransform: "uppercase",
+    letterSpacing: 0.4,
+    flexShrink: 1,
+  },
+  pendingBadge: {
+    borderRadius: brand.radiusSm,
+    borderWidth: 1,
+    borderColor: "rgba(248,81,73,0.4)",
+    backgroundColor: "rgba(248,81,73,0.2)",
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+  },
+  pendingBadgeText: {
+    fontSize: 11,
+    fontFamily: brand.fontBodyBold,
+    fontWeight: "700",
+    color: "#FF7B72",
+  },
+  outlineBtn: {
+    minHeight: brand.touchMin,
+    borderRadius: brand.radiusMd,
+    borderWidth: 1,
+    borderColor: brand.borderEmphasis,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(212,168,67,0.06)",
+    marginBottom: 10,
+  },
+  outlineBtnText: {
+    color: brand.gold200,
+    fontFamily: brand.fontBodySemi,
+    fontWeight: "600",
+    fontSize: 13,
+  },
+  filterRow: {
+    flexDirection: "row",
+    gap: 8,
+    marginBottom: 12,
+    paddingVertical: 2,
+  },
+  filterChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: brand.radiusSm,
+    borderWidth: 1,
+    borderColor: brand.border,
+    backgroundColor: "rgba(0,0,0,0.2)",
+  },
+  filterChipActive: {
+    borderColor: brand.gold,
+    backgroundColor: "rgba(232,198,106,0.14)",
+  },
+  filterChipText: {
+    fontSize: 12,
+    fontFamily: brand.fontBodySemi,
+    fontWeight: "600",
+    color: brand.textMuted,
+  },
+  filterChipTextActive: {
+    color: brand.gold200,
+  },
+  addBox: {
+    marginBottom: 12,
+    padding: 12,
+    borderRadius: brand.radiusMd,
+    borderWidth: 1,
+    borderColor: brand.border,
+    backgroundColor: "rgba(0,0,0,0.2)",
+  },
   input: {
     backgroundColor: "rgba(0,0,0,0.25)",
     borderRadius: 10,
@@ -206,9 +408,48 @@ const styles = StyleSheet.create({
   },
   saveText: { color: brand.text, fontWeight: "800" },
   disabled: { opacity: 0.55 },
+  taskCard: {
+    borderWidth: 1,
+    borderColor: brand.borderMuted,
+    borderRadius: brand.radiusMd,
+    padding: 12,
+    marginBottom: 8,
+    backgroundColor: "rgba(0,0,0,0.15)",
+  },
+  taskDone: { opacity: 0.55 },
+  taskRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  taskTitle: {
+    flex: 1,
+    fontSize: 14,
+    fontFamily: brand.fontBodyMed,
+    fontWeight: "500",
+    color: brand.text,
+  },
+  taskTitleDone: {
+    textDecorationLine: "line-through",
+  },
+  taskMeta: {
+    marginTop: 4,
+    fontSize: 12,
+    fontFamily: brand.fontBody,
+    color: brand.textSecondary,
+  },
   done: { color: brand.success, fontWeight: "700", fontSize: 12 },
   pending: { color: brand.gold, fontWeight: "700", fontSize: 12 },
   del: { marginTop: 8 },
   delText: { color: brand.danger, fontSize: 12, fontWeight: "700" },
+  doneHeader: {
+    marginTop: 8,
+    marginBottom: 8,
+    fontSize: 12,
+    fontFamily: brand.fontBodySemi,
+    fontWeight: "600",
+    color: brand.textMuted,
+    textTransform: "uppercase",
+  },
   error: { color: brand.danger, marginBottom: 8, fontWeight: "600" },
 });

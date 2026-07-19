@@ -27,10 +27,11 @@ import {
   type MobileAuthSession,
 } from "./src/auth/session";
 import { hasApiBaseUrl } from "./src/config/env";
-import { MainTabs } from "./src/navigation/MainTabs";
+import { AppShell } from "./src/navigation/AppShell";
+import { PaywallStack } from "./src/navigation/PaywallStack";
 import { registerPushForCurrentSession } from "./src/push/register";
+import { hydrateAvatarInitials } from "./src/perfil/avatar-store";
 import { LoginScreen } from "./src/screens/LoginScreen";
-import { PaywallScreen } from "./src/screens/PaywallScreen";
 import { brand } from "./src/theme/brand";
 
 const navTheme = {
@@ -48,8 +49,8 @@ const navTheme = {
 };
 
 /**
- * App nativo Android — mesmas funções do site (API cloud).
- * Login local · sessão SecureStore · tabs · cache · mutações.
+ * App nativo Android — clone F28 (navbar + drawer, sem WebView).
+ * Login local · sessão SecureStore · cache · mutações · push.
  */
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -72,6 +73,7 @@ export default function App() {
       }
     });
     void (async () => {
+      await hydrateAvatarInitials();
       const stored = await hydrateSession();
       if (stored) {
         try {
@@ -120,7 +122,9 @@ export default function App() {
   if (destination === "paywall") {
     return (
       <SafeAreaProvider>
-        <PaywallScreen session={session} />
+        <NavigationContainer theme={navTheme}>
+          <PaywallStack session={session} />
+        </NavigationContainer>
         <StatusBar style="light" />
       </SafeAreaProvider>
     );
@@ -129,7 +133,7 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <NavigationContainer theme={navTheme}>
-        <MainTabs />
+        <AppShell />
       </NavigationContainer>
       <StatusBar style="light" />
     </SafeAreaProvider>

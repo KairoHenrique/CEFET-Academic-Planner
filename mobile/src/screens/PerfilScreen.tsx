@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Linking,
@@ -24,6 +24,12 @@ import {
 import { subscriptionStatusLabel } from "../auth/access";
 import { maskCpf } from "../auth/cpf";
 import { logoutLocal } from "../auth/logout";
+import { formatPhoneInput } from "../features/auth/auth-fields";
+import {
+  setAvatarFromNome,
+  setAvatarInitials,
+} from "../perfil/avatar-store";
+import { useOnSyncComplete } from "../sync/useOnSyncComplete";
 import { brand } from "../theme/brand";
 import { cardStyles } from "../ui/cards";
 import { ErrorBox } from "../ui/ErrorBox";
@@ -42,6 +48,8 @@ const PREF_LABELS: Record<PrefKey, string> = {
   academicDateAlerts: "Datas acadêmicas",
 };
 
+const MESSAGE_DISMISS_MS = 4500;
+
 export function PerfilScreen() {
   const [perfil, setPerfil] = useState<PerfilResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -53,13 +61,24 @@ export function PerfilScreen() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
 
+  useEffect(() => {
+    if (!message) return;
+    const timer = setTimeout(() => setMessage(null), MESSAGE_DISMISS_MS);
+    return () => clearTimeout(timer);
+  }, [message]);
+
   const load = useCallback(async () => {
     setError(null);
     try {
       const result = await getPerfil();
       setPerfil(result);
       setEmail(result.account.email ?? "");
-      setPhone(result.account.phone ?? "");
+      setPhone(formatPhoneInput(result.account.phone ?? ""));
+      if (result.profile?.initials) {
+        void setAvatarInitials(result.profile.initials);
+      } else if (result.profile?.nome) {
+        void setAvatarFromNome(result.profile.nome);
+      }
     } catch (err) {
       setError(
         err instanceof ApiClientError
@@ -78,6 +97,10 @@ export function PerfilScreen() {
       void load();
     }, [load])
   );
+
+  useOnSyncComplete(() => {
+    void load();
+  });
 
   async function togglePref(key: PrefKey, value: boolean) {
     if (!perfil) return;
@@ -120,7 +143,7 @@ export function PerfilScreen() {
       });
       setPerfil(updated);
       setEmail(updated.account.email ?? "");
-      setPhone(updated.account.phone ?? "");
+      setPhone(formatPhoneInput(updated.account.phone ?? ""));
       setMessage("Contato atualizado.");
     } catch (err) {
       setMessage(
@@ -144,6 +167,7 @@ export function PerfilScreen() {
 
   const profile = perfil?.profile;
   const sub = perfil?.subscription;
+  const initials = profile?.initials?.trim() || "??";
 
   return (
     <Screen
@@ -169,23 +193,34 @@ export function PerfilScreen() {
 
       {perfil ? (
         <>
-          <View style={cardStyles.card}>
-            <Text style={cardStyles.cardTitle}>
-              {profile?.nome ?? "Aluno"}
-            </Text>
-            {profile?.curso ? (
-              <Text style={cardStyles.cardMeta}>{profile.curso}</Text>
-            ) : null}
-            {profile?.matricula ? (
-              <Text style={cardStyles.cardMeta}>
-                Matrícula {profile.matricula}
+          <View style={[cardStyles.card, styles.hero]}>
+            <View
+              style={styles.avatar}
+              accessibilityLabel={`Iniciais ${initials}`}
+            >
+              <Text style={styles.avatarText}>{initials}</Text>
+            </View>
+            <View style={styles.heroText}>
+              <Text style={cardStyles.cardTitle}>
+                {profile?.nome ?? "Aluno"}
               </Text>
-            ) : null}
-            {perfil.account.cpf ? (
-              <Text style={cardStyles.cardMeta}>
-                CPF {maskCpf(perfil.account.cpf)}
-              </Text>
-            ) : null}
+              {profile?.status ? (
+                <Text style={cardStyles.cardMeta}>{profile.status}</Text>
+              ) : null}
+              {profile?.curso ? (
+                <Text style={cardStyles.cardMeta}>{profile.curso}</Text>
+              ) : null}
+              {profile?.matricula ? (
+                <Text style={cardStyles.cardMeta}>
+                  Matrícula {profile.matricula}
+                </Text>
+              ) : null}
+              {perfil.account.cpf ? (
+                <Text style={cardStyles.cardMeta}>
+                  CPF {maskCpf(perfil.account.cpf)}
+                </Text>
+              ) : null}
+            </View>
           </View>
 
           <Text style={cardStyles.sectionTitle}>Contato</Text>
@@ -201,11 +236,12 @@ export function PerfilScreen() {
             />
             <TextInput
               style={styles.input}
-              placeholder="Telefone"
+              placeholder="(31) 99999-9999"
               placeholderTextColor={brand.textMuted}
               keyboardType="phone-pad"
               value={phone}
-              onChangeText={setPhone}
+              onChangeText={(text) => setPhone(formatPhoneInput(text))}
+              maxLength={15}
             />
             <Pressable
               style={[styles.saveBtn, saving && styles.disabled]}
@@ -293,6 +329,28 @@ export function PerfilScreen() {
 }
 
 const styles = StyleSheet.create({
+  hero: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+  },
+  avatar: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: "rgba(0,88,168,0.45)",
+    borderWidth: 1,
+    borderColor: brand.borderEmphasis,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  avatarText: {
+    fontSize: 16,
+    fontFamily: brand.fontBodyBold,
+    fontWeight: "700",
+    color: brand.gold200,
+  },
+  heroText: { flex: 1, gap: 2 },
   input: {
     backgroundColor: "rgba(0,0,0,0.25)",
     borderRadius: 10,
