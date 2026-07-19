@@ -6,8 +6,7 @@ import {
   type ReactNode,
 } from "react";
 import { StyleSheet, View } from "react-native";
-import { SoftToast } from "./SoftToast";
-import { UpdateAvailableModal } from "./UpdateAvailableModal";
+import { AppUpdateModal } from "./AppUpdateModal";
 import { useAppUpdateCheck } from "./useAppUpdateCheck";
 
 type UpdateCheckContextValue = {
@@ -41,22 +40,11 @@ export function AppUpdateProvider({ children }: { children: ReactNode }) {
     <UpdateCheckContext.Provider value={value}>
       <View style={styles.root}>
         {children}
-        {prompt ? (
-          <UpdateAvailableModal
-            open
-            localVersion={prompt.localVersion}
-            remoteVersion={prompt.remoteVersion}
-            apkUrl={prompt.apkUrl}
-            notes={prompt.notes}
-            onChoice={(choice) => void handleChoice(choice)}
-          />
-        ) : null}
-        <SoftToast
-          open={Boolean(toast)}
-          kicker={toast?.kicker ?? ""}
-          message={toast?.message ?? null}
-          tone={toast?.tone ?? "ok"}
-          onDismiss={dismissToast}
+        <AppUpdateModal 
+           prompt={prompt} 
+           status={toast} 
+           onChoice={(choice) => void handleChoice(choice)} 
+           onDismissStatus={dismissToast} 
         />
       </View>
     </UpdateCheckContext.Provider>
