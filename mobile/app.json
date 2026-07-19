@@ -13,12 +13,12 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#0060B1"
+      "backgroundColor": "#000814"
     },
     "android": {
       "package": "br.cefethub.acme",
       "adaptiveIcon": {
-        "backgroundColor": "#0060B1",
+        "backgroundColor": "#000814",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -31,7 +31,7 @@
       ]
     },
     "androidStatusBar": {
-      "backgroundColor": "#0060B1",
+      "backgroundColor": "#000814",
       "barStyle": "light-content"
     },
     "plugins": [
@@ -43,7 +43,7 @@
         "expo-notifications",
         {
           "icon": "./assets/icon.png",
-          "color": "#0060B1",
+          "color": "#000814",
           "defaultChannel": "acme-hub-default",
           "sounds": []
         }
