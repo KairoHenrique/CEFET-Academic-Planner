@@ -14460,16 +14460,16 @@ body.mobile-nav-open {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.45rem;
-  padding: 0.55rem 0.55rem 0.65rem;
-  border-radius: 16px;
+  gap: 0.35rem;
+  padding: 0.4rem 0.4rem 0.5rem;
+  border-radius: 12px;
   border: 1.5px solid rgba(232, 198, 106, 0.72);
   background:
     linear-gradient(165deg, rgba(18, 36, 64, 0.97) 0%, rgba(6, 14, 28, 0.98) 100%);
   box-shadow:
-    0 12px 32px rgba(0, 0, 0, 0.5),
+    0 10px 24px rgba(0, 0, 0, 0.45),
     0 0 0 1px rgba(212, 168, 67, 0.18) inset,
-    0 0 24px rgba(212, 168, 67, 0.12);
+    0 0 18px rgba(212, 168, 67, 0.1);
   transition:
     transform 160ms ease,
     border-color 160ms ease,
@@ -14494,21 +14494,21 @@ body.mobile-nav-open {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.35rem;
-  border-radius: 10px;
+  padding: 0.25rem;
+  border-radius: 8px;
   background: #fff;
   border: 1px solid rgba(212, 168, 67, 0.35);
 }
 
 .app-dl-qr-card-img {
   display: block;
-  border-radius: 4px;
+  border-radius: 3px;
 }
 
 .app-dl-qr-card-label {
-  font-size: 0.72rem;
+  font-size: 0.62rem;
   font-weight: 800;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--gold-200, #e8c66a);
   line-height: 1;
@@ -14524,9 +14524,9 @@ body.mobile-nav-open {
 }
 
 .app-dl-qr-skeleton {
-  width: 112px;
-  height: 112px;
-  border-radius: 8px;
+  width: 80px;
+  height: 80px;
+  border-radius: 6px;
   background: rgba(0, 0, 0, 0.06);
   animation: pulse 1.2s ease-in-out infinite;
 }
@@ -14554,25 +14554,33 @@ body.mobile-nav-open {
 .mobile-nav-download-btn {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  justify-content: center;
+  gap: var(--space-2);
   width: 100%;
   min-height: var(--touch-min);
   padding: var(--space-3) var(--space-4);
   border-radius: var(--radius-md);
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   font-weight: 600;
-  color: #1a1408;
-  background: linear-gradient(145deg, #e8c66a 0%, #d4a843 55%, #b8892a 100%);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--gold-200, #e8c66a);
+  background: transparent;
+  border: 1px solid rgba(232, 198, 106, 0.55);
   text-decoration: none;
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast);
 }
 
 .mobile-nav-download-btn:hover {
-  filter: brightness(1.04);
+  background: rgba(232, 198, 106, 0.1);
+  border-color: rgba(232, 198, 106, 0.85);
+  color: var(--gold-100, #f3d692);
+  filter: none;
 }
 
 .mobile-nav-download-btn .icon {
-  color: #1a1408;
+  color: inherit;
 }
 
 /* Página /download */
