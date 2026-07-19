@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import {
+  FlatList,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -10,6 +11,7 @@ import {
 } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { SubjectListItem } from "@acme/api-contracts";
 import { ApiClientError } from "../auth/api";
 import { fetchDisciplinas } from "../cache/fetchers";
@@ -26,15 +28,18 @@ import { brand } from "../theme/brand";
 import { Card } from "../ui/cards";
 import { EmptyState } from "../ui/EmptyState";
 import { ErrorBox } from "../ui/ErrorBox";
+import { FadeInContent } from "../ui/FadeInContent";
 import { Icon } from "../ui/Icon";
 import { LoadingBlock } from "../ui/LoadingBlock";
+import { goldRipple, pressableOpacityStyle } from "../ui/pressableStyles";
 import { Screen } from "../ui/Screen";
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
-/** Lista F28 — busca + FilterBar + cards com prioridade (`.subject-list-card`). */
+/** Lista F28 — busca + FilterBar + FlatList virtualizada. */
 export function DisciplinasScreen() {
   const navigation = useNavigation<Nav>();
+  const insets = useSafeAreaInsets();
   const { getPriority, setSubjectPriority, sortByPriority } =
     useSubjectPriorities();
   const [items, setItems] = useState<SubjectListItem[]>([]);
@@ -92,25 +97,32 @@ export function DisciplinasScreen() {
       ? `${items.length} matérias cursando · notas, faltas e atividades`
       : "Sincronize com o SIGAA para ver suas disciplinas";
 
-  return (
-    <Screen
-      title="Disciplinas"
-      eyebrow="Semestre"
-      subtitle={subtitle}
-      cacheHint={fromCache ? "Dados do cache offline" : null}
-      scrollProps={{
-        refreshControl: (
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={() => {
-              setRefreshing(true);
-              void load(true);
-            }}
-            tintColor={brand.gold}
-          />
-        ),
-      }}
-    >
+  const ready = !loading || items.length > 0;
+
+  const renderItem = useCallback(
+    ({ item }: { item: SubjectListItem }) => (
+      <DisciplinaCard
+        item={item}
+        priority={getPriority(item.code)}
+        onChangePriority={(level) => setSubjectPriority(item.code, level)}
+        onPress={() =>
+          navigation.navigate("DisciplinaDetail", {
+            code: item.code,
+            name: item.displayName,
+          })
+        }
+      />
+    ),
+    [getPriority, setSubjectPriority, navigation]
+  );
+
+  const keyExtractor = useCallback(
+    (item: SubjectListItem, index: number) => `${item.code}-${index}`,
+    []
+  );
+
+  const listHeader = (
+    <>
       <Card tight style={styles.toolbar}>
         <View style={styles.searchWrap}>
           <Icon name="search" size={16} color={brand.textMuted} />
@@ -133,7 +145,13 @@ export function DisciplinasScreen() {
             return (
               <Pressable
                 key={label}
-                style={[styles.filterChip, active && styles.filterChipActive]}
+                style={({ pressed }) =>
+                  pressableOpacityStyle(pressed, [
+                    styles.filterChip,
+                    active && styles.filterChipActive,
+                  ])
+                }
+                android_ripple={goldRipple}
                 onPress={() => setFilter(label)}
               >
                 <Text
@@ -165,26 +183,56 @@ export function DisciplinasScreen() {
           }
         />
       ) : null}
+    </>
+  );
 
-      {visible.map((item, idx) => (
-        <DisciplinaCard
-          key={`${item.code}-${idx}`}
-          item={item}
-          priority={getPriority(item.code)}
-          onChangePriority={(level) => setSubjectPriority(item.code, level)}
-          onPress={() =>
-            navigation.navigate("DisciplinaDetail", {
-              code: item.code,
-              name: item.displayName,
-            })
+  return (
+    <Screen
+      title="Disciplinas"
+      eyebrow="Semestre"
+      subtitle={subtitle}
+      cacheHint={fromCache ? "Dados do cache offline" : null}
+      scroll={false}
+      contentContainerStyle={styles.screenBody}
+    >
+      <FadeInContent ready={ready} style={styles.fade}>
+        <FlatList
+          data={visible}
+          keyExtractor={keyExtractor}
+          renderItem={renderItem}
+          ListHeaderComponent={listHeader}
+          contentContainerStyle={{
+            paddingBottom: Math.max(insets.bottom, 16) + 24,
+          }}
+          keyboardShouldPersistTaps="handled"
+          initialNumToRender={8}
+          maxToRenderPerBatch={8}
+          windowSize={7}
+          removeClippedSubviews
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={() => {
+                setRefreshing(true);
+                void load(true);
+              }}
+              tintColor={brand.gold}
+            />
           }
         />
-      ))}
+      </FadeInContent>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
+  screenBody: {
+    flex: 1,
+    paddingBottom: 0,
+  },
+  fade: {
+    flex: 1,
+  },
   toolbar: {
     marginBottom: brand.space3,
     gap: brand.space3,

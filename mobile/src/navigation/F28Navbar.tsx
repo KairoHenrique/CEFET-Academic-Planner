@@ -2,6 +2,7 @@ import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { brand } from "../theme/brand";
 import { Icon } from "../ui/Icon";
+import { brandHitSlop, goldRipple, pressableOpacityStyle } from "../ui/pressableStyles";
 
 type Props = {
   drawerOpen: boolean;
@@ -36,8 +37,9 @@ export function F28Navbar({
       <View style={styles.inner}>
         <Pressable
           onPress={onPressBrand}
-          style={styles.brand}
-          hitSlop={8}
+          style={({ pressed }) => pressableOpacityStyle(pressed, styles.brand)}
+          android_ripple={goldRipple}
+          hitSlop={brandHitSlop}
           accessibilityRole="button"
           accessibilityLabel="ACME HUB — Dashboard"
         >
@@ -53,9 +55,10 @@ export function F28Navbar({
         <View style={styles.actions}>
           <Pressable
             onPress={onOpenNotifications}
-            style={styles.iconBtn}
+            style={({ pressed }) => pressableOpacityStyle(pressed, styles.iconBtn)}
+            android_ripple={goldRipple}
             accessibilityLabel="Notificações"
-            hitSlop={6}
+            hitSlop={brandHitSlop}
           >
             <Icon name="bell" size={18} color={brand.gold} />
             {unreadCount > 0 ? (
@@ -69,31 +72,41 @@ export function F28Navbar({
 
           <Pressable
             onPress={onOpenSync}
-            style={[styles.iconBtn, syncing && styles.iconBtnBusy]}
+            style={({ pressed }) =>
+              pressableOpacityStyle(pressed, [
+                styles.iconBtn,
+                syncing && styles.iconBtnBusy,
+              ])
+            }
+            android_ripple={goldRipple}
             accessibilityLabel={
               syncing ? "Sincronizando SIGAA" : "Sync SIGAA"
             }
             accessibilityState={{ busy: syncing, disabled: syncing }}
             disabled={syncing}
-            hitSlop={6}
+            hitSlop={brandHitSlop}
           >
             <Icon name="sync" size={18} color={brand.gold} />
           </Pressable>
 
           <Pressable
             onPress={onOpenProfile}
-            style={styles.avatarBtn}
+            style={({ pressed }) =>
+              pressableOpacityStyle(pressed, styles.avatarBtn)
+            }
+            android_ripple={goldRipple}
             accessibilityLabel={`Perfil ${avatarLabel}`}
-            hitSlop={6}
+            hitSlop={brandHitSlop}
           >
             <Text style={styles.avatarText}>{avatarLabel}</Text>
           </Pressable>
 
           <Pressable
             onPress={onToggleDrawer}
-            style={styles.iconBtn}
+            style={({ pressed }) => pressableOpacityStyle(pressed, styles.iconBtn)}
+            android_ripple={goldRipple}
             accessibilityLabel={drawerOpen ? "Fechar menu" : "Abrir menu"}
-            hitSlop={6}
+            hitSlop={brandHitSlop}
           >
             <Icon
               name={drawerOpen ? "close" : "menu"}

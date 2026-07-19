@@ -33,6 +33,7 @@ import { useOnSyncComplete } from "../sync/useOnSyncComplete";
 import { brand } from "../theme/brand";
 import { cardStyles } from "../ui/cards";
 import { ErrorBox } from "../ui/ErrorBox";
+import { FadeInContent } from "../ui/FadeInContent";
 import { LoadingBlock } from "../ui/LoadingBlock";
 import { Screen } from "../ui/Screen";
 
@@ -192,7 +193,8 @@ export function PerfilScreen() {
       ) : null}
 
       {perfil ? (
-        <>
+        <FadeInContent ready>
+          <>
           <View style={[cardStyles.card, styles.hero]}>
             <View
               style={styles.avatar}
@@ -323,6 +325,7 @@ export function PerfilScreen() {
             )}
           </Pressable>
         </>
+        </FadeInContent>
       ) : null}
     </Screen>
   );

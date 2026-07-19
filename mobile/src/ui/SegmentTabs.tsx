@@ -1,5 +1,6 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { brand } from "../theme/brand";
+import { goldRipple, pressableOpacityStyle } from "./pressableStyles";
 
 type Props<T extends string> = {
   tabs: readonly { id: T; label: string }[];
@@ -25,7 +26,13 @@ export function SegmentTabs<T extends string>({
         return (
           <Pressable
             key={tab.id}
-            style={[styles.tab, active && styles.tabActive]}
+            style={({ pressed }) =>
+              pressableOpacityStyle(pressed, [
+                styles.tab,
+                active && styles.tabActive,
+              ])
+            }
+            android_ripple={goldRipple}
             onPress={() => onChange(tab.id)}
           >
             <Text style={[styles.text, active && styles.textActive]}>

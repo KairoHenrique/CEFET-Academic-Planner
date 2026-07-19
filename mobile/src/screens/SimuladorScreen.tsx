@@ -44,6 +44,7 @@ import { brand } from "../theme/brand";
 import { Card } from "../ui/cards";
 import { CourseMapGrafo } from "../ui/CourseMapGrafo";
 import { ErrorBox } from "../ui/ErrorBox";
+import { FadeInContent } from "../ui/FadeInContent";
 import { Icon } from "../ui/Icon";
 import { LoadingBlock } from "../ui/LoadingBlock";
 import { Screen } from "../ui/Screen";
@@ -310,7 +311,8 @@ export function SimuladorScreen() {
       ) : null}
 
       {data ? (
-        <View
+        <FadeInContent ready>
+          <View
           onLayout={(e) => {
             cardYRef.current = e.nativeEvent.layout.y;
           }}
@@ -508,6 +510,7 @@ export function SimuladorScreen() {
             )}
           </Card>
         </View>
+        </FadeInContent>
       ) : null}
 
       {grafo ? (

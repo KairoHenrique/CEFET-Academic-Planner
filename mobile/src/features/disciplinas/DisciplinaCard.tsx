@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import type { SubjectListItem } from "@acme/api-contracts";
 import { computeAbsenceRisk } from "../../lib/absence-risk";
@@ -6,6 +7,7 @@ import { brand } from "../../theme/brand";
 import { Card } from "../../ui/cards";
 import { GradeRiskBlock, DISPLAY_GRADE_MAX } from "../../ui/GradeRiskBlock";
 import { PrioritySelect } from "../../ui/PrioritySelect";
+import { goldRipple, pressableOpacityStyle } from "../../ui/pressableStyles";
 
 type Props = {
   item: SubjectListItem;
@@ -33,7 +35,7 @@ const ABSENCE_BADGE = {
 } as const;
 
 /** Espelho de `.subject-list-card` (F28 ≤768). */
-export function DisciplinaCard({
+function DisciplinaCardInner({
   item,
   priority,
   onChangePriority,
@@ -45,7 +47,8 @@ export function DisciplinaCard({
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [pressed && styles.pressed]}
+      style={({ pressed }) => pressableOpacityStyle(pressed)}
+      android_ripple={goldRipple}
     >
       <Card compact style={styles.card}>
         <View style={styles.top}>
@@ -100,8 +103,9 @@ export function DisciplinaCard({
   );
 }
 
+export const DisciplinaCard = memo(DisciplinaCardInner);
+
 const styles = StyleSheet.create({
-  pressed: { opacity: 0.9 },
   card: { marginBottom: brand.space2 },
   top: {
     flexDirection: "row",

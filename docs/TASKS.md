@@ -43,6 +43,8 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 **Polish tutoriais (jul/2026):** passos desktop + mobile (≤768) atualizados ao produto v1.0 — PIX, sino, mapa grade/grafo, âncoras no calendário; botão ? em Disciplinas / Calendário / Mapa / Integralização / Planos.
 
+**Polish mobile motion (jul/2026, sem nova task):** press feedback (navbar/drawer/chips) · drawer slide · stack fade/slide detalhe · fade pós-load · ProgressBar animado · Disciplinas FlatList+memo — aprovado 100%.
+
 ---
 
 ## Roadmap detalhado — ordem de execução (#0 → #11)
@@ -1762,7 +1764,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] **M4** — auth/gate UI (login · paywall · logout)
 - [x] **M5** — cache local AsyncStorage
 - [x] **M6** — push Expo + `POST /api/push/register`
-- [x] **M7–M14** — telas (dashboard → perfil) · tutorial no menu · polish mapa/simulador
+- [x] **M7–M14** — telas (dashboard → perfil) · tutorial no menu · polish mapa/simulador · **motion/lista** (press, slides, fade, FlatList)
 - [x] **M15** — QA checklist Expo Go (`mobile/docs/M15-QA.md`)
 - [ ] **M16** *(opcional)* — APK sideload · **hold:** EAS + FCM + payload antes do APK
 - [x] **Alternativa sem instalar:** site adaptado ao celular (**F28** · aprovado jul/2026)
