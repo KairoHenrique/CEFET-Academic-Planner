@@ -53,3 +53,15 @@ export async function listPushTokensByCpf(
   );
   return result.rows.map((row) => row.expo_push_token);
 }
+
+/** Tokens distintos para broadcast (ex.: nova versão do APK). Sem PII. */
+export async function listAllDistinctPushTokens(
+  pool: pg.Pool
+): Promise<string[]> {
+  const result = await pool.query<{ expo_push_token: string }>(
+    `SELECT DISTINCT expo_push_token
+     FROM push_device_tokens
+     WHERE expo_push_token LIKE 'ExponentPushToken%'`
+  );
+  return result.rows.map((row) => row.expo_push_token);
+}

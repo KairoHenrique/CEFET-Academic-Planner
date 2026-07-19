@@ -35,6 +35,7 @@ import {
   TutorialProvider,
   useTutorial,
 } from "../features/tutorial";
+import { AppUpdateProvider, useUpdateCheck } from "../features/updates";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -42,6 +43,7 @@ function ShellChrome({ children }: { children: ReactNode }) {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { startTutorialForRoute } = useTutorial();
+  const { checkManually } = useUpdateCheck();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const sync = useMobileSync();
   const initials = useAvatarInitials();
@@ -77,6 +79,13 @@ function ShellChrome({ children }: { children: ReactNode }) {
     }, 280);
   }
 
+  function handleCheckUpdates() {
+    setDrawerOpen(false);
+    setTimeout(() => {
+      checkManually();
+    }, 280);
+  }
+
   return (
     <View style={styles.shell}>
       <F28Navbar
@@ -104,6 +113,7 @@ function ShellChrome({ children }: { children: ReactNode }) {
           navigation.navigate(route as never);
         }}
         onStartTutorial={handleStartTutorial}
+        onCheckUpdates={handleCheckUpdates}
       />
     </View>
   );
@@ -142,52 +152,57 @@ export function AppShell() {
 
   return (
     <TutorialProvider>
-      <Stack.Navigator
-        initialRouteName={initialRouteName}
-        screenOptions={{
-          headerShown: false,
-          contentStyle: { backgroundColor: brand.bg },
-          /** Telas irmãs: fade. Detalhe/overlay: slide (abaixo). */
-          animation: "fade",
-          animationDuration: 220,
-        }}
-      >
-        <Stack.Screen name="Dashboard" component={withShell(DashboardScreen)} />
-        <Stack.Screen name="Calendario" component={withShell(CalendarScreen)} />
-        <Stack.Screen name="Disciplinas" component={withShell(DisciplinasScreen)} />
-        <Stack.Screen
-          name="DisciplinaDetail"
-          component={withShell(DisciplinaDetailScreen)}
-          options={{ animation: "slide_from_right" }}
-        />
-        <Stack.Screen name="Mapa" component={withShell(MapaScreen)} />
-        <Stack.Screen
-          name="Integralizacao"
-          component={withShell(IntegralizacaoScreen)}
-        />
-        <Stack.Screen name="Simulador" component={withShell(SimuladorScreen)} />
-        <Stack.Screen
-          name="Planos"
-          component={withShell(PlanosScreen)}
-          initialParams={planosInitialParams}
-        />
-        <Stack.Screen
-          name="PlanosPix"
-          component={withShell(PlanosPixScreen)}
-          options={{ animation: "slide_from_right" }}
-        />
-        <Stack.Screen
-          name="Notificacoes"
-          component={withShell(NotificationsScreen)}
-          options={{ animation: "slide_from_right" }}
-        />
-        <Stack.Screen
-          name="Perfil"
-          component={withShell(PerfilScreen)}
-          options={{ animation: "slide_from_right" }}
-        />
-      </Stack.Navigator>
-      <TutorialHost />
+      <AppUpdateProvider>
+        <Stack.Navigator
+          initialRouteName={initialRouteName}
+          screenOptions={{
+            headerShown: false,
+            contentStyle: { backgroundColor: brand.bg },
+            /** Telas irmãs: fade. Detalhe/overlay: slide (abaixo). */
+            animation: "fade",
+            animationDuration: 220,
+          }}
+        >
+          <Stack.Screen name="Dashboard" component={withShell(DashboardScreen)} />
+          <Stack.Screen name="Calendario" component={withShell(CalendarScreen)} />
+          <Stack.Screen
+            name="Disciplinas"
+            component={withShell(DisciplinasScreen)}
+          />
+          <Stack.Screen
+            name="DisciplinaDetail"
+            component={withShell(DisciplinaDetailScreen)}
+            options={{ animation: "slide_from_right" }}
+          />
+          <Stack.Screen name="Mapa" component={withShell(MapaScreen)} />
+          <Stack.Screen
+            name="Integralizacao"
+            component={withShell(IntegralizacaoScreen)}
+          />
+          <Stack.Screen name="Simulador" component={withShell(SimuladorScreen)} />
+          <Stack.Screen
+            name="Planos"
+            component={withShell(PlanosScreen)}
+            initialParams={planosInitialParams}
+          />
+          <Stack.Screen
+            name="PlanosPix"
+            component={withShell(PlanosPixScreen)}
+            options={{ animation: "slide_from_right" }}
+          />
+          <Stack.Screen
+            name="Notificacoes"
+            component={withShell(NotificationsScreen)}
+            options={{ animation: "slide_from_right" }}
+          />
+          <Stack.Screen
+            name="Perfil"
+            component={withShell(PerfilScreen)}
+            options={{ animation: "slide_from_right" }}
+          />
+        </Stack.Navigator>
+        <TutorialHost />
+      </AppUpdateProvider>
     </TutorialProvider>
   );
 }

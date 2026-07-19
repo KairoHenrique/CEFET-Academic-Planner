@@ -36,7 +36,7 @@ import { createPendingReferralForRegister } from "@/lib/billing/referrals/create
 import { persistServerSigaaCredentials, sealServerSigaaPassword } from "@/lib/crypto/server-sigaa-credential-store";
 import { ensurePostgresReady } from "@/lib/db/bootstrap-postgres";
 import { createServerSupabaseClient } from "@/lib/supabase/client";
-import { enqueueWelcomeAccountEmail } from "@/lib/email/enqueue-account-email";
+import { enqueueWelcomeAccountEmail, enqueueSupportRegisterNotifyEmail } from "@/lib/email/enqueue-account-email";
 import { assertCredentialHardeningForRuntime } from "@/lib/security/credential-hardening";
 import {
   enqueueCloudSyncJob,
@@ -195,6 +195,7 @@ export async function registerAccount(
 
     await ensureTrialRecordForCpf(input.cpf);
     await enqueueWelcomeAccountEmail(profile).catch(() => undefined);
+    await enqueueSupportRegisterNotifyEmail(profile).catch(() => undefined);
     const sessionResult = await signInWithInternalEmail(
       input.cpf,
       input.password

@@ -4,11 +4,17 @@ import {
   buildPlanEndedEmail,
   buildPlanExpiringEmail,
   buildPromotionEmail,
+  buildSupportPaymentNotifyEmail,
+  buildSupportRegisterNotifyEmail,
   buildTrialEndedEmail,
   buildWelcomeEmail,
 } from "@/lib/email/account-email-templates";
 import { enqueueAccountEmail } from "@/lib/email/account-email-queue-repository";
 import { resolveRenewUrl } from "@/lib/email/email-links";
+import {
+  maskCpfForSupport,
+  resolveSupportNotifyEmail,
+} from "@/lib/email/support-notify";
 
 export async function enqueueWelcomeAccountEmail(
   profile: AppProfileRecord,
@@ -135,6 +141,61 @@ export async function enqueuePromotionAccountEmail(input: {
     dedupeKey: buildAccountEmailDedupeKey("promotion", [
       input.campaignId,
       input.cpf,
+    ]),
+    subject: template.subject,
+    bodyText: template.bodyText,
+  });
+}
+
+/** Aviso interno — novo cadastro (site ou app). */
+export async function enqueueSupportRegisterNotifyEmail(
+  profile: AppProfileRecord
+): Promise<"queued" | "duplicate"> {
+  const template = buildSupportRegisterNotifyEmail({
+    maskedCpf: maskCpfForSupport(profile.cpf),
+    contactEmail: profile.email,
+    cursoId: profile.cursoId,
+  });
+
+  return enqueueAccountEmail({
+    userId: profile.userId,
+    cpf: profile.cpf,
+    toEmail: resolveSupportNotifyEmail(),
+    kind: "support_notify",
+    dedupeKey: buildAccountEmailDedupeKey("support_notify", [
+      "register",
+      profile.userId,
+    ]),
+    subject: template.subject,
+    bodyText: template.bodyText,
+  });
+}
+
+/** Aviso interno — pagamento aprovado + plano ativado. */
+export async function enqueueSupportPaymentNotifyEmail(input: {
+  userId: string;
+  cpf: string;
+  contactEmail: string | null;
+  planId: string;
+  amountCents: number;
+  paymentId: string;
+}): Promise<"queued" | "duplicate"> {
+  const template = buildSupportPaymentNotifyEmail({
+    maskedCpf: maskCpfForSupport(input.cpf),
+    contactEmail: input.contactEmail,
+    planId: input.planId,
+    amountCents: input.amountCents,
+    paymentId: input.paymentId,
+  });
+
+  return enqueueAccountEmail({
+    userId: input.userId,
+    cpf: input.cpf,
+    toEmail: resolveSupportNotifyEmail(),
+    kind: "support_notify",
+    dedupeKey: buildAccountEmailDedupeKey("support_notify", [
+      "payment",
+      input.paymentId,
     ]),
     subject: template.subject,
     bodyText: template.bodyText,

@@ -27,6 +27,7 @@ type Props = {
   onClose: () => void;
   onNavigate: (route: keyof RootStackParamList) => void;
   onStartTutorial: () => void;
+  onCheckUpdates: () => void;
 };
 
 /** Drawer direito F28 — slide + links do site + tutorial + logout. */
@@ -36,6 +37,7 @@ export function MobileDrawer({
   onClose,
   onNavigate,
   onStartTutorial,
+  onCheckUpdates,
 }: Props) {
   const insets = useSafeAreaInsets();
   const panelX = useRef(new Animated.Value(DRAWER_WIDTH)).current;
@@ -159,6 +161,20 @@ export function MobileDrawer({
           >
             <Icon name="help-circle" size={18} color={brand.textSecondary} />
             <Text style={styles.linkLabel}>Tutorial</Text>
+          </Pressable>
+
+          <Pressable
+            style={({ pressed }) => pressableOpacityStyle(pressed, styles.link)}
+            android_ripple={goldRipple}
+            onPress={() => {
+              onClose();
+              onCheckUpdates();
+            }}
+            accessibilityRole="button"
+            accessibilityLabel="Verificar atualizações do app"
+          >
+            <Icon name="download" size={18} color={brand.textSecondary} />
+            <Text style={styles.linkLabel}>Atualizações</Text>
           </Pressable>
 
           <Pressable

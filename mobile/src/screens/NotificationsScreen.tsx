@@ -1,7 +1,5 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  ActivityIndicator,
-  Pressable,
   RefreshControl,
   StyleSheet,
   Text,
@@ -11,6 +9,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import type { NotificationsSnapshotResponse } from "@acme/api-contracts";
 import { ApiClientError } from "../auth/api";
 import { fetchNotifications } from "../cache/fetchers";
+import { mergeMobileNotificationItems } from "../features/notifications/merge-mobile-notification-items";
 import { useOnSyncComplete } from "../sync/useOnSyncComplete";
 import { brand } from "../theme/brand";
 import { cardStyles, formatPtDate } from "../ui/cards";
@@ -29,12 +28,15 @@ const KIND_LABEL: Record<string, string> = {
   "calendar-date-alert": "Data acadêmica",
 };
 
+const REMINDER_TICK_MS = 60_000;
+
 export function NotificationsScreen() {
   const [data, setData] = useState<NotificationsSnapshotResponse | null>(null);
   const [fromCache, setFromCache] = useState(false);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [reminderTick, setReminderTick] = useState(0);
 
   const load = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
@@ -65,7 +67,18 @@ export function NotificationsScreen() {
     void load(true);
   });
 
-  const items = data?.items ?? [];
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setReminderTick((value) => value + 1);
+    }, REMINDER_TICK_MS);
+    return () => clearInterval(timer);
+  }, []);
+
+  const items = useMemo(() => {
+    void reminderTick;
+    if (!data) return [];
+    return mergeMobileNotificationItems(data);
+  }, [data, reminderTick]);
 
   return (
     <Screen
@@ -119,24 +132,6 @@ export function NotificationsScreen() {
           </View>
         ))
       )}
-
-      {data ? (
-        <Text style={styles.footer}>
-          Capturado em {new Date(data.capturedAt).toLocaleString("pt-BR")}
-        </Text>
-      ) : null}
-      {refreshing ? (
-        <ActivityIndicator color={brand.gold} style={{ marginTop: 8 }} />
-      ) : null}
     </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  footer: {
-    marginTop: 12,
-    fontSize: 12,
-    color: brand.textMuted,
-    textAlign: "center",
-  },
-});
