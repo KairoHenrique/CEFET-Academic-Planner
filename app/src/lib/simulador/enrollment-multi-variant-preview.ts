@@ -9,14 +9,57 @@ import {
 import type { ScheduleSlot } from "@/lib/types/schedule";
 import type { TurmaOfertadaCourse } from "@/lib/types/turmas-ofertadas-api";
 
-/** Cores de preview por opção de horário (sem vermelho — 2ª = roxo). */
+/**
+ * Fallback se a turma não tiver `color` (família azul ACME — evita verde/roxo
+ * que parecem disciplinas diferentes na grade).
+ */
 export const ENROLLMENT_VARIANT_PREVIEW_COLORS = [
-  "#3fb950",
-  "#a371f7",
-  "#d4a843",
   "#58a6ff",
-  "#39d0d8",
+  "#3d8fd4",
+  "#79b8ff",
+  "#2080c8",
+  "#9ecbff",
 ] as const;
+
+/** Tom da mesma cor base para distinguir opções empilhadas no mesmo slot. */
+export function resolveVariantPreviewColor(
+  variant: TurmaOfertadaCourse,
+  optionIndex: number
+): string {
+  const base = variant.color?.trim() || ENROLLMENT_VARIANT_PREVIEW_COLORS[0]!;
+  if (optionIndex <= 0) return base;
+
+  const towardWhite = optionIndex % 2 === 1 ? 0.22 : 0.12;
+  return mixHexToward(base, towardWhite > 0.15 ? "#ffffff" : "#0d1117", towardWhite);
+}
+
+function mixHexToward(hex: string, target: string, amount: number): string {
+  const a = parseHex(hex);
+  const b = parseHex(target);
+  if (!a || !b) return hex;
+  const t = Math.min(1, Math.max(0, amount));
+  const mix = (x: number, y: number) => Math.round(x + (y - x) * t);
+  return `#${[mix(a.r, b.r), mix(a.g, b.g), mix(a.b, b.b)]
+    .map((n) => n.toString(16).padStart(2, "0"))
+    .join("")}`;
+}
+
+function parseHex(hex: string): { r: number; g: number; b: number } | null {
+  const raw = hex.replace("#", "").trim();
+  const full =
+    raw.length === 3
+      ? raw
+          .split("")
+          .map((c) => `${c}${c}`)
+          .join("")
+      : raw;
+  if (!/^[0-9a-fA-F]{6}$/.test(full)) return null;
+  return {
+    r: Number.parseInt(full.slice(0, 2), 16),
+    g: Number.parseInt(full.slice(2, 4), 16),
+    b: Number.parseInt(full.slice(4, 6), 16),
+  };
+}
 
 export interface EnrollmentVariantPreviewOption {
   course: TurmaOfertadaCourse;
@@ -88,10 +131,7 @@ export function buildMultiVariantPreviewMap(
     if (!state.selectable || state.timeLocked) continue;
     if (!canPlaceTurmaBasic(variant, schedule)) continue;
 
-    const color =
-      ENROLLMENT_VARIANT_PREVIEW_COLORS[
-        colorIndex % ENROLLMENT_VARIANT_PREVIEW_COLORS.length
-      ];
+    const color = resolveVariantPreviewColor(variant, colorIndex);
     colorIndex += 1;
 
     for (const { dayIdx, slotIdx } of getTurmaAllowedPositions(variant)) {

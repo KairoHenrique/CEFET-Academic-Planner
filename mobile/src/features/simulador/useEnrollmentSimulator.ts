@@ -15,7 +15,7 @@ import {
   resolveActiveCorequisitoObligation,
   resolveIncompleteCorequisitoPlacedHalf,
   resolveMutualCorequisitoPartnerOnSchedule,
-  resolvePendingCorequisitoPartner,
+  resolvePendingCorequisitoPartners,
   rollbackIncompleteCorequisitoPlacement,
   wouldRollbackIncompleteCorequisitoPlacement,
 } from "./lib/corequisito-cluster-viability";
@@ -31,6 +31,7 @@ import {
   type EnrollmentScheduleConflictNotice,
 } from "./lib/enrollment-schedule-conflict-notice";
 import type { EnrollmentCourseGroup } from "./lib/group-enrollment-courses";
+import { buildEnrollmentGroupFromVariants } from "./lib/group-enrollment-courses";
 import {
   buildAllowedEmptyCellKeys,
   canPlaceTurmaOnSchedule,
@@ -61,13 +62,13 @@ function placeCourseOnSchedule(
   visibleCourses: TurmaOfertadaCourse[]
 ) {
   const next = placeTurmaOnSchedule(course, schedule, placementContext);
-  const partner = resolvePendingCorequisitoPartner(
+  const partners = resolvePendingCorequisitoPartners(
     course,
     next,
     placementContext,
     visibleCourses
   );
-  return { next, partner };
+  return { next, partners };
 }
 
 export type EnrollmentDetailState = {
@@ -224,6 +225,24 @@ export function useEnrollmentSimulator(
     setSelectedGroupVariants([]);
   }, []);
 
+  /** Após alocar metade do co-req: se o parceiro tem N turmas, mostra todas na grade. */
+  const selectPendingCorequisitoPartners = useCallback(
+    (partners: TurmaOfertadaCourse[]) => {
+      if (partners.length > 1) {
+        const group = buildEnrollmentGroupFromVariants(partners);
+        setSelectedCourse(null);
+        setSelectedGroupId(group.id);
+        setSelectedGroupVariants(group.variants);
+        onScrollToSchedule?.();
+        return;
+      }
+
+      clearGroupPreview();
+      setSelectedCourse(partners[0] ?? null);
+    },
+    [clearGroupPreview, onScrollToSchedule]
+  );
+
   const showConflictForCourse = useCallback(
     (course: TurmaOfertadaCourse) => {
       if (!visible) return;
@@ -375,15 +394,14 @@ export function useEnrollmentSimulator(
           return;
         }
 
-        const { next, partner } = placeCourseOnSchedule(
+        const { next, partners } = placeCourseOnSchedule(
           course,
           schedule,
           placementContext,
           visible.courses
         );
         setSchedule(next);
-        clearGroupPreview();
-        setSelectedCourse(partner);
+        selectPendingCorequisitoPartners(partners);
         setConflictNotice(null);
         return;
       }
@@ -396,14 +414,14 @@ export function useEnrollmentSimulator(
         return;
       }
 
-      const { next, partner } = placeCourseOnSchedule(
+      const { next, partners } = placeCourseOnSchedule(
         selectedCourse,
         schedule,
         placementContext,
         visible.courses
       );
       setSchedule(next);
-      setSelectedCourse(partner);
+      selectPendingCorequisitoPartners(partners);
     },
     [
       visible,
@@ -411,7 +429,7 @@ export function useEnrollmentSimulator(
       selectedCourse,
       schedule,
       placementContext,
-      clearGroupPreview,
+      selectPendingCorequisitoPartners,
     ]
   );
 

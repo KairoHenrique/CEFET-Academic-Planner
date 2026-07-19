@@ -48,7 +48,9 @@ function sortVariants(left: TurmaOfertadaCourse, right: TurmaOfertadaCourse): nu
   return left.turmaSigaaId.localeCompare(right.turmaSigaaId);
 }
 
-function buildGroupFromVariants(variants: TurmaOfertadaCourse[]): EnrollmentCourseGroup {
+export function buildEnrollmentGroupFromVariants(
+  variants: TurmaOfertadaCourse[]
+): EnrollmentCourseGroup {
   const sorted = [...variants].sort(sortVariants);
   const primary = sorted[0];
 
@@ -90,7 +92,7 @@ export function groupEnrollmentCourses(
 
     const codeSiblings = codeBuckets.get(buildCodeKey(course)) ?? [course];
     if (codeSiblings.length > 1) {
-      const group = buildGroupFromVariants(codeSiblings);
+      const group = buildEnrollmentGroupFromVariants(codeSiblings);
       groups.push(group);
       for (const sibling of codeSiblings) processed.add(sibling.turmaSigaaId);
       continue;
@@ -98,13 +100,13 @@ export function groupEnrollmentCourses(
 
     const nameSiblings = nameBuckets.get(buildNameKey(course)) ?? [course];
     if (nameSiblings.length > 1) {
-      const group = buildGroupFromVariants(nameSiblings);
+      const group = buildEnrollmentGroupFromVariants(nameSiblings);
       groups.push(group);
       for (const sibling of nameSiblings) processed.add(sibling.turmaSigaaId);
       continue;
     }
 
-    groups.push(buildGroupFromVariants([course]));
+    groups.push(buildEnrollmentGroupFromVariants([course]));
     processed.add(course.turmaSigaaId);
   }
 

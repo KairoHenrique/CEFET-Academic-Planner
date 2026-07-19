@@ -6,6 +6,7 @@ import {
   isCorequisitoClusterPlacementViable,
   isMutualCorequisitoPartnerScheduleLocked,
   resolvePendingCorequisitoPartner,
+  resolvePendingCorequisitoPartners,
 } from "../src/lib/simulador/corequisito-cluster-viability";
 import { buildSimuladorPlacementContext } from "../src/lib/simulador/corequisito-schedule-policy";
 import { resolveEnrollmentCourseSelectability } from "../src/lib/simulador/enrollment-course-selectability";
@@ -134,6 +135,23 @@ describe("corequisito-cluster-viability", () => {
 
     assert.equal(partner?.turmaSigaaId, "teo");
     assert.equal(canPlaceTurmaOnSchedule(theory, next, context), true);
+  });
+
+  test("após alocar teórica lista as duas turmas de lab (não só a 1ª)", () => {
+    const schedule = createEmptySchedule();
+    const next = placeTurmaOnSchedule(theory, schedule, context);
+    const partners = resolvePendingCorequisitoPartners(
+      theory,
+      next,
+      context,
+      catalog
+    );
+
+    assert.equal(partners.length, 2);
+    assert.deepEqual(
+      partners.map((item) => item.turmaSigaaId).sort(),
+      ["lab1", "lab2"]
+    );
   });
 
   test("lab trancado quando teórica tem conflito mesmo com horário livre", () => {
