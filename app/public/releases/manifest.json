@@ -1,7 +1,10 @@
-{
+﻿{
   "version": "1.0.0",
   "apk": "acme-hub-1.0.0.apk",
   "label": "ACME HUB Android",
-  "published": false,
-  "notes": "Após eas build, copie o .apk para este diretório com o nome em apk e marque published=true."
+  "published": true,
+  "hosting": "eas-artifact",
+  "easBuildId": "d6061094-4c3f-4102-b522-ec0ed461d1e9",
+  "apkUrl": "https://expo.dev/artifacts/eas/iBTGIPhjlo8Nh1ytrSHEk60pOunTCuuq5blXi_fbZvM.apk",
+  "notes": "APK ~77MiB — Workers Assets limite 25MiB. Servindo via artefato EAS até R2. Cópia local em app/.data/releases/."
 }

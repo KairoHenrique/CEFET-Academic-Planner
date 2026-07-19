@@ -2,27 +2,23 @@
 
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
-import { APP_RELEASE, appDownloadPageAbsoluteUrl } from "@/config/app-download";
+import { APP_RELEASE } from "@/config/app-download";
 
 type Props = {
-  /** Absolute URL encoded in the QR (defaults to /download on current origin). */
+  /** Absolute URL encoded in the QR (defaults to APK download URL). */
   url?: string;
   size?: number;
   className?: string;
 };
 
-/** QR client-side (desktop FAB / página /download). */
+/** QR client-side (widget desktop / página /download). */
 export function AppDownloadQr({ url, size = 220, className }: Props) {
   const [dataUrl, setDataUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    const target =
-      url ??
-      (typeof window !== "undefined"
-        ? appDownloadPageAbsoluteUrl(window.location.origin)
-        : APP_RELEASE.pagePath);
+    const target = url ?? APP_RELEASE.apkPath;
 
     void QRCode.toDataURL(target, {
       width: size,
