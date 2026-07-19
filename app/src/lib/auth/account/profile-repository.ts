@@ -101,6 +101,16 @@ export async function updateSigaaPasswordEnc(
   }
 }
 
+export async function clearSigaaPasswordEnc(cpf: string): Promise<void> {
+  const pool = getPostgresPool();
+  await pool.query(
+    `UPDATE app_profiles
+     SET sigaa_password_enc = NULL, updated_at = now()
+     WHERE cpf = $1`,
+    [cpf]
+  );
+}
+
 export async function findProfileByCpf(
   cpf: string
 ): Promise<AppProfileRecord | null> {

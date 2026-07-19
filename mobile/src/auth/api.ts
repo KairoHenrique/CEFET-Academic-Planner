@@ -141,6 +141,12 @@ function perfilToSubscriptionView(
 export async function syncSubscriptionFromPerfil(): Promise<MobileAuthSession | null> {
   if (!getSession()) return null;
   const perfil = await getPerfil();
+  
+  if (perfil.account?.sigaaAuthError) {
+    await clearSession();
+    return null;
+  }
+
   return updateSubscription(perfilToSubscriptionView(perfil));
 }
 

@@ -13,6 +13,7 @@ import {
   dispatchJobToWorker,
   resolveWorkerDispatchConfig,
 } from "@/lib/sync-queue/worker-dispatch";
+import { clearSigaaPasswordEnc } from "@/lib/auth/account/profile-repository";
 
 let dispatchLoopActive = false;
 let activeDispatchJobs = 0;
@@ -63,10 +64,18 @@ async function executeQueuedJob(job: SyncQueueJobRecord): Promise<void> {
     return;
   }
 
+  const errorCode = result.error?.code ?? "WORKER_JOB_FAILED";
+
+  if (errorCode === "INVALID_CREDENTIALS") {
+    await clearSigaaPasswordEnc(job.username).catch((e) =>
+      console.error("[dispatcher] Erro ao limpar senha:", e)
+    );
+  }
+
   markSyncJobFailed(
     job.id,
     finishedAt,
-    result.error?.code ?? "WORKER_JOB_FAILED",
+    errorCode,
     result.error?.message ?? "Falha no worker de sync."
   );
 }

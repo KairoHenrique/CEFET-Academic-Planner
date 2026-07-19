@@ -58,8 +58,6 @@ export async function resolveCloudNotificationPrefsForCpf(
 export async function dispatchNotificationPushesForUser(input: {
   userId: string;
   cpf: string;
-  /** Se true e não houver item novo, manda um genérico pós-sync. */
-  fallbackSyncToast?: boolean;
 }): Promise<{ sent: number; skipped: boolean; reason?: string }> {
   const preferences = await pgGetNotificationPreferences(input.userId);
   if (!anyAcademicPrefOn(preferences)) {
@@ -102,16 +100,6 @@ export async function dispatchNotificationPushesForUser(input: {
       items.map((item) => item.fingerprint)
     );
 
-    if (input.fallbackSyncToast) {
-      await notifyCpfDevices({
-        tokens,
-        title: "ACME HUB",
-        body: "Seus dados acadêmicos foram atualizados.",
-        data: { type: "sync_completed" },
-      });
-      return { sent: 1, skipped: false, reason: "bootstrap_sync_toast" };
-    }
-
     return { sent: 0, skipped: true, reason: "bootstrap" };
   }
 
@@ -122,22 +110,11 @@ export async function dispatchNotificationPushesForUser(input: {
     alreadySent,
   });
 
-  if (sent === 0 && input.fallbackSyncToast) {
-    await notifyCpfDevices({
-      tokens,
-      title: "ACME HUB",
-      body: "Seus dados acadêmicos foram atualizados.",
-      data: { type: "sync_completed" },
-    });
-    return { sent: 1, skipped: false, reason: "sync_toast" };
-  }
-
   return { sent, skipped: sent === 0 };
 }
 
 export async function dispatchNotificationPushesForCpf(
-  username: string,
-  options: { fallbackSyncToast?: boolean } = {}
+  username: string
 ): Promise<void> {
   const cpf = normalizeCpf(username);
   if (cpf.length !== 11) return;
@@ -148,6 +125,5 @@ export async function dispatchNotificationPushesForCpf(
   await dispatchNotificationPushesForUser({
     userId: resolved.userId,
     cpf,
-    fallbackSyncToast: options.fallbackSyncToast,
   });
 }

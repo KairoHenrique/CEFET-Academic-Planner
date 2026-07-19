@@ -9,9 +9,12 @@ function pushCopyForItem(item: NotificationSnapshotItem): {
   const body = item.subtitle?.trim() || item.title;
   switch (item.kind) {
     case "task":
-      return { title: "Nova tarefa", body };
+      return { title: "📝 Nova Tarefa", body };
     case "grade":
-      return { title: "Nova nota", body };
+      if (body.includes("Parabéns, você passou!")) {
+        return { title: "🎉 Aprovado!", body };
+      }
+      return { title: "💯 Nova Nota", body };
     case "task-reminder":
       return { title: item.title, body };
     case "calendar-event-reminder":
@@ -19,9 +22,14 @@ function pushCopyForItem(item: NotificationSnapshotItem): {
     case "class-reminder":
       return { title: item.title, body };
     case "integralizacao-alert":
-      return { title: "Integralização", body };
+      return { 
+        title: "🏆 ACME HUB", 
+        body: "Acompanhe de perto seu progresso rumo à formatura com nossos relatórios detalhados!" 
+      };
+    case "absence":
+      return { title: "🛑 Atenção às Faltas", body };
     case "calendar-date-alert":
-      return { title: "Data acadêmica", body };
+      return { title: "🏛️ Data Acadêmica", body };
     default:
       return { title: "ACME HUB", body };
   }

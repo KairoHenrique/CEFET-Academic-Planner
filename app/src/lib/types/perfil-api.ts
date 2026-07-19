@@ -15,6 +15,7 @@ export interface PerfilAccount {
   /** E-mail informado no cadastro da conta (não é o e-mail institucional do SIGAA). */
   email: string | null;
   phone: string | null;
+  sigaaAuthError?: boolean;
 }
 
 export type PerfilSubscriptionStatus =

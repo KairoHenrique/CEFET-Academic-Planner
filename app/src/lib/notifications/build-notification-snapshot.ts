@@ -152,7 +152,8 @@ export function buildNotificationSnapshotFromData(
         subtitle: buildGradeNotificationSubtitle(
           disciplinaNome,
           row.nota_obtida,
-          row.nota_maxima
+          row.nota_maxima,
+          row.avaliacao_nome
         ),
         href: `/disciplinas/${encodeURIComponent(row.disciplina_id)}`,
         at: null,

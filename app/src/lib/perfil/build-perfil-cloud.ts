@@ -12,6 +12,7 @@ import {
 } from "@/lib/perfil/build-perfil-cloud-data";
 import type { PerfilResponse, PerfilSubscription } from "@/lib/types/perfil-api";
 import { pgGetSubjectPriorities } from "@/lib/priority/subject-priorities-store";
+import { hasEncryptedPasswordByCpf } from "@/lib/auth/account/profile-repository";
 
 async function buildCloudSubscription(cpf: string): Promise<PerfilSubscription> {
   const access = await resolveSubscriptionAccessForCpf(cpf);
@@ -51,6 +52,7 @@ export async function buildPerfilCloud(
       cpf: profile.cpf,
       email: profile.email,
       phone: profile.telefone,
+      sigaaAuthError: !(await hasEncryptedPasswordByCpf(profile.cpf)),
     },
     subscription: await buildCloudSubscription(profile.cpf),
     sync: {

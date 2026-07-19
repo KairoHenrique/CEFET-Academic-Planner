@@ -7,7 +7,8 @@ export type NotificationKind =
   /** B36 — marco de integralização (faixa por categoria de CH). */
   | "integralizacao-alert"
   /** B37 — data acadêmica institucional próxima. */
-  | "calendar-date-alert";
+  | "calendar-date-alert"
+  | "absence";
 
 export interface NotificationSnapshotItem {
   fingerprint: string;

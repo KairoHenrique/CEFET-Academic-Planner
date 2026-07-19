@@ -43,8 +43,8 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/icon.png",
-          "color": "#000814",
+          "icon": "./assets/android-icon-monochrome.png",
+          "color": "#e9b949",
           "defaultChannel": "acme-hub-default",
           "sounds": []
         }
