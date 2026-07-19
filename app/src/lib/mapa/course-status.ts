@@ -1,8 +1,8 @@
 import type { HistoricoRow, NotaRow, RequisitoRow } from "@/lib/types/db";
 import type { DisciplinaRow } from "@/lib/types/db";
 import type { CourseMapStatus } from "@/lib/types/mapa-api";
-import { computeGradeFromNotas } from "@/lib/disciplinas/grade";
 import { SUBJECT_DISPLAY_PASSING_GRADE } from "@/lib/disciplinas/grade-display";
+import { roundFinalGradeTotal } from "@/lib/disciplinas/grade-rounding";
 import { evaluateChGateForDisciplina } from "@/lib/mapa/period-ch-gates";
 
 const DONE_STATUS_KEYWORDS = [
@@ -177,7 +177,12 @@ export function buildGradeTotalsByDisciplinaCode(
 
   const totals = new Map<string, number | null>();
   for (const [code, rows] of byCode) {
-    totals.set(code, computeGradeFromNotas(rows));
+    if (rows.length === 0 || !rows.some((row) => row.nota_obtida !== null)) {
+      totals.set(code, null);
+      continue;
+    }
+    const sum = rows.reduce((acc, row) => acc + (row.nota_obtida ?? 0), 0);
+    totals.set(code, roundFinalGradeTotal(sum));
   }
   return totals;
 }
