@@ -13,6 +13,7 @@ import {
 } from "@/lib/scraper/portal-discente/resolve-disciplina-codigo";
 import {
   clearPortalSyncedData,
+  clearSemestreAtual,
   getTarefas,
   pruneSyncedSemestreAtual,
   saveAluno,
@@ -32,6 +33,7 @@ import { isPortalSnapshotPersistable } from "@/lib/sync/portal-snapshot-policy";
 export interface PersistPortalResult {
   persisted: boolean;
   reason?: string;
+  emptySemester?: boolean;
 }
 
 interface SyncedTarefaContent {
@@ -103,7 +105,7 @@ export async function persistPortalSnapshot(
   if (!isPortalSnapshotPersistable(snapshot)) {
     return {
       persisted: false,
-      reason: "Snapshot do portal vazio ou sem matrícula.",
+      reason: "Snapshot do portal sem matrícula válida.",
     };
   }
 
@@ -111,6 +113,12 @@ export async function persistPortalSnapshot(
   seedPpcIfEmpty();
   const tarefaContentCache = buildSyncedTarefaContentCache();
   clearPortalSyncedData();
+
+  const emptySemester = snapshot.semestreAtual.length === 0;
+  // Semestre fechado / férias: remove até linhas com preferências do usuário.
+  if (emptySemester) {
+    clearSemestreAtual();
+  }
 
   saveAluno({
     matricula: snapshot.aluno.matricula,
@@ -225,5 +233,5 @@ export async function persistPortalSnapshot(
     });
   }
 
-  return { persisted: true };
+  return { persisted: true, emptySemester };
 }

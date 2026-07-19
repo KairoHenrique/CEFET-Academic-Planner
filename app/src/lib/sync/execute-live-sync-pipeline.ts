@@ -10,6 +10,7 @@ import { persistPortalSnapshot } from "@/lib/sync/persist-portal-snapshot";
 import { persistTurmaVirtualSnapshot } from "@/lib/sync/persist-turma-virtual-snapshot";
 import { persistHistoricoSnapshot } from "@/lib/sync/persist-historico-snapshot";
 import { shouldRunHistoricoStage } from "@/lib/sync/sync-stage-plan";
+import { isPortalSemesterEmpty } from "@/lib/sync/portal-snapshot-policy";
 import { normalizeSyncMode } from "@/lib/sync-policy/resolve-sync-mode";
 import { recordHistoricoSyncedAt } from "@/lib/sync/sync-preferences";
 import type { SyncMode, SyncPipelineResult, SyncStageResult } from "@/lib/types/sync-pipeline";
@@ -51,6 +52,20 @@ async function runPortalStage(
         35
       );
       return null;
+    }
+
+    if (portalResult.emptySemester || isPortalSemesterEmpty(portalSnapshot)) {
+      pushStage(
+        stages,
+        "portal",
+        "ok",
+        "Nenhuma turma neste semestre — semestre limpo."
+      );
+      steps.push({
+        label: "Semestre sem turmas no SIGAA (ok)",
+        progress: 40,
+      });
+      return portalSnapshot;
     }
 
     pushStage(stages, "portal", "ok");
@@ -127,6 +142,20 @@ async function runTurmaStage(
     return;
   }
 
+  if (isPortalSemesterEmpty(portalSnapshot)) {
+    pushStage(
+      stages,
+      "turma",
+      "skipped",
+      "Nenhuma turma neste semestre — turma virtual dispensada."
+    );
+    steps.push({
+      label: "Turma virtual dispensada (sem matérias)",
+      progress: 85,
+    });
+    return;
+  }
+
   steps.push({ label: "Sincronizando turma virtual…", progress: 70 });
 
   try {
@@ -170,7 +199,9 @@ function assertPipelineViable(mode: SyncMode, stages: SyncStageResult[]): void {
     (stage) => stage.stage === "portal" && stage.outcome === "ok"
   );
 
-  if (normalized === "full" && !portalOk) {
+  // Lite/full precisam do portal (inclui semestre vazio OK). Sem portal ok
+  // o sync não limpa matérias fechadas e fica “parcial” sem sentido.
+  if ((normalized === "full" || normalized === "lite") && !portalOk) {
     throw internalError(
       "Não foi possível sincronizar com o SIGAA. Verifique sua conexão ou tente novamente."
     );

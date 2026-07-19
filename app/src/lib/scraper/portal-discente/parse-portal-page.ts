@@ -376,6 +376,17 @@ function parseDisciplinasFromPairs(
 }
 
 function parseDisciplinasSemestre(raw: PortalPageRawData): PortalDisciplinaSemestre[] {
+  // SIGAA: "Nenhuma turma neste semestre" — semestre fechado / férias.
+  const emptyMarker =
+    /nenhuma\s+turma\s+neste\s+semestre/i.test(raw.html ?? "") ||
+    Object.entries(raw.labelPairs).some(
+      ([k, v]) =>
+        /nenhuma\s+turma/i.test(k) || /nenhuma\s+turma/i.test(v)
+    );
+  if (emptyMarker) {
+    return [];
+  }
+
   const disciplinas = new Map<string, PortalDisciplinaSemestre>();
 
   if (raw.html) {
