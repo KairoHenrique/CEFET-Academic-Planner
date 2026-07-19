@@ -11,6 +11,9 @@ import {
   findSubscriptionById,
 } from "@/lib/billing/checkout/billing-subscription-repository";
 import { applyReferralRewardsAfterPaidActivation } from "@/lib/billing/referrals/apply-referral-rewards";
+import { getPostgresPool } from "@/lib/db/postgres/pool";
+import { notifyCpfDevices } from "@/lib/push/expo-push-send";
+import { listPushTokensByCpf } from "@/lib/push/push-token-repository";
 import type { PaymentGateway } from "@/lib/billing/schema/billing-schema-catalog";
 import type { PaymentStatus } from "@/lib/billing/schema/billing-schema-catalog";
 import type { PaymentRow } from "@/lib/billing/schema/billing-row-types";
@@ -145,6 +148,17 @@ export async function confirmBillingPayment(
           amountCents: payment.amount_cents,
           paymentId: payment.id,
         }).catch(() => undefined);
+
+        const pool = getPostgresPool();
+        const tokens = await listPushTokensByCpf(pool, cpf);
+        if (tokens.length > 0) {
+          await notifyCpfDevices({
+            tokens,
+            title: "💎 Assinatura Renovada!",
+            body: "Seu plano Premium foi renovado com sucesso. Obrigado pelo apoio!",
+            data: { type: "subscription-renewed" },
+          }).catch(() => undefined);
+        }
       }
     }
 

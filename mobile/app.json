@@ -2,7 +2,7 @@
   "expo": {
     "name": "ACME HUB",
     "slug": "acme-hub",
-    "version": "1.0.5",
+    "version": "1.0.7",
     "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -43,8 +43,8 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/android-icon-monochrome.png",
-          "color": "#e9b949",
+          "icon": "./assets/icon.png",
+          "color": "#000814",
           "defaultChannel": "acme-hub-default",
           "sounds": []
         }

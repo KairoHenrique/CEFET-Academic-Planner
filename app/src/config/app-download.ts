@@ -5,11 +5,11 @@
  * URL pública r2.dev — permanente enquanto o objeto existir no bucket.
  */
 export const APP_RELEASE = {
-  version: "1.0.5",
-  apkFile: "ACME-HUB-1.0.5.apk",
+  version: "1.0.7",
+  apkFile: "ACME-HUB-1.0.7.apk",
   /** Download permanente (R2). */
   apkPath:
-    "https://pub-b2b330087a284ca886367469abf1924b.r2.dev/ACME-HUB-1.0.5.apk",
+    "https://pub-b2b330087a284ca886367469abf1924b.r2.dev/ACME-HUB-1.0.7.apk",
   pagePath: "/download",
   label: "Baixar app Android",
   shortLabel: "Baixar app",
