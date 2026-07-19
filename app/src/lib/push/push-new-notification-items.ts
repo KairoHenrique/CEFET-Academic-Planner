@@ -30,6 +30,24 @@ function pushCopyForItem(item: NotificationSnapshotItem): {
       return { title: "🛑 Atenção às Faltas", body };
     case "calendar-date-alert":
       return { title: "🏛️ Data Acadêmica", body };
+    case "grade-risk":
+      return { title: "🚨 Risco de Reprovação", body };
+    case "task-late":
+      return { title: "⚠️ Tarefa Atrasada", body };
+    case "absence-failed":
+      return { title: "💔 Limite de Faltas Excedido", body };
+    case "morning-summary":
+      return { title: "☕ Bom dia! Suas aulas hoje", body };
+    case "graduation-alert":
+      return { title: "🎓 Você está quase lá!", body };
+    case "plan-expiring":
+      return { title: "⏳ Seu plano está acabando", body };
+    case "promo":
+      return { title: "🎁 Presente pra você!", body };
+    case "subscription-renewed":
+      return { title: "💎 Assinatura Renovada!", body };
+    case "invalid-password":
+      return { title: "⚠️ Falha na Sincronização", body };
     default:
       return { title: "ACME HUB", body };
   }
