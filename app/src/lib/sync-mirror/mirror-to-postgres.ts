@@ -27,7 +27,8 @@ function skippedResult(message: string): MirrorResult {
 }
 
 async function mirrorGlobalTables(
-  snapshot: GlobalSqliteSnapshot
+  snapshot: GlobalSqliteSnapshot,
+  fallbackCursoId = "eng-computacao"
 ): Promise<void> {
   const pool = getMirrorPool();
   const client = await pool.connect();
@@ -75,11 +76,12 @@ async function mirrorGlobalTables(
           turma.horario_exibicao, turma.local, turma.professor, turma.vagas,
           turma.vagas_ocupadas, turma.carga_horaria, turma.situacao,
           turma.tipo_turma, turma.departamento, turma.horario_indefinido,
-          turma.categoria, turma.curso_id ?? "eng-computacao", turma.synced_at,
+          turma.categoria, turma.curso_id ?? fallbackCursoId, turma.synced_at,
         ]),
         `ON CONFLICT (turma_sigaa_id) DO UPDATE SET
            vagas_ocupadas = EXCLUDED.vagas_ocupadas,
-           synced_at = EXCLUDED.synced_at`
+           synced_at = EXCLUDED.synced_at,
+           curso_id = EXCLUDED.curso_id`
       );
     }
 
@@ -133,7 +135,10 @@ export async function mirrorSyncToPostgres(
     }
   }
 
-  await mirrorGlobalTables(globalSnapshot);
+  await mirrorGlobalTables(
+    globalSnapshot,
+    tenant?.cursoId ?? "eng-computacao"
+  );
 
   const message = tenant
     ? `Mirror Postgres ok (user ${tenant.userId.slice(0, 8)}… + catálogo global).`
