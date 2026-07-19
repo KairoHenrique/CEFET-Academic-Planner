@@ -80,7 +80,8 @@ export function persistHistoricoSnapshot(
 
     const disciplinaId = resolveDisciplinaCodigoForHistorico(
       disciplina.nome,
-      disciplina.codigo
+      disciplina.codigo,
+      disciplina.ch
     );
     if (!isPpcCanonicalCodigo(disciplinaId) || !validDisciplinaIds.has(disciplinaId)) {
       rowsSkipped += 1;

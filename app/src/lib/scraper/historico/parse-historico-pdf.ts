@@ -172,6 +172,7 @@ function extractNomeFromBlock(
 ): string {
   const nomeLines: string[] = nomeSeed ? [nomeSeed] : [];
   let passedSemestre = !nomeSeed;
+  const INLINE_SITUACAO_RE = new RegExp(`\\b\\d{2}\\s+(?:${SITUACAO_RE.source}).*`, "i");
 
   for (const rawLine of blockLines) {
     const line = rawLine.trim();
@@ -192,6 +193,13 @@ function extractNomeFromBlock(
     if (/^\d+\s+[\d,.]+/.test(line)) break;
     if (METADATA_LINE.test(line)) break;
     if (/^PARTICIPAÇÕES NO ENADE/i.test(line)) break;
+
+    const match = line.match(INLINE_SITUACAO_RE);
+    if (match) {
+      const cleanLine = line.slice(0, match.index).trim();
+      if (cleanLine) nomeLines.push(cleanLine);
+      break;
+    }
 
     nomeLines.push(line);
   }

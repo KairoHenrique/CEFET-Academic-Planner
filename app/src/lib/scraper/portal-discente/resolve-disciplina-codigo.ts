@@ -1,5 +1,6 @@
 import { getDisciplinas } from "@/lib/db/queries";
 import type { DisciplinaRow } from "@/lib/types/db";
+import { findBestJaccardMatch, type JaccardCandidateEntry } from "./jaccard-matcher";
 
 export function normalizeDisciplinaNome(value: string): string {
   return value
@@ -11,9 +12,9 @@ export function normalizeDisciplinaNome(value: string): string {
     .trim();
 }
 
-/** Código canônico do PPC — ex.: `06/3`, `04/7`. */
+/** Código canônico do PPC — ex.: `06/3`, `04/7`, `01/12`. */
 export function isPpcCanonicalCodigo(codigo: string): boolean {
-  return /^\d{2}\/\d$/.test(codigo.trim());
+  return /^\d{2}\/\d+$/.test(codigo.trim());
 }
 
 function significantTokens(nome: string): string[] {
@@ -30,13 +31,15 @@ function isLaboratorioNome(nome: string): boolean {
 
 function listPpcDisciplinaEntries(
   disciplinas?: DisciplinaRow[]
-): Array<{ nome: string; codigo: string }> {
+): JaccardCandidateEntry[] {
   const source = disciplinas ?? getDisciplinas();
   return source
     .filter((disciplina) => isPpcCanonicalCodigo(disciplina.codigo))
     .map((disciplina) => ({
       nome: disciplina.nome,
       codigo: disciplina.codigo,
+      ementa: disciplina.ementa,
+      carga_horaria: disciplina.carga_horaria,
     }));
 }
 
@@ -118,6 +121,11 @@ export function resolveDisciplinaCodigoByNome(
   );
   if (exactPpc) return exactPpc.codigo;
 
+  // Jaccard similarity match (resilient to PPC code changes)
+  const jaccardMatch = findBestJaccardMatch(trimmed, 0, ppcEntries);
+  if (jaccardMatch) return jaccardMatch;
+
+  // Legacy substring/token scorer as fallback
   const scored = bestDisciplinaCodigoByScore(target, ppcEntries);
   if (scored) return scored;
 
@@ -154,10 +162,18 @@ export function resolveDisciplinaCodigoForPortal(
 /** Resolve código PPC a partir do nome e do código SIGAA (G05…) do PDF do histórico. */
 export function resolveDisciplinaCodigoForHistorico(
   nome: string,
-  sigaaCodigo?: string | null
+  sigaaCodigo?: string | null,
+  ch?: number
 ): string {
   const fromNome = resolveDisciplinaCodigoByNome(nome);
   if (isPpcCanonicalCodigo(fromNome)) return fromNome;
+
+  // Jaccard with CH bonus for historico (PDF provides CH data)
+  if (ch && ch > 0) {
+    const ppcEntries = listPpcDisciplinaEntries();
+    const jaccardMatch = findBestJaccardMatch(nome, ch, ppcEntries);
+    if (jaccardMatch) return jaccardMatch;
+  }
 
   const fromSigaa = resolveDisciplinaCodigoBySigaaComponent(sigaaCodigo);
   if (fromSigaa) return fromSigaa;
