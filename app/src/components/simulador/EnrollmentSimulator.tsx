@@ -262,7 +262,9 @@ export function EnrollmentSimulator({ data }: EnrollmentSimulatorProps) {
     (partners: TurmaOfertadaCourse[]) => {
       if (partners.length > 1) {
         const group = buildEnrollmentGroupFromVariants(partners);
-        setSelectedCourse(null);
+        // Mantém `selectedCourse` (1ª variante) para o card ALOCANDO — antes
+        // ficava null e o float sumia no segundo passo do corequisito.
+        setSelectedCourse(group.variants[0] ?? null);
         setSelectedGroupId(group.id);
         setSelectedGroupVariants(group.variants);
         scrollEnrollmentScheduleIntoView();
@@ -511,10 +513,11 @@ export function EnrollmentSimulator({ data }: EnrollmentSimulatorProps) {
   const handleGroupClick = (group: EnrollmentCourseGroup) => {
     if (!group.multiVariant) return;
 
-    const isDeselect = selectedGroupId === group.id && !selectedCourse;
+    const isDeselect = selectedGroupId === group.id;
 
     if (isDeselect) {
       clearGroupPreview();
+      setSelectedCourse(null);
       setConflictNotice(null);
       return;
     }
@@ -536,7 +539,8 @@ export function EnrollmentSimulator({ data }: EnrollmentSimulatorProps) {
       return;
     }
 
-    setSelectedCourse(null);
+    // Representante p/ card ALOCANDO; a grade continua com preview multi-variante.
+    setSelectedCourse(placeable[0] ?? null);
     setSelectedGroupId(group.id);
     setSelectedGroupVariants(group.variants);
     setConflictNotice(null);
@@ -657,7 +661,11 @@ export function EnrollmentSimulator({ data }: EnrollmentSimulatorProps) {
             <EnrollmentSelectionFloat
               selectedCourse={selectedCourse}
               selectedShortLabel={selectedShortLabel}
-              selectedHorario={selectedHorario}
+              selectedHorario={
+                selectedGroupId && selectedGroupVariants.length > 1
+                  ? "Várias turmas — clique em uma célula destacada na grade"
+                  : selectedHorario
+              }
               onDismiss={requestCancelSelectedCourse}
             />
           ) : null}

@@ -1,6 +1,9 @@
+import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { brand } from "../../theme/brand";
 import { Icon } from "../../ui/Icon";
+
+const SUCCESS_FEEDBACK_MS = 4500;
 
 type Props = {
   syncedAtLabel: string | null;
@@ -16,6 +19,19 @@ export function EnrollmentSyncBar({
   message,
   onRequestSync,
 }: Props) {
+  const [visibleMessage, setVisibleMessage] = useState(message ?? null);
+
+  useEffect(() => {
+    setVisibleMessage(message ?? null);
+    if (!message) return;
+
+    const timer = setTimeout(() => {
+      setVisibleMessage(null);
+    }, SUCCESS_FEEDBACK_MS);
+
+    return () => clearTimeout(timer);
+  }, [message]);
+
   return (
     <View style={styles.bar}>
       <Text style={styles.status}>
@@ -35,7 +51,7 @@ export function EnrollmentSyncBar({
           {syncing ? "Aguarde…" : "Atualizar SIGAA"}
         </Text>
       </Pressable>
-      {message ? <Text style={styles.msg}>{message}</Text> : null}
+      {visibleMessage ? <Text style={styles.msg}>{visibleMessage}</Text> : null}
     </View>
   );
 }

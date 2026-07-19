@@ -1,10 +1,10 @@
 ﻿{
-  "version": "1.0.0",
+  "version": "1.0.1",
   "apk": "ACME-HUB-1.0.0.apk",
   "label": "ACME HUB Android",
   "published": true,
   "hosting": "r2",
   "apkUrl": "https://pub-b2b330087a284ca886367469abf1924b.r2.dev/ACME-HUB-1.0.0.apk",
   "r2Bucket": "acme-hub-releases",
-  "notes": "APK permanente no R2. Nome amigável ACME-HUB-1.0.0.apk (não usar link Expo/EAS)."
+  "notes": "v1.0.1 (site): bugfixes — prefs notificação cloud, sino navbar, download copy, ALOCANDO corequisito, banner turmas, form Novo evento app. APK R2 ainda 1.0.0 até rebuild."
 }
