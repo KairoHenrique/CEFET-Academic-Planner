@@ -3,10 +3,13 @@
 import { PageGrid } from "@/components/layout/PageGrid";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { SubjectList } from "@/components/disciplinas/SubjectList";
+import { useDashboard } from "@/hooks/useDashboard";
 import { useDisciplinas } from "@/hooks/useDisciplinas";
 
 export function DisciplinasView() {
   const { items, isLoading } = useDisciplinas();
+  const { data: dashboard } = useDashboard();
+  const semestreLabel = dashboard?.aluno.semestreAtual;
 
   const subtitle = isLoading
     ? "Carregando disciplinas do semestre..."
@@ -17,7 +20,7 @@ export function DisciplinasView() {
   return (
     <PageGrid>
       <PageHeader
-        eyebrow="Semestre 2026.1"
+        eyebrow={semestreLabel ? `Semestre ${semestreLabel}` : "Semestre"}
         title="Disciplinas"
         subtitle={subtitle}
         tutorial="disciplinas"

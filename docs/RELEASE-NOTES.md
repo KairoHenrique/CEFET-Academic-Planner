@@ -1,20 +1,22 @@
 # Release notes — ACME HUB
 
-## v1.0.1 (jul/2026) — correção de bugs (site + app Expo Go)
+## v1.0.1 (jul/2026) — correção de bugs (site + app)
 
-Patch sobre a base **v1.0.0**. Sem rebuild de APK nesta tag (testar no Expo Go primeiro).
+Patch sobre a base **v1.0.0**.
 
 ### Correções
-- **Preferências de notificação (cloud):** ligar/desligar passa a persistir no Postgres (`configuracoes`) em vez de SQLite — fim do toggle que “voltava sozinho” e do erro `SQLite local indisponível…` no app.
-- **Navbar desktop:** sino de notificações alinhado/centralizado com o restante das actions.
-- **Página /download:** texto enxuto (sem “sideload · Play Store” e sem linha Cloudflare R2).
-- **Simulador / corequisito:** card **ALOCANDO** reaparece no 2º passo quando o parceiro tem várias turmas (site + app).
-- **Simulador:** banner “Turmas ofertadas atualizadas.” some sozinho após alguns segundos.
-- **Calendário (app):** formulário **Novo evento** com paridade do navegador (disciplina, tipos completos, cor, datas/horas, recorrência semanal, descrição).
+- **Preferências de notificação (cloud):** ligar/desligar persiste no Postgres (`configuracoes`) — fim do toggle que “voltava sozinho” e do erro SQLite no app.
+- **Navbar desktop:** sino alinhado/centralizado.
+- **Página /download:** texto enxuto.
+- **Simulador / corequisito:** card **ALOCANDO** no 2º passo com várias turmas (site + app).
+- **Simulador:** banner “Turmas ofertadas atualizadas.” some sozinho.
+- **Calendário (app):** formulário **Novo evento** com paridade do navegador.
+- **Semestre automático:** header Dashboard/Disciplinas (site + app) usa data oficial do calendário acadêmico (“Período Letivo”); fallback por mês.
+- **Excluir eventos manuais:** botão Excluir no detalhe (site + app) — só eventos criados pelo aluno.
 
 ### Artefatos
-- **Site:** `https://acme-hub.khfm.workers.dev` (deploy Cloudflare).
-- **APK no R2:** ainda `ACME-HUB-1.0.0.apk` até novo EAS preview.
+- **Site:** `https://acme-hub.khfm.workers.dev`
+- **APK R2:** `ACME-HUB-1.0.1.apk`
 
 ## v1.0.0 (jul/2026)
 

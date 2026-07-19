@@ -2,17 +2,24 @@ import {
   buildIntegralizacaoFromQueries,
   type IntegralizacaoQueryDeps,
 } from "@/lib/integralizacao/build-integralizacao-from-queries";
+import { resolveCurrentAcademicSemesterLabel } from "@/lib/academic/resolve-academic-semester";
 import { notFoundError } from "@/lib/api/errors";
 import type { DashboardResponse } from "@/lib/types/dashboard";
 import type { AcademicTask } from "@/lib/types/task";
+import type { CalendarioAcademicoRow } from "@/lib/types/db";
 import { buildSubjectSummary, buildSubjectSummaryCore } from "@/lib/disciplinas/build-subject";
 import { SubjectSourceIndex } from "@/lib/disciplinas/build-subject-source";
 import { mapTarefaToAcademicTask } from "@/lib/disciplinas/mappers";
 import { shouldHideTaskFromDashboard } from "@/lib/tasks/dates";
 import { toIntegrationCategories } from "@/lib/integralizacao/build-integralizacao";
 
+export type DashboardQueryDeps = IntegralizacaoQueryDeps & {
+  /** Datas oficiais do calendário — define Semestre X.Y no header. */
+  getCalendarioAcademico?: () => Promise<CalendarioAcademicoRow[]>;
+};
+
 export async function buildDashboardFromQueries(
-  deps: IntegralizacaoQueryDeps
+  deps: DashboardQueryDeps
 ): Promise<DashboardResponse> {
   const aluno = await deps.getAluno();
   if (!aluno) {
@@ -21,8 +28,12 @@ export async function buildDashboardFromQueries(
     );
   }
 
-  const semestreRows = await deps.getSemestreAtual();
-  const allTarefas = await deps.getTarefas();
+  const [semestreRows, allTarefas, academicRows] = await Promise.all([
+    deps.getSemestreAtual(),
+    deps.getTarefas(),
+    deps.getCalendarioAcademico?.() ?? Promise.resolve([]),
+  ]);
+  const semestreAtualLabel = resolveCurrentAcademicSemesterLabel(academicRows);
 
   // Bulk (cloud/postgres): monta o índice de notas/faltas/tarefas 1x e resolve
   // cada card em O(1). Fallback SQLite (dev/PC) usa `buildSubjectSummary`.
@@ -80,7 +91,7 @@ export async function buildDashboardFromQueries(
       nome: aluno.nome,
       curso: aluno.curso ?? "",
       email: aluno.email ?? "",
-      semestreAtual: "2026.1",
+      semestreAtual: semestreAtualLabel,
       rg: aluno.rg ?? 0,
       status: aluno.status ?? "",
     },

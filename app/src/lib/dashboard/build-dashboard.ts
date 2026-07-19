@@ -1,6 +1,8 @@
 import { notFoundError } from "@/lib/api/errors";
+import { resolveCurrentAcademicSemesterLabel } from "@/lib/academic/resolve-academic-semester";
 import {
   getAluno,
+  getCalendarioAcademico,
   getSemestreAtual,
   getTarefas,
 } from "@/lib/db/queries";
@@ -24,6 +26,9 @@ export function buildDashboard(): DashboardResponse {
 
   const semestreRows = getSemestreAtual();
   const disciplinas = semestreRows.map(buildSubjectSummary);
+  const semestreAtualLabel = resolveCurrentAcademicSemesterLabel(
+    getCalendarioAcademico()
+  );
 
   const integralizacaoPayload = buildIntegralizacao();
   const categories = toIntegrationCategories(integralizacaoPayload);
@@ -65,7 +70,7 @@ export function buildDashboard(): DashboardResponse {
       nome: aluno.nome,
       curso: aluno.curso ?? "",
       email: aluno.email ?? "",
-      semestreAtual: "2026.1",
+      semestreAtual: semestreAtualLabel,
       rg: aluno.rg ?? 0,
       status: aluno.status ?? "",
     },
