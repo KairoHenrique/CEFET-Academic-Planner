@@ -15,7 +15,7 @@ export const APP_RELEASE = {
   shortLabel: "Baixar app",
   r2Bucket: "acme-hub-releases",
   easBuildUrl:
-    "https://expo.dev/accounts/kairohfm/projects/acme-hub/builds/95f55bb8-6d1d-4819-8ee9-625f620db8f1",
+    "https://expo.dev/accounts/kairohfm/projects/acme-hub/builds/7f52e717-3e30-42aa-82bc-0bf9b517dd59",
 } as const;
 
 export function appApkAbsoluteUrl(_origin?: string): string {
