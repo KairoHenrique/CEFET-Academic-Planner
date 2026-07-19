@@ -7,6 +7,7 @@ import { maskCpf } from "@/lib/dev-panel/mask-cpf";
 import type { DevRobotTargetResult } from "@/lib/dev-panel/types";
 import { enqueueCloudSyncJob } from "@/lib/sync-queue/cloud-sync-queue";
 import { runTurmasOfertadasSync } from "@/lib/sync/run-turmas-ofertadas-sync";
+import { runWithSyncTenantContext } from "@/lib/sync/run-with-sync-tenant-context";
 
 export async function runR3Robot(cpf: string): Promise<DevRobotTargetResult> {
   const masked = maskCpf(cpf);
@@ -36,13 +37,15 @@ export async function runR3Robot(cpf: string): Promise<DevRobotTargetResult> {
     const password = await resolveSigaaPassword({ username: cpf });
     // Local (SQLite ou Postgres com staging): roda o scraper direto.
     const result = await runWithScraperSqlite(() =>
-      runWithUserDb(cpf, async () => {
-        ensureDbReady();
-        return runTurmasOfertadasSync(
-          { username: cpf, password, savePassword: false },
-          { force: true }
-        );
-      })
+      runWithSyncTenantContext(cpf, () =>
+        runWithUserDb(cpf, async () => {
+          ensureDbReady();
+          return runTurmasOfertadasSync(
+            { username: cpf, password, savePassword: false },
+            { force: true }
+          );
+        })
+      )
     );
 
     return {

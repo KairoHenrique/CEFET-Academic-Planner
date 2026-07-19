@@ -13,6 +13,7 @@ import { readEffectiveSyncPolicyAsync } from "@/lib/sync-policy/app-config-store
 import { enqueueSyncJob } from "@/lib/sync-queue/enqueue-sync-job";
 import { kickSyncQueueDispatcher } from "@/lib/sync-queue/sync-queue-dispatcher";
 import { runSync } from "@/lib/sync/run-sync";
+import { runWithSyncTenantContext } from "@/lib/sync/run-with-sync-tenant-context";
 
 export async function runR1Robot(
   cpf: string,
@@ -67,26 +68,28 @@ export async function runR1Robot(
       };
     }
 
-    return await runWithUserDb(cpf, async () => {
-      ensureDbReady();
-      await runSync(
-        {
-          username: cpf,
-          password,
-          savePassword: false,
-          mode: mode ?? "deep",
-          trigger: "dev",
-        },
-        { mode: mode ?? "deep" }
-      );
+    return await runWithSyncTenantContext(cpf, () =>
+      runWithUserDb(cpf, async () => {
+        ensureDbReady();
+        await runSync(
+          {
+            username: cpf,
+            password,
+            savePassword: false,
+            mode: mode ?? "deep",
+            trigger: "dev",
+          },
+          { mode: mode ?? "deep" }
+        );
 
-      return {
-        cpfMasked: masked,
-        robot: "r1",
-        status: "ok",
-        message: "R1 concluído.",
-      };
-    });
+        return {
+          cpfMasked: masked,
+          robot: "r1" as const,
+          status: "ok" as const,
+          message: "R1 concluído.",
+        };
+      })
+    );
   } catch (error) {
     return {
       cpfMasked: masked,
