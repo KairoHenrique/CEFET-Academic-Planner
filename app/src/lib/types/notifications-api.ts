@@ -8,7 +8,16 @@ export type NotificationKind =
   | "integralizacao-alert"
   /** B37 — data acadêmica institucional próxima. */
   | "calendar-date-alert"
-  | "absence";
+  | "absence"
+  | "grade-risk"
+  | "task-late"
+  | "absence-failed"
+  | "morning-summary"
+  | "graduation-alert"
+  | "plan-expiring"
+  | "promo"
+  | "subscription-renewed"
+  | "invalid-password";
 
 export interface NotificationSnapshotItem {
   fingerprint: string;
