@@ -1,25 +1,23 @@
 # Releases — APK sideload (M16)
 
-## Limite Cloudflare
+## Por que R2?
 
-Workers Assets aceitam no máximo **25 MiB** por arquivo. O APK ACME HUB 1.0 tem ~**77 MiB**, então **não** pode ficar em `public/releases/` no deploy.
+Workers Assets aceitam no máximo **25 MiB**. O APK (~77 MiB) fica no bucket R2
+`acme-hub-releases`, com URL pública **r2.dev** (não expira).
 
-## Onde está o APK
+## URL atual
 
-| Ambiente | Local |
-|----------|--------|
-| EAS (download público atual) | URL em `manifest.json` → `apkUrl` / `APP_RELEASE.apkPath` |
-| Página do build | https://expo.dev/accounts/kairohfm/projects/acme-hub/builds/d6061094-4c3f-4102-b522-ec0ed461d1e9 |
-| Cópia local (gitignored) | `app/.data/releases/acme-hub-1.0.0.apk` |
+`https://pub-b2b330087a284ca886367469abf1924b.r2.dev/acme-hub-1.0.0.apk`
 
-## Novo build
+## Novo APK
 
 ```bash
-cd mobile
-npx eas-cli build -p android --profile preview --non-interactive
-# Atualize APP_RELEASE.apkPath + manifest.json apkUrl com o novo applicationArchiveUrl
+cd app
+npx wrangler r2 object put acme-hub-releases/acme-hub-1.0.0.apk \
+  --file=.data/releases/acme-hub-1.0.0.apk \
+  --content-type=application/vnd.android.package-archive \
+  --remote
+# Atualize APP_RELEASE.apkPath + public/releases/manifest.json se o nome mudar
 ```
 
-## Futuro (hosting permanente no domínio)
-
-Subir o APK para **Cloudflare R2** (ou similar) e apontar `APP_RELEASE.apkPath` para a URL pública do bucket.
+Cópia local (gitignored): `app/.data/releases/acme-hub-1.0.0.apk`

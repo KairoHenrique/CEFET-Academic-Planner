@@ -15,7 +15,7 @@ type Manifest = {
 };
 
 /**
- * Página pública de download — QR → /download; CTA → artefato EAS/R2.
+ * Página pública de download — QR + CTA apontam pro APK no R2.
  */
 export function DownloadPageClient() {
   const [manifest, setManifest] = useState<Manifest | null>(null);
@@ -29,7 +29,6 @@ export function DownloadPageClient() {
 
   const version = manifest?.version ?? APP_RELEASE.version;
   const apkHref = manifest?.apkUrl?.trim() || APP_RELEASE.apkPath;
-  const viaEas = (manifest?.hosting ?? "eas-artifact") === "eas-artifact";
 
   return (
     <div className="app-dl-page">
@@ -47,17 +46,10 @@ export function DownloadPageClient() {
           ser preciso permitir “fontes desconhecidas” para o instalador.
         </p>
 
-        {viaEas ? (
-          <div className="app-dl-page-banner" role="status">
-            Download via build EAS (Cloudflare não hospeda arquivos &gt; 25 MiB).
-            O link do artefato é válido por ~14 dias após o build.
-          </div>
-        ) : null}
-
         <div className="app-dl-page-qr-wrap" aria-hidden={false}>
-          <AppDownloadQr size={240} />
+          <AppDownloadQr size={240} url={apkHref} />
           <p className="app-dl-page-qr-caption">
-            QR → esta página (útil no desktop)
+            QR → download direto do APK
           </p>
         </div>
 
@@ -71,10 +63,7 @@ export function DownloadPageClient() {
         </a>
 
         <p className="app-dl-page-meta">
-          Build:{" "}
-          <a href={APP_RELEASE.easBuildUrl} rel="noopener noreferrer">
-            Expo / EAS
-          </a>
+          Hospedagem permanente · Cloudflare R2
         </p>
 
         <Link href="/login" className="app-dl-page-back">
