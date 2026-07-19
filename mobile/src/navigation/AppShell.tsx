@@ -30,12 +30,18 @@ import { SimuladorScreen } from "../screens/SimuladorScreen";
 import { F28Navbar } from "./F28Navbar";
 import { MobileDrawer } from "./MobileDrawer";
 import type { RootStackParamList } from "./types";
+import {
+  PageTutorialModal,
+  TutorialProvider,
+  useTutorial,
+} from "../features/tutorial";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function ShellChrome({ children }: { children: ReactNode }) {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const { startTutorialForRoute } = useTutorial();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const sync = useMobileSync();
   const initials = useAvatarInitials();
@@ -61,6 +67,14 @@ function ShellChrome({ children }: { children: ReactNode }) {
 
   function handleSyncPress() {
     void startManualLiteSync();
+  }
+
+  function handleStartTutorial() {
+    // Fecha o drawer antes — no Android dois Modals juntos travam o foco.
+    setDrawerOpen(false);
+    setTimeout(() => {
+      startTutorialForRoute(String(activeRoute));
+    }, 280);
   }
 
   return (
@@ -89,6 +103,7 @@ function ShellChrome({ children }: { children: ReactNode }) {
           }
           navigation.navigate(route as never);
         }}
+        onStartTutorial={handleStartTutorial}
       />
     </View>
   );
@@ -104,6 +119,17 @@ function withShell(Screen: ComponentType<object>) {
   };
 }
 
+function TutorialHost() {
+  const { open, tutorialId, closeTutorial } = useTutorial();
+  return (
+    <PageTutorialModal
+      tutorialId={tutorialId}
+      open={open}
+      onClose={closeTutorial}
+    />
+  );
+}
+
 /** Stack F28 — mesmas rotas do site; casca navbar+drawer. */
 export function AppShell() {
   const pending = consumePostAuthNavigation();
@@ -115,39 +141,42 @@ export function AppShell() {
       : undefined;
 
   return (
-    <Stack.Navigator
-      initialRouteName={initialRouteName}
-      screenOptions={{
-        headerShown: false,
-        contentStyle: { backgroundColor: brand.bg },
-        animation: "fade",
-      }}
-    >
-      <Stack.Screen name="Dashboard" component={withShell(DashboardScreen)} />
-      <Stack.Screen name="Calendario" component={withShell(CalendarScreen)} />
-      <Stack.Screen name="Disciplinas" component={withShell(DisciplinasScreen)} />
-      <Stack.Screen
-        name="DisciplinaDetail"
-        component={withShell(DisciplinaDetailScreen)}
-      />
-      <Stack.Screen name="Mapa" component={withShell(MapaScreen)} />
-      <Stack.Screen
-        name="Integralizacao"
-        component={withShell(IntegralizacaoScreen)}
-      />
-      <Stack.Screen name="Simulador" component={withShell(SimuladorScreen)} />
-      <Stack.Screen
-        name="Planos"
-        component={withShell(PlanosScreen)}
-        initialParams={planosInitialParams}
-      />
-      <Stack.Screen name="PlanosPix" component={withShell(PlanosPixScreen)} />
-      <Stack.Screen
-        name="Notificacoes"
-        component={withShell(NotificationsScreen)}
-      />
-      <Stack.Screen name="Perfil" component={withShell(PerfilScreen)} />
-    </Stack.Navigator>
+    <TutorialProvider>
+      <Stack.Navigator
+        initialRouteName={initialRouteName}
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: brand.bg },
+          animation: "fade",
+        }}
+      >
+        <Stack.Screen name="Dashboard" component={withShell(DashboardScreen)} />
+        <Stack.Screen name="Calendario" component={withShell(CalendarScreen)} />
+        <Stack.Screen name="Disciplinas" component={withShell(DisciplinasScreen)} />
+        <Stack.Screen
+          name="DisciplinaDetail"
+          component={withShell(DisciplinaDetailScreen)}
+        />
+        <Stack.Screen name="Mapa" component={withShell(MapaScreen)} />
+        <Stack.Screen
+          name="Integralizacao"
+          component={withShell(IntegralizacaoScreen)}
+        />
+        <Stack.Screen name="Simulador" component={withShell(SimuladorScreen)} />
+        <Stack.Screen
+          name="Planos"
+          component={withShell(PlanosScreen)}
+          initialParams={planosInitialParams}
+        />
+        <Stack.Screen name="PlanosPix" component={withShell(PlanosPixScreen)} />
+        <Stack.Screen
+          name="Notificacoes"
+          component={withShell(NotificationsScreen)}
+        />
+        <Stack.Screen name="Perfil" component={withShell(PerfilScreen)} />
+      </Stack.Navigator>
+      <TutorialHost />
+    </TutorialProvider>
   );
 }
 

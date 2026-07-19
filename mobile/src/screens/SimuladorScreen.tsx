@@ -416,6 +416,7 @@ export function SimuladorScreen() {
                       allowedEmptyCells={sim.allowedEmptyCells}
                       conflictCellKeys={conflictCellKeys}
                       previewCellLayers={sim.previewCellLayers}
+                      selectionTintColor={sim.selectionTintColor}
                       onEmptyPress={sim.handleEmptyClick}
                       onSlotPress={(payload) => sim.setDetail(payload)}
                     />
