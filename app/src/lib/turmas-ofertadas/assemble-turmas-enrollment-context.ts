@@ -1,10 +1,9 @@
 import { computeChDoneFromDisciplinas } from "@/lib/integralizacao/compute-ch-from-disciplinas";
 import { getChCatalog, getChCatalogForCurso } from "@/lib/integralizacao/ch-catalog";
 import {
+  buildActiveCurrentDisciplinaSet,
   buildCompletedDisciplinaSet,
   buildCoRequisitoMap,
-  buildCursandoDisciplinaSet,
-  buildCurrentDisciplinaSet,
   buildFailedDisciplinaSet,
   buildPreRequisitoMap,
   normalizeDisciplinaCode,
@@ -40,11 +39,10 @@ export function assembleTurmasEnrollmentContext(input: {
 }): TurmasEnrollmentContext {
   const completed = buildCompletedDisciplinaSet(input.historico);
   const failed = buildFailedDisciplinaSet(input.historico);
-  const cursando = buildCursandoDisciplinaSet(input.historico);
-  const current = buildCurrentDisciplinaSet([
-    ...input.semestreAtual.map((row) => row.disciplina_id),
-    ...[...cursando],
-  ]);
+  const current = buildActiveCurrentDisciplinaSet(
+    input.semestreAtual.map((row) => row.disciplina_id),
+    input.historico
+  );
   const preRequisitos = buildPreRequisitoMap(input.requisitos);
   const coRequisitos = buildCoRequisitoMap(input.requisitos);
   const catalog = getChCatalogForCurso(resolveQueryCursoId()) ?? getChCatalog();

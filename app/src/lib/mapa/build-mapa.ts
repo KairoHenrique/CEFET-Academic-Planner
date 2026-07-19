@@ -8,12 +8,10 @@ import {
   getSemestreAtual,
 } from "@/lib/db/queries";
 import {
+  buildActiveCurrentDisciplinaSet,
   buildCompletedDisciplinaSet,
-  buildCursandoDisciplinaSet,
-  buildCurrentDisciplinaSet,
   buildPreRequisitoMap,
   countStatusTotals,
-  mergeDisciplinaSets,
   normalizeDisciplinaCode,
   resolveCourseMapStatusResult,
 } from "@/lib/mapa/course-status";
@@ -145,13 +143,10 @@ function assembleMapaFromData(input: MapaAssemblyInput): MapaResponse {
   }
 
   const completed = buildCompletedDisciplinaSet(historico);
-  const current = mergeDisciplinaSets(
-    buildCurrentDisciplinaSet(semestreAtual.map((row) => row.disciplina_id)),
-    buildCursandoDisciplinaSet(historico)
+  const current = buildActiveCurrentDisciplinaSet(
+    semestreAtual.map((row) => row.disciplina_id),
+    historico
   );
-  for (const code of completed) {
-    current.delete(code);
-  }
   const preRequisitos = buildPreRequisitoMap(requisitos);
   const catalog = getChCatalogForCurso(resolveQueryCursoId());
   const syncedObrigatoria =
