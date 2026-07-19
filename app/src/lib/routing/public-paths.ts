@@ -3,6 +3,10 @@ export function isPublicAppPath(pathname: string): boolean {
     return true;
   }
 
+  if (pathname === "/download") {
+    return true;
+  }
+
   if (pathname === "/termos" || pathname === "/privacidade") {
     return true;
   }
@@ -16,4 +20,8 @@ export function isPublicAppPath(pathname: string): boolean {
 
 export function isLegalDocumentPath(pathname: string): boolean {
   return pathname === "/termos" || pathname === "/privacidade";
+}
+
+export function isDownloadPath(pathname: string): boolean {
+  return pathname === "/download";
 }

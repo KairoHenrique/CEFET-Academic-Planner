@@ -2,3 +2,8 @@
 /ServidorACME.exe
 /ServidorCEFET.exe
 /app/scripts/servidor-acme.ico
+
+# APK sideload (M16)
+app/public/releases/*.apk
+mobile/*.apk
+

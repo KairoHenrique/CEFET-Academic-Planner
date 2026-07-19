@@ -1,0 +1,7 @@
+{
+  "version": "1.0.0",
+  "apk": "acme-hub-1.0.0.apk",
+  "label": "ACME HUB Android",
+  "published": false,
+  "notes": "Após eas build, copie o .apk para este diretório com o nome em apk e marque published=true."
+}
