@@ -13,7 +13,8 @@ import {
   inferSemestreAtualFromHtml,
   parseDisciplinasHorarioFromHtml,
 } from "@/lib/scraper/portal-discente/parse-portal-horario";
-import { ENG_COMPUTACAO_CH_CATALOG } from "@/lib/integralizacao/ch-catalog";
+import { getChCatalogForCurso } from "@/lib/integralizacao/ch-catalog";
+import { DEFAULT_CURSO_ID } from "@/lib/db/backend/config";
 
 const CH_TYPES = [
   "Obrigatória",
@@ -183,9 +184,12 @@ function resolveChTipoFromExactLabel(normalized: string): (typeof CH_TYPES)[numb
 
 function buildIntegralizacaoFromPendente(
   tipo: (typeof CH_TYPES)[number],
-  pendente: number
+  pendente: number,
+  cursoId: string = DEFAULT_CURSO_ID
 ): PortalIntegralizacaoItem {
-  const catalogEntry = ENG_COMPUTACAO_CH_CATALOG.find((entry) => entry.tipoCh === tipo);
+  const catalogEntry = getChCatalogForCurso(cursoId).find(
+    (entry) => entry.tipoCh === tipo
+  );
   const totalNecessario = catalogEntry?.totalRequired ?? null;
   const concluido =
     totalNecessario !== null ? Math.max(0, totalNecessario - pendente) : 0;
@@ -199,7 +203,8 @@ function buildIntegralizacaoFromPendente(
 }
 
 function parseIntegralizacaoFromPairs(
-  pairs: Record<string, string>
+  pairs: Record<string, string>,
+  cursoId: string = DEFAULT_CURSO_ID
 ): Map<string, PortalIntegralizacaoItem> {
   const items = new Map<string, PortalIntegralizacaoItem>();
 
@@ -211,14 +216,15 @@ function parseIntegralizacaoFromPairs(
     const pendente = parseIntegerHours(value);
     if (pendente === null) continue;
 
-    items.set(tipo, buildIntegralizacaoFromPendente(tipo, pendente));
+    items.set(tipo, buildIntegralizacaoFromPendente(tipo, pendente, cursoId));
   }
 
   return items;
 }
 
 function parseIntegralizacaoFromTableRows(
-  rows: string[][]
+  rows: string[][],
+  cursoId: string = DEFAULT_CURSO_ID
 ): Map<string, PortalIntegralizacaoItem> {
   const items = new Map<string, PortalIntegralizacaoItem>();
 
@@ -231,7 +237,7 @@ function parseIntegralizacaoFromTableRows(
       const pendente = parseIntegerHours(row[index + 1] ?? "");
       if (pendente === null) continue;
 
-      items.set(tipo, buildIntegralizacaoFromPendente(tipo, pendente));
+      items.set(tipo, buildIntegralizacaoFromPendente(tipo, pendente, cursoId));
       index += 1;
     }
   }
@@ -286,10 +292,16 @@ function parseIntegralizacaoResumo(raw: PortalPageRawData): PortalIntegralizacao
   };
 }
 
-function parseIntegralizacao(raw: PortalPageRawData): PortalIntegralizacaoItem[] {
-  const items = parseIntegralizacaoFromPairs(raw.labelPairs);
+function parseIntegralizacao(
+  raw: PortalPageRawData,
+  cursoId: string = DEFAULT_CURSO_ID
+): PortalIntegralizacaoItem[] {
+  const items = parseIntegralizacaoFromPairs(raw.labelPairs, cursoId);
 
-  for (const [tipo, item] of parseIntegralizacaoFromTableRows(raw.tableRows)) {
+  for (const [tipo, item] of parseIntegralizacaoFromTableRows(
+    raw.tableRows,
+    cursoId
+  )) {
     items.set(tipo, item);
   }
 
@@ -483,7 +495,10 @@ function parseAtividades(raw: PortalPageRawData): PortalAtividadePendente[] {
   return atividades;
 }
 
-export function parsePortalPageData(raw: PortalPageRawData): PortalDiscenteSnapshot {
+export function parsePortalPageData(
+  raw: PortalPageRawData,
+  cursoId: string = DEFAULT_CURSO_ID
+): PortalDiscenteSnapshot {
   const semestreAtual = parseDisciplinasSemestre(raw);
   const semestreLetivo =
     (raw.html ? inferSemestreAtualFromHtml(raw.html) : null) ?? null;
@@ -491,7 +506,7 @@ export function parsePortalPageData(raw: PortalPageRawData): PortalDiscenteSnaps
   return {
     scrapedAt: new Date().toISOString(),
     aluno: parseAluno(raw),
-    integralizacao: parseIntegralizacao(raw),
+    integralizacao: parseIntegralizacao(raw, cursoId),
     integralizacaoResumo: parseIntegralizacaoResumo(raw),
     semestreAtual,
     semestreLetivo,

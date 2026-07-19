@@ -14,6 +14,7 @@ import {
 import { dumpScrapeHtml } from "@/lib/scraper/scrape-debug";
 import { enrichPortalAtividadesComDetalhes } from "@/lib/scraper/portal-discente/scrape-portal-atividades";
 import type { PortalDiscenteSnapshot } from "@/lib/scraper/types/portal-discente";
+import { resolveQueryCursoId } from "@/lib/db/resolve-query-curso-id";
 
 /**
  * Raspa o portal do discente usando uma page já logada no SIGAA.
@@ -38,7 +39,10 @@ export async function scrapePortalDiscente(
   const raw = await extractPortalRawFromPage(page);
   const pageHtml = await page.content();
   dumpScrapeHtml("portal-discente", "pagina", pageHtml);
-  const snapshot = parsePortalPageData({ ...raw, html: pageHtml });
+  const snapshot = parsePortalPageData(
+    { ...raw, html: pageHtml },
+    resolveQueryCursoId()
+  );
 
   if (snapshot.semestreAtual.length > 0) {
     console.info(
