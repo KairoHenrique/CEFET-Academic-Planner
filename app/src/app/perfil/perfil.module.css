@@ -1,0 +1,161 @@
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: var(--font-inter, sans-serif);
+}
+
+.header {
+  margin-bottom: 2.5rem;
+  animation: fadeInDown 0.6s ease-out;
+}
+
+.title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #1a1a2e;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(90deg, #ec4899, #8b5cf6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.subtitle {
+  font-size: 1.1rem;
+  color: #64748b;
+}
+
+.card {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.sectionHeader {
+  margin-bottom: 2rem;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 1rem;
+}
+
+.sectionHeader h2 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 0.5rem;
+}
+
+.sectionHeader p {
+  color: #475569;
+  font-size: 0.95rem;
+}
+
+.prefsForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.toggleRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-radius: 12px;
+  background: #f8fafc;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+  border: 1px solid transparent;
+}
+
+.toggleRow:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  transform: translateX(4px);
+}
+
+.toggleInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.toggleInfo strong {
+  font-weight: 600;
+  color: #334155;
+  font-size: 1.05rem;
+}
+
+.toggleInfo span {
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.toggleInput {
+  display: none;
+}
+
+.toggleSlider {
+  position: relative;
+  width: 50px;
+  height: 26px;
+  background-color: #cbd5e1;
+  border-radius: 26px;
+  transition: background-color 0.3s;
+}
+
+.toggleSlider::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  background-color: white;
+  border-radius: 50%;
+  transition: transform 0.3s;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.toggleInput:checked + .toggleSlider {
+  background-color: #10b981;
+}
+
+.toggleInput:checked + .toggleSlider::after {
+  transform: translateX(24px);
+}
+
+.saveBtn {
+  margin-top: 1rem;
+  background: linear-gradient(135deg, #ec4899, #8b5cf6);
+  color: white;
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 1rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.saveBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px rgba(139, 92, 246, 0.3);
+}
+
+.saveBtn:active {
+  transform: translateY(0);
+}
+
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}

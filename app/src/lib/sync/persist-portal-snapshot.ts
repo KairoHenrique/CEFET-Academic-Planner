@@ -176,6 +176,7 @@ export async function persistPortalSnapshot(
       local: disciplina.local,
       local_exibicao: null,
       horario_exibicao: null,
+      professor: null,
       professor_exibicao: null,
       horas_semanais_exibicao: null,
       grupo_nome: null,
@@ -188,10 +189,9 @@ export async function persistPortalSnapshot(
         apelidoRegistry.get(normalizeDisciplinaCode(codigo)) ??
         suggestSubjectNickname(disciplina.nome, codigo),
       nome_exibicao: null,
-      professor: null,
-      max_faltas: null,
-      nota_maxima: SUBJECT_DISPLAY_GRADE_MAX,
-      nota_aprovacao: SUBJECT_DISPLAY_PASSING_GRADE,
+      max_faltas: 15,
+      nota_maxima: 100,
+      nota_aprovacao: 60,
       arquivos_baixados: 0,
       pdf_auto_download: 0,
     });

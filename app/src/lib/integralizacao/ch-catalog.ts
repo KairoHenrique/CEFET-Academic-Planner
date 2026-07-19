@@ -29,10 +29,10 @@ export const ENG_COMPUTACAO_CH_CATALOG: readonly ChCatalogEntry[] = [
  * Obrigatória = disciplinas 2675 + PFC I/II 25 + estágio atividade 12,5 + estágio curricular 160.
  */
 export const ENG_MECATRONICA_CH_CATALOG: readonly ChCatalogEntry[] = [
-  { tipoCh: "Obrigatória", totalRequired: 2873, color: "blue" },
-  { tipoCh: "Optativa", totalRequired: 250, color: "gold" },
-  { tipoCh: "Complementar", totalRequired: 125, color: "success" },
-  { tipoCh: "Extensão", totalRequired: 360, color: "warning" },
+  { tipoCh: "Obrigatória", totalRequired: 3450, color: "blue" },
+  { tipoCh: "Optativa", totalRequired: 270, color: "gold" },
+  { tipoCh: "Complementar", totalRequired: 150, color: "success" },
+  { tipoCh: "Extensão", totalRequired: 435, color: "warning" },
   { tipoCh: "Flexibilizada", totalRequired: 0, color: "blue" },
 ] as const;
 

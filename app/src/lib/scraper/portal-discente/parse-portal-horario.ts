@@ -51,10 +51,14 @@ const SKIP_DISCIPLINA_NOME =
   /^(mensagens|atualizar|perfil|sair|dossie|caixa\s+postal|componente\s+curricular)$/i;
 
 function extractHorarioTableSection(html: string): string {
-  const match = html.match(
-    /Componente\s+Curricular[\s\S]*?<\/table>/i
+  const matches = html.match(
+    /Componente\s+Curricular[\s\S]*?<\/table>/gi
   );
-  return match?.[0] ?? html;
+  if (!matches) return html;
+  
+  // O SIGAA possui itens de menu ocultos (JSF) que tambm contm "Componente Curricular".
+  // A tabela verdadeira de horrios sempre contm <td class="descricao">.
+  return matches.find(m => m.includes("descricao") || m.includes("Turmas")) ?? matches[matches.length - 1];
 }
 
 /** Infere o semestre letivo (ex.: 2026.1) a partir do HTML do portal. */

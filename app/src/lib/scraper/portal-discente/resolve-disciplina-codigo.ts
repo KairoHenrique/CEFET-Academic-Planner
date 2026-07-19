@@ -123,11 +123,9 @@ export function resolveDisciplinaCodigoByNome(
 
   // Jaccard similarity match (resilient to PPC code changes)
   const jaccardMatch = findBestJaccardMatch(trimmed, 0, ppcEntries);
-  if (jaccardMatch) return jaccardMatch;
-
-  // Legacy substring/token scorer as fallback
-  const scored = bestDisciplinaCodigoByScore(target, ppcEntries);
-  if (scored) return scored;
+  if (jaccardMatch) {
+    return jaccardMatch;
+  }
 
   const disciplinas = disciplinasSource ?? getDisciplinas();
   const alias = disciplinas.find(

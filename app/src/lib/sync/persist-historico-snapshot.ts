@@ -3,6 +3,7 @@ import {
   getDisciplinas,
   saveHistorico,
   upsertSyncedIntegralizacao,
+  upsertPortalDisciplina,
 } from "@/lib/db/queries";
 import { persistSigaaIntegralizacaoResumo } from "@/lib/integralizacao/sigaa-ch-config";
 import { resolveDisciplinaCodigoForHistorico, isPpcCanonicalCodigo } from "@/lib/scraper/portal-discente/resolve-disciplina-codigo";
@@ -84,11 +85,13 @@ export function persistHistoricoSnapshot(
       disciplina.ch
     );
     if (!isPpcCanonicalCodigo(disciplinaId) || !validDisciplinaIds.has(disciplinaId)) {
-      rowsSkipped += 1;
-      console.warn(
-        `[historico] Ignorando "${disciplina.nome}" (${disciplina.codigo || "sem código"}) — PPC ${disciplinaId}.`
-      );
-      continue;
+      // It's an extra/optative subject not in the PPC catalog
+      upsertPortalDisciplina({
+        codigo: disciplinaId,
+        nome: disciplina.nome,
+      });
+      // We also update validDisciplinaIds so we don't insert it again during this run
+      validDisciplinaIds.add(disciplinaId);
     }
 
     pendingRows.push({
