@@ -1,47 +1,63 @@
-import { getMirrorPool, isSyncMirrorEnabled } from "@/lib/sync-mirror/mirror-config";
-import { notifyCpfDevices } from "@/lib/push/expo-push-send";
-import { listPushTokensByCpf } from "@/lib/push/push-token-repository";
-import { normalizeCpf } from "@/lib/auth/account/cpf";
-import { runWithUserDb } from "@/lib/db/connection-manager";
-import { getNotificationPreferences } from "@/lib/notifications/notification-preferences";
-
 /**
- * Melhor esforço pós-sync: se o aluno tiver APK logado com token, avisa.
+ * Melhor esforço pós-sync: se o aluno tiver APK logado com token, avisa
+ * itens/lembretes ativos alinhados às prefs do perfil (Postgres).
+ *
+ * No worker do PC (SQLite + mirror), encaminha para a cloud via CRON_SECRET —
+ * assim prefs e tokens usam o mesmo Postgres do app.
  * Falhas não derrubam o pipeline do worker.
- * Respeita prefs: se todas as categorias acadêmicas estiverem off, não envia.
  */
+
+import { normalizeCpf } from "@/lib/auth/account/cpf";
+import { isPostgresBackend } from "@/lib/db/backend/config";
+import { dispatchNotificationPushesForCpf } from "@/lib/push/dispatch-notification-pushes";
+import { isSyncMirrorEnabled } from "@/lib/sync-mirror/mirror-config";
+
+async function forwardPushToCloud(username: string): Promise<void> {
+  const base = (
+    process.env.PLANNER_APP_URL?.trim() ||
+    process.env.PLANNER_HEALTH_URL?.trim() ||
+    ""
+  ).replace(/\/$/, "");
+  const secret = process.env.CRON_SECRET?.trim();
+  if (!base || !secret) {
+    console.warn(
+      "[push] Sem PLANNER_APP_URL/CRON_SECRET — push pós-sync omitido no worker."
+    );
+    return;
+  }
+
+  const cpf = normalizeCpf(username);
+  if (cpf.length !== 11) return;
+
+  const response = await fetch(`${base}/api/cron/notification-push-user`, {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${secret}`,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({ cpf, fallbackSyncToast: true }),
+  });
+
+  if (!response.ok) {
+    const text = await response.text().catch(() => "");
+    console.warn(
+      `[push] Cloud push HTTP ${response.status}: ${text.slice(0, 160)}`
+    );
+  }
+}
+
 export async function notifySyncCompletedPush(username: string): Promise<void> {
   try {
-    if (!isSyncMirrorEnabled()) return;
-    const cpf = normalizeCpf(username);
-    if (cpf.length !== 11) return;
+    if (!isSyncMirrorEnabled() && !isPostgresBackend()) return;
 
-    const allowPush = runWithUserDb(username, () => {
-      const prefs = getNotificationPreferences();
-      return (
-        prefs.tasks ||
-        prefs.grades ||
-        prefs.taskReminders ||
-        prefs.calendarReminders ||
-        prefs.integralizacaoAlerts ||
-        prefs.academicDateAlerts
-      );
-    });
-    if (!allowPush) {
-      console.info("[push] Sync OK — push omitido (prefs desligadas).");
+    if (isPostgresBackend()) {
+      await dispatchNotificationPushesForCpf(username, {
+        fallbackSyncToast: true,
+      });
       return;
     }
 
-    const pool = getMirrorPool();
-    const tokens = await listPushTokensByCpf(pool, cpf);
-    if (tokens.length === 0) return;
-
-    await notifyCpfDevices({
-      tokens,
-      title: "ACME HUB",
-      body: "Seus dados acadêmicos foram atualizados.",
-      data: { type: "sync_completed" },
-    });
+    await forwardPushToCloud(username);
   } catch (error) {
     console.warn(
       "[push] Falha ao notificar sync:",

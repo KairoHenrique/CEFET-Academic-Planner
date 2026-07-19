@@ -112,6 +112,53 @@ export function buildPromotionEmail(input: PromotionTemplateInput) {
   };
 }
 
+export function buildSupportRegisterNotifyEmail(input: {
+  maskedCpf: string;
+  contactEmail: string;
+  cursoId: string;
+}) {
+  return {
+    subject: "[ACME HUB] Novo cadastro",
+    bodyText: [
+      "Novo cadastro no ACME HUB.",
+      "",
+      `Curso: ${input.cursoId}`,
+      `E-mail de contato: ${input.contactEmail}`,
+      `CPF (mascarado): ${input.maskedCpf}`,
+      "",
+      "Aviso interno automático — não responder a este e-mail.",
+    ].join("\n"),
+  };
+}
+
+export function buildSupportPaymentNotifyEmail(input: {
+  maskedCpf: string;
+  contactEmail: string | null;
+  planId: string;
+  amountCents: number;
+  paymentId: string;
+}) {
+  const amountBrl = (input.amountCents / 100).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
+
+  return {
+    subject: `[ACME HUB] Pagamento aprovado — ${input.planId}`,
+    bodyText: [
+      "Pagamento de plano confirmado e assinatura ativada.",
+      "",
+      `Plano: ${input.planId}`,
+      `Valor: ${amountBrl}`,
+      `Pagamento (id): ${input.paymentId}`,
+      `E-mail de contato: ${input.contactEmail ?? "(indisponível)"}`,
+      `CPF (mascarado): ${input.maskedCpf}`,
+      "",
+      "Aviso interno automático — não responder a este e-mail.",
+    ].join("\n"),
+  };
+}
+
 export function buildAccountEmailDedupeKey(
   kind: AccountEmailKind,
   parts: readonly string[]

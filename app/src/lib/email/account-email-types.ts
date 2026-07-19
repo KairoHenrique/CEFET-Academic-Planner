@@ -4,6 +4,7 @@ export const ACCOUNT_EMAIL_KINDS = [
   "trial_ended",
   "plan_expiring_soon",
   "plan_ended",
+  "support_notify",
 ] as const;
 
 export type AccountEmailKind = (typeof ACCOUNT_EMAIL_KINDS)[number];

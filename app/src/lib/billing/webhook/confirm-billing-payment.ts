@@ -1,4 +1,5 @@
 import { notFoundError } from "@/lib/api/errors";
+import { findProfileByUserId } from "@/lib/auth/account/profile-repository";
 import {
   findPaymentByExternalReference,
   findPaymentByGatewayPaymentId,
@@ -15,6 +16,7 @@ import type { PaymentStatus } from "@/lib/billing/schema/billing-schema-catalog"
 import type { PaymentRow } from "@/lib/billing/schema/billing-row-types";
 import type { SubscriptionRow } from "@/lib/billing/schema/billing-row-types";
 import type { PaidPlanId } from "@/lib/billing/types";
+import { enqueueSupportPaymentNotifyEmail } from "@/lib/email/enqueue-account-email";
 
 export interface ConfirmBillingPaymentInput {
   gateway: PaymentGateway;
@@ -124,6 +126,26 @@ export async function confirmBillingPayment(
       await applyReferralRewardsAfterPaidActivation({
         referredUserId: payment.user_id,
       }).catch(() => undefined);
+
+      const profile = await findProfileByUserId(payment.user_id).catch(
+        () => null
+      );
+      const cpf =
+        profile?.cpf ??
+        (payment.payer_cpf?.replace(/\D/g, "").length === 11
+          ? payment.payer_cpf.replace(/\D/g, "")
+          : null);
+
+      if (cpf) {
+        await enqueueSupportPaymentNotifyEmail({
+          userId: payment.user_id,
+          cpf,
+          contactEmail: profile?.email ?? null,
+          planId: payment.plan_id,
+          amountCents: payment.amount_cents,
+          paymentId: payment.id,
+        }).catch(() => undefined);
+      }
     }
 
     return {

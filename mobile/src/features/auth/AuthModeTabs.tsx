@@ -69,7 +69,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   tabActive: {
-    backgroundColor: "rgba(212,168,67,0.18)",
+    backgroundColor: "rgba(212,168,67,0.22)",
+    borderWidth: 1,
+    borderColor: "rgba(232,198,106,0.35)",
   },
   label: {
     fontSize: 13,
