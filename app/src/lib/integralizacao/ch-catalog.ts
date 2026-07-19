@@ -1,7 +1,6 @@
 import type { AppCursoId } from "@/lib/auth/account/types";
 import { DEFAULT_CURSO_ID } from "@/lib/db/backend/config";
 import type { IntegrationCategory } from "@/lib/types/integration";
-import { INTEGRATION_TOTAL_HOURS } from "@/lib/types/integration";
 
 export type ChType =
   | "Obrigatória"
@@ -23,6 +22,30 @@ export const ENG_COMPUTACAO_CH_CATALOG: readonly ChCatalogEntry[] = [
   { tipoCh: "Complementar", totalRequired: 375, color: "success" },
   { tipoCh: "Extensão", totalRequired: 450, color: "warning" },
   { tipoCh: "Flexibilizada", totalRequired: 30, color: "blue" },
+] as const;
+
+/**
+ * Metas de CH — Engenharia Mecatrônica (Quadro 13 do PPC).
+ * Obrigatória = disciplinas 2675 + PFC I/II 25 + estágio atividade 12,5 + estágio curricular 160.
+ */
+export const ENG_MECATRONICA_CH_CATALOG: readonly ChCatalogEntry[] = [
+  { tipoCh: "Obrigatória", totalRequired: 2873, color: "blue" },
+  { tipoCh: "Optativa", totalRequired: 250, color: "gold" },
+  { tipoCh: "Complementar", totalRequired: 125, color: "success" },
+  { tipoCh: "Extensão", totalRequired: 360, color: "warning" },
+  { tipoCh: "Flexibilizada", totalRequired: 0, color: "blue" },
+] as const;
+
+/**
+ * Metas de CH — Design de Moda (Quadro 78: composição plena).
+ * Obrigatória = disciplinas 1725 + estágio supervisionado 125 + TCC/atividades 37,5.
+ */
+export const DESIGN_MODA_CH_CATALOG: readonly ChCatalogEntry[] = [
+  { tipoCh: "Obrigatória", totalRequired: 1888, color: "blue" },
+  { tipoCh: "Optativa", totalRequired: 250, color: "gold" },
+  { tipoCh: "Complementar", totalRequired: 125, color: "success" },
+  { tipoCh: "Extensão", totalRequired: 262, color: "warning" },
+  { tipoCh: "Flexibilizada", totalRequired: 75, color: "blue" },
 ] as const;
 
 export const CH_TYPES: readonly ChType[] = ENG_COMPUTACAO_CH_CATALOG.map(
@@ -48,10 +71,11 @@ export function getChCatalogForCurso(
   cursoId: AppCursoId | string = DEFAULT_CURSO_ID
 ): readonly ChCatalogEntry[] {
   switch (cursoId) {
-    case "eng-computacao":
     case "eng-mecatronica":
+      return ENG_MECATRONICA_CH_CATALOG;
     case "design-moda":
-      return ENG_COMPUTACAO_CH_CATALOG;
+      return DESIGN_MODA_CH_CATALOG;
+    case "eng-computacao":
     default:
       return ENG_COMPUTACAO_CH_CATALOG;
   }
@@ -62,6 +86,11 @@ export function getChCatalog(): readonly ChCatalogEntry[] {
   return getChCatalogForCurso(DEFAULT_CURSO_ID);
 }
 
-export function getIntegrationTotalHours(): number {
-  return INTEGRATION_TOTAL_HOURS;
+export function getIntegrationTotalHours(
+  cursoId: AppCursoId | string = DEFAULT_CURSO_ID
+): number {
+  return getChCatalogForCurso(cursoId).reduce(
+    (sum, entry) => sum + entry.totalRequired,
+    0
+  );
 }

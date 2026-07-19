@@ -1,0 +1,1480 @@
+[
+  {
+    "disciplina": {
+      "codigo": "01/1",
+      "nome": "Leitura e Produção de Textos Acadêmicos",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 1,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "01/3",
+      "nome": "Cálculo com Funções de uma Variável Real",
+      "tipo": "Obrigatória",
+      "carga_horaria": 90,
+      "periodo": 1,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "02/3",
+      "nome": "Geometria Analítica e Álgebra Linear",
+      "tipo": "Obrigatória",
+      "carga_horaria": 60,
+      "periodo": 1,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "01/4",
+      "nome": "Programação de Computadores I",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 1,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "01/4",
+        "requisito_id": "02/4",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "02/4",
+      "nome": "Laboratório de Programação de Computadores I",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 1,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "02/4",
+        "requisito_id": "01/4",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "01/8",
+      "nome": "Laboratório de Desenho Técnico",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 1,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "01/12",
+      "nome": "Contexto Social e Profissional da Engenharia Mecatrônica",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 1,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "01/5",
+      "nome": "Sistemas Digitais I",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 1,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "01/5",
+        "requisito_id": "02/5",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "02/5",
+      "nome": "Laboratório de Sistemas Digitais I",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 1,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "02/5",
+        "requisito_id": "01/5",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "02/1",
+      "nome": "Introdução à Sociologia",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 1,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "01/2",
+      "nome": "Fundamentos de Mecânica",
+      "tipo": "Obrigatória",
+      "carga_horaria": 60,
+      "periodo": 2,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "01/2",
+        "requisito_id": "01/3",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "01/2",
+        "requisito_id": "02/3",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "02/12",
+      "nome": "Planejamento e Prática de Experimentos",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 2,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "03/3",
+      "nome": "Integração e Séries",
+      "tipo": "Obrigatória",
+      "carga_horaria": 60,
+      "periodo": 2,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "03/3",
+        "requisito_id": "01/3",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "03/4",
+      "nome": "Programação de Computadores II",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 2,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "03/4",
+        "requisito_id": "01/4",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "04/4",
+      "nome": "Laboratório de Programação de Computadores II",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 2,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "04/4",
+        "requisito_id": "02/4",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "04/4",
+        "requisito_id": "03/4",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "03/5",
+      "nome": "Sistemas Digitais II",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 2,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "03/5",
+        "requisito_id": "01/5",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "03/5",
+        "requisito_id": "04/5",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "04/5",
+      "nome": "Laboratório de Sistemas Digitais II",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 2,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "04/5",
+        "requisito_id": "03/5",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "04/3",
+      "nome": "Cálculo com Funções de Várias Variáveis I",
+      "tipo": "Obrigatória",
+      "carga_horaria": 60,
+      "periodo": 2,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "04/3",
+        "requisito_id": "01/3",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "03/12",
+      "nome": "Metodologia Científica",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 2,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "03/1",
+      "nome": "Filosofia da Tecnologia",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 2,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "05/3",
+      "nome": "Equações Diferenciais Ordinárias",
+      "tipo": "Obrigatória",
+      "carga_horaria": 60,
+      "periodo": 3,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "05/3",
+        "requisito_id": "03/3",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "05/3",
+        "requisito_id": "04/3",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "01/9",
+      "nome": "Análise Estrutural",
+      "tipo": "Obrigatória",
+      "carga_horaria": 60,
+      "periodo": 3,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "01/9",
+        "requisito_id": "01/2",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "02/2",
+      "nome": "Física Experimental - MOFT",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 3,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "02/2",
+        "requisito_id": "01/2",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "02/2",
+        "requisito_id": "03/2",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "03/2",
+      "nome": "Fundamentos de Oscilações, Fluidos e Termodinâmica (OFT)",
+      "tipo": "Obrigatória",
+      "carga_horaria": 60,
+      "periodo": 3,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "03/2",
+        "requisito_id": "01/2",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "03/2",
+        "requisito_id": "05/3",
+        "tipo": "co"
+      },
+      {
+        "disciplina_id": "03/2",
+        "requisito_id": "02/2",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "06/3",
+      "nome": "Estatística",
+      "tipo": "Obrigatória",
+      "carga_horaria": 60,
+      "periodo": 3,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "06/3",
+        "requisito_id": "03/3",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "05/5",
+      "nome": "Microprocessadores e Microcontroladores",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 3,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "05/5",
+        "requisito_id": "03/5",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "05/5",
+        "requisito_id": "06/5",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "06/5",
+      "nome": "Laboratório de Microprocessadores e Microcontroladores",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 3,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "06/5",
+        "requisito_id": "05/5",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "07/3",
+      "nome": "Cálculo com Funções de Várias Variáveis II",
+      "tipo": "Obrigatória",
+      "carga_horaria": 60,
+      "periodo": 3,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "07/3",
+        "requisito_id": "04/3",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "07/3",
+        "requisito_id": "03/3",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "02/9",
+      "nome": "Modelagem de Sistemas Mecatrônicos e Vibrações",
+      "tipo": "Obrigatória",
+      "carga_horaria": 60,
+      "periodo": 4,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "02/9",
+        "requisito_id": "03/2",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "02/9",
+        "requisito_id": "05/3",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "08/3",
+      "nome": "Métodos Numéricos Computacionais",
+      "tipo": "Obrigatória",
+      "carga_horaria": 60,
+      "periodo": 4,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "08/3",
+        "requisito_id": "01/4",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "08/3",
+        "requisito_id": "02/4",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "08/3",
+        "requisito_id": "05/3",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "03/9",
+      "nome": "Mecânica dos Sólidos I",
+      "tipo": "Obrigatória",
+      "carga_horaria": 60,
+      "periodo": 4,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "03/9",
+        "requisito_id": "01/9",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "04/2",
+      "nome": "Fundamentos de Eletromagnetismo",
+      "tipo": "Obrigatória",
+      "carga_horaria": 60,
+      "periodo": 4,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "04/2",
+        "requisito_id": "07/3",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "04/2",
+        "requisito_id": "03/2",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "04/2",
+        "requisito_id": "05/2",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "05/2",
+      "nome": "Física Experimental - Eletromagnetismo",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 4,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "05/2",
+        "requisito_id": "04/2",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "02/8",
+      "nome": "Metrologia",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 4,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "02/8",
+        "requisito_id": "06/3",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "02/8",
+        "requisito_id": "03/8",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "03/8",
+      "nome": "Laboratório de Metrologia",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 4,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "03/8",
+        "requisito_id": "02/8",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "04/8",
+      "nome": "Sistemas Hidráulicos e Pneumáticos",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 4,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "04/8",
+        "requisito_id": "03/2",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "04/8",
+        "requisito_id": "05/8",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "05/8",
+      "nome": "Laboratório de Sistemas Hidráulicos e Pneumáticos",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 4,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "05/8",
+        "requisito_id": "04/8",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "01/7",
+      "nome": "Sinais e Sistemas",
+      "tipo": "Obrigatória",
+      "carga_horaria": 60,
+      "periodo": 5,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "01/7",
+        "requisito_id": "05/3",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "04/9",
+      "nome": "Mecânica Aplicada",
+      "tipo": "Obrigatória",
+      "carga_horaria": 60,
+      "periodo": 5,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "04/9",
+        "requisito_id": "01/9",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "05/9",
+      "nome": "Mecânica dos Sólidos II",
+      "tipo": "Obrigatória",
+      "carga_horaria": 60,
+      "periodo": 5,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "05/9",
+        "requisito_id": "03/9",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "01/6",
+      "nome": "Circuitos Elétricos",
+      "tipo": "Obrigatória",
+      "carga_horaria": 60,
+      "periodo": 5,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "01/6",
+        "requisito_id": "04/2",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "01/6",
+        "requisito_id": "02/6",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "02/6",
+      "nome": "Laboratório de Circuitos Elétricos",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 5,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "02/6",
+        "requisito_id": "01/6",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "01/11",
+      "nome": "Termodinâmica",
+      "tipo": "Obrigatória",
+      "carga_horaria": 60,
+      "periodo": 5,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "01/11",
+        "requisito_id": "03/2",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "01/10",
+      "nome": "Engenharia de Materiais",
+      "tipo": "Obrigatória",
+      "carga_horaria": 60,
+      "periodo": 5,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "01/10",
+        "requisito_id": "02/10",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "02/10",
+      "nome": "Laboratório de Engenharia de Materiais",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 5,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "02/10",
+        "requisito_id": "01/10",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "06/9",
+      "nome": "Cinemática e Dinâmica das Máquinas",
+      "tipo": "Obrigatória",
+      "carga_horaria": 60,
+      "periodo": 6,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "06/9",
+        "requisito_id": "05/9",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "07/9",
+      "nome": "Elementos de Máquinas",
+      "tipo": "Obrigatória",
+      "carga_horaria": 60,
+      "periodo": 6,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "07/9",
+        "requisito_id": "05/9",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "03/6",
+      "nome": "Eletrônica Analógica",
+      "tipo": "Obrigatória",
+      "carga_horaria": 60,
+      "periodo": 6,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "03/6",
+        "requisito_id": "01/6",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "03/6",
+        "requisito_id": "04/6",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "04/6",
+      "nome": "Laboratório de Eletrônica Analógica",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 6,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "04/6",
+        "requisito_id": "02/6",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "04/6",
+        "requisito_id": "03/6",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "03/10",
+      "nome": "Tecnologia de Fabricação Mecânica I",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 6,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "03/10",
+        "requisito_id": "01/10",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "03/10",
+        "requisito_id": "02/10",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "03/10",
+        "requisito_id": "04/10",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "04/10",
+      "nome": "Laboratório de Tecnologia de Fabricação Mecânica I",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 6,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "04/10",
+        "requisito_id": "01/10",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "04/10",
+        "requisito_id": "02/10",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "04/10",
+        "requisito_id": "03/10",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "02/11",
+      "nome": "Fenômenos de Transporte",
+      "tipo": "Obrigatória",
+      "carga_horaria": 60,
+      "periodo": 6,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "02/11",
+        "requisito_id": "01/11",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "02/7",
+      "nome": "Sistemas de Controle I",
+      "tipo": "Obrigatória",
+      "carga_horaria": 60,
+      "periodo": 6,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "02/7",
+        "requisito_id": "01/7",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "02/7",
+        "requisito_id": "02/3",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "02/7",
+        "requisito_id": "03/7",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "03/7",
+      "nome": "Laboratório de Sistemas de Controle I",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 6,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "03/7",
+        "requisito_id": "08/3",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "03/7",
+        "requisito_id": "02/7",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "08/9",
+      "nome": "Dinâmica de Robôs",
+      "tipo": "Obrigatória",
+      "carga_horaria": 60,
+      "periodo": 7,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "08/9",
+        "requisito_id": "06/9",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "05/10",
+      "nome": "Usinagem dos Materiais I",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 7,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "05/10",
+        "requisito_id": "01/8",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "05/10",
+        "requisito_id": "02/8",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "05/10",
+        "requisito_id": "03/8",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "05/10",
+        "requisito_id": "06/10",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "06/10",
+      "nome": "Laboratório de Usinagem dos Materiais I",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 7,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "06/10",
+        "requisito_id": "01/8",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "06/10",
+        "requisito_id": "02/8",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "06/10",
+        "requisito_id": "03/8",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "06/10",
+        "requisito_id": "05/10",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "05/6",
+      "nome": "Máquinas Elétricas I",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 7,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "05/6",
+        "requisito_id": "01/6",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "05/6",
+        "requisito_id": "06/6",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "06/6",
+      "nome": "Laboratório de Máquinas Elétricas I",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 7,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "06/6",
+        "requisito_id": "02/6",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "06/6",
+        "requisito_id": "05/6",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "03/11",
+      "nome": "Laboratório de Fenômenos de Transporte",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 7,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "03/11",
+        "requisito_id": "01/11",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "03/11",
+        "requisito_id": "02/11",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "04/7",
+      "nome": "Sistemas de Controle II",
+      "tipo": "Obrigatória",
+      "carga_horaria": 60,
+      "periodo": 7,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "04/7",
+        "requisito_id": "02/7",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "04/7",
+        "requisito_id": "05/7",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "05/7",
+      "nome": "Laboratório de Sistemas de Controle II",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 7,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "05/7",
+        "requisito_id": "03/7",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "05/7",
+        "requisito_id": "04/7",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "06/7",
+      "nome": "Robótica Industrial",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 8,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "06/7",
+        "requisito_id": "08/9",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "06/7",
+        "requisito_id": "07/7",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "07/7",
+      "nome": "Laboratório de Robótica Industrial",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 8,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "07/7",
+        "requisito_id": "08/9",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "07/7",
+        "requisito_id": "06/7",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "04/12",
+      "nome": "Metodologia de Pesquisa",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 8,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "07/6",
+      "nome": "Máquinas Elétricas II",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 8,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "07/6",
+        "requisito_id": "05/6",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "07/6",
+        "requisito_id": "08/6",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "08/6",
+      "nome": "Laboratório de Máquinas Elétricas II",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 8,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "08/6",
+        "requisito_id": "06/6",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "08/6",
+        "requisito_id": "07/6",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "09/6",
+      "nome": "Eletrônica de Potência",
+      "tipo": "Obrigatória",
+      "carga_horaria": 60,
+      "periodo": 8,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "09/6",
+        "requisito_id": "03/6",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "09/6",
+        "requisito_id": "10/6",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "10/6",
+      "nome": "Laboratório de Eletrônica de Potência",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 8,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "10/6",
+        "requisito_id": "04/6",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "10/6",
+        "requisito_id": "09/6",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "06/8",
+      "nome": "Automação de Sistemas",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 9,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "06/8",
+        "requisito_id": "04/8",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "06/8",
+        "requisito_id": "07/8",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "07/8",
+      "nome": "Laboratório de Automação de Sistemas",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 9,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "07/8",
+        "requisito_id": "05/8",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "07/8",
+        "requisito_id": "06/8",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "04/11",
+      "nome": "Operações Unitárias: Equipamentos Industriais e de Processo",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 9,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "04/11",
+        "requisito_id": "07/9",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "08/8",
+      "nome": "Instrumentação Industrial",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 9,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "08/8",
+        "requisito_id": "03/6",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "08/8",
+        "requisito_id": "09/8",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "09/8",
+      "nome": "Laboratório de Instrumentação Industrial",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 9,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "09/8",
+        "requisito_id": "08/8",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "07/12",
+      "nome": "Manutenção e Segurança",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 10,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "07/12",
+        "requisito_id": "07/9",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "04/1",
+      "nome": "Gestão Ambiental",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 10,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "06/1",
+      "nome": "Engenharia Econômica e Financeira para Projeto de Investimentos",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 10,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "05/1",
+      "nome": "Psicologia Aplicada às Organizações",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 10,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  }
+]

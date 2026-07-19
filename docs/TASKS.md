@@ -49,7 +49,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ## Roadmap detalhado — ordem de execução (#0 → #11)
 
-> **🌐 Site desktop = v1.0.0** (jul/2026) — Eng. Computação web madura (**#1–#7 · #9 · #10 · #12**); release GitHub `v1.0.0`. **#8 Mobile** **M1–M15** `[x]` · **M16** `[@]`. **No remoto (teste):** **M16** *(download/APK)* ou **#11 Multi-PPC**. **F28** `[x]`. **B74/F43** `[x]` · **B73/F42** `[x]`. **#9** `[x]`. Bloco **2f (B72a–e)** `[x]`. **Polish sino (jul/2026):** eventos/datas só em cadastro · D-1 · no dia; painel some 24h após vista.
+> **🌐 Site desktop = v1.0.0** (jul/2026) — Eng. Computação web madura (**#1–#7 · #9 · #10 · #12**); release GitHub `v1.0.0`. **#8 Mobile** **M1–M15** `[x]` · **M16** `[@]`. **#11 Multi-PPC** `[%]` local (Meca + Moda). **F28** `[x]`. **B74/F43** `[x]` · **B73/F42** `[x]`. **#9** `[x]`. Bloco **2f (B72a–e)** `[x]`. **Polish sino (jul/2026):** eventos/datas só em cadastro · D-1 · no dia; painel some 24h após vista.
 > **Regra:** siga **#0 → #11** · dentro de cada bloco → **BACK (B) antes de FRONT (F)**. Checklist espelho: [Checklist mestre](#checklist-mestre-ordem-de-execução).
 
 ### #0 — Planejamento `✅`
@@ -365,14 +365,14 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ---
 
-### #11 — Multi-PPC (Mecatrônica + Moda) `🔒 0/4`
+### #11 — Multi-PPC (Mecatrônica + Moda) `🟡 4/4 [%]`
 
-> **⛔ Só após #8** com Eng. Computação 100% funcional.
+> **Commit local** — PDFs em `docs/referencias/` · seeds Meca/Moda · CH por curso · turmas com `curso_id` da conta · smoke `tests/multi-ppc-bloco-11.test.ts`. Aguardando push/aprovação.
 
-- [ ] **PLAN:** PPC Eng. Mecatrônica (Divinópolis)
-- [ ] **PLAN:** PPC Design de Moda (Divinópolis)
-- [ ] **BACK:** indexar disciplinas + requisitos + metas CH (Meca + Moda)
-- [ ] **BACK/FRONT:** smoke mapa/integralização Meca + Moda (filtro por curso **B63** ✅; falta seed PPC acima)
+- [%] **PLAN:** PPC Eng. Mecatrônica (Divinópolis) — PDF em `docs/referencias/PPC-mecatrônica-revisado.pdf`
+- [%] **PLAN:** PPC Design de Moda (Divinópolis) — PDF em `docs/referencias/PPC-Design-de-Moda-Alteração-2024-v09-Versão-CGRAD.pdf`
+- [%] **BACK:** indexar disciplinas + requisitos + metas CH (Meca + Moda) — JSON + `loadPpcSeedData(cursoId)` + `ch-catalog` + seed PG `--curso=all`
+- [%] **BACK/FRONT:** smoke mapa/integralização Meca + Moda (filtro **B63** ✅; seed + CH + turmas `curso_id`)
 
 **Ordem #11:** `PLAN PPCs` → `indexar seeds` → `curso_id` → smoke por curso
 
@@ -479,7 +479,7 @@ FASE F   Bloco 3             Inteligência acadêmica (web) ← **agora (local)*
     ↓
 FASE E   Bloco 8             Mobile Android (Expo Go)  ← **após #9 + #10** · **sem lojas**
     ↓
-FASE G   Bloco 9             Multi-PPC (Mecatrônica, Moda) 🔒 só após mobile (#8)
+FASE G   Bloco 9             Multi-PPC (Mecatrônica, Moda) [%] seeds+CH (aguardando push)
 ```
 
 | # | Fase | Bloco | O que fazer | Por quê nesta ordem |
@@ -498,7 +498,7 @@ FASE G   Bloco 9             Multi-PPC (Mecatrônica, Moda) 🔒 só após mobil
 | **9** | F | **3** | Grafo, matrícula, alertas | **Depois de #7** · **antes do mobile (#8)** |
 | **10** | F | **4** | Skeletons, transições, favicon, **site mobile (F28)** | **Antes do mobile (#8)** |
 | **#8** | E | **8** | Mobile Android (Expo Go) | **Depois de #9 + #10** + **#6d + #6e + #7** · **sem lojas** |
-| **11** | — | **9** | Multi-PPC (Mecatrônica, Moda) | **Só após #8 mobile** com Eng. Computação completa |
+| **11** | — | **9** | Multi-PPC (Mecatrônica, Moda) | `[%]` seeds+CH+turmas (aguardando push) |
 
 ### Sync antes da cloud (decisão de produto)
 
@@ -537,7 +537,7 @@ Estratégia: **fatias verticais** — backend primeiro, depois frontend.
 | **3** | #9 | Inteligência acadêmica *(antes do mobile)* |
 | **4** | #10 | Polimento UX + **site mobile (F28)** *(antes do mobile)* |
 | **8** | #8 | Mobile Android (Expo Go · **sem lojas**) |
-| **—** | #11 | Multi-PPC (Mecatrônica, Moda) 🔒 pós-mobile |
+| **—** | #11 | Multi-PPC (Mecatrônica, Moda) `[%]` 4/4 local |
 
 **O que permanece no client (localStorage) durante o Bloco 1:**
 - ~~Layout modular de módulos (`useModuleLayout`)~~ — **removido jul/2026** (dashboard fixo)
@@ -575,7 +575,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | **#9** | 3 | Inteligência acadêmica | **B36/B37** `[x]` (sino) · **F24 descartado** · demais `[x]` · próximo **#10** | 10/10 |
 | **#10** | 4 | Polimento UX + site mobile (**F28**) | **F25–F28** `[x]` (aprovado jul/2026) | 4/4 |
 | **#8** | 8 | Mobile Android (Expo Go) | **M1–M15** `[x]` · **M16** `[@]` · download site + v1.0.0 · **sem Play/App Store** | 15/16 |
-| **#11** | 9 | Multi-PPC (Mecatrônica, Moda) | **🔒 Só após #8** | 0/4 |
+| **#11** | 9 | Multi-PPC (Mecatrônica, Moda) | **[%]** local — seeds + CH + turmas | 4/4 [%] |
 
 > **Atalho:** [Roadmap detalhado topo](#roadmap-detalhado--ordem-de-execução-0--11) · [Checklist #1](#1--bloco-1--api--ui--sqlite-4949) · [#2–#3](#2-3--bloco-2--scraper-sigaa-detalhe) · [#6d](#6d--orquestração-sync--catálogo-global-pré-mobile) · [#4–#6](#4-6--bloco-6--cloud--supabase-detalhe) · [#7](#7--bloco-7--assinatura-pix-detalhe) · [#9](#9--bloco-3--inteligência-acadêmica-detalhe) · [#10](#10--bloco-4--polimento-ux--site-mobile-detalhe) · [#8](#8--bloco-8--mobile-android-detalhe) · [#11](#11--expansão-multi-ppc-detalhe)
 
@@ -640,7 +640,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 > **Calendário — rótulos e datas (jul/2026, sobre B66) `[x]`:** renomeação **só na exibição** (nome bruto do SIGAA segue no banco): `Matrícula OnLine → Matrícula Fase 1`, `Rematrícula → Matrícula Fase 2`, `Processamento de Matrícula/Rematrícula → Resultado Matrícula Fase 1/2` (`event-label-overrides.ts`). Scraper passa a captar os eventos de "processamento" (`calendario-event-filter.ts`) e há fallback de datas institucionais conhecidas sem duplicar quando o SIGAA publica (`known-institutional-dates.ts`).
 
-**Próximo:** **M16** `[@]` (download/APK) ou **#11 Multi-PPC**. **M1–M15** `[x]`. Site **v1.0.0**. **F25–F28** `[x]`.
+**Próximo:** **#11 Multi-PPC** `[%]` (push) · **M16** `[@]`. **M1–M15** `[x]`. Site **v1.0.0**. **F25–F28** `[x]`.
 
 ---
 
@@ -794,14 +794,14 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 ---
 
-### #11 — Expansão multi-PPC (Mecatrônica + Moda) `🔒 0/4`
+### #11 — Expansão multi-PPC (Mecatrônica + Moda) `🟡 4/4 [%]`
 
-> **⛔ Não iniciar antes do #8 (Mobile Android)** com Eng. Computação 100% funcional. Ver `SCOPE.md` §6.2.
+> **Commit local** — pós-#8. Seeds + CH + turmas `curso_id`. Ver `SCOPE.md` §6.2.
 
-- [ ] **PLAN:** Obter PPC oficial Eng. Mecatrônica (Divinópolis)
-- [ ] **PLAN:** Obter PPC oficial Design de Moda (Divinópolis)
-- [ ] **BACK:** Indexar disciplinas + requisitos + metas de CH (Mecatrônica e Moda)
-- [ ] **BACK/FRONT:** indexar PPCs Meca/Moda + smoke mapa/integralização (filtro **B63** ✅)
+- [%] **PLAN:** PPC oficial Eng. Mecatrônica — `docs/referencias/PPC-mecatrônica-revisado.pdf`
+- [%] **PLAN:** PPC oficial Design de Moda — `docs/referencias/PPC-Design-de-Moda-Alteração-2024-v09-Versão-CGRAD.pdf`
+- [%] **BACK:** Indexar disciplinas + requisitos + metas de CH (Mecatrônica e Moda)
+- [%] **BACK/FRONT:** smoke mapa/integralização Meca/Moda (filtro **B63** ✅)
 
 **Ordem #11:** `PLAN PPCs` → `indexar seeds` → `curso_id` → smoke por curso
 
@@ -825,7 +825,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | #9 | 3 — Inteligência | ✅ **B36/B37** `[x]` (sino) · **F24 descartado** · próximo **#10** | 10 / 10 |
 | #10 | 4 — Polimento + site mobile | **F25–F28** `[x]` | 4 / 4 |
 | #8 | 8 — Mobile Android | 🟢 **M1–M15** `[x]` · **M16** `[@]` · download site + v1.0.0 · sem lojas | 15 / 16 |
-| #11 | 9 — Multi-PPC | 🔒 *(após #8)* | 0 / 4 |
+| #11 | 9 — Multi-PPC | **[%]** seeds Meca/Moda + CH + turmas `curso_id` | 4 / 4 [%] |
 
 ---
 
@@ -1049,7 +1049,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] `worker/Dockerfile` (Playwright jammy) · `worker/README.md`
 - [x] Testes `tests/worker-b54.test.ts`
 
-> **Próximo (produto):** **M16** `[@]` (download/APK) ou **#11 Multi-PPC**. **M1–M15** `[x]`. Site desktop **v1.0.0**. **F25–F28** `[x]`.
+> **Próximo (produto):** **#11 Multi-PPC** `[%]` (push) · **M16** `[@]`. **M1–M15** `[x]`. Site desktop **v1.0.0**. **F25–F28** `[x]`.
 
 #### B55 — API fila sync `[x]`
 
@@ -1059,7 +1059,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Dispatcher assíncrono → worker B54 (`SIGAA_WORKER_URL`) ou **inline** (`SYNC_QUEUE_DISPATCH=inline`)
 - [x] Testes `tests/sync-queue-b55.test.ts` · `npm run test:sync-queue`
 
-> **Próximo (produto):** **M16** `[@]` (download/APK) ou **#11 Multi-PPC**. **M1–M15** `[x]`. Site desktop **v1.0.0**. **F25–F28** `[x]`.
+> **Próximo (produto):** **#11 Multi-PPC** `[%]` (push) · **M16** `[@]`. **M1–M15** `[x]`. Site desktop **v1.0.0**. **F25–F28** `[x]`.
 
 #### B56 — Pipeline no worker `[x]`
 
@@ -1398,10 +1398,10 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 | # | Tipo | Task | Resumo | Status |
 |---|------|------|--------|--------|
-| — | Plan | PPC Eng. Mecatrônica | Obter PDF oficial (Divinópolis) | [ ] |
-| — | Plan | PPC Design de Moda | Obter PDF oficial (Divinópolis) | [ ] |
-| — | Back | Seeds multi-curso | Indexar disciplinas + requisitos + metas CH | [ ] |
-| — | Back/Front | Smoke multi-curso | Seeds Meca/Moda + mapa/integralização (filtro **B63** ✅) | [ ] |
+| — | Plan | PPC Eng. Mecatrônica | PDF em `docs/referencias/PPC-mecatrônica-revisado.pdf` | [%] |
+| — | Plan | PPC Design de Moda | PDF em `docs/referencias/PPC-Design-de-Moda-…-CGRAD.pdf` | [%] |
+| — | Back | Seeds multi-curso | JSON + loader + CH + seed PG `--curso=` / `all` | [%] |
+| — | Back/Front | Smoke multi-curso | `tests/multi-ppc-bloco-11.test.ts` + turmas `curso_id` | [%] |
 
 **Ordem #11:** `PLAN PPCs` → `indexar seeds` → `curso_id` → smoke por curso
 
@@ -1433,7 +1433,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
       ↓
 #8  Bloco 8   Mobile Android (paridade site v1.0 + push + sessão · M1–M16 · sem lojas)
       ↓
-#11 Bloco 9   Multi-PPC (Mecatrônica, Moda)  🔒 após #8
+#11 Bloco 9   Multi-PPC (Mecatrônica, Moda)  [%] 4/4 local
 ```
 
 | Fase doc | Equivale a | Conteúdo principal |
@@ -1689,8 +1689,8 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Dados extraídos do mapa mental existente + PPC oficial
 - [x] **Decisão:** não indexar catálogo de optativas/eletivas no mapa — oferta mutável no SIGAA; CH optativa (240 h) via sync + `/integralizacao`
 - [x] **Decisão:** curso escolhido no **cadastro** (B63 · F29); indexação PPC Meca/Moda = Bloco 9 (#11)
-- [ ] *(Bloco 9 — #11)* Indexar PPC Eng. Mecatrônica
-- [ ] *(Bloco 9 — #11)* Indexar PPC Design de Moda
+- [%] *(Bloco 9 — #11)* Indexar PPC Eng. Mecatrônica — `disciplinas_db_eng-mecatronica.json` (78 obr.)
+- [%] *(Bloco 9 — #11)* Indexar PPC Design de Moda — `disciplinas_db_design-moda.json` (47 obr.)
 
 ### 5.2 Mapa Mental / Grafo do Curso
 - [x] Colunas por período (1–10) com disciplinas obrigatórias e status — **via API** (F12 · B18)
@@ -2048,7 +2048,7 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 8. **Próximo passo do roadmap:** informe **depois do push** (tasks em `[@]` ou `[x]`). Com commits locais só `[x]`, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v3](#ordem-oficial-de-execução-v3) — **Bloco 2 (sync) antes do Bloco 6 (Supabase)**. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy **após** sync validado; RLS ✅ **6c** (antes do PIX). Marco “site no ar p/ testes gerais” → [final do TASKS.md](#marco--site-no-ar-para-testes-gerais).
-11. **Próximo passo:** validar **M16** `[@]` no site (FAB/QR · drawer · `/download` · `/dev` mobile) + publicar APK em `public/releases/` após EAS. Depois: **#11 Multi-PPC**. Site **v1.0.0**. Bloco 8 **15/16**. **F28** `[x]`.
+11. **Próximo passo:** **#11 Multi-PPC** em `[%]` local (seeds Meca/Moda · CH · turmas `curso_id` — aguardando push). **M16** ainda `[@]` (download/APK). Site **v1.0.0**. Bloco 8 **15/16**. **F28** `[x]`.
 12. **Integralização:** CH concluída = `historico` + PPC (`computeChDoneFromDisciplinas`); portal SIGAA só % / total currículo; matérias já passadas = **B30** ✅.
 13. **Gift + painel dev:** **B68–B71** ✅ · **F39–F41** ✅ — painel sem senha SIGAA (`credentialSaved` + `accountRef`).
 14. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial. **Polish em task `[x]`** (ex.: F38, dashboard) também exige nota no TASKS no mesmo ciclo do push.
@@ -2093,4 +2093,4 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 
 ### Marco site desktop v1.0.0 (jul/2026)
 
-**Site web Eng. Computação = v1.0.0** — funcionalidades de produto no ar (auth, sync worker, dashboard, disciplinas, calendário, mapa, integralização, simulador, planos, sino, F28). Release GitHub `v1.0.0`. **#8 Mobile** **M1–M15** `[x]` · **M16** `[@]`. Próximo: fechar M16 ou **#11 Multi-PPC**.
+**Site web Eng. Computação = v1.0.0** — funcionalidades de produto no ar (auth, sync worker, dashboard, disciplinas, calendário, mapa, integralização, simulador, planos, sino, F28). Release GitHub `v1.0.0`. **#8 Mobile** **M1–M15** `[x]` · **M16** `[@]`. **#11 Multi-PPC** `[%]` local (Meca + Moda).

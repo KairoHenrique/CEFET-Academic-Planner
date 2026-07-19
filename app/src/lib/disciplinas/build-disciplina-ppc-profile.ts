@@ -1,5 +1,6 @@
 import { notFoundError } from "@/lib/api/errors";
 import { getDisciplinaByCodigo } from "@/lib/db/queries";
+import { resolveQueryCursoId } from "@/lib/db/resolve-query-curso-id";
 import { maxAbsencesFromCefetCh, normalizeCefetCh } from "@/lib/disciplinas/cefet-ch";
 import type { DisciplinaRow } from "@/lib/types/db";
 import type { SubjectDetailResponse } from "@/lib/types/disciplinas-api";
@@ -29,7 +30,8 @@ export function buildDisciplinaPpcProfile(
   const ementa = resolvePpcEmenta(
     disciplina.codigo,
     disciplina.nome,
-    ch
+    ch,
+    resolveQueryCursoId()
   );
 
   const evaluations: never[] = [];

@@ -75,7 +75,8 @@ export async function buildIntegralizacaoFromQueries(
     sigaaResumo.fromHistoricoPdf ?? false
   );
 
-  const totalHours = sigaaResumo.totalCurriculo ?? getIntegrationTotalHours();
+  const totalHours =
+    sigaaResumo.totalCurriculo ?? getIntegrationTotalHours(resolveQueryCursoId());
   const totalDoneFromCategories = categories.reduce(
     (sum, category) => sum + category.done,
     0

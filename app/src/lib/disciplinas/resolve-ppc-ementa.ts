@@ -133,9 +133,15 @@ export const EMENTAS_BY_CODIGO: Record<string, string> = {
 export function resolvePpcEmenta(
   codigo: string,
   nome: string,
-  cargaHoraria: number
+  cargaHoraria: number,
+  cursoId = "eng-computacao"
 ): string {
   const chLabel = cargaHoraria > 0 ? `${cargaHoraria}h` : "conforme PPC";
+
+  if (cursoId !== "eng-computacao") {
+    return `A definir\n\n(Carga horária: ${chLabel} · PPC ${cursoId})`;
+  }
+
   const direct = EMENTAS_BY_CODIGO[codigo];
   if (direct) {
     return `${direct}\n\n(Carga horária: ${chLabel} · PPC Eng. Computação CEFET-MG)`;

@@ -1,0 +1,82 @@
+# PPC Eng. Mecatrônica (CEFET-MG Divinópolis) — Quadro 14 obrigatórias
+# Fonte: docs/referencias/PPC-mecatrônica-revisado.pdf
+# Regenerar: node scripts/build-multi-ppc-seeds.mjs
+# Colunas: período | código | nome | T | P | CH horas | hora-aula | pré-req | co-req
+1º	01/1	Leitura e Produção de Textos Acadêmicos	X		25	31	-	-
+1º	01/3	Cálculo com Funções de uma Variável Real	X		75	94	-	-
+1º	02/3	Geometria Analítica e Álgebra Linear	X		50	63	-	-
+1º	01/4	Programação de Computadores I	X		25	31	-	02/4
+1º	02/4	Laboratório de Programação de Computadores I	X		25	31	-	01/4
+1º	01/8	Laboratório de Desenho Técnico	X		25	31	-	-
+1º	01/12	Contexto Social e Profissional da Engenharia Mecatrônica	X		25	31	-	-
+1º	01/5	Sistemas Digitais I	X		25	31	-	02/5
+1º	02/5	Laboratório de Sistemas Digitais I	X		25	31	-	01/5
+1º	02/1	Introdução à Sociologia	X		25	31	-	-
+2º	01/2	Fundamentos de Mecânica	X		50	63	01/3 02/3	-
+2º	02/12	Planejamento e Prática de Experimentos	X		25	31	-	-
+2º	03/3	Integração e Séries	X		50	63	01/3	-
+2º	03/4	Programação de Computadores II	X		25	31	01/4	-
+2º	04/4	Laboratório de Programação de Computadores II	X		25	31	02/4	03/4
+2º	03/5	Sistemas Digitais II	X		25	31	01/5	04/5
+2º	04/5	Laboratório de Sistemas Digitais II	X		25	31	-	03/5
+2º	04/3	Cálculo com Funções de Várias Variáveis I	X		50	63	01/3	-
+2º	03/12	Metodologia Científica	X		25	31	-	-
+2º	03/1	Filosofia da Tecnologia	X		25	31	-	-
+3º	05/3	Equações Diferenciais Ordinárias	X		50	63	03/3 04/3	-
+3º	01/9	Análise Estrutural	X		50	63	01/2	-
+3º	02/2	Física Experimental - MOFT	X		25	31	01/2	03/2
+3º	03/2	Fundamentos de Oscilações, Fluidos e Termodinâmica (OFT)	X		50	63	01/2	05/3 02/2
+3º	06/3	Estatística	X		50	63	03/3	-
+3º	05/5	Microprocessadores e Microcontroladores	X		25	31	03/5	06/5
+3º	06/5	Laboratório de Microprocessadores e Microcontroladores	X		25	31	-	05/5
+3º	07/3	Cálculo com Funções de Várias Variáveis II	X		50	63	04/3 03/3	-
+4º	02/9	Modelagem de Sistemas Mecatrônicos e Vibrações	X		50	63	03/2 05/3	-
+4º	08/3	Métodos Numéricos Computacionais	X		50	63	01/4 02/4 05/3	-
+4º	03/9	Mecânica dos Sólidos I	X		50	63	01/9	-
+4º	04/2	Fundamentos de Eletromagnetismo	X		50	63	07/3 03/2	05/2
+4º	05/2	Física Experimental - Eletromagnetismo	X		25	31	-	04/2
+4º	02/8	Metrologia	X		25	31	06/3	03/8
+4º	03/8	Laboratório de Metrologia	X		25	31	-	02/8
+4º	04/8	Sistemas Hidráulicos e Pneumáticos	X		25	31	03/2	05/8
+4º	05/8	Laboratório de Sistemas Hidráulicos e Pneumáticos	X		25	31	-	04/8
+5º	01/7	Sinais e Sistemas	X		50	63	05/3	-
+5º	04/9	Mecânica Aplicada	X		50	63	01/9	-
+5º	05/9	Mecânica dos Sólidos II	X		50	63	03/9	-
+5º	01/6	Circuitos Elétricos	X		50	63	04/2	02/6
+5º	02/6	Laboratório de Circuitos Elétricos	X		25	31	-	01/6
+5º	01/11	Termodinâmica	X		50	63	03/2	-
+5º	01/10	Engenharia de Materiais	X		50	63	-	02/10
+5º	02/10	Laboratório de Engenharia de Materiais	X		25	31	-	01/10
+6º	06/9	Cinemática e Dinâmica das Máquinas	X		50	63	05/9	-
+6º	07/9	Elementos de Máquinas	X		50	63	05/9	-
+6º	03/6	Eletrônica Analógica	X		50	63	01/6	04/6
+6º	04/6	Laboratório de Eletrônica Analógica	X		25	31	02/6	03/6
+6º	03/10	Tecnologia de Fabricação Mecânica I	X		25	31	01/10 02/10	04/10
+6º	04/10	Laboratório de Tecnologia de Fabricação Mecânica I	X		25	31	01/10 02/10	03/10
+6º	02/11	Fenômenos de Transporte	X		50	63	01/11	-
+6º	02/7	Sistemas de Controle I	X		50	63	01/7 02/3	03/7
+6º	03/7	Laboratório de Sistemas de Controle I	X		25	31	08/3	02/7
+7º	08/9	Dinâmica de Robôs	X		50	63	06/9	-
+7º	05/10	Usinagem dos Materiais I	X		25	31	01/8 02/8 03/8	06/10
+7º	06/10	Laboratório de Usinagem dos Materiais I	X		25	31	01/8 02/8 03/8	05/10
+7º	05/6	Máquinas Elétricas I	X		25	31	01/6	06/6
+7º	06/6	Laboratório de Máquinas Elétricas I	X		25	31	02/6	05/6
+7º	03/11	Laboratório de Fenômenos de Transporte	X		25	31	01/11 02/11	-
+7º	04/7	Sistemas de Controle II	X		50	63	02/7	05/7
+7º	05/7	Laboratório de Sistemas de Controle II	X		25	31	03/7	04/7
+8º	06/7	Robótica Industrial	X		25	31	08/9	07/7
+8º	07/7	Laboratório de Robótica Industrial	X		25	31	08/9	06/7
+8º	04/12	Metodologia de Pesquisa	X		25	31	-	-
+8º	07/6	Máquinas Elétricas II	X		25	31	05/6	08/6
+8º	08/6	Laboratório de Máquinas Elétricas II	X		25	31	06/6	07/6
+8º	09/6	Eletrônica de Potência	X		50	63	03/6	10/6
+8º	10/6	Laboratório de Eletrônica de Potência	X		25	31	04/6	09/6
+9º	06/8	Automação de Sistemas	X		25	31	04/8	07/8
+9º	07/8	Laboratório de Automação de Sistemas	X		25	31	05/8	06/8
+9º	04/11	Operações Unitárias: Equipamentos Industriais e de Processo	X		25	31	07/9	-
+9º	08/8	Instrumentação Industrial	X		25	31	03/6	09/8
+9º	09/8	Laboratório de Instrumentação Industrial	X		25	31	-	08/8
+10º	07/12	Manutenção e Segurança	X		25	31	07/9	-
+10º	04/1	Gestão Ambiental	X		25	31	-	-
+10º	06/1	Engenharia Econômica e Financeira para Projeto de Investimentos	X		25	31	-	-
+10º	05/1	Psicologia Aplicada às Organizações	X		25	31	-	-
