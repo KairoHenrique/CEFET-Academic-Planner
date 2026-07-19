@@ -91,12 +91,17 @@ export async function dispatchJobInline(
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Falha no sync inline.";
+    const code =
+      error && typeof error === "object" && "code" in error
+        ? String(error.code)
+        : "WORKER_JOB_FAILED";
+
     return {
       jobId: job.id,
       status: "failed",
       durationMs: Date.now() - startedAt,
       error: {
-        code: "WORKER_JOB_FAILED",
+        code,
         message,
       },
     };
