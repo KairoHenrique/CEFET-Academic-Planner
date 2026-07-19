@@ -18,6 +18,7 @@ import { startManualLiteSync } from "../sync/manual-lite-sync";
 import { useOnSyncComplete } from "../sync/useOnSyncComplete";
 import { brand } from "../theme/brand";
 import { ErrorBox } from "../ui/ErrorBox";
+import { FadeInContent } from "../ui/FadeInContent";
 import { LoadingBlock } from "../ui/LoadingBlock";
 import { Screen } from "../ui/Screen";
 import { WeeklyScheduleGrid } from "../ui/WeeklyScheduleGrid";
@@ -141,27 +142,29 @@ export function DashboardScreen() {
         />
       ) : null}
 
-      {data ? (
-        <>
-          <StatsModule stats={data.stats} />
-          <UpcomingTasksModule
-            tasks={data.tarefas}
-            onChanged={() => void load(true)}
-          />
-          <IntegrationModule integralizacao={data.integralizacao} />
-          <WeeklyScheduleGrid
-            schedule={schedule ?? emptySchedule}
-            onOpenCalendar={() => navigation.navigate("Calendario")}
-          />
-          <SubjectsModule
-            disciplinas={data.disciplinas}
-            onSeeAll={() => navigation.navigate("Disciplinas")}
-            onOpenSubject={(code) =>
-              navigation.navigate("DisciplinaDetail", { code })
-            }
-          />
-        </>
-      ) : null}
+      <FadeInContent ready={Boolean(data)}>
+        {data ? (
+          <>
+            <StatsModule stats={data.stats} />
+            <UpcomingTasksModule
+              tasks={data.tarefas}
+              onChanged={() => void load(true)}
+            />
+            <IntegrationModule integralizacao={data.integralizacao} />
+            <WeeklyScheduleGrid
+              schedule={schedule ?? emptySchedule}
+              onOpenCalendar={() => navigation.navigate("Calendario")}
+            />
+            <SubjectsModule
+              disciplinas={data.disciplinas}
+              onSeeAll={() => navigation.navigate("Disciplinas")}
+              onOpenSubject={(code) =>
+                navigation.navigate("DisciplinaDetail", { code })
+              }
+            />
+          </>
+        ) : null}
+      </FadeInContent>
     </Screen>
   );
 }

@@ -1,4 +1,6 @@
+import { useEffect, useRef } from "react";
 import {
+  Animated,
   Modal,
   Pressable,
   StyleSheet,
@@ -10,7 +12,14 @@ import { navLinks } from "../config/navigation";
 import { logoutLocal } from "../auth/logout";
 import { brand } from "../theme/brand";
 import { Icon } from "../ui/Icon";
+import {
+  MOTION_MED_MS,
+  goldRipple,
+  pressableOpacityStyle,
+} from "../ui/pressableStyles";
 import type { RootStackParamList } from "./types";
+
+const DRAWER_WIDTH = 320;
 
 type Props = {
   open: boolean;
@@ -20,7 +29,7 @@ type Props = {
   onStartTutorial: () => void;
 };
 
-/** Drawer direito F28 — links do site + tutorial + logout. */
+/** Drawer direito F28 — slide + links do site + tutorial + logout. */
 export function MobileDrawer({
   open,
   activeRoute,
@@ -29,31 +38,67 @@ export function MobileDrawer({
   onStartTutorial,
 }: Props) {
   const insets = useSafeAreaInsets();
+  const panelX = useRef(new Animated.Value(DRAWER_WIDTH)).current;
+  const backdropOpacity = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (!open) {
+      panelX.setValue(DRAWER_WIDTH);
+      backdropOpacity.setValue(0);
+      return;
+    }
+    panelX.setValue(DRAWER_WIDTH);
+    backdropOpacity.setValue(0);
+    Animated.parallel([
+      Animated.timing(panelX, {
+        toValue: 0,
+        duration: MOTION_MED_MS,
+        useNativeDriver: true,
+      }),
+      Animated.timing(backdropOpacity, {
+        toValue: 1,
+        duration: MOTION_MED_MS,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [open, panelX, backdropOpacity]);
 
   async function onLogout() {
     onClose();
     await logoutLocal();
   }
 
+  function linkPress(route: keyof RootStackParamList) {
+    onNavigate(route);
+    onClose();
+  }
+
   return (
     <Modal
       visible={open}
       transparent
-      animationType="fade"
+      animationType="none"
       onRequestClose={onClose}
+      statusBarTranslucent
     >
       <View style={styles.root}>
-        <Pressable
-          style={styles.backdrop}
-          onPress={onClose}
-          accessibilityLabel="Fechar menu"
-        />
-        <View
+        <Animated.View
+          style={[styles.backdrop, { opacity: backdropOpacity }]}
+          pointerEvents="box-none"
+        >
+          <Pressable
+            style={StyleSheet.absoluteFill}
+            onPress={onClose}
+            accessibilityLabel="Fechar menu"
+          />
+        </Animated.View>
+        <Animated.View
           style={[
             styles.drawer,
             {
               paddingTop: Math.max(insets.top, 16) + 8,
               paddingBottom: Math.max(insets.bottom, 16),
+              transform: [{ translateX: panelX }],
             },
           ]}
         >
@@ -68,11 +113,14 @@ export function MobileDrawer({
             return (
               <Pressable
                 key={link.route}
-                style={[styles.link, active && styles.linkActive]}
-                onPress={() => {
-                  onNavigate(link.route);
-                  onClose();
-                }}
+                style={({ pressed }) =>
+                  pressableOpacityStyle(pressed, [
+                    styles.link,
+                    active && styles.linkActive,
+                  ])
+                }
+                android_ripple={goldRipple}
+                onPress={() => linkPress(link.route)}
               >
                 <Icon
                   name={link.icon}
@@ -91,18 +139,17 @@ export function MobileDrawer({
           <View style={styles.sep} />
 
           <Pressable
-            style={styles.link}
-            onPress={() => {
-              onNavigate("Planos");
-              onClose();
-            }}
+            style={({ pressed }) => pressableOpacityStyle(pressed, styles.link)}
+            android_ripple={goldRipple}
+            onPress={() => linkPress("Planos")}
           >
             <Icon name="star" size={18} color={brand.textSecondary} />
             <Text style={styles.linkLabel}>Planos</Text>
           </Pressable>
 
           <Pressable
-            style={styles.link}
+            style={({ pressed }) => pressableOpacityStyle(pressed, styles.link)}
+            android_ripple={goldRipple}
             onPress={() => {
               onClose();
               onStartTutorial();
@@ -114,11 +161,17 @@ export function MobileDrawer({
             <Text style={styles.linkLabel}>Tutorial</Text>
           </Pressable>
 
-          <Pressable style={styles.logout} onPress={() => void onLogout()}>
+          <Pressable
+            style={({ pressed }) =>
+              pressableOpacityStyle(pressed, styles.logout)
+            }
+            android_ripple={goldRipple}
+            onPress={() => void onLogout()}
+          >
             <Icon name="logout" size={18} color={brand.danger} />
             <Text style={styles.logoutLabel}>Sair</Text>
           </Pressable>
-        </View>
+        </Animated.View>
       </View>
     </Modal>
   );
@@ -136,7 +189,7 @@ const styles = StyleSheet.create({
   },
   drawer: {
     width: "78%",
-    maxWidth: 320,
+    maxWidth: DRAWER_WIDTH,
     backgroundColor: brand.bgSecondary,
     borderLeftWidth: 1,
     borderLeftColor: brand.border,

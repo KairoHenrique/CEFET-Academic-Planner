@@ -28,7 +28,9 @@ import {
 import { AcademicCalendarModule } from "../ui/AcademicCalendarModule";
 import { Card } from "../ui/cards";
 import { ErrorBox } from "../ui/ErrorBox";
+import { FadeInContent } from "../ui/FadeInContent";
 import { LoadingBlock } from "../ui/LoadingBlock";
+import { goldRipple, pressableOpacityStyle } from "../ui/pressableStyles";
 import { Screen } from "../ui/Screen";
 import { SectionHeader } from "../ui/SectionHeader";
 
@@ -149,7 +151,13 @@ export function CalendarScreen() {
             return (
               <Pressable
                 key={label}
-                style={[styles.filterChip, active && styles.filterChipActive]}
+                style={({ pressed }) =>
+                  pressableOpacityStyle(pressed, [
+                    styles.filterChip,
+                    active && styles.filterChipActive,
+                  ])
+                }
+                android_ripple={goldRipple}
                 onPress={() =>
                   setFilter(FILTER_LABEL_TO_TYPE[label] ?? "todas")
                 }
@@ -169,16 +177,17 @@ export function CalendarScreen() {
       </Card>
 
       {!loading || events.length > 0 ? (
-        <CalendarMonthModule
-          events={events}
-          filter={filter}
-          busyCreate={busyCreate}
-          onToggleDone={(ev) => void onToggle(ev)}
-          onCreateEvent={onCreate}
-        />
+        <FadeInContent ready={!loading || events.length > 0}>
+          <CalendarMonthModule
+            events={events}
+            filter={filter}
+            busyCreate={busyCreate}
+            onToggleDone={(ev) => void onToggle(ev)}
+            onCreateEvent={onCreate}
+          />
+          <AcademicCalendarModule groups={academicGroups} />
+        </FadeInContent>
       ) : null}
-
-      <AcademicCalendarModule groups={academicGroups} />
     </Screen>
   );
 }

@@ -1,6 +1,7 @@
+import { useEffect, useRef } from "react";
 import { LinearGradient } from "expo-linear-gradient";
-import { StyleSheet, View } from "react-native";
-import { brand } from "../theme/brand";
+import { Animated, StyleSheet, View } from "react-native";
+import { MOTION_MED_MS } from "./pressableStyles";
 
 export type ProgressTone = "gold" | "safe" | "warning" | "danger";
 
@@ -26,19 +27,34 @@ type Props = {
   markAt?: number | null;
 };
 
-/** Barra F28 — gradiente + glow (ouro / risco verde·âmbar·vermelho). */
+/** Barra F28 — gradiente + glow; largura anima suavemente. */
 export function ProgressBar({
   percent,
   tone = "gold",
   height = 8,
   markAt = null,
 }: Props) {
-  const width = Math.min(100, Math.max(0, percent));
+  const target = Math.min(100, Math.max(0, percent));
+  const animated = useRef(new Animated.Value(target)).current;
   const colors = GRADIENTS[tone];
+
+  useEffect(() => {
+    Animated.timing(animated, {
+      toValue: target,
+      duration: MOTION_MED_MS,
+      useNativeDriver: false,
+    }).start();
+  }, [animated, target]);
+
+  const widthInterpolated = animated.interpolate({
+    inputRange: [0, 100],
+    outputRange: ["0%", "100%"],
+    extrapolate: "clamp",
+  });
 
   return (
     <View style={[styles.track, { height }]}>
-      {width > 0 ? (
+      <Animated.View style={[styles.fillWrap, { width: widthInterpolated }]}>
         <LinearGradient
           colors={[...colors]}
           start={{ x: 0, y: 0.5 }}
@@ -46,12 +62,11 @@ export function ProgressBar({
           style={[
             styles.fill,
             {
-              width: `${width}%`,
               shadowColor: GLOW[tone],
             },
           ]}
         />
-      ) : null}
+      </Animated.View>
       {markAt != null && markAt > 0 && markAt < 100 ? (
         <View style={[styles.mark, { left: `${markAt}%` }]} />
       ) : null}
@@ -67,8 +82,14 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     position: "relative",
   },
+  fillWrap: {
+    height: "100%",
+    borderRadius: 999,
+    overflow: "hidden",
+  },
   fill: {
     height: "100%",
+    width: "100%",
     borderRadius: 999,
     shadowOpacity: 1,
     shadowRadius: 12,

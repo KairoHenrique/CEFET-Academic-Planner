@@ -147,7 +147,9 @@ export function AppShell() {
         screenOptions={{
           headerShown: false,
           contentStyle: { backgroundColor: brand.bg },
+          /** Telas irmãs: fade. Detalhe/overlay: slide (abaixo). */
           animation: "fade",
+          animationDuration: 220,
         }}
       >
         <Stack.Screen name="Dashboard" component={withShell(DashboardScreen)} />
@@ -156,6 +158,7 @@ export function AppShell() {
         <Stack.Screen
           name="DisciplinaDetail"
           component={withShell(DisciplinaDetailScreen)}
+          options={{ animation: "slide_from_right" }}
         />
         <Stack.Screen name="Mapa" component={withShell(MapaScreen)} />
         <Stack.Screen
@@ -168,12 +171,21 @@ export function AppShell() {
           component={withShell(PlanosScreen)}
           initialParams={planosInitialParams}
         />
-        <Stack.Screen name="PlanosPix" component={withShell(PlanosPixScreen)} />
+        <Stack.Screen
+          name="PlanosPix"
+          component={withShell(PlanosPixScreen)}
+          options={{ animation: "slide_from_right" }}
+        />
         <Stack.Screen
           name="Notificacoes"
           component={withShell(NotificationsScreen)}
+          options={{ animation: "slide_from_right" }}
         />
-        <Stack.Screen name="Perfil" component={withShell(PerfilScreen)} />
+        <Stack.Screen
+          name="Perfil"
+          component={withShell(PerfilScreen)}
+          options={{ animation: "slide_from_right" }}
+        />
       </Stack.Navigator>
       <TutorialHost />
     </TutorialProvider>

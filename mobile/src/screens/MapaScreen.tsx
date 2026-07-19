@@ -11,6 +11,7 @@ import { CourseMapGrafo } from "../ui/CourseMapGrafo";
 import { cardStyles, StatCard } from "../ui/cards";
 import { EmptyState } from "../ui/EmptyState";
 import { ErrorBox } from "../ui/ErrorBox";
+import { FadeInContent } from "../ui/FadeInContent";
 import { LoadingBlock } from "../ui/LoadingBlock";
 import { Screen } from "../ui/Screen";
 import { SegmentTabs } from "../ui/SegmentTabs";
@@ -107,6 +108,7 @@ export function MapaScreen() {
         <ErrorBox message={error} onRetry={() => void load()} />
       ) : null}
 
+      <FadeInContent ready={Boolean(data)}>
       {data && tab === "grade" ? (
         <>
           {!data.historicoSynced ? (
@@ -221,6 +223,7 @@ export function MapaScreen() {
           />
         )
       ) : null}
+      </FadeInContent>
     </Screen>
   );
 }
