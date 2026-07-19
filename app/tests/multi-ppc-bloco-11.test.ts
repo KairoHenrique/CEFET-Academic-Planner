@@ -12,6 +12,7 @@ import {
 } from "../src/lib/integralizacao/ch-catalog";
 import { loadPpcSeedData } from "../src/lib/db/ppc-seed-loader";
 import { resolvePpcEmenta } from "../src/lib/disciplinas/resolve-ppc-ementa";
+import { getChGlossaryForCurso } from "../src/lib/integralizacao/ch-glossary";
 
 function assertSeedGraph(cursoId: string, minDisciplinas: number): void {
   const items = loadPpcSeedData(cursoId);
@@ -82,5 +83,27 @@ describe("#11 Multi-PPC seeds + CH", () => {
     assert.match(meca, /A definir/);
     assert.match(moda, /A definir/);
     assert.doesNotMatch(comp, /^A definir/);
+  });
+
+  it("glossário CH usa metas do curso", () => {
+    const meca = getChGlossaryForCurso("eng-mecatronica");
+    const moda = getChGlossaryForCurso("design-moda");
+    const comp = getChGlossaryForCurso("eng-computacao");
+    assert.equal(
+      meca.find((e) => e.tipoCh === "Obrigatória")?.ppcHours,
+      2873
+    );
+    assert.equal(
+      moda.find((e) => e.tipoCh === "Obrigatória")?.ppcHours,
+      1888
+    );
+    assert.equal(
+      comp.find((e) => e.tipoCh === "Obrigatória")?.ppcHours,
+      3105
+    );
+    assert.notEqual(
+      meca.find((e) => e.tipoCh === "Obrigatória")?.ppcHours,
+      comp.find((e) => e.tipoCh === "Obrigatória")?.ppcHours
+    );
   });
 });

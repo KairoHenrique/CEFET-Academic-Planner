@@ -11,6 +11,7 @@ import { runQueuedSync } from "@/lib/sync-queue/run-queued-sync";
 import { evaluateSyncReadiness } from "@/lib/sync/sync-readiness";
 import { resolveSyncTrigger } from "@/lib/sync/resolve-sync-trigger";
 import { buildPostgresSyncStubResponse } from "@/lib/sync/postgres-sync-stub";
+import { runWithSyncTenantContext } from "@/lib/sync/run-with-sync-tenant-context";
 import {
   isCloudSyncWorkerConfigured,
   runCloudSyncDirect,
@@ -49,34 +50,36 @@ export const POST = async (request: Request) => {
     }
 
     return await runWithScraperSqlite(() =>
-      runWithUserDb(credentials.username, async () => {
-        ensureDbReady();
+      runWithSyncTenantContext(credentials.username, () =>
+        runWithUserDb(credentials.username, async () => {
+          ensureDbReady();
 
-        const readiness = evaluateSyncReadiness(credentials.username);
-        const trigger = resolveSyncTrigger({
-          trigger: credentials.trigger,
-          mode,
-          canFastLogin: readiness.canFastLogin,
-        });
+          const readiness = evaluateSyncReadiness(credentials.username);
+          const trigger = resolveSyncTrigger({
+            trigger: credentials.trigger,
+            mode,
+            canFastLogin: readiness.canFastLogin,
+          });
 
-        const result = await runQueuedSync({
-          username: credentials.username,
-          password: credentials.password || undefined,
-          savePassword: credentials.savePassword,
-          mode,
-          trigger,
-        });
+          const result = await runQueuedSync({
+            username: credentials.username,
+            password: credentials.password || undefined,
+            savePassword: credentials.savePassword,
+            mode,
+            trigger,
+          });
 
-        const steps = result.job.result?.steps ?? [];
-        const partial = result.job.result?.partial;
+          const steps = result.job.result?.steps ?? [];
+          const partial = result.job.result?.partial;
 
-        return apiSuccess({
-          ok: true as const,
-          steps,
-          partial: partial || undefined,
-          jobId: result.job.jobId,
-        });
-      })
+          return apiSuccess({
+            ok: true as const,
+            steps,
+            partial: partial || undefined,
+            jobId: result.job.jobId,
+          });
+        })
+      )
     );
   } catch (error) {
     if (error instanceof ApiError) {

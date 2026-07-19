@@ -2,9 +2,10 @@ import { notFoundError } from "@/lib/api/errors";
 import { aggregateIntegralizacaoCategories } from "@/lib/integralizacao/aggregate-categories";
 import { computeChDoneFromDisciplinas } from "@/lib/integralizacao/compute-ch-from-disciplinas";
 import {
-  getChCatalog,
+  getChCatalogForCurso,
   getIntegrationTotalHours,
 } from "@/lib/integralizacao/ch-catalog";
+import { resolveQueryCursoId } from "@/lib/db/resolve-query-curso-id";
 import { readSigaaIntegralizacaoResumo } from "@/lib/integralizacao/sigaa-ch-config";
 import {
   getAluno,
@@ -24,8 +25,9 @@ export function buildIntegralizacao(): IntegralizacaoResponse {
     );
   }
 
+  const cursoId = resolveQueryCursoId();
   const rows = getIntegralizacao();
-  const catalog = getChCatalog();
+  const catalog = getChCatalogForCurso(cursoId);
   const disciplinas = getDisciplinas();
   const historico = getHistorico();
   const semestreAtual = getSemestreAtual();
@@ -45,7 +47,8 @@ export function buildIntegralizacao(): IntegralizacaoResponse {
     sigaaResumo.fromHistoricoPdf ?? false
   );
 
-  const totalHours = sigaaResumo.totalCurriculo ?? getIntegrationTotalHours();
+  const totalHours =
+    sigaaResumo.totalCurriculo ?? getIntegrationTotalHours(cursoId);
   const totalDoneFromCategories = categories.reduce(
     (sum, category) => sum + category.done,
     0
@@ -57,7 +60,9 @@ export function buildIntegralizacao(): IntegralizacaoResponse {
   const hasSyncedIntegralizacao = rows.some((row) => row.manual === 0);
   const totalDone = hasSyncedIntegralizacao
     ? totalDoneFromCategories
-    : sigaaResumo.totalIntegralizado ?? totalDoneFromPercent ?? totalDoneFromCategories;
+    : sigaaResumo.totalIntegralizado ??
+      totalDoneFromPercent ??
+      totalDoneFromCategories;
   const percent =
     totalHours > 0
       ? Math.round((totalDone / totalHours) * 100)
