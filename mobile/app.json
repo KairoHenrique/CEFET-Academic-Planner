@@ -16,7 +16,7 @@
       "backgroundColor": "#000814"
     },
     "android": {
-      "package": "br.cefethub.acme",
+      "package": "br.cefethub.acme",`n      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "backgroundColor": "#000814",
         "foregroundImage": "./assets/android-icon-foreground.png",
