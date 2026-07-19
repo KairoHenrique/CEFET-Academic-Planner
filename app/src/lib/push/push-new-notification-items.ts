@@ -23,8 +23,8 @@ function pushCopyForItem(item: NotificationSnapshotItem): {
       return { title: item.title, body };
     case "integralizacao-alert":
       return { 
-        title: "🏆 ACME HUB", 
-        body: "Acompanhe de perto seu progresso rumo à formatura com nossos relatórios detalhados!" 
+        title: `🏆 ${item.title}`, 
+        body,
       };
     case "absence":
       return { title: "🛑 Atenção às Faltas", body };

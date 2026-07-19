@@ -114,7 +114,8 @@ export async function dispatchNotificationPushesForUser(input: {
 }
 
 export async function dispatchNotificationPushesForCpf(
-  username: string
+  username: string,
+  _options?: { fallbackSyncToast?: boolean }
 ): Promise<void> {
   const cpf = normalizeCpf(username);
   if (cpf.length !== 11) return;

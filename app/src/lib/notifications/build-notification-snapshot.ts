@@ -69,6 +69,17 @@ const KIND_DISPLAY_ORDER: Record<NotificationKind, number> = {
   "calendar-date-alert": 2,
   "class-reminder": 2,
   "integralizacao-alert": 3,
+  absence: 4,
+  "grade-risk": 4,
+  "task-late": 4,
+  "absence-failed": 4,
+  "morning-summary": 5,
+  "graduation-alert": 5,
+  "plan-expiring": 6,
+  promo: 7,
+  "subscription-renewed": 7,
+  "invalid-password": 8,
+  "app-updated": 9,
 };
 
 export interface NotificationSnapshot {

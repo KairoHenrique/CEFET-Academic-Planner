@@ -29,7 +29,6 @@ export async function runNotificationRemindersCron(): Promise<NotificationRemind
       const outcome = await dispatchNotificationPushesForUser({
         userId: row.user_id,
         cpf: row.cpf,
-        fallbackSyncToast: false,
       });
       if (outcome.sent > 0) {
         pushed += outcome.sent;
