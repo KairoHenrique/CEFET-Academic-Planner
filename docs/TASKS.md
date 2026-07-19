@@ -357,7 +357,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 - [@] **FRONT:** M13 *(planos / PIX — assinatura no app)*
 - [@] **FRONT:** M14 *(perfil + preferências de notificação — espelha web)*
 - [@] **TEST:** M15 *(Expo Go Android — QA de paridade + push + sessão)*
-- [ ] **OPTIONAL:** M16 *(APK sideload pelo site · **sem** Play Store)*
+- [ ] **OPTIONAL:** M16 *(APK sideload pelo site · **sem** Play Store · **hold:** EAS+FCM+payload antes do APK; código canal/register já no repo)*
 
 **Ordem Bloco 8:** `M1 → M2 → M3 → M4` → `M5 → M6` → `M7–M14` → `M15` → `(M16 opcional)`
 
@@ -786,7 +786,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [@] **SHARED:** M5 → M6 *(cache local · push E2E)*
 - [@] **FRONT:** M7 → M8 → M9 → M10 → M11 → M12 → M13 → M14 *(paridade de telas)*
 - [@] **TEST:** M15 *(Expo Go · Android)*
-- [ ] **OPTIONAL:** M16 *(APK sideload · sem loja)*
+- [ ] **OPTIONAL:** M16 *(APK sideload · sem loja · **hold** EAS+FCM antes do APK)*
 
 **Ordem Bloco 8:** `M1–M4` → `M5–M6` → `M7–M14` → `M15` → `(M16 opcional)`
 
@@ -1290,7 +1290,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | B35 | Back | `GET /api/mapa/grafo` | Nós e arestas para react-flow | 5.2 | [x] |
 | B36 | Back | Alertas integralização | Limiar por categoria de CH (sino) | 5.4 | [x] |
 | B37 | Back | Alertas calendário | Datas acadêmicas no sino (nova / D-1 / no dia) | 5.5 | [x] |
-| F20 | Front | Grafo react-flow | Zoom, pan, setas sólidas/pontilhadas | 5.2 | [x] |
+| F20 | Front | Grafo react-flow | Zoom, pan, Bézier · co-req sempre dourado (polish jul/2026) | 5.2 | [x] |
 | F21 | Front | Simulador elegível | Filtro + drag-and-drop na grade | 5.3 | [x] |
 | F22 | Front | Alerta choque | Destaque visual de conflito | 5.3 | [x] |
 | F23 | Front | Salvar simulação | Botões salvar/exportar matrícula | 5.3 | [x] |
@@ -1382,7 +1382,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | M13 | Front | Planos / PIX | Assinatura no app | [@] |
 | M14 | Front | Perfil + prefs | Preferências de notificação (espelha web) | [@] |
 | M15 | Test | Expo Go QA | Paridade + push + sessão (**Android**) | [@] |
-| M16 | Optional | APK sideload | Download pelo site · **sem** Play Store | [ ] |
+| M16 | Optional | APK sideload | Download pelo site · **sem** Play Store · hold EAS/FCM | [ ] |
 
 **Ordem:** `M1 → M2 → M3 → M4` → `M5 → M6` → `M7 → … → M14` → `M15` → `(M16 opcional)`
 
@@ -1762,9 +1762,9 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [@] **M4** — auth/gate UI (login · paywall · logout) — no remoto, validação pendente
 - [@] **M5** — cache local AsyncStorage — no remoto, validação pendente
 - [@] **M6** — push Expo + `POST /api/push/register` — no remoto — validação pendente
-- [%] **M7–M14** — telas bottom tabs (dashboard → perfil) — no remoto — validação pendente
+- [@] **M7–M14** — telas bottom tabs (dashboard → perfil) — no remoto — validação pendente
 - [@] **M15** — QA checklist Expo Go (`mobile/docs/M15-QA.md`) — no remoto — validação pendente
-- [ ] **M16** *(opcional)* — APK sideload pelo site
+- [ ] **M16** *(opcional)* — APK sideload · **hold:** EAS + FCM + payload antes do APK
 - [x] **Alternativa sem instalar:** site adaptado ao celular (**F28** · aprovado jul/2026)
 - [x] **Site desktop v1.0.0** — base de paridade do app (jul/2026)
 
@@ -2046,7 +2046,7 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 8. **Próximo passo do roadmap:** informe **depois do push** (tasks em `[@]` ou `[x]`). Com commits locais só `[x]`, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v3](#ordem-oficial-de-execução-v3) — **Bloco 2 (sync) antes do Bloco 6 (Supabase)**. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy **após** sync validado; RLS ✅ **6c** (antes do PIX). Marco “site no ar p/ testes gerais” → [final do TASKS.md](#marco--site-no-ar-para-testes-gerais).
-11. **Próximo passo:** **M4–M15** `[@]` no remoto — validar Expo Go + sync (stale reclaim 10 min). Aprovar → `[x]`. **M1–M3** `[x]`. Site **v1.0.0**. Bloco 8 `3/16`. **F28** `[x]`.
+11. **Próximo passo:** **M4–M15** [@] no remoto — validar Expo Go + sync + prioridades cloud + grafo/calendário. **M16** hold (EAS+FCM). Aprovar → [x]. **M1–M3** [x]. Site **v1.0.0**. Bloco 8 3/16. **F28** [x].
 12. **Integralização:** CH concluída = `historico` + PPC (`computeChDoneFromDisciplinas`); portal SIGAA só % / total currículo; matérias já passadas = **B30** ✅.
 13. **Gift + painel dev:** **B68–B71** ✅ · **F39–F41** ✅ — painel sem senha SIGAA (`credentialSaved` + `accountRef`).
 14. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial. **Polish em task `[x]`** (ex.: F38, dashboard) também exige nota no TASKS no mesmo ciclo do push.

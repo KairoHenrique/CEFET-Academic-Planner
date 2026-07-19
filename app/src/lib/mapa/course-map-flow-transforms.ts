@@ -62,6 +62,9 @@ type EdgeVisual = { style: Edge["style"]; markerColor: string | null };
  * Visual da aresta por papel. Sem `animated` (nada de marching-ants) para não
  * "piscar". Em repouso a seta é omitida — o layout esquerda→direita já indica
  * o sentido — reduzindo o emaranhado visual.
+ *
+ * Co-requisito: sempre dourado pontilhado (nunca verde). Verde (“desbloqueia”)
+ * só em arestas de pré-requisito quando a disciplina ativa é a origem.
  */
 function edgeVisual(kind: "pre" | "co", role: EdgeRole): EdgeVisual {
   const strokeDasharray = kind === "co" ? "5 5" : undefined;
@@ -74,11 +77,21 @@ function edgeVisual(kind: "pre" | "co", role: EdgeRole): EdgeVisual {
   }
   if (role === "base") {
     return {
-      style: { stroke: COLOR_REST, strokeWidth: 1.4, strokeDasharray },
+      style: {
+        stroke: kind === "co" ? "rgba(232, 198, 106, 0.38)" : COLOR_REST,
+        strokeWidth: 1.4,
+        strokeDasharray,
+      },
       markerColor: null,
     };
   }
-  const color = role === "unlock" ? COLOR_UNLOCK : kind === "co" ? COLOR_CO : COLOR_PRE;
+  // prereq (entrada) ou unlock (saída)
+  const color =
+    kind === "co"
+      ? COLOR_CO
+      : role === "unlock"
+        ? COLOR_UNLOCK
+        : COLOR_PRE;
   return {
     style: { stroke: color, strokeWidth: 2.75, strokeDasharray },
     markerColor: color,
@@ -92,7 +105,7 @@ export function buildFlowEdges(grafo: MapaGrafoResponse): Edge[] {
       id: edge.id,
       source: edge.source,
       target: edge.target,
-      type: "smoothstep",
+      type: "default",
       data: { kind: edge.kind },
       animated: false,
       style: visual.style,

@@ -1,23 +1,27 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  Modal,
   Pressable,
-  ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   View,
   useWindowDimensions,
 } from "react-native";
-import Svg, {
-  Circle,
-  Defs,
-  Path,
-  RadialGradient,
-  Rect,
-  Stop,
-} from "react-native-svg";
-import { LinearGradient } from "expo-linear-gradient";
+import {
+  GestureHandlerRootView,
+  PinchGestureHandler,
+  ScrollView,
+  State,
+  type PinchGestureHandlerGestureEvent,
+  type PinchGestureHandlerStateChangeEvent,
+} from "react-native-gesture-handler";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Svg, { Path, Rect } from "react-native-svg";
+import * as ScreenOrientation from "expo-screen-orientation";
 import { brand } from "../theme/brand";
 import { Card } from "./cards";
+import { Icon } from "./Icon";
 import { SectionHeader } from "./SectionHeader";
 
 export type GrafoNode = {
@@ -54,6 +58,7 @@ type Props = {
   edges: GrafoEdge[];
   statusLabels: Record<string, string>;
   layout?: GrafoLayout;
+  expandable?: boolean;
 };
 
 const COLOR_PRE = "#4a9fd4";
@@ -76,10 +81,20 @@ const STATUS_ICON: Record<string, string> = {
   locked: "✕",
 };
 
-const BASE_NODE_W = 168;
-const BASE_NODE_H = 88;
+/** Tamanhos fixos — zoom só escala o canvas, não muda tipografia/layout. */
+const NODE_W = 168;
+const NODE_H = 88;
 const PAD = 40;
 const LABEL_H = 34;
+const COL_STEP = 210;
+const ROW_STEP = 100;
+const MIN_ZOOM = 0.45;
+const MAX_ZOOM = 2.4;
+const DEFAULT_ZOOM = 0.85;
+
+function clampZoom(value: number): number {
+  return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, value));
+}
 
 function metaLabel(data: GrafoNode["data"]): string {
   if (data.status === "locked" && data.blockedBy === "ch" && data.chRemaining) {
@@ -93,27 +108,56 @@ function edgePath(x1: number, y1: number, x2: number, y2: number): string {
   return `M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`;
 }
 
-/** Grafo mobile F28 — canvas + glow + arestas SVG + zoom ±. */
+async function unlockOrientation(): Promise<void> {
+  try {
+    await ScreenOrientation.unlockAsync();
+  } catch {
+    /* ignore */
+  }
+}
+
+async function lockPortrait(): Promise<void> {
+  try {
+    await ScreenOrientation.lockAsync(
+      ScreenOrientation.OrientationLock.PORTRAIT_UP
+    );
+  } catch {
+    /* ignore */
+  }
+}
+
+/** Grafo mobile — pinça para zoom (layout/tipografia fixos) + tela cheia. */
 export function CourseMapGrafo({
   nodes,
   edges,
   statusLabels,
   layout,
+  expandable = true,
 }: Props) {
-  const { height: winH } = useWindowDimensions();
+  const { width: winW, height: winH } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [zoom, setZoom] = useState(0.82);
+  const [zoom, setZoom] = useState(DEFAULT_ZOOM);
+  const [fullscreen, setFullscreen] = useState(false);
+  const baseZoomRef = useRef(DEFAULT_ZOOM);
+  const pinchRef = useRef(null);
 
-  const nodeW = BASE_NODE_W * zoom;
-  const nodeH = BASE_NODE_H * zoom;
+  const landscape = winW > winH;
 
+  useEffect(() => {
+    if (!fullscreen) return;
+    void unlockOrientation();
+    return () => {
+      void lockPortrait();
+    };
+  }, [fullscreen]);
+
+  /** Posições calculadas uma vez — independentes do zoom. */
   const positioned = useMemo(() => {
     const colGap = layout?.columnGap ?? 280;
     const rowGap = layout?.rowGap ?? 110;
-    const xScale = (210 * zoom) / colGap;
-    const yScale = (100 * zoom) / rowGap;
-    const pad = PAD * zoom;
-    const labelH = LABEL_H * zoom;
+    const xScale = COL_STEP / colGap;
+    const yScale = ROW_STEP / rowGap;
 
     const byPeriod = new Map<number, GrafoNode[]>();
     for (const n of nodes) {
@@ -132,12 +176,12 @@ export function CourseMapGrafo({
       } else {
         const list = byPeriod.get(n.data.period) ?? [];
         const index = list.findIndex((item) => item.id === n.id);
-        x = ((n.data.period || 1) - 1) * 210 * zoom;
-        y = Math.max(0, index) * 100 * zoom;
+        x = ((n.data.period || 1) - 1) * COL_STEP;
+        y = Math.max(0, index) * ROW_STEP;
       }
-      return { ...n, x: pad + x, y: pad + labelH + y };
+      return { ...n, x: PAD + x, y: PAD + LABEL_H + y };
     });
-  }, [nodes, layout, zoom]);
+  }, [nodes, layout]);
 
   const periods = useMemo(() => {
     const map = new Map<number, number>();
@@ -149,14 +193,14 @@ export function CourseMapGrafo({
   }, [nodes]);
 
   const canvasW = useMemo(() => {
-    const maxX = positioned.reduce((m, n) => Math.max(m, n.x + nodeW), 360);
-    return maxX + PAD * zoom;
-  }, [positioned, nodeW, zoom]);
+    const maxX = positioned.reduce((m, n) => Math.max(m, n.x + NODE_W), 360);
+    return maxX + PAD;
+  }, [positioned]);
 
   const canvasH = useMemo(() => {
-    const maxY = positioned.reduce((m, n) => Math.max(m, n.y + nodeH), 280);
-    return maxY + PAD * zoom;
-  }, [positioned, nodeH, zoom]);
+    const maxY = positioned.reduce((m, n) => Math.max(m, n.y + NODE_H), 280);
+    return maxY + PAD;
+  }, [positioned]);
 
   const posById = useMemo(() => {
     const map = new Map<string, { x: number; y: number }>();
@@ -176,32 +220,293 @@ export function CourseMapGrafo({
     return set;
   }, [selectedId, edges]);
 
-  const dots = useMemo(() => {
-    const step = 28 * zoom;
-    const items: { cx: number; cy: number; key: string }[] = [];
-    const cols = Math.min(80, Math.ceil(canvasW / step));
-    const rows = Math.min(60, Math.ceil(canvasH / step));
-    for (let i = 0; i < cols; i += 1) {
-      for (let j = 0; j < rows; j += 1) {
-        items.push({
-          cx: step / 2 + i * step,
-          cy: step / 2 + j * step,
-          key: `${i}-${j}`,
-        });
-      }
-    }
-    return items;
-  }, [canvasW, canvasH, zoom]);
+  const embeddedHeight = Math.min(520, Math.max(340, winH * 0.52));
+  const fullHeight = Math.max(
+    240,
+    winH -
+      (landscape
+        ? insets.top + insets.bottom + 48
+        : insets.top + insets.bottom + 56)
+  );
 
-  const canvasHeight = Math.min(560, Math.max(360, winH * 0.58));
+  function closeFullscreen() {
+    setFullscreen(false);
+    void lockPortrait();
+  }
+
+  function openFullscreen() {
+    setFullscreen(true);
+  }
+
+  function onPinchEvent(event: PinchGestureHandlerGestureEvent) {
+    const next = clampZoom(baseZoomRef.current * event.nativeEvent.scale);
+    setZoom(next);
+  }
+
+  function onPinchStateChange(event: PinchGestureHandlerStateChangeEvent) {
+    if (event.nativeEvent.state === State.BEGAN) {
+      baseZoomRef.current = zoom;
+      return;
+    }
+    if (
+      event.nativeEvent.oldState === State.ACTIVE ||
+      event.nativeEvent.state === State.END ||
+      event.nativeEvent.state === State.CANCELLED
+    ) {
+      const next = clampZoom(
+        baseZoomRef.current * event.nativeEvent.scale
+      );
+      baseZoomRef.current = next;
+      setZoom(next);
+    }
+  }
+
+  /** Escala visual a partir do canto superior esquerdo. */
+  const scaledW = canvasW * zoom;
+  const scaledH = canvasH * zoom;
+  const scaleTransform = [
+    { translateX: (scaledW - canvasW) / 2 },
+    { translateY: (scaledH - canvasH) / 2 },
+    { scale: zoom },
+  ];
+
+  function renderCanvas(height: number, opts: { expandBtn: boolean }) {
+    return (
+      <GestureHandlerRootView
+        style={[
+          styles.canvasShell,
+          fullscreen && styles.canvasShellFs,
+          { height },
+        ]}
+      >
+        {opts.expandBtn ? (
+          <Pressable
+            style={styles.expandFab}
+            onPress={openFullscreen}
+            accessibilityLabel="Abrir grafo em tela cheia"
+            hitSlop={8}
+          >
+            <Icon name="expand" size={16} color={brand.gold} />
+          </Pressable>
+        ) : null}
+
+        <PinchGestureHandler
+          ref={pinchRef}
+          onGestureEvent={onPinchEvent}
+          onHandlerStateChange={onPinchStateChange}
+        >
+          <View style={styles.flex} collapsable={false}>
+            <ScrollView
+              horizontal
+              nestedScrollEnabled
+              simultaneousHandlers={pinchRef}
+              showsHorizontalScrollIndicator={false}
+              style={styles.flex}
+              contentContainerStyle={{ minHeight: height - 8 }}
+            >
+              <ScrollView
+                nestedScrollEnabled
+                simultaneousHandlers={pinchRef}
+                showsVerticalScrollIndicator={false}
+                style={styles.flex}
+              >
+                <View style={{ width: scaledW, height: scaledH }}>
+                  <View
+                    style={{
+                      width: canvasW,
+                      height: canvasH,
+                      transform: scaleTransform,
+                    }}
+                  >
+                    <Svg
+                      width={canvasW}
+                      height={canvasH}
+                      style={StyleSheet.absoluteFill}
+                    >
+                      <Rect
+                        x={0}
+                        y={0}
+                        width={canvasW}
+                        height={canvasH}
+                        fill="#021024"
+                      />
+                      {edges.map((e) => {
+                        const src = posById.get(e.source);
+                        const tgt = posById.get(e.target);
+                        if (!src || !tgt) return null;
+
+                        const x1 = src.x + NODE_W;
+                        const y1 = src.y + NODE_H / 2;
+                        const x2 = tgt.x;
+                        const y2 = tgt.y + NODE_H / 2;
+                        const d = edgePath(x1, y1, x2, y2);
+
+                        let stroke = COLOR_REST;
+                        let width = 1.5;
+                        let opacity = 1;
+                        if (selectedId) {
+                          if (e.target === selectedId) {
+                            // Entrada: o que esta disciplina exige
+                            stroke = e.kind === "co" ? COLOR_CO : COLOR_PRE;
+                            width = 2.5;
+                          } else if (e.source === selectedId) {
+                            // Saída: o que ela libera — co NUNCA verde
+                            stroke =
+                              e.kind === "co" ? COLOR_CO : COLOR_UNLOCK;
+                            width = 2.5;
+                          } else {
+                            stroke = COLOR_DIM;
+                            opacity = 0.35;
+                          }
+                        } else if (e.kind === "co") {
+                          stroke = "rgba(232,198,106,0.38)";
+                        }
+
+                        return (
+                          <Path
+                            key={e.id}
+                            d={d}
+                            stroke={stroke}
+                            strokeWidth={width}
+                            fill="none"
+                            opacity={opacity}
+                            strokeDasharray={
+                              e.kind === "co" || e.strokeStyle === "dashed"
+                                ? "5 5"
+                                : undefined
+                            }
+                          />
+                        );
+                      })}
+                    </Svg>
+
+                    {periods.map(([period, count]) => {
+                      const sample = positioned.find(
+                        (n) => n.data.period === period
+                      );
+                      if (!sample) return null;
+                      return (
+                        <View
+                          key={`pl-${period}`}
+                          style={[
+                            styles.periodPill,
+                            {
+                              left: sample.x,
+                              top: sample.y - LABEL_H - 2,
+                            },
+                          ]}
+                        >
+                          <Text style={styles.periodLabel}>P{period}</Text>
+                          <View style={styles.periodCount}>
+                            <Text style={styles.periodCountText}>{count}</Text>
+                          </View>
+                        </View>
+                      );
+                    })}
+
+                    {positioned.map((node) => {
+                      const status = node.data.status;
+                      const color = STATUS_COLOR[status] ?? brand.textMuted;
+                      const dimmed =
+                        selectedId != null && !related.has(node.id);
+                      const focused = selectedId === node.id;
+                      const relatedNode =
+                        selectedId != null &&
+                        related.has(node.id) &&
+                        !focused;
+
+                      return (
+                        <Pressable
+                          key={node.id}
+                          onPress={() =>
+                            setSelectedId((cur) =>
+                              cur === node.id ? null : node.id
+                            )
+                          }
+                          style={[
+                            styles.node,
+                            {
+                              left: node.x,
+                              top: node.y,
+                              width: NODE_W,
+                              height: NODE_H,
+                              opacity: dimmed
+                                ? 0.28
+                                : status === "locked"
+                                  ? 0.72
+                                  : 1,
+                            },
+                            status === "current" && styles.nodeCurrent,
+                            focused && styles.nodeFocus,
+                            relatedNode && styles.nodeRelated,
+                          ]}
+                        >
+                          <View
+                            style={[styles.accent, { backgroundColor: color }]}
+                          />
+                          <View style={styles.nodeInner}>
+                            <View
+                              style={[
+                                styles.nodeIcon,
+                                {
+                                  backgroundColor:
+                                    status === "done"
+                                      ? brand.successBg
+                                      : status === "current"
+                                        ? "rgba(58,160,232,0.16)"
+                                        : status === "unlocked"
+                                          ? "rgba(232,198,106,0.16)"
+                                          : "rgba(255,255,255,0.06)",
+                                },
+                              ]}
+                            >
+                              <Text style={[styles.nodeIconText, { color }]}>
+                                {STATUS_ICON[status] ?? "·"}
+                              </Text>
+                            </View>
+                            <View style={styles.nodeBody}>
+                              <View style={styles.nodeTop}>
+                                <Text style={styles.nodeCode} numberOfLines={1}>
+                                  {node.data.shortLabel || node.data.code}
+                                </Text>
+                                <View
+                                  style={[
+                                    styles.nodeDot,
+                                    { backgroundColor: color },
+                                  ]}
+                                />
+                              </View>
+                              <Text
+                                style={[
+                                  styles.nodeName,
+                                  status === "locked" && styles.nodeNameLocked,
+                                ]}
+                                numberOfLines={2}
+                              >
+                                {node.data.name}
+                              </Text>
+                              <Text style={styles.nodeMeta}>
+                                {metaLabel(node.data)}
+                              </Text>
+                            </View>
+                          </View>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                </View>
+              </ScrollView>
+            </ScrollView>
+          </View>
+        </PinchGestureHandler>
+      </GestureHandlerRootView>
+    );
+  }
 
   return (
     <>
       <Card tight>
-        <SectionHeader
-          title="Grafo de Pré-requisitos"
-          icon="map"
-        />
+        <SectionHeader title="Grafo de Pré-requisitos" icon="map" />
 
         <View style={styles.legend}>
           {(
@@ -232,251 +537,56 @@ export function CourseMapGrafo({
         </View>
 
         <Text style={styles.hint}>
-          Toque numa disciplina para ver pré-requisitos e o que ela desbloqueia.
+          Toque numa disciplina para ver ligações. Em tela cheia, deite o
+          celular para ver mais largo.
         </Text>
       </Card>
 
-      <View style={[styles.canvasShell, { height: canvasHeight }]}>
-        <LinearGradient
-          colors={["rgba(0,88,168,0.32)", "transparent"]}
-          style={styles.canvasGlow}
-          pointerEvents="none"
-        />
+      {!fullscreen
+        ? renderCanvas(embeddedHeight, { expandBtn: expandable })
+        : null}
 
-        <View style={styles.controls}>
-          <Pressable
-            style={styles.ctrlBtn}
-            onPress={() =>
-              setZoom((z) => Math.max(0.55, +(z - 0.1).toFixed(2)))
-            }
-          >
-            <Text style={styles.ctrlText}>−</Text>
-          </Pressable>
-          <Pressable
-            style={styles.ctrlBtn}
-            onPress={() =>
-              setZoom((z) => Math.min(1.3, +(z + 0.1).toFixed(2)))
-            }
-          >
-            <Text style={styles.ctrlText}>+</Text>
-          </Pressable>
-        </View>
-
-        <ScrollView
-          horizontal
-          nestedScrollEnabled
-          showsHorizontalScrollIndicator={false}
-          style={styles.flex}
+      <Modal
+        visible={fullscreen}
+        animationType="fade"
+        presentationStyle="fullScreen"
+        hardwareAccelerated
+        onRequestClose={closeFullscreen}
+        supportedOrientations={[
+          "portrait",
+          "landscape",
+          "landscape-left",
+          "landscape-right",
+        ]}
+      >
+        <View
+          style={[
+            styles.fullscreenRoot,
+            {
+              paddingTop: Math.max(insets.top, 8),
+              paddingBottom: Math.max(insets.bottom, 8),
+              paddingLeft: landscape ? Math.max(insets.left, 8) : 12,
+              paddingRight: landscape ? Math.max(insets.right, 8) : 12,
+            },
+          ]}
         >
-          <ScrollView
-            nestedScrollEnabled
-            showsVerticalScrollIndicator={false}
-            style={styles.flex}
-          >
-            <View style={{ width: canvasW, height: canvasH }}>
-              <Svg
-                width={canvasW}
-                height={canvasH}
-                style={StyleSheet.absoluteFill}
-              >
-                <Defs>
-                  <RadialGradient id="bgGlow" cx="50%" cy="0%" r="70%">
-                    <Stop
-                      offset="0%"
-                      stopColor="rgb(0,88,168)"
-                      stopOpacity="0.38"
-                    />
-                    <Stop
-                      offset="100%"
-                      stopColor="rgb(2,16,36)"
-                      stopOpacity="0"
-                    />
-                  </RadialGradient>
-                </Defs>
-                <Rect
-                  x={0}
-                  y={0}
-                  width={canvasW}
-                  height={canvasH}
-                  fill="rgba(2,16,36,0.95)"
-                />
-                <Rect
-                  x={0}
-                  y={0}
-                  width={canvasW}
-                  height={canvasH}
-                  fill="url(#bgGlow)"
-                />
-                {dots.map((d) => (
-                  <Circle
-                    key={d.key}
-                    cx={d.cx}
-                    cy={d.cy}
-                    r={1.15 * zoom}
-                    fill="rgba(232,198,106,0.11)"
-                  />
-                ))}
-
-                {edges.map((e) => {
-                  const src = posById.get(e.source);
-                  const tgt = posById.get(e.target);
-                  if (!src || !tgt) return null;
-
-                  const x1 = src.x + nodeW;
-                  const y1 = src.y + nodeH / 2;
-                  const x2 = tgt.x;
-                  const y2 = tgt.y + nodeH / 2;
-                  const d = edgePath(x1, y1, x2, y2);
-
-                  let stroke = COLOR_REST;
-                  let width = 1.4 * zoom;
-                  let opacity = 1;
-                  if (selectedId) {
-                    if (e.target === selectedId) {
-                      stroke = e.kind === "co" ? COLOR_CO : COLOR_PRE;
-                      width = 2.75 * zoom;
-                    } else if (e.source === selectedId) {
-                      stroke = COLOR_UNLOCK;
-                      width = 2.75 * zoom;
-                    } else {
-                      stroke = COLOR_DIM;
-                      opacity = 0.4;
-                    }
-                  } else if (e.kind === "co") {
-                    stroke = "rgba(232,198,106,0.38)";
-                  }
-
-                  return (
-                    <Path
-                      key={e.id}
-                      d={d}
-                      stroke={stroke}
-                      strokeWidth={width}
-                      fill="none"
-                      opacity={opacity}
-                      strokeDasharray={
-                        e.kind === "co" || e.strokeStyle === "dashed"
-                          ? `${5 * zoom} ${5 * zoom}`
-                          : undefined
-                      }
-                    />
-                  );
-                })}
-              </Svg>
-
-              {periods.map(([period, count]) => {
-                const sample = positioned.find((n) => n.data.period === period);
-                if (!sample) return null;
-                return (
-                  <View
-                    key={`pl-${period}`}
-                    style={[
-                      styles.periodPill,
-                      {
-                        left: sample.x,
-                        top: sample.y - LABEL_H * zoom - 2,
-                        transform: [{ scale: Math.min(1, zoom + 0.05) }],
-                      },
-                    ]}
-                  >
-                    <Text style={styles.periodLabel}>P{period}</Text>
-                    <View style={styles.periodCount}>
-                      <Text style={styles.periodCountText}>{count}</Text>
-                    </View>
-                  </View>
-                );
-              })}
-
-              {positioned.map((node) => {
-                const status = node.data.status;
-                const color = STATUS_COLOR[status] ?? brand.textMuted;
-                const dimmed = selectedId != null && !related.has(node.id);
-                const focused = selectedId === node.id;
-                const relatedNode =
-                  selectedId != null && related.has(node.id) && !focused;
-
-                return (
-                  <Pressable
-                    key={node.id}
-                    onPress={() =>
-                      setSelectedId((cur) => (cur === node.id ? null : node.id))
-                    }
-                    style={[
-                      styles.node,
-                      {
-                        left: node.x,
-                        top: node.y,
-                        width: nodeW,
-                        height: nodeH,
-                        opacity: dimmed
-                          ? 0.28
-                          : status === "locked"
-                            ? 0.72
-                            : 1,
-                      },
-                      status === "current" && styles.nodeCurrent,
-                      focused && styles.nodeFocus,
-                      relatedNode && styles.nodeRelated,
-                    ]}
-                  >
-                    <LinearGradient
-                      colors={["rgba(0,48,92,0.97)", "rgba(0,28,58,0.99)"]}
-                      style={StyleSheet.absoluteFill}
-                    />
-                    <View style={[styles.accent, { backgroundColor: color }]} />
-                    <View style={styles.nodeInner}>
-                      <View
-                        style={[
-                          styles.nodeIcon,
-                          {
-                            width: 26 * Math.min(1, zoom + 0.1),
-                            height: 26 * Math.min(1, zoom + 0.1),
-                            backgroundColor:
-                              status === "done"
-                                ? brand.successBg
-                                : status === "current"
-                                  ? "rgba(58,160,232,0.16)"
-                                  : status === "unlocked"
-                                    ? "rgba(232,198,106,0.16)"
-                                    : "rgba(255,255,255,0.06)",
-                          },
-                        ]}
-                      >
-                        <Text style={[styles.nodeIconText, { color }]}>
-                          {STATUS_ICON[status] ?? "·"}
-                        </Text>
-                      </View>
-                      <View style={styles.nodeBody}>
-                        <View style={styles.nodeTop}>
-                          <Text style={styles.nodeCode} numberOfLines={1}>
-                            {node.data.shortLabel || node.data.code}
-                          </Text>
-                          <View
-                            style={[styles.nodeDot, { backgroundColor: color }]}
-                          />
-                        </View>
-                        <Text
-                          style={[
-                            styles.nodeName,
-                            status === "locked" && styles.nodeNameLocked,
-                            { fontSize: 11.5 * Math.min(1, zoom + 0.12) },
-                          ]}
-                          numberOfLines={2}
-                        >
-                          {node.data.name}
-                        </Text>
-                        <Text style={styles.nodeMeta}>
-                          {metaLabel(node.data)}
-                        </Text>
-                      </View>
-                    </View>
-                  </Pressable>
-                );
-              })}
-            </View>
-          </ScrollView>
-        </ScrollView>
-      </View>
+          <StatusBar hidden={landscape} />
+          <View style={styles.fullscreenHeader}>
+            <Text style={styles.fullscreenTitle} numberOfLines={1}>
+              Grafo{landscape ? " · horizontal" : " · tela cheia"}
+            </Text>
+            <Pressable
+              style={styles.closeFsBtn}
+              onPress={closeFullscreen}
+              accessibilityLabel="Fechar tela cheia"
+              hitSlop={8}
+            >
+              <Icon name="compress" size={16} color={brand.gold} />
+            </Pressable>
+          </View>
+          {fullscreen ? renderCanvas(fullHeight, { expandBtn: false }) : null}
+        </View>
+      </Modal>
     </>
   );
 }
@@ -533,50 +643,58 @@ const styles = StyleSheet.create({
     borderRadius: brand.radiusMd,
     borderWidth: 1,
     borderColor: brand.border,
-    backgroundColor: "rgba(2,16,36,0.95)",
+    backgroundColor: "#021024",
     marginBottom: brand.space4,
     overflow: "hidden",
     position: "relative",
-    elevation: 10,
-    shadowColor: "#001428",
-    shadowOpacity: 0.55,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 6 },
   },
-  canvasGlow: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 140,
-    zIndex: 0,
+  canvasShellFs: {
+    marginBottom: 0,
+    flex: 1,
   },
   flex: { flex: 1 },
-  controls: {
+  expandFab: {
     position: "absolute",
-    right: 10,
-    bottom: 10,
-    zIndex: 30,
+    top: 8,
+    right: 8,
+    zIndex: 40,
+    width: 36,
+    height: 36,
     borderRadius: brand.radiusSm,
-    borderWidth: 1,
-    borderColor: brand.border,
-    overflow: "hidden",
-    backgroundColor: "rgba(0,32,72,0.94)",
-    elevation: 6,
-  },
-  ctrlBtn: {
-    minWidth: 44,
-    minHeight: 44,
     alignItems: "center",
     justifyContent: "center",
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: brand.border,
+    backgroundColor: "rgba(0,28,56,0.92)",
+    borderWidth: 1,
+    borderColor: brand.borderEmphasis,
   },
-  ctrlText: {
-    color: "#dce7f5",
-    fontSize: 22,
-    fontWeight: "600",
-    lineHeight: 24,
+  fullscreenRoot: {
+    flex: 1,
+    backgroundColor: brand.bg,
+  },
+  fullscreenHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    marginBottom: 8,
+    minHeight: 40,
+  },
+  fullscreenTitle: {
+    flex: 1,
+    color: brand.text,
+    fontFamily: brand.fontBodyBold,
+    fontWeight: "700",
+    fontSize: 15,
+  },
+  closeFsBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: brand.radiusSm,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(0,28,56,0.92)",
+    borderWidth: 1,
+    borderColor: brand.borderEmphasis,
   },
   periodPill: {
     position: "absolute",
@@ -620,26 +738,14 @@ const styles = StyleSheet.create({
     borderColor: brand.border,
     overflow: "hidden",
     zIndex: 5,
-    elevation: 5,
-    shadowColor: "#000",
-    shadowOpacity: 0.42,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 3 },
+    backgroundColor: "rgba(0,36,72,0.98)",
   },
   nodeCurrent: {
     borderColor: "rgba(58,160,232,0.55)",
-    shadowColor: brand.jerseyLight,
-    shadowOpacity: 0.4,
-    shadowRadius: 16,
-    elevation: 10,
   },
   nodeFocus: {
     borderColor: brand.gold,
-    shadowColor: brand.gold,
-    shadowOpacity: 0.5,
-    shadowRadius: 20,
     zIndex: 15,
-    elevation: 14,
   },
   nodeRelated: {
     borderColor: brand.borderEmphasis,
@@ -664,6 +770,8 @@ const styles = StyleSheet.create({
     zIndex: 2,
   },
   nodeIcon: {
+    width: 26,
+    height: 26,
     borderRadius: brand.radiusSm,
     alignItems: "center",
     justifyContent: "center",
@@ -697,6 +805,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   nodeName: {
+    fontSize: 12,
     fontFamily: brand.fontBodySemi,
     fontWeight: "600",
     color: brand.text,
@@ -706,7 +815,7 @@ const styles = StyleSheet.create({
     color: brand.textSecondary,
   },
   nodeMeta: {
-    fontSize: 10.5,
+    fontSize: 11,
     fontFamily: brand.fontBody,
     color: brand.textMuted,
   },
