@@ -826,7 +826,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | **#12** | **2f — Sync real Postgres (B72)** | ✅ B72a–e `[x]` · **ops = PC + cloudflared** | 5 / 5 |
 | #9 | 3 — Inteligência | ✅ **B36/B37** `[x]` (sino) · **F24 descartado** · próximo **#10** | 10 / 10 |
 | #10 | 4 — Polimento + site mobile | **F25–F28** `[x]` | 4 / 4 |
-| #8 | 8 — Mobile Android | 🟢 **M1–M15** `[x]` · **M16** `[@]` · **M17** `[%]` · sem lojas | 15 / 17 |
+| #8 | 8 — Mobile Android | 🟢 **M1–M15** `[x]` · **M16** `[@]` · **M17** `[@]` · sem lojas | 15 / 17 |
 | #11 | 9 — Multi-PPC | **[x]** seeds Meca/Moda + CH + turmas `curso_id` | 4 / 4 ✅ |
 
 ---
@@ -1387,7 +1387,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | M14 | Front | Perfil + prefs | Prefs notificação · **Tutorial** no menu | [x] |
 | M15 | Test | Expo Go QA | Paridade + push + sessão (**Android**) | [x] |
 | M16 | Optional | APK sideload | Download pelo site (`/releases` + QR desktop + drawer F28) · **sem** Play Store · v1.0.0 | [@] |
-| M17 | Optional | Update + ops | Update in-app · push notif sync · login visual · e-mail suporte cadastro/pagamento | [%] |
+| M17 | Optional | Update + ops | Update in-app · push notif sync · login visual · e-mail suporte cadastro/pagamento | [@] |
 
 **Ordem:** `M1 → M2 → M3 → M4` → `M5 → M6` → `M7 → … → M14` → `M15` → `(M16–M17 opcional)`
 
@@ -1770,7 +1770,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] **M7–M14** — telas (dashboard → perfil) · tutorial no menu · polish mapa/simulador · **motion/lista** (press, slides, fade, FlatList)
 - [x] **M15** — QA checklist Expo Go (`mobile/docs/M15-QA.md`)
 - [@] **M16** *(opcional)* — APK sideload · download site (/releases, QR, drawer) · v1.0.0
-- [%] **M17** *(opcional)* — update in-app · notif push sync desktop↔app · login visual · e-mail suporte
+- [@] **M17** *(opcional)* — update in-app · notif push sync desktop↔app · login visual · e-mail suporte
 - [x] **Alternativa sem instalar:** site adaptado ao celular (**F28** · aprovado jul/2026)
 - [x] **Site desktop v1.0.1** — patch de bugs (jul/2026); base v1.0.0
 
@@ -2052,7 +2052,7 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 8. **Próximo passo do roadmap:** informe **depois do push** (tasks em `[@]` ou `[x]`). Com commits locais só `[x]`, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v3](#ordem-oficial-de-execução-v3) — **Bloco 2 (sync) antes do Bloco 6 (Supabase)**. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy **após** sync validado; RLS ✅ **6c** (antes do PIX). Marco “site no ar p/ testes gerais” → [final do TASKS.md](#marco--site-no-ar-para-testes-gerais).
-11. **Próximo passo:** **M17** `[%]` (update + notif push + ops). **M16** `[@]` (download/APK R2). **#11 Multi-PPC** `[x]`. Site **v1.0.1**. Bloco 8 **15/17**. **F28** `[x]`.
+11. **Próximo passo:** **M17** `[@]` (update + notif push + ops — validar no APK). **M16** `[@]` (download/APK R2). **#11 Multi-PPC** `[x]`. Site **v1.0.1**. Bloco 8 **15/17**. **F28** `[x]`.
 12. **Integralização:** CH concluída = `historico` + PPC (`computeChDoneFromDisciplinas`); portal SIGAA só % / total currículo; matérias já passadas = **B30** ✅.
 13. **Gift + painel dev:** **B68–B71** ✅ · **F39–F41** ✅ — painel sem senha SIGAA (`credentialSaved` + `accountRef`).
 14. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial. **Polish em task `[x]`** (ex.: F38, dashboard) também exige nota no TASKS no mesmo ciclo do push.
