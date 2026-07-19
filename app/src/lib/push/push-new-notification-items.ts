@@ -48,6 +48,8 @@ function pushCopyForItem(item: NotificationSnapshotItem): {
       return { title: "💎 Assinatura Renovada!", body };
     case "invalid-password":
       return { title: "⚠️ Falha na Sincronização", body };
+    case "app-updated":
+      return { title: "🚀 Nova Versão Disponível", body };
     default:
       return { title: "ACME HUB", body };
   }

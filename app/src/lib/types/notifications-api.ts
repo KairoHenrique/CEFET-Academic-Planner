@@ -17,7 +17,8 @@ export type NotificationKind =
   | "plan-expiring"
   | "promo"
   | "subscription-renewed"
-  | "invalid-password";
+  | "invalid-password"
+  | "app-updated";
 
 export interface NotificationSnapshotItem {
   fingerprint: string;
