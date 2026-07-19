@@ -39,7 +39,9 @@ export type IconName =
   | "users"
   | "plus"
   | "help-circle"
-  | "download";
+  | "download"
+  | "expand"
+  | "compress";
 
 type Props = {
   name: IconName;
@@ -270,6 +272,22 @@ export function Icon({ name, size = 18, color = "#E8C66A" }: Props) {
           <Path d="M12 3v12" {...common} />
           <Path d="m7 10 5 5 5-5" {...common} />
           <Path d="M5 21h14" {...common} />
+        </>
+      ) : null}
+      {name === "expand" ? (
+        <>
+          <Path d="M15 3h6v6" {...common} />
+          <Path d="M9 21H3v-6" {...common} />
+          <Path d="M21 3l-7 7" {...common} />
+          <Path d="M3 21l7-7" {...common} />
+        </>
+      ) : null}
+      {name === "compress" ? (
+        <>
+          <Path d="M4 14h6v6" {...common} />
+          <Path d="M20 10h-6V4" {...common} />
+          <Path d="M14 10l7-7" {...common} />
+          <Path d="M3 21l7-7" {...common} />
         </>
       ) : null}
     </Svg>

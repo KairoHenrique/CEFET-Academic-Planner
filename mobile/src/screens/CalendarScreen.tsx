@@ -5,7 +5,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  View,
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import type {
@@ -26,6 +25,7 @@ import {
   FILTER_LABEL_TO_TYPE,
   type EventTypeFilter,
 } from "../ui/CalendarMonthModule";
+import { AcademicCalendarModule } from "../ui/AcademicCalendarModule";
 import { Card } from "../ui/cards";
 import { ErrorBox } from "../ui/ErrorBox";
 import { LoadingBlock } from "../ui/LoadingBlock";
@@ -178,35 +178,7 @@ export function CalendarScreen() {
         />
       ) : null}
 
-      <Card tight style={styles.academicCard}>
-        <SectionHeader title="Calendário Acadêmico" icon="clipboard" />
-        {academicGroups.length === 0 ? (
-          <Text style={styles.emptyAcademic}>Nenhuma informação</Text>
-        ) : (
-          academicGroups.map((group, index) => (
-            <View key={`${group.semestre}-${index}`} style={styles.semesterBlock}>
-              {index > 0 ? <View style={styles.divider} /> : null}
-              <Text style={styles.semesterTitle}>
-                Semestre{" "}
-                <Text style={styles.semesterCode}>{group.semestre}</Text>
-              </Text>
-              {group.items.length === 0 ? (
-                <Text style={styles.emptyAcademic}>Nenhuma informação</Text>
-              ) : (
-                group.items.map((item, iIdx) => (
-                  <View
-                    key={`${group.semestre}-${item.label}-${item.date}-${iIdx}`}
-                    style={styles.academicRow}
-                  >
-                    <Text style={styles.academicLabel}>{item.label}</Text>
-                    <Text style={styles.academicValue}>{item.date}</Text>
-                  </View>
-                ))
-              )}
-            </View>
-          ))
-        )}
-      </Card>
+      <AcademicCalendarModule groups={academicGroups} />
     </Screen>
   );
 }
@@ -246,53 +218,5 @@ const styles = StyleSheet.create({
   },
   filterChipTextActive: {
     color: brand.gold200,
-  },
-  academicCard: {
-    marginTop: brand.space3,
-  },
-  semesterBlock: {
-    marginBottom: 4,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: brand.borderMuted,
-    marginVertical: 12,
-  },
-  semesterTitle: {
-    fontSize: 14,
-    fontFamily: brand.fontBodySemi,
-    fontWeight: "600",
-    color: brand.text,
-    marginBottom: 8,
-  },
-  semesterCode: {
-    color: brand.gold,
-    fontFamily: brand.fontBodyBold,
-    fontWeight: "700",
-  },
-  academicRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: 12,
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(255,255,255,0.06)",
-  },
-  academicLabel: {
-    flex: 1,
-    fontSize: 13,
-    fontFamily: brand.fontBody,
-    color: brand.text,
-  },
-  academicValue: {
-    fontSize: 13,
-    fontFamily: brand.fontBodySemi,
-    fontWeight: "600",
-    color: brand.textSecondary,
-  },
-  emptyAcademic: {
-    fontSize: 13,
-    color: brand.textMuted,
-    paddingVertical: 8,
   },
 });
