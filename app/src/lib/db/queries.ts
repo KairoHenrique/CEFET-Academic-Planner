@@ -337,6 +337,13 @@ export function getNotasByDisciplina(disciplinaId: string): NotaRow[] {
     .all(disciplinaId) as NotaRow[];
 }
 
+/** Todas as notas do curso ativo (bulk — evita N+1 no mapa). */
+export function getAllNotas(): NotaRow[] {
+  return db
+    .prepare("SELECT * FROM notas ORDER BY disciplina_id, id")
+    .all() as NotaRow[];
+}
+
 export function getNotasForSemestreAtual(): NotaRow[] {
   return db
     .prepare(

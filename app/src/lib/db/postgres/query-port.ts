@@ -22,4 +22,5 @@ export const postgresMapaQueryDeps: MapaQueryDeps = {
   getHistorico: pg.pgGetHistorico,
   getRequisitos: pg.pgGetRequisitos,
   getIntegralizacao: pg.pgGetIntegralizacao,
+  getAllNotas: pg.pgGetAllNotas,
 };

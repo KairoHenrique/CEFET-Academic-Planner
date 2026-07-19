@@ -1,6 +1,8 @@
-import type { HistoricoRow, RequisitoRow } from "@/lib/types/db";
+import type { HistoricoRow, NotaRow, RequisitoRow } from "@/lib/types/db";
 import type { DisciplinaRow } from "@/lib/types/db";
 import type { CourseMapStatus } from "@/lib/types/mapa-api";
+import { computeGradeFromNotas } from "@/lib/disciplinas/grade";
+import { SUBJECT_DISPLAY_PASSING_GRADE } from "@/lib/disciplinas/grade-display";
 import { evaluateChGateForDisciplina } from "@/lib/mapa/period-ch-gates";
 
 const DONE_STATUS_KEYWORDS = [
@@ -157,6 +159,54 @@ export function buildActiveCurrentDisciplinaSet(
     current.delete(code);
   }
   return current;
+}
+
+/** Totais por disciplina (código normalizado) a partir das notas sincronizadas. */
+export function buildGradeTotalsByDisciplinaCode(
+  notas: NotaRow[]
+): Map<string, number | null> {
+  const byCode = new Map<string, NotaRow[]>();
+
+  for (const nota of notas) {
+    const code = normalizeDisciplinaCode(nota.disciplina_id);
+    if (!code) continue;
+    const bucket = byCode.get(code) ?? [];
+    bucket.push(nota);
+    byCode.set(code, bucket);
+  }
+
+  const totals = new Map<string, number | null>();
+  for (const [code, rows] of byCode) {
+    totals.set(code, computeGradeFromNotas(rows));
+  }
+  return totals;
+}
+
+/**
+ * Fecha MATR órfão no mapa: sem turma no portal + notas ≥ aprovação
+ * (mesmo critério do dashboard) → conta como concluída.
+ */
+export function mergeCompletedWithClosedSemesterGrades(input: {
+  historico: HistoricoRow[];
+  semestreAtualCodes: string[];
+  gradeTotalsByCode: ReadonlyMap<string, number | null>;
+  passingGrade?: number;
+}): Set<string> {
+  const completed = buildCompletedDisciplinaSet(input.historico);
+  const failed = buildFailedDisciplinaSet(input.historico);
+  const enrolled = buildCurrentDisciplinaSet(input.semestreAtualCodes);
+  const orphanMatr = buildCursandoDisciplinaSet(input.historico);
+  const passing = input.passingGrade ?? SUBJECT_DISPLAY_PASSING_GRADE;
+
+  for (const code of orphanMatr) {
+    if (enrolled.has(code) || failed.has(code) || completed.has(code)) continue;
+    const total = input.gradeTotalsByCode.get(code) ?? null;
+    if (total != null && total >= passing) {
+      completed.add(code);
+    }
+  }
+
+  return completed;
 }
 
 export function mergeDisciplinaSets(...sets: Set<string>[]): Set<string> {
