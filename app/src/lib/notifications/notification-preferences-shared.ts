@@ -9,6 +9,7 @@ export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
   classReminders: false,
   integralizacaoAlerts: true,
   academicDateAlerts: true,
+  personalEvents: true,
 };
 
 export function isNotificationKindEnabled(

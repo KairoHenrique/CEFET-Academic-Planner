@@ -1,0 +1,19 @@
+{
+  "scrapedAt": "2026-06-29T15:27:02.350Z",
+  "aluno": {
+    "matricula": "0000000000",
+    "nome": "Discente",
+    "curso": null,
+    "email": null,
+    "semestreEntrada": null,
+    "rg": null,
+    "status": null
+  },
+  "integralizacao": [],
+  "integralizacaoResumo": {
+    "totalCurriculo": null,
+    "percentIntegralizado": null
+  },
+  "semestreAtual": [],
+  "atividades": []
+}

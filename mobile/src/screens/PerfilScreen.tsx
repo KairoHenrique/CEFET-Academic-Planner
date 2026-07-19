@@ -47,6 +47,7 @@ const PREF_LABELS: Record<PrefKey, string> = {
   classReminders: "Lembretes de aula",
   integralizacaoAlerts: "Alertas de integralização",
   academicDateAlerts: "Datas acadêmicas",
+  personalEvents: "Eventos pessoais (criados por você)",
 };
 
 const MESSAGE_DISMISS_MS = 4500;

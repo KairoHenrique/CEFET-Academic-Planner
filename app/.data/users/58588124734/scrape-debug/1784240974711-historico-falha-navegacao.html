@@ -1,0 +1,473 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd"><html class="background"><head><style>body {transition: opacity ease-in 0.2s; } 
+body[unresolved] {opacity: 0; display: block; overflow: hidden; position: relative; } 
+</style>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+
+
+
+<title>SIGAA - Sistema Integrado de Gestão de Atividades Acadêmicas</title>
+<link rel="shortcut icon" href="/shared/img/favicon.ico">
+
+<script type="text/javascript" async="" src="https://www.googletagmanager.com/gtag/js?id=G-T0LB45K3C2&amp;cx=c&amp;_slc=1"></script><script async="" src="//www.google-analytics.com/analytics.js"></script><script type="text/javascript" src="/shared/jsBundles/jawr_loader.js"></script>
+<script type="text/javascript">
+                JAWR.loader.style('/bundles/css/sigaa_base.css', 'all');
+        		JAWR.loader.style('/css/ufrn_print.css', 'print');
+        		JAWR.loader.script('/bundles/js/sigaa_base.js');
+</script> <link rel="stylesheet" type="text/css" media="all" href="/shared/cssBundles/gzip_586771370/bundles/css/sigaa_base.css">  <link rel="stylesheet" type="text/css" media="print" href="/shared/cssBundles/gzip_48504048/css/ufrn_print.css">  <script type="text/javascript" src="/shared/jsBundles/gzip_1779534/bundles/js/sigaa_base.js"> </script> 
+<link rel="stylesheet" type="text/css" media="all" href="/sigaa/cssBundles/gzip_420254978/bundles/css/sigaa.css">
+
+<link rel="stylesheet" media="all" href="/shared/css/ufrn.css" type="text/css">
+
+<link rel="alternate stylesheet" type="text/css" media="screen" title="mono" href="/sigaa/css/mono.css">
+<link rel="alternate stylesheet" type="text/css" media="screen" title="contraste" href="/sigaa/css/contraste.css">
+
+<!-- FontAwesome -->
+<link rel="stylesheet" type="text/css" href="/shared/beta/css/font-awesome.css" media="screen">
+
+<!-- Painel Genérico para telas Modal -->
+<script type="text/javascript" src="/shared/javascript/paineis/painel_generico.js"></script>
+
+<script src="/sigaa/javascript/styleswitch.js" type="text/javascript"></script>
+
+<script src="/sigaa/javascript/prevenir-duplo-clique.js" type="text/javascript"></script>
+
+
+	
+	
+		<!-- Botão de informar um problema -->
+		<link rel="stylesheet" type="text/css" href="/shared/informar-problema/css/informar-problema.css?ver=1.1" media="screen">
+		<script type="text/javascript" src="/shared/informar-problema/js/webcomponents.min.js?ver=1.1"></script>
+		<script type="text/javascript" src="/shared/informar-problema/js/html2canvas.js?ver=1.1"></script>
+		<script type="text/javascript" src="/shared/informar-problema/js/informar-problema.js?ver=1.1"></script>
+		<!-- FIM botão de informar um problema -->
+	
+	
+
+
+
+<script type="text/javascript">
+		var mensagem;
+		var initMensagem = function() {
+			mensagem = new Mensagem();
+		}
+		YAHOO.util.Event.addListener(window,'load', initMensagem);
+		
+		function isIE(){
+		
+					return false;
+			
+		}
+</script>
+
+<script type="text/javascript" src="/sigaa/javascript/jsCookMenuHack.js"></script>
+<!-- Fim dos imports para abrir chamado -->
+
+	<script src="/shared/javascript/STICookieConsent.js"></script>
+	<script>
+	    document.addEventListener("DOMContentLoaded", () => {
+	    	generateCookieConsentModal("SIGAA", "Este sistema utiliza cookies para melhorar sua experiência de navegação. Para mais informações, acesse a <a href=%privacy-policy%>Política de Cookies</a> e a <a href=%cookie-policy%>Política de Privacidade</a>.", "https://www.lgpd.cefetmg.br/wp-content/uploads/sites/301/2023/09/RES_CD_9-2023_Aprova-a-Pol%C3%ADtica-de-Privacidade-e-Prote%C3%A7%C3%A3o-de-Dados-Pessoais.pdf", "https://www.dti.cefetmg.br/politica-de-cookies");
+	    })
+	</script>
+	
+<style>
+.cookie-consent-modal {
+  /* Vars */
+  --background: #4e4e4e;
+  --link-color: #79cbf2;
+  --link-color-hover: #17e4ff;
+  --body-text-color: #fff;
+  --button-background: #fff;
+
+  box-shadow:0 0 10px rgba(0,0,0,.4);
+  position:fixed;
+  bottom:0;
+  margin-bottom:4.5rem;
+  z-index:10000;
+  width: 100vw;
+  max-width: 100%;
+  color:var(--body-text-color);
+  background:var(--background);
+  padding:2.5rem 0;
+  border: 0;
+}
+.cookie-consent-modal p{
+  width:inherit;
+  margin:auto
+}
+.cookie-consent-modal a{
+  color:var(--link-color);
+  text-decoration: none;
+}
+.cookie-consent-modal a:focus,.cookie-consent-modal a:hover{
+  text-decoration:underline
+}
+.cookie-consent-modal button{
+  cursor: pointer;
+  margin:1rem auto 0;
+  display:block;
+  font-weight:700;
+  color:var(--background);
+  background-color:var(--button-background);
+  border: 0;
+  padding: 8px 14px;
+  border-radius:4px;
+}
+.cookie-consent-modal button:active,.cookie-consent-modal button:focus,.cookie-consent-modal button:hover{
+  background-color:var(--link-color);
+}
+.cookie-consent-modal > .container {
+  margin:auto;
+  max-width:100%;
+  padding: 0 1.5em;
+}
+@media (min-width: 556px) {
+  .cookie-consent-modal > .container {
+    max-width:540px;
+    padding: 0;
+  }
+}
+@media (min-width: 768px) {
+  .cookie-consent-modal > .container {
+    max-width:720px;
+  }
+}
+@media (min-width: 992px) {
+  .cookie-consent-modal > .container {
+    max-width:960px;
+  }
+}
+@media (min-width: 1200px) {
+  .cookie-consent-modal > .container {
+    max-width:1140px;
+  }
+}
+</style></head>
+
+<body><div id="painel-mensagem-envio_mask" class="mask" style="z-index: 5; display: none;">&nbsp;</div><dialog class="cookie-consent-modal" id="sigaa-cookie-consent"><div class="container">Este sistema utiliza cookies para melhorar sua experiência de navegação. Para mais informações, acesse a <a href="https://www.dti.cefetmg.br/politica-de-cookies">Política de Cookies</a> e a <a href="https://www.lgpd.cefetmg.br/wp-content/uploads/sites/301/2023/09/RES_CD_9-2023_Aprova-a-Pol%C3%ADtica-de-Privacidade-e-Prote%C3%A7%C3%A3o-de-Dados-Pessoais.pdf">Política de Privacidade</a>.</div><button class="btn btn-primary">Ciente</button></dialog>
+
+
+
+
+
+
+
+	<div id="container">
+	<div id="cabecalho">
+		<div id="info-sistema">
+			<h1><span>CEFET-MG - SIGAA -</span></h1>
+			<h3>Sistema Integrado de Gestão de Atividades Acadêmicas</h3>
+			<div class="dir">
+				
+			</div>
+		</div>
+	 
+
+	<div id="painel-usuario" style="height: 20px;">
+	
+	<div id="menu-principal"></div>
+	</div>
+	</div>
+	
+
+	<div id="conteudo">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+
+<script type="text/javascript">
+//Função adicionada no cabeçalho para evitar a reescrita em cada JSP.
+function contarCaracteres(field, idMostraQuantidadeUsuario, maxlimit) {
+	
+	if (field.value.length > maxlimit){
+		field.value = field.value.substring(0, maxlimit);
+	}else{ 
+		document.getElementById(idMostraQuantidadeUsuario).innerHTML = maxlimit - field.value.length ;
+	} 
+}
+</script>
+<link rel="stylesheet" type="text/css" media="all" href="/sigaa/cssBundles/gzip_1114591188/public/css/logon.css">
+
+
+
+
+
+ 
+
+
+
+
+<style type="text/css">
+.painel {  background-color: #EFF3FA; padding: 5px; width: 16%; text-align: center; }
+.sistemaAtual { background-color: #FFFFE4; } 
+</style>
+
+
+
+	<div align="center" style="margin: 0 auto; background: #EFF3FA; padding: 10px;">
+		<p style="font-weight: bold; color: #F00;">ATENÇÃO!</p>
+		<p style="width: 75%;">
+		O seu login é o seu CPF e sua senha é a mesma cadastrada na <a href="https://iu.cefetmg.br" target="_blank">Identificação Única</a>.<br>
+		O sistema diferencia letras maiúsculas de minúsculas na senha.<br>
+		Utilize apenas os números de seu CPF (sem sinais de pontuação).
+	</p>
+	</div>
+
+
+<div align="center" style="width: 100%; margin: 0 auto; padding: 10px 0;">
+<table width="100%" align="center" style="border-collapse: separate; border-spacing: 3px">
+	<tbody><tr>
+		
+		<td class="painel sistemaAtual">
+			<a href="https://sig.cefetmg.br/sigaa/?modo=classico">
+			SIGAA</a> <br> 
+			(Acadêmico)
+		</td>
+		
+		
+		<td class="painel ">
+			<a href="https://sig.cefetmg.br/sipac/?modo=classico">
+			SIPAC</a><br>
+			(Administrativo)
+		</td>
+		
+		
+		<td class="painel ">
+			<a href="https://sig.cefetmg.br/sigrh/?modo=classico">
+			SIGRH</a><br>
+			(Recursos Humanos)
+		</td>
+		
+		
+		<td class="painel ">
+			<a href="https://sig.cefetmg.br/admin/">
+			SIGAdmin</a><br>
+			(Administração e Comunicação)
+		</td>
+		
+	</tr>
+
+	<tr>
+		
+		
+		
+		<td class="painel ">
+			<a href="https://sig.cefetmg.br/sigeleicao/">
+			SIGEleição</a> <br>
+			(Controle de Processos Eleitorais)			
+		</td>
+		
+		
+		
+		<td class="painel ">
+			<a href="https://sig.cefetmg.br/admin/public/outros_servicos.jsf">
+			Acesso Rápido</a><br>
+			(Outros Serviços de TI)
+		</td>
+		
+
+	</tr>
+</tbody></table>
+</div>
+
+
+
+
+
+<br>
+
+<div style="margin: 0 auto; width: 645px; ">
+	
+</div>
+		
+
+<br clear="all">
+
+	<br>
+	<center style="color: #922; font-weight: bold;"></center>
+
+<br>
+<div class="logon" style="width:50%; margin: 0 auto;">
+<h3> Entrar no Sistema </h3> 
+<form name="loginForm" method="post" action="/sigaa/logar.do?dispatch=logOn">
+	<input type="hidden" name="width" value="1280" id="width">
+	<input type="hidden" name="height" value="720" id="height">
+	<input type="hidden" name="urlRedirect" value="">
+	<input type="hidden" name="subsistemaRedirect" value="">
+	<input type="hidden" name="acao" value="">
+	<input type="hidden" name="acessibilidade" value="">
+
+	<script>
+		document.getElementById('width').value = screen.width;
+		document.getElementById('height').value = screen.height;
+	</script>
+
+<table align="center" width="100%" cellspacing="0" cellpadding="3">
+<tbody>
+	<tr>
+		<th width="35%">  Usuário: </th>
+		<td align="left"> <input type="text" name="user.login" size="20" value=""></td>
+	</tr>
+	<tr>
+		<th> Senha: </th>
+		<td> <input type="password" name="user.senha" size="20" value=""> </td>
+	</tr>
+</tbody>
+<tfoot>
+	<tr>
+		<td colspan="2" align="center">
+			<input type="submit" value="Entrar" onclick="return prevenirDuploClique();">
+		</td>
+	</tr>
+</tfoot>
+</table>
+</form>
+<script type="text/javascript" language="JavaScript">
+  <!--
+  var focusControl = document.forms["loginForm"].elements["user.login"];
+
+  if (focusControl.type != "hidden" && !focusControl.disabled) {
+     focusControl.focus();
+  }
+  // -->
+</script>
+
+
+</div>
+
+<table align="center" width="500" border="0" cellspacing="0" cellpadding="0" style="margin: 0 auto">
+	<tbody><tr>
+		<td align="center" width="33%">
+			<br><br>
+			Caso ainda não possua cadastro no sistema,<br>
+			clique no link abaixo.<br>
+			<a href="https://iu.cefetmg.br/cadastro/passo1" target="_blank">
+			<img src="/shared/img/novo_usuario.gif" border="0" height="16"><br>
+			Cadastre-se
+			</a><br>
+		</td>
+        <td align="center" width="33%">
+            <br><br>
+            Caso tenha esquecido a senha,<br>
+            clique no link abaixo.<br>
+            <a href="https://iu.cefetmg.br/recuperarsenha/passo1" target="_blank">
+            <img src="/shared/img/alterar_senha.png" border="0" height="16"><br>
+            Esqueci minha senha
+            </a><br>
+        </td>
+         <td align="center" width="33%">
+            <br><br>
+            Familiares, caso ainda não possuam cadastro no SIGAA,  <br>
+             clique no link abaixo.<br>
+             <a href="/sigaa/public/cadastro/familiares.jsf"><img src="/sigaa/img/familiares.png" border="0" alt="Novo Usurio">
+				<br>
+				Cadastro de familiar</a>
+
+			<br><a href="https://sig.cefetmg.br/admin/public/recuperar_senha.jsf">Esqueceu a senha? </a>
+             
+			
+        </td>
+	</tr>
+</tbody></table>
+<br><br><br>
+<table align="center">
+    <tbody><tr>
+        <td><a href="https://www.firefox.com/pt-BR/" target="_blank"><img src="/shared/img/firefox.jpg" border="0" width="20" height="20"></a></td>
+        <td><b>Este sistema é melhor visualizado utilizando o
+            <a href="https://www.firefox.com/pt-BR/" target="_blank">Mozilla Firefox</a>,
+            para baixá-lo e instalá-lo,
+            <a href="https://www.firefox.com/pt-BR/" target="_blank">clique aqui</a></b>.
+        </td>
+    </tr>
+</tbody></table>
+
+
+
+	
+	
+		
+
+
+
+<div class="clear"> </div>
+
+</div> 
+	<br>
+
+	
+
+	<div id="rodape">
+		<p>	SIGAA | Diretoria de Tecnologia da Informação - DTI - (31) 3319-7000 | Copyright © 2006-2026 - UFRN - vm-sig-app-10.infrati.cefetmg.br.inst10
+		
+		 
+			 - <a onclick="javascript:versao();">v4.17.0cefet178</a>
+				
+		</p>
+	</div>
+
+
+</div>  
+
+
+
+
+
+
+
+
+
+
+	<script>
+	  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+	
+	  ga('create', 'UA-4564254-24', 'auto');
+	  ga('send', 'pageview');
+	
+	</script>	
+
+
+
+
+
+
+ 
+	<script type="text/javascript" charset="UTF-8">
+		function versao(){
+			var msg='';
+			msg+='SIGAA 4.17.0cefet178,  publicado em: 26/06/2026 10:15\n\n';
+			msg+='Depend\u00eancias:\n';
+			msg+='Arquitetura 4.4.9\n';
+			msg+='Entidades Comuns 3.0.3\n';
+			msg+='Servicos Integrados 2.0.8\n';
+			msg+='SharedResources 2.1.4\n';
+			msg+='Servicos Remoto Biblioteca 1.0.3\n';
+			msg+='SIGAA Mobile Objects 1.0.0\n\n';
+			msg+='Copyright SINFO/UFRN';
+			alert(msg);
+		}	
+	</script>
+
+
+<script language="javascript">
+Relogio.init(60);
+</script>
+
+	
+
+<iframe id="_yuiResizeMonitor" style="visibility: visible; width: 10em; height: 10em; position: absolute; top: -112px; left: -112px; border-style: none; border-width: 0px; opacity: 0;"></iframe></body></html>

@@ -450,6 +450,7 @@ export interface NotificationPreferences {
   classReminders: boolean;
   integralizacaoAlerts: boolean;
   academicDateAlerts: boolean;
+  personalEvents: boolean;
 }
 
 export interface PendingTaskReminderSource {

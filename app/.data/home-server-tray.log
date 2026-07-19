@@ -1,0 +1,32 @@
+[04:23:23] Tray iniciado. AppDir=C:\Users\kairo\OneDrive\Documentos\CEFET-Academic-Planner\app
+[12:26:34] Tray iniciado. AppDir=C:\Users\kairo\OneDrive\Documentos\CEFET-Academic-Planner\app
+[12:33:19] Tray iniciado. AppDir=C:\Users\kairo\OneDrive\Documentos\CEFET-Academic-Planner\app
+[12:33:23] Tray iniciado. AppDir=C:\Users\kairo\OneDrive\Documentos\CEFET-Academic-Planner\app
+[12:33:29] --- Parando servidor ---
+[12:33:41] --- Iniciando servidor ---
+[12:33:41] worker:home pid=33108
+[12:33:41] cloudflared pid=9744
+[12:33:45] Tunnel URL detectada: https://month-known-holmes-kiss.trycloudflare.com
+[12:33:45] Atualizando SIGAA_WORKER_URL=https://month-known-holmes-kiss.trycloudflare.com
+[12:33:51] wrangler secret put exit=0
+[12:34:08] --- Parando servidor ---
+[12:34:13] --- Iniciando servidor ---
+[12:34:13] worker:home pid=30696
+[12:34:13] cloudflared pid=15016
+[12:34:18] Tunnel URL detectada: https://conflicts-usual-chrome-impossible.trycloudflare.com
+[12:34:18] Atualizando SIGAA_WORKER_URL=https://conflicts-usual-chrome-impossible.trycloudflare.com
+[12:34:23] wrangler secret put exit=0
+[21:03:10] --- Parando servidor ---
+[21:03:12] --- Iniciando servidor ---
+[21:03:12] worker:home pid=5568
+[21:03:13] cloudflared pid=27788
+[21:03:18] Tunnel URL detectada: https://equal-brunette-mhz-manufacturing.trycloudflare.com
+[21:03:18] Atualizando SIGAA_WORKER_URL=https://equal-brunette-mhz-manufacturing.trycloudflare.com
+[21:03:23] wrangler secret put exit=0
+[23:34:40] --- Parando servidor ---
+[23:34:43] --- Iniciando servidor ---
+[23:34:43] worker:home pid=35108
+[23:34:43] cloudflared pid=37976
+[23:34:49] Tunnel URL detectada: https://processors-member-mining-facilities.trycloudflare.com
+[23:34:49] Atualizando SIGAA_WORKER_URL=https://processors-member-mining-facilities.trycloudflare.com
+[23:34:53] wrangler secret put exit=0
