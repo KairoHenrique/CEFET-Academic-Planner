@@ -9,13 +9,13 @@ import { AppDownloadQr } from "@/components/download/AppDownloadQr";
 
 type Manifest = {
   version?: string;
-  apk?: string;
   published?: boolean;
+  apkUrl?: string;
+  hosting?: string;
 };
 
 /**
- * Página pública de download — QR (desktop) + botão direto (mobile).
- * Sem navbar aluno; link seguro para leitura fora da sessão.
+ * Página pública de download — QR → /download; CTA → artefato EAS/R2.
  */
 export function DownloadPageClient() {
   const [manifest, setManifest] = useState<Manifest | null>(null);
@@ -27,8 +27,9 @@ export function DownloadPageClient() {
       .catch(() => setManifest(null));
   }, []);
 
-  const published = manifest?.published === true;
   const version = manifest?.version ?? APP_RELEASE.version;
+  const apkHref = manifest?.apkUrl?.trim() || APP_RELEASE.apkPath;
+  const viaEas = (manifest?.hosting ?? "eas-artifact") === "eas-artifact";
 
   return (
     <div className="app-dl-page">
@@ -46,12 +47,10 @@ export function DownloadPageClient() {
           ser preciso permitir “fontes desconhecidas” para o instalador.
         </p>
 
-        {!published ? (
+        {viaEas ? (
           <div className="app-dl-page-banner" role="status">
-            O APK ainda não foi publicado neste ambiente. O botão abaixo aponta
-            para <code>{APP_RELEASE.apkPath}</code> — após o build EAS, cole o
-            arquivo em <code>public/releases/</code> e marque{" "}
-            <code>published: true</code> no manifest.
+            Download via build EAS (Cloudflare não hospeda arquivos &gt; 25 MiB).
+            O link do artefato é válido por ~14 dias após o build.
           </div>
         ) : null}
 
@@ -63,16 +62,19 @@ export function DownloadPageClient() {
         </div>
 
         <a
-          href={APP_RELEASE.apkPath}
+          href={apkHref}
           className="btn-gold app-dl-page-cta"
-          download={published ? APP_RELEASE.apkFile : undefined}
+          rel="noopener noreferrer"
         >
           <Icon name="download" size={18} />
           Baixar APK {version}
         </a>
 
         <p className="app-dl-page-meta">
-          Arquivo: <code>{APP_RELEASE.apkFile}</code>
+          Build:{" "}
+          <a href={APP_RELEASE.easBuildUrl} rel="noopener noreferrer">
+            Expo / EAS
+          </a>
         </p>
 
         <Link href="/login" className="app-dl-page-back">

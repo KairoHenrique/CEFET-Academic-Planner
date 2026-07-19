@@ -147,7 +147,7 @@ export function Navbar() {
             <a
               href={APP_RELEASE.apkPath}
               className="mobile-nav-download-btn"
-              download={APP_RELEASE.apkFile}
+              rel="noopener noreferrer"
               onClick={() => setMobileOpen(false)}
             >
               <Icon name="download" size={18} />
