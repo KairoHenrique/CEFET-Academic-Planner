@@ -38,6 +38,7 @@ export interface SubjectDetailSource extends SubjectSourceData {
 import { resolveSubjectDisplayName, resolveSubjectShortLabel } from "./subject-display-name";
 import { resolvePpcEmenta } from "./resolve-ppc-ementa";
 import { resolveSubjectDisplayRoom, resolveSubjectSyncedRoom } from "./subject-room";
+import { resolveQueryCursoId } from "@/lib/db/resolve-query-curso-id";
 import {
   resolveDisplayProfessor,
   resolveDisplaySchedule,
@@ -177,8 +178,13 @@ export function buildSubjectFromSemestreCore(
     schedule: meta.schedule,
     ch: meta.ch,
     ementa: disciplina
-      ? resolvePpcEmenta(disciplina.codigo, disciplina.nome, ementaCargaHoraria)
-      : "Disciplina do curso de Engenharia da Computação. Conteúdo programático conforme PPC vigente do CEFET-MG.",
+      ? resolvePpcEmenta(
+          disciplina.codigo,
+          disciplina.nome,
+          ementaCargaHoraria,
+          resolveQueryCursoId()
+        )
+      : "Disciplina do curso. Conteúdo programático conforme PPC vigente do CEFET-MG.",
   };
 }
 

@@ -1,4 +1,5 @@
 import { getDisciplinas, getTurmasOfertadas } from "@/lib/db/queries";
+import { resolveQueryCursoId } from "@/lib/db/resolve-query-curso-id";
 import { resolvePlannerWritePort } from "@/lib/db/write-port";
 import type { TurmasOfertadasSnapshot } from "@/lib/scraper/types/turmas-ofertadas";
 import { classifyTurmaCategoria } from "@/lib/turmas-ofertadas/classify-turma-categoria";
@@ -68,7 +69,7 @@ export async function persistTurmasOfertadasSnapshot(
       departamento: turma.departamento,
       horario_indefinido: turma.horarioIndefinido ? 1 : 0,
       categoria,
-      curso_id: "eng-computacao",
+      curso_id: resolveQueryCursoId(),
       synced_at: snapshot.scrapedAt,
     });
   }

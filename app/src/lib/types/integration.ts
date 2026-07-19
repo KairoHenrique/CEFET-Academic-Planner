@@ -6,4 +6,4 @@ export interface IntegrationCategory {
   color: "blue" | "gold" | "success" | "warning";
 }
 
-export const INTEGRATION_TOTAL_HOURS = 4320;
+export const INTEGRATION_TOTAL_HOURS = 4320; // Eng. Computação (soma do catálogo); outros cursos: getIntegrationTotalHours(cursoId)

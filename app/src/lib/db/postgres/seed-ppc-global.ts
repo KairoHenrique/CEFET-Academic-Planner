@@ -1,6 +1,8 @@
 import type pg from "pg";
+import type { AppCursoId } from "@/lib/auth/account/types";
+import { APP_CURSO_IDS } from "@/lib/auth/account/curso-catalog";
 import { resolveDefaultCursoId } from "@/lib/db/backend/config";
-import { loadPpcSeedData } from "@/lib/db/ppc-seed-loader";
+import { loadPpcSeedData, type PpcSeedItem } from "@/lib/db/ppc-seed-loader";
 import { normalizeCefetCh } from "@/lib/disciplinas/cefet-ch";
 import { resolvePpcEmenta } from "@/lib/disciplinas/resolve-ppc-ementa";
 import { getPostgresPool } from "@/lib/db/postgres/pool";
@@ -14,11 +16,11 @@ export interface SeedPpcGlobalResult {
 async function upsertDisciplina(
   client: pg.PoolClient,
   cursoId: string,
-  item: ReturnType<typeof loadPpcSeedData>[number]
+  item: PpcSeedItem
 ): Promise<void> {
   const { codigo, nome, periodo, tipo } = item.disciplina;
   const carga_horaria = normalizeCefetCh(item.disciplina.carga_horaria);
-  const ementa = resolvePpcEmenta(codigo, nome, carga_horaria);
+  const ementa = resolvePpcEmenta(codigo, nome, carga_horaria, cursoId);
 
   await client.query(
     `
@@ -38,7 +40,7 @@ async function upsertDisciplina(
 async function replaceRequisitos(
   client: pg.PoolClient,
   cursoId: string,
-  items: ReturnType<typeof loadPpcSeedData>
+  items: PpcSeedItem[]
 ): Promise<number> {
   await client.query("DELETE FROM requisitos WHERE curso_id = $1", [cursoId]);
 
@@ -66,10 +68,10 @@ async function replaceRequisitos(
 }
 
 export async function seedPpcGlobalToPostgres(
-  cursoId = resolveDefaultCursoId()
+  cursoId: string = resolveDefaultCursoId()
 ): Promise<SeedPpcGlobalResult> {
   const pool = getPostgresPool();
-  const items = loadPpcSeedData();
+  const items = loadPpcSeedData(cursoId);
   const client = await pool.connect();
 
   try {
@@ -88,8 +90,18 @@ export async function seedPpcGlobalToPostgres(
   }
 }
 
+export async function seedAllPpcGlobalToPostgres(): Promise<
+  SeedPpcGlobalResult[]
+> {
+  const results: SeedPpcGlobalResult[] = [];
+  for (const cursoId of APP_CURSO_IDS) {
+    results.push(await seedPpcGlobalToPostgres(cursoId));
+  }
+  return results;
+}
+
 export async function countGlobalDisciplinas(
-  cursoId = resolveDefaultCursoId()
+  cursoId: string = resolveDefaultCursoId()
 ): Promise<number> {
   const pool = getPostgresPool();
   const result = await pool.query<{ total: string }>(
@@ -97,4 +109,8 @@ export async function countGlobalDisciplinas(
     [cursoId]
   );
   return Number(result.rows[0]?.total ?? 0);
+}
+
+export function listSeedableCursoIds(): readonly AppCursoId[] {
+  return APP_CURSO_IDS;
 }

@@ -1,0 +1,639 @@
+[
+  {
+    "disciplina": {
+      "codigo": "01/1",
+      "nome": "História da Arte e do Design",
+      "tipo": "Obrigatória",
+      "carga_horaria": 60,
+      "periodo": 1,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "02/1",
+      "nome": "Desenho de Expressão e da Figura de Moda",
+      "tipo": "Obrigatória",
+      "carga_horaria": 60,
+      "periodo": 1,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "03/1",
+      "nome": "Introdução à Produção Industrial",
+      "tipo": "Obrigatória",
+      "carga_horaria": 60,
+      "periodo": 1,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "04/1",
+      "nome": "Teoria e Fundamentos do Design",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 1,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "05/1",
+      "nome": "Introdução à Sociologia",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 1,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "06/1",
+      "nome": "Tecnologia de Materiais Têxteis",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 1,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "07/1",
+      "nome": "Ergonomia Aplicada à Moda",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 1,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "01/2",
+      "nome": "Modelagem Industrial I",
+      "tipo": "Obrigatória",
+      "carga_horaria": 60,
+      "periodo": 2,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "02/2",
+      "nome": "Tecnologia de Beneficiamentos",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 2,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "03/2",
+      "nome": "História da Indumentária e da Moda",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 2,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "04/2",
+      "nome": "Desenho Técnico de Moda",
+      "tipo": "Obrigatória",
+      "carga_horaria": 60,
+      "periodo": 2,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "05/2",
+      "nome": "Laboratório de Criatividade",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 2,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "06/2",
+      "nome": "Computação Gráfica Aplicada à Moda",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 2,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "07/2",
+      "nome": "Tecnologia da Produção I",
+      "tipo": "Obrigatória",
+      "carga_horaria": 60,
+      "periodo": 2,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "01/3",
+      "nome": "Modelagem Industrial II",
+      "tipo": "Obrigatória",
+      "carga_horaria": 60,
+      "periodo": 3,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "01/3",
+        "requisito_id": "01/2",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "02/3",
+      "nome": "Moda, Semiótica e Comunicação",
+      "tipo": "Obrigatória",
+      "carga_horaria": 60,
+      "periodo": 3,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "03/3",
+      "nome": "Desenho de Moda Digital",
+      "tipo": "Obrigatória",
+      "carga_horaria": 60,
+      "periodo": 3,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "04/3",
+      "nome": "Tecnologia da Produção II",
+      "tipo": "Obrigatória",
+      "carga_horaria": 60,
+      "periodo": 3,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "04/3",
+        "requisito_id": "07/2",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "05/3",
+      "nome": "Desenho e Ilustração de Moda",
+      "tipo": "Obrigatória",
+      "carga_horaria": 60,
+      "periodo": 3,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "05/3",
+        "requisito_id": "02/1",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "01/4",
+      "nome": "Metodologia Científica",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 4,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "02/4",
+      "nome": "Projeto de Desenvolvimento de Coleção Conceitual",
+      "tipo": "Obrigatória",
+      "carga_horaria": 60,
+      "periodo": 4,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "02/4",
+        "requisito_id": "02/3",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "03/4",
+      "nome": "Trend Hunting",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 4,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "04/4",
+      "nome": "Gestão Organizacional",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 4,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "05/4",
+      "nome": "Prática de Prototipagem I",
+      "tipo": "Obrigatória",
+      "carga_horaria": 60,
+      "periodo": 4,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "05/4",
+        "requisito_id": "01/3",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "05/4",
+        "requisito_id": "04/3",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "06/4",
+      "nome": "Modelagem e Confecção Masculina",
+      "tipo": "Obrigatória",
+      "carga_horaria": 60,
+      "periodo": 4,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "07/4",
+      "nome": "Psicologia Aplicada às Organizações",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 4,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "01/5",
+      "nome": "Produção de Moda",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 5,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "02/5",
+      "nome": "Marketing e Comunicação de Moda",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 5,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "03/5",
+      "nome": "Planejamento e Desenvolvimento de Coleção Comercial",
+      "tipo": "Obrigatória",
+      "carga_horaria": 60,
+      "periodo": 5,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "03/5",
+        "requisito_id": "02/4",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "04/5",
+      "nome": "Moulage",
+      "tipo": "Obrigatória",
+      "carga_horaria": 60,
+      "periodo": 5,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "04/5",
+        "requisito_id": "01/2",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "06/5",
+      "nome": "Fotografia e Imagem de Moda",
+      "tipo": "Obrigatória",
+      "carga_horaria": 60,
+      "periodo": 5,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "05/5",
+      "nome": "Gestão Financeira",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 5,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "01/6",
+      "nome": "Metodologia de Pesquisa",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 6,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "01/6",
+        "requisito_id": "01/4",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "01/6",
+        "requisito_id": "03/5",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "02/6",
+      "nome": "Projeto de Design Sustentável",
+      "tipo": "Obrigatória",
+      "carga_horaria": 60,
+      "periodo": 6,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "03/6",
+      "nome": "Modelagem Criativa",
+      "tipo": "Obrigatória",
+      "carga_horaria": 60,
+      "periodo": 6,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "03/6",
+        "requisito_id": "04/5",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "04/6",
+      "nome": "CAD Aplicado à Modelagem",
+      "tipo": "Obrigatória",
+      "carga_horaria": 60,
+      "periodo": 6,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "05/6",
+      "nome": "Filosofia da Tecnologia",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 6,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "01/7",
+      "nome": "Pesquisa de Mercado e Branding",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 7,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "01/7",
+        "requisito_id": "02/5",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "02/7",
+      "nome": "Vitrinismo e Visual Merchandising",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 7,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "03/7",
+      "nome": "Projeto Integrador de Moda I",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 7,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "03/7",
+        "requisito_id": "03/5",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "03/7",
+        "requisito_id": "01/6",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "04/7",
+      "nome": "Educação Empreendedora e Inovação",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 7,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "05/7",
+      "nome": "Contexto Social e Profissional da Área de Design de Moda",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 7,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "06/7",
+      "nome": "Gestão da Produção e Custos",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 7,
+      "ementa": "A definir"
+    },
+    "requisitos": []
+  },
+  {
+    "disciplina": {
+      "codigo": "01/8",
+      "nome": "Portfólio de Moda",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 8,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "01/8",
+        "requisito_id": "03/7",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "02/8",
+      "nome": "Produção Editorial e Desfile de Moda",
+      "tipo": "Obrigatória",
+      "carga_horaria": 60,
+      "periodo": 8,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "02/8",
+        "requisito_id": "03/7",
+        "tipo": "pre"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "04/8",
+      "nome": "Projeto Integrador de Moda II",
+      "tipo": "Obrigatória",
+      "carga_horaria": 30,
+      "periodo": 8,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "04/8",
+        "requisito_id": "02/7",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "04/8",
+        "requisito_id": "03/7",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "04/8",
+        "requisito_id": "03/8",
+        "tipo": "co"
+      }
+    ]
+  },
+  {
+    "disciplina": {
+      "codigo": "03/8",
+      "nome": "Prototipagem do Projeto Integrador de Moda",
+      "tipo": "Obrigatória",
+      "carga_horaria": 60,
+      "periodo": 8,
+      "ementa": "A definir"
+    },
+    "requisitos": [
+      {
+        "disciplina_id": "03/8",
+        "requisito_id": "03/7",
+        "tipo": "pre"
+      },
+      {
+        "disciplina_id": "03/8",
+        "requisito_id": "04/8",
+        "tipo": "co"
+      }
+    ]
+  }
+]

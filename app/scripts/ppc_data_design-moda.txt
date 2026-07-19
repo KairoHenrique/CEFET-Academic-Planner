@@ -1,0 +1,51 @@
+# PPC Design de Moda (CEFET-MG Divinópolis) — Quadros 78–87 obrigatórias
+# Fonte: docs/referencias/PPC-Design-de-Moda-Alteração-2024-v09-Versão-CGRAD.pdf
+# Regenerar: node scripts/build-multi-ppc-seeds.mjs
+# Colunas: período | código | nome | T | P | CH horas | hora-aula | pré-req | co-req
+1º	01/1	História da Arte e do Design	X		50	63	-	-
+1º	02/1	Desenho de Expressão e da Figura de Moda	X		50	63	-	-
+1º	03/1	Introdução à Produção Industrial	X		50	63	-	-
+1º	04/1	Teoria e Fundamentos do Design	X		25	31	-	-
+1º	05/1	Introdução à Sociologia	X		25	31	-	-
+1º	06/1	Tecnologia de Materiais Têxteis	X		25	31	-	-
+1º	07/1	Ergonomia Aplicada à Moda	X		25	31	-	-
+2º	01/2	Modelagem Industrial I	X		50	63	-	-
+2º	02/2	Tecnologia de Beneficiamentos	X		25	31	-	-
+2º	03/2	História da Indumentária e da Moda	X		25	31	-	-
+2º	04/2	Desenho Técnico de Moda	X		50	63	-	-
+2º	05/2	Laboratório de Criatividade	X		25	31	-	-
+2º	06/2	Computação Gráfica Aplicada à Moda	X		25	31	-	-
+2º	07/2	Tecnologia da Produção I	X		50	63	-	-
+3º	01/3	Modelagem Industrial II	X		50	63	01/2	-
+3º	02/3	Moda, Semiótica e Comunicação	X		50	63	-	-
+3º	03/3	Desenho de Moda Digital	X		50	63	-	-
+3º	04/3	Tecnologia da Produção II	X		50	63	07/2	-
+3º	05/3	Desenho e Ilustração de Moda	X		50	63	02/1	-
+4º	01/4	Metodologia Científica	X		25	31	-	-
+4º	02/4	Projeto de Desenvolvimento de Coleção Conceitual	X		50	63	02/3	-
+4º	03/4	Trend Hunting	X		25	31	-	-
+4º	04/4	Gestão Organizacional	X		25	31	-	-
+4º	05/4	Prática de Prototipagem I	X		50	63	01/3 04/3	-
+4º	06/4	Modelagem e Confecção Masculina	X		50	63	-	-
+4º	07/4	Psicologia Aplicada às Organizações	X		25	31	-	-
+5º	01/5	Produção de Moda	X		25	31	-	-
+5º	02/5	Marketing e Comunicação de Moda	X		25	31	-	-
+5º	03/5	Planejamento e Desenvolvimento de Coleção Comercial	X		50	63	02/4	-
+5º	04/5	Moulage	X		50	63	01/2	-
+5º	06/5	Fotografia e Imagem de Moda	X		50	63	-	-
+5º	05/5	Gestão Financeira	X		25	31	-	-
+6º	01/6	Metodologia de Pesquisa	X		25	31	01/4 03/5	-
+6º	02/6	Projeto de Design Sustentável	X		50	63	-	-
+6º	03/6	Modelagem Criativa	X		50	63	04/5	-
+6º	04/6	CAD Aplicado à Modelagem	X		50	63	-	-
+6º	05/6	Filosofia da Tecnologia	X		25	31	-	-
+7º	01/7	Pesquisa de Mercado e Branding	X		25	31	02/5	-
+7º	02/7	Vitrinismo e Visual Merchandising	X		25	31	-	-
+7º	03/7	Projeto Integrador de Moda I	X		25	31	03/5 01/6	-
+7º	04/7	Educação Empreendedora e Inovação	X		25	31	-	-
+7º	05/7	Contexto Social e Profissional da Área de Design de Moda	X		25	31	-	-
+7º	06/7	Gestão da Produção e Custos	X		25	31	-	-
+8º	01/8	Portfólio de Moda	X		25	31	03/7	-
+8º	02/8	Produção Editorial e Desfile de Moda	X		50	63	03/7	-
+8º	04/8	Projeto Integrador de Moda II	X		25	31	02/7 03/7	03/8
+8º	03/8	Prototipagem do Projeto Integrador de Moda	X		50	63	03/7	04/8
