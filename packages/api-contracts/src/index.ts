@@ -349,6 +349,7 @@ export interface ScheduleApiSlot {
 export interface ScheduleApiResponse {
   days: string[];
   timeSlots: string[];
+  /** `grid[dayIdx][slotIdx]` — linhas = dias, colunas = faixas horárias. */
   grid: (ScheduleApiSlot | null)[][];
 }
 
@@ -528,6 +529,7 @@ export interface PatchPerfilBody {
 /* -------------------------------------------------------------------------- */
 
 export type PaidPlanId =
+  | "month"
   | "quarter"
   | "semester"
   | "year"
@@ -542,20 +544,48 @@ export interface BillingPlanView {
   priceLabel: string;
   description: string;
   featured?: boolean;
+  ctaLabel?: string;
+  purchasable?: boolean;
+}
+
+export interface SitePromoPublic {
+  badge?: string | null;
+  headline: string;
+  description: string;
+  highlightPlanId?: PaidPlanId;
+  /** ISO — fim da promoção (site). */
+  expiresAt?: string | null;
+  /** Alias legado / contrato antigo. */
+  endsAt?: string | null;
+  basePriceCents?: number;
+  promoPriceCents?: number;
+  discountPercent?: number;
 }
 
 export interface BillingPlansResponse {
   plans: BillingPlanView[];
   checkoutEnabled: boolean;
-  promo?: {
-    headline: string;
-    description: string;
-    endsAt?: string | null;
-  } | null;
-  quarterSavings?: { label: string } | null;
-  semesterSavings?: { label: string } | null;
-  yearSavings?: { label: string } | null;
-  fiveYearSavings?: { label: string } | null;
+  promo?: SitePromoPublic | null;
+  quarterSavings?: { label: string; percent?: number | null } | null;
+  semesterSavings?: { label: string; percent?: number | null } | null;
+  yearSavings?: { label: string; percent?: number | null } | null;
+  fiveYearSavings?: { label: string; percent?: number | null } | null;
+}
+
+export interface BillingAccountSubscriptionView {
+  planId: string | null;
+  planLabel: string | null;
+  status: string;
+  expiresAt: string | null;
+  daysRemaining: number | null;
+  renewHref: string | null;
+  inGracePeriod: boolean;
+  renewalEligible: boolean;
+}
+
+export interface BillingAccountResponse {
+  ok: true;
+  subscription: BillingAccountSubscriptionView;
 }
 
 export interface BillingCheckoutRequestBody {
@@ -579,6 +609,13 @@ export interface BillingCheckoutResponse {
   payment: BillingCheckoutPaymentView;
 }
 
+export interface BillingPaymentStatusResponse {
+  ok: true;
+  payment: BillingCheckoutPaymentView & {
+    planLabel?: string;
+  };
+}
+
 export interface RedeemGiftKeyRequestBody {
   code: string;
 }
@@ -600,10 +637,10 @@ export interface RedeemGiftKeyResponse {
 /* Sync                                                                       */
 /* -------------------------------------------------------------------------- */
 
-export type SyncMode = "full" | "incremental";
+export type SyncMode = "lite" | "full" | "deep" | "incremental";
 
 export interface SyncStep {
-  id: string;
+  id?: string;
   label: string;
   progress: number;
   status?: "pending" | "running" | "done" | "error";
@@ -612,12 +649,23 @@ export interface SyncStep {
 export interface SyncQueueJobView {
   jobId: string;
   status: string;
+  mode?: string;
   progress?: number;
   message?: string | null;
-  result?: { steps?: SyncStep[] } | null;
+  position?: number;
+  startedAt?: string | null;
+  finishedAt?: string | null;
+  result?: { steps?: SyncStep[]; partial?: boolean } | null;
+  error?: { code?: string; message?: string } | null;
 }
 
 export interface SyncQueueEnqueueResponse {
+  ok: true;
+  reused?: boolean;
+  job: SyncQueueJobView;
+}
+
+export interface SyncQueueJobResponse {
   ok: true;
   job: SyncQueueJobView;
 }

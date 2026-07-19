@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { ApiError } from "@/lib/api/errors";
 import { sealQueuePassword } from "@/lib/sync-queue/queue-credential-seal";
+import { reclaimStaleSqliteSyncJobs } from "@/lib/sync-queue/reclaim-stale-sync-jobs";
 import { resolveSyncQueuePassword } from "@/lib/sync-queue/resolve-sync-queue-credentials";
 import {
   findActiveJobByIdempotencyKey,
@@ -73,6 +74,8 @@ function assertTriggerCooldown(input: EnqueueSyncJobInput): void {
 export async function enqueueSyncJob(
   input: EnqueueSyncJobInput
 ): Promise<EnqueueSyncJobResult> {
+  reclaimStaleSqliteSyncJobs();
+
   const idempotencyKey = input.idempotencyKey?.trim() || null;
   if (idempotencyKey) {
     const existing = findActiveJobByIdempotencyKey(idempotencyKey);
