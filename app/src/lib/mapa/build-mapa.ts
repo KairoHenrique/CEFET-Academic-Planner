@@ -1,6 +1,7 @@
 import { notFoundError } from "@/lib/api/errors";
 import {
   getAluno,
+  getAllNotas,
   getDisciplinas,
   getHistorico,
   getIntegralizacao,
@@ -9,9 +10,10 @@ import {
 } from "@/lib/db/queries";
 import {
   buildActiveCurrentDisciplinaSet,
-  buildCompletedDisciplinaSet,
+  buildGradeTotalsByDisciplinaCode,
   buildPreRequisitoMap,
   countStatusTotals,
+  mergeCompletedWithClosedSemesterGrades,
   normalizeDisciplinaCode,
   resolveCourseMapStatusResult,
 } from "@/lib/mapa/course-status";
@@ -30,6 +32,7 @@ import type {
   DisciplinaRow,
   HistoricoRow,
   IntegralizacaoRow,
+  NotaRow,
   RequisitoRow,
   SemestreAtualWithDisciplina,
 } from "@/lib/types/db";
@@ -124,6 +127,7 @@ interface MapaAssemblyInput {
   historico: HistoricoRow[];
   requisitos: RequisitoRow[];
   integralizacaoRows: IntegralizacaoRow[];
+  notas: NotaRow[];
 }
 
 function assembleMapaFromData(input: MapaAssemblyInput): MapaResponse {
@@ -134,6 +138,7 @@ function assembleMapaFromData(input: MapaAssemblyInput): MapaResponse {
     historico,
     requisitos,
     integralizacaoRows,
+    notas,
   } = input;
 
   if (disciplinas.length === 0) {
@@ -142,11 +147,16 @@ function assembleMapaFromData(input: MapaAssemblyInput): MapaResponse {
     );
   }
 
-  const completed = buildCompletedDisciplinaSet(historico);
-  const current = buildActiveCurrentDisciplinaSet(
-    semestreAtual.map((row) => row.disciplina_id),
-    historico
-  );
+  const semestreCodes = semestreAtual.map((row) => row.disciplina_id);
+  const completed = mergeCompletedWithClosedSemesterGrades({
+    historico,
+    semestreAtualCodes: semestreCodes,
+    gradeTotalsByCode: buildGradeTotalsByDisciplinaCode(notas),
+  });
+  const current = buildActiveCurrentDisciplinaSet(semestreCodes, historico);
+  for (const code of completed) {
+    current.delete(code);
+  }
   const preRequisitos = buildPreRequisitoMap(requisitos);
   const catalog = getChCatalogForCurso(resolveQueryCursoId());
   const syncedObrigatoria =
@@ -157,7 +167,7 @@ function assembleMapaFromData(input: MapaAssemblyInput): MapaResponse {
   const computedCh = computeChDoneFromDisciplinas(
     disciplinas,
     historico,
-    semestreAtual.map((row) => row.disciplina_id)
+    semestreCodes
   );
   const obrigatoriaDone = Math.max(computedCh.Obrigatória, syncedObrigatoria);
   const obrigatoriaTotal = getObrigatoriaTotalFromCatalog(catalog);
@@ -200,6 +210,7 @@ export interface MapaQueryDeps {
   getHistorico: () => Promise<HistoricoRow[]>;
   getRequisitos: () => Promise<RequisitoRow[]>;
   getIntegralizacao: () => Promise<IntegralizacaoRow[]>;
+  getAllNotas: () => Promise<NotaRow[]>;
 }
 
 export async function buildMapaFromQueries(
@@ -220,6 +231,7 @@ export async function buildMapaFromQueries(
     historico: await deps.getHistorico(),
     requisitos: await deps.getRequisitos(),
     integralizacaoRows: await deps.getIntegralizacao(),
+    notas: await deps.getAllNotas(),
   });
 }
 
@@ -238,5 +250,6 @@ export function buildMapa(): MapaResponse {
     historico: getHistorico(),
     requisitos: getRequisitos(),
     integralizacaoRows: getIntegralizacao(),
+    notas: getAllNotas(),
   });
 }

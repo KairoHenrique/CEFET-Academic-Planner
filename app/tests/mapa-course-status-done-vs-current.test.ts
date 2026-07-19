@@ -8,6 +8,7 @@ import {
   buildActiveCurrentDisciplinaSet,
   buildCompletedDisciplinaSet,
   buildCursandoDisciplinaSet,
+  mergeCompletedWithClosedSemesterGrades,
   resolveCourseMapStatusResult,
 } from "../src/lib/mapa/course-status";
 
@@ -69,5 +70,25 @@ describe("mapa course-status — concluída vs cursando", () => {
     const historico = [hist("04/7", "2026.1", "cursando")];
     const current = buildActiveCurrentDisciplinaSet(["04/7"], historico);
     assert.equal(current.has("04/7"), true);
+  });
+
+  test("MATR órfão com notas ≥ 60 vira concluída no mapa", () => {
+    const historico = [hist("04/7", "2026.1", "cursando")];
+    const completed = mergeCompletedWithClosedSemesterGrades({
+      historico,
+      semestreAtualCodes: [],
+      gradeTotalsByCode: new Map([["04/7", 60]]),
+    });
+    assert.equal(completed.has("04/7"), true);
+  });
+
+  test("MATR ainda no semestre não vira concluída só pelas notas", () => {
+    const historico = [hist("04/7", "2026.1", "cursando")];
+    const completed = mergeCompletedWithClosedSemesterGrades({
+      historico,
+      semestreAtualCodes: ["04/7"],
+      gradeTotalsByCode: new Map([["04/7", 85]]),
+    });
+    assert.equal(completed.has("04/7"), false);
   });
 });

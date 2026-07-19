@@ -1,5 +1,6 @@
 import { resolveNextAcademicSemesterLabel } from "@/lib/academic/resolve-academic-semester";
 import {
+  getAllNotas,
   getDisciplinas,
   getHistorico,
   getIntegralizacao,
@@ -51,6 +52,7 @@ export function loadTurmasCatalogSnapshot(
     semestreAtual: getSemestreAtual(),
     requisitos: getRequisitos(),
     integralizacaoRows: getIntegralizacao(),
+    notas: getAllNotas(),
   });
 
   return {
@@ -74,6 +76,7 @@ export async function loadTurmasCatalogSnapshotAsync(
     requisitos,
     integralizacaoRows,
     rows,
+    notas,
   ] = await Promise.all([
     pg.pgGetDisciplinas(),
     pg.pgGetHistorico(),
@@ -81,6 +84,7 @@ export async function loadTurmasCatalogSnapshotAsync(
     pg.pgGetRequisitos(),
     pg.pgGetIntegralizacao(),
     pg.pgGetTurmasOfertadas(semestre),
+    pg.pgGetAllNotas(),
   ]);
 
   const context = assembleTurmasEnrollmentContext({
@@ -89,6 +93,7 @@ export async function loadTurmasCatalogSnapshotAsync(
     semestreAtual,
     requisitos,
     integralizacaoRows,
+    notas,
   });
 
   return {

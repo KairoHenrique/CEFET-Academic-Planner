@@ -5,7 +5,9 @@ import {
   buildCompletedDisciplinaSet,
   buildCoRequisitoMap,
   buildFailedDisciplinaSet,
+  buildGradeTotalsByDisciplinaCode,
   buildPreRequisitoMap,
+  mergeCompletedWithClosedSemesterGrades,
   normalizeDisciplinaCode,
 } from "@/lib/mapa/course-status";
 import { getObrigatoriaTotalFromCatalog } from "@/lib/mapa/period-ch-gates";
@@ -14,6 +16,7 @@ import type {
   DisciplinaRow,
   HistoricoRow,
   IntegralizacaoRow,
+  NotaRow,
   RequisitoRow,
   SemestreAtualWithDisciplina,
 } from "@/lib/types/db";
@@ -36,13 +39,25 @@ export function assembleTurmasEnrollmentContext(input: {
   semestreAtual: SemestreAtualWithDisciplina[];
   requisitos: RequisitoRow[];
   integralizacaoRows: IntegralizacaoRow[];
+  notas?: NotaRow[];
 }): TurmasEnrollmentContext {
-  const completed = buildCompletedDisciplinaSet(input.historico);
+  const semestreCodes = input.semestreAtual.map((row) => row.disciplina_id);
+  const completed =
+    input.notas && input.notas.length > 0
+      ? mergeCompletedWithClosedSemesterGrades({
+          historico: input.historico,
+          semestreAtualCodes: semestreCodes,
+          gradeTotalsByCode: buildGradeTotalsByDisciplinaCode(input.notas),
+        })
+      : buildCompletedDisciplinaSet(input.historico);
   const failed = buildFailedDisciplinaSet(input.historico);
   const current = buildActiveCurrentDisciplinaSet(
-    input.semestreAtual.map((row) => row.disciplina_id),
+    semestreCodes,
     input.historico
   );
+  for (const code of completed) {
+    current.delete(code);
+  }
   const preRequisitos = buildPreRequisitoMap(input.requisitos);
   const coRequisitos = buildCoRequisitoMap(input.requisitos);
   const catalog = getChCatalogForCurso(resolveQueryCursoId()) ?? getChCatalog();
