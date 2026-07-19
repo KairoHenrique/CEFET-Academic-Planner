@@ -1,6 +1,6 @@
 # ACME HUB — Mobile (Android)
 
-App nativo **Android only** (Expo Go). Paridade de **funções** com o site web v1.0; UX própria (bottom tabs, **sem sidebar**).
+App nativo **Android only** (Expo Go). **Clone nativo do F28** (navbar + drawer · mesmas telas do site ≤768 · **sem** WebView · **sem** bottom tabs).
 
 Roadmap: [`docs/TASKS.md`](../docs/TASKS.md) · Bloco 8 · escopo [`docs/SCOPE-CLOUD.md`](../docs/SCOPE-CLOUD.md) §7.
 

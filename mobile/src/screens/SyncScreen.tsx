@@ -1,152 +1,165 @@
-import { useState } from "react";
+import { useEffect } from "react";
 import {
   ActivityIndicator,
-  Pressable,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from "react-native";
-import { ApiClientError } from "../auth/api";
-import { enqueueSync } from "../api/mutations";
 import { getSession } from "../auth/session";
+import { useMobileSync } from "../sync/useMobileSync";
 import { brand } from "../theme/brand";
 import { cardStyles } from "../ui/cards";
 import { Screen } from "../ui/Screen";
-import { SegmentTabs } from "../ui/SegmentTabs";
 
-type Mode = "lite" | "full";
-
+/**
+ * Status do Sync SIGAA — paridade F28:
+ * sem escolha de modo/senha; o botão da navbar dispara lite automático.
+ * Esta tela só mostra progresso / resultado.
+ */
 export function SyncScreen() {
   const session = getSession();
-  const [password, setPassword] = useState("");
-  const [mode, setMode] = useState<Mode>("lite");
-  const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const sync = useMobileSync();
 
-  async function onSync() {
-    setError(null);
-    setMessage(null);
-    if (!session?.cpf) {
-      setError("Sessão inválida. Faça login novamente.");
-      return;
+  useEffect(() => {
+    // Se abriu a tela ociosa (ex.: deep link), dispara o mesmo lite automático.
+    if (!sync.syncing && sync.progress === 0 && !sync.error) {
+      void sync.startSync();
     }
-    if (!password.trim()) {
-      setError("Informe a senha do SIGAA para enfileirar o sync.");
-      return;
-    }
-
-    setBusy(true);
-    try {
-      const result = await enqueueSync({
-        username: session.cpf,
-        password: password.trim(),
-        mode,
-        trigger: "manual",
-      });
-      setPassword("");
-      setMessage(
-        result.reused
-          ? `Job já em andamento (${result.job.id} · ${result.job.status}).`
-          : `Sync enfileirado (${result.job.id} · ${result.job.status}).`
-      );
-    } catch (err) {
-      setError(
-        err instanceof ApiClientError
-          ? err.message
-          : "Falha ao enfileirar sync."
-      );
-    } finally {
-      setBusy(false);
-    }
-  }
+  }, []);
 
   return (
     <Screen
       title="Sync SIGAA"
-      subtitle="Mesma fila do botão Sync do site"
+      subtitle="Mesma fila do botão Sync do site — R1-lite (notas + tarefas)"
     >
       <View style={cardStyles.card}>
         <Text style={cardStyles.cardMeta}>
-          Usuário: {session?.cpf ? `***${session.cpf.slice(-4)}` : "—"}
+          Conta: {session?.cpf ? `***${session.cpf.slice(-4)}` : "—"}
         </Text>
         <Text style={[cardStyles.cardMeta, { marginTop: 8 }]}>
-          A senha não é armazenada no aparelho — só enviada na requisição do
-          sync.
+          Sem escolha de modo. O sync manual é sempre lite, com as mesmas
+          travas do site (fila, cooldown/reuse, credencial no servidor).
         </Text>
       </View>
 
-      <Text style={cardStyles.sectionTitle}>Modo</Text>
-      <SegmentTabs
-        tabs={[
-          { id: "lite", label: "Lite" },
-          { id: "full", label: "Full" },
-        ]}
-        value={mode}
-        onChange={setMode}
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder="Senha SIGAA"
-        placeholderTextColor={brand.textMuted}
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-        editable={!busy}
-      />
-
-      <Pressable
-        style={[styles.btn, busy && styles.disabled]}
-        onPress={() => void onSync()}
-        disabled={busy}
-      >
-        {busy ? (
-          <ActivityIndicator color={brand.text} />
+      <View style={styles.statusCard}>
+        {sync.syncing ? (
+          <>
+            <ActivityIndicator color={brand.gold} size="large" />
+            <Text style={styles.step}>{sync.stepLabel || "Sincronizando…"}</Text>
+            <View style={styles.barTrack}>
+              <View
+                style={[
+                  styles.barFill,
+                  { width: `${Math.max(4, Math.min(100, sync.progress))}%` },
+                ]}
+              />
+            </View>
+            <Text style={styles.pct}>{Math.round(sync.progress)}%</Text>
+          </>
+        ) : sync.error ? (
+          <>
+            <Text style={styles.errorTitle}>Não foi possível sincronizar</Text>
+            <Text style={styles.errorBody}>{sync.error}</Text>
+            <Text style={styles.hint}>
+              Toque no ícone Sync na navbar para tentar de novo.
+            </Text>
+          </>
+        ) : sync.progress >= 100 ? (
+          <>
+            <Text style={styles.okTitle}>Sincronização concluída</Text>
+            <Text style={styles.okBody}>
+              {sync.stepLabel || "Dados atualizados a partir do SIGAA."}
+            </Text>
+            <Text style={styles.hint}>
+              Dados da conta (tarefas, notas, faltas, calendário, grade) já estão
+              na nuvem — o site e o app usam a mesma base.
+            </Text>
+          </>
         ) : (
-          <Text style={styles.btnText}>Sincronizar agora</Text>
+          <>
+            <Text style={styles.idleTitle}>Pronto para sincronizar</Text>
+            <Text style={styles.hint}>
+              Toque em Sync SIGAA na barra superior — inicia automaticamente.
+            </Text>
+          </>
         )}
-      </Pressable>
-
-      {error ? <Text style={styles.error}>{error}</Text> : null}
-      {message ? <Text style={styles.ok}>{message}</Text> : null}
+      </View>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  input: {
-    backgroundColor: brand.glass,
+  statusCard: {
+    marginTop: 12,
+    borderRadius: brand.radiusLg,
     borderWidth: 1,
     borderColor: brand.border,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    color: brand.text,
-    fontSize: 15,
-    marginBottom: 14,
-  },
-  btn: {
-    backgroundColor: brand.blue,
-    borderRadius: 12,
-    paddingVertical: 14,
+    backgroundColor: brand.bgElevated,
+    padding: 20,
     alignItems: "center",
-    minHeight: 48,
-    justifyContent: "center",
+    gap: 10,
   },
-  disabled: { opacity: 0.55 },
-  btnText: { color: brand.text, fontWeight: "800", fontSize: 15 },
-  error: {
-    marginTop: 12,
-    color: brand.danger,
-    textAlign: "center",
+  step: {
+    fontSize: 14,
+    fontFamily: brand.fontBodySemi,
     fontWeight: "600",
+    color: brand.text,
+    textAlign: "center",
   },
-  ok: {
-    marginTop: 12,
-    color: brand.success,
+  barTrack: {
+    width: "100%",
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "rgba(255,255,255,0.08)",
+    overflow: "hidden",
+  },
+  barFill: {
+    height: "100%",
+    backgroundColor: brand.gold,
+    borderRadius: 4,
+  },
+  pct: {
+    fontSize: 12,
+    fontFamily: brand.fontBody,
+    color: brand.textMuted,
+  },
+  errorTitle: {
+    fontSize: 15,
+    fontFamily: brand.fontBodyBold,
+    fontWeight: "700",
+    color: "#FF7B72",
+  },
+  errorBody: {
+    fontSize: 13,
+    fontFamily: brand.fontBody,
+    color: brand.textSecondary,
     textAlign: "center",
-    fontWeight: "600",
+    lineHeight: 18,
+  },
+  okTitle: {
+    fontSize: 15,
+    fontFamily: brand.fontBodyBold,
+    fontWeight: "700",
+    color: "#3FB950",
+  },
+  okBody: {
+    fontSize: 13,
+    fontFamily: brand.fontBody,
+    color: brand.textSecondary,
+    textAlign: "center",
+  },
+  idleTitle: {
+    fontSize: 15,
+    fontFamily: brand.fontBodyBold,
+    fontWeight: "700",
+    color: brand.text,
+  },
+  hint: {
+    fontSize: 12,
+    fontFamily: brand.fontBody,
+    color: brand.textMuted,
+    textAlign: "center",
+    lineHeight: 17,
   },
 });

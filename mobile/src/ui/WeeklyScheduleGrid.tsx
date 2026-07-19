@@ -1,152 +1,158 @@
 import { StyleSheet, Text, View } from "react-native";
 import type { ScheduleApiResponse } from "@acme/api-contracts";
+import { hexWithAlpha } from "../lib/color-mix";
 import { brand } from "../theme/brand";
-import { cardStyles } from "./cards";
-
-const DAY_SHORT: Record<string, string> = {
-  Segunda: "Seg",
-  Terça: "Ter",
-  Quarta: "Qua",
-  Quinta: "Qui",
-  Sexta: "Sex",
-};
+import { Card } from "./cards";
+import { SectionHeader } from "./SectionHeader";
 
 type Props = {
   schedule: ScheduleApiResponse;
-  /** Grade compacta estilo F28 (sem scroll horizontal). */
-  compact?: boolean;
+  onOpenCalendar?: () => void;
 };
 
 /**
- * Grade da Semana — paridade com o site (labels curtos no mobile).
+ * Grade F28 mobile — espelho do site ≤768:
+ * header na mesma linha · colunas iguais · nome 1 linha com ellipsis · célula 40px.
  */
-export function WeeklyScheduleGrid({ schedule, compact = true }: Props) {
+export function WeeklyScheduleGrid({ schedule, onOpenCalendar }: Props) {
   const { days, timeSlots, grid } = schedule;
   const hasAny = grid.some((row) => row.some((cell) => cell != null));
 
-  if (!hasAny) {
-    return (
-      <Text style={cardStyles.cardMeta}>
-        Sincronize com o SIGAA para ver seus horários oficiais.
-      </Text>
-    );
-  }
-
   return (
-    <View>
-      <View style={styles.headerRow}>
-        <View style={styles.timeCol}>
-          <Text style={styles.headerCell}> </Text>
-        </View>
-        {days.map((day) => (
-          <View key={day} style={[styles.dayCol, compact && styles.dayColFlex]}>
-            <Text style={styles.headerCell}>
-              {DAY_SHORT[day] ?? day.slice(0, 3)}
-            </Text>
+    <Card tight>
+      <SectionHeader
+        title="Grade da Semana"
+        icon="calendar"
+        linkLabel="Ver calendário completo"
+        onPressLink={onOpenCalendar}
+      />
+
+      {!hasAny ? (
+        <Text style={styles.emptyMsg}>
+          Sincronize com o SIGAA para ver seus horários oficiais.
+        </Text>
+      ) : (
+        <View style={styles.table}>
+          <View style={styles.row}>
+            <View style={styles.dayCol} />
+            {timeSlots.map((slot) => (
+              <View key={slot} style={styles.slotCol}>
+                <Text style={styles.timeShort} numberOfLines={1}>
+                  {slot.slice(0, 5)}
+                </Text>
+              </View>
+            ))}
           </View>
-        ))}
-      </View>
-      {timeSlots.map((slot, rowIdx) => {
-        const short = slot.split(" - ")[0] ?? slot;
-        return (
-          <View key={`slot-${rowIdx}-${slot}`} style={styles.row}>
-            <View style={styles.timeCol}>
-              <Text style={styles.timeLabel}>{short}</Text>
-            </View>
-            {days.map((day, dayIdx) => {
-              const cell = grid[rowIdx]?.[dayIdx] ?? null;
-              const cellKey = `${rowIdx}-${dayIdx}-${day}`;
-              if (!cell) {
+
+          {days.map((day, dayIdx) => (
+            <View key={`${day}-${dayIdx}`} style={styles.row}>
+              <View style={styles.dayCol}>
+                <Text style={styles.dayShort}>{day.slice(0, 3)}</Text>
+              </View>
+              {timeSlots.map((_, slotIdx) => {
+                const cell = grid[dayIdx]?.[slotIdx] ?? null;
+                const key = `${dayIdx}-${slotIdx}`;
+                if (!cell) {
+                  return (
+                    <View key={key} style={[styles.slotCol, styles.emptyCell]} />
+                  );
+                }
+                const color = cell.color || brand.jerseyLight;
                 return (
                   <View
-                    key={cellKey}
-                    style={[styles.dayCol, compact && styles.dayColFlex]}
-                  />
-                );
-              }
-              return (
-                <View
-                  key={cellKey}
-                  style={[
-                    styles.dayCol,
-                    compact && styles.dayColFlex,
-                    styles.bar,
-                    { backgroundColor: cell.color || brand.blue },
-                  ]}
-                >
-                  <Text style={styles.barCode} numberOfLines={1}>
-                    {cell.displayName || cell.code}
-                  </Text>
-                  {cell.room ? (
-                    <Text style={styles.barRoom} numberOfLines={1}>
-                      {cell.room}
+                    key={key}
+                    style={[
+                      styles.slotCol,
+                      styles.filledCell,
+                      {
+                        backgroundColor: hexWithAlpha(color, 0.28),
+                        borderColor: hexWithAlpha(color, 0.5),
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={[styles.slotName, { color }]}
+                      numberOfLines={1}
+                      ellipsizeMode="tail"
+                    >
+                      {cell.name || cell.code}
                     </Text>
-                  ) : null}
-                </View>
-              );
-            })}
-          </View>
-        );
-      })}
-    </View>
+                  </View>
+                );
+              })}
+            </View>
+          ))}
+        </View>
+      )}
+    </Card>
   );
 }
 
-const TIME_W = 44;
-
 const styles = StyleSheet.create({
-  headerRow: {
-    flexDirection: "row",
-    marginBottom: 4,
+  emptyMsg: {
+    fontSize: 13,
+    fontFamily: brand.fontBody,
+    color: brand.textMuted,
+    lineHeight: 18,
+  },
+  table: {
+    width: "100%",
   },
   row: {
     flexDirection: "row",
-    marginBottom: 4,
-    minHeight: 40,
-  },
-  timeCol: {
-    width: TIME_W,
-    justifyContent: "center",
-    paddingRight: 2,
+    alignItems: "stretch",
+    marginBottom: 2,
   },
   dayCol: {
-    width: 56,
+    width: 32,
+    minWidth: 32,
+    maxWidth: 32,
+    justifyContent: "center",
+    paddingVertical: 2,
+    paddingHorizontal: 1,
+  },
+  dayShort: {
+    fontSize: 10,
+    fontFamily: brand.fontBodyBold,
+    fontWeight: "700",
+    color: brand.text,
+    letterSpacing: -0.2,
+  },
+  slotCol: {
+    flex: 1,
+    minWidth: 0,
+    height: 40,
     marginHorizontal: 1,
-    borderRadius: 6,
+    borderRadius: brand.radiusSm,
+    alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 2,
-    paddingVertical: 3,
-    minHeight: 36,
+    paddingVertical: 2,
   },
-  dayColFlex: {
-    flex: 1,
-    width: undefined,
-  },
-  headerCell: {
-    color: brand.gold,
-    fontSize: 11,
-    fontWeight: "800",
-    textAlign: "center",
-  },
-  timeLabel: {
-    color: brand.textMuted,
-    fontSize: 9,
-    fontWeight: "600",
-  },
-  bar: {
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.15)",
-  },
-  barCode: {
-    color: brand.white,
-    fontSize: 9,
-    fontWeight: "800",
-    textAlign: "center",
-  },
-  barRoom: {
-    color: "rgba(255,255,255,0.85)",
+  timeShort: {
     fontSize: 8,
+    fontFamily: brand.fontBodyBold,
+    fontWeight: "700",
+    color: brand.textSecondary,
     textAlign: "center",
-    marginTop: 1,
+    letterSpacing: -0.3,
+  },
+  emptyCell: {
+    backgroundColor: "rgba(255,255,255,0.05)",
+    borderWidth: 1,
+    borderStyle: "dashed",
+    borderColor: brand.border,
+  },
+  filledCell: {
+    borderWidth: 1,
+    overflow: "hidden",
+  },
+  slotName: {
+    fontSize: 8,
+    fontFamily: brand.fontBodyBold,
+    fontWeight: "700",
+    textAlign: "center",
+    width: "100%",
+    lineHeight: 10,
   },
 });

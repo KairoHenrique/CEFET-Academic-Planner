@@ -1,24 +1,14 @@
-import type { NavigatorScreenParams } from "@react-navigation/native";
-
-export type DisciplinasStackParamList = {
-  DisciplinasList: undefined;
+export type RootStackParamList = {
+  Dashboard: undefined;
+  Calendario: undefined;
+  Disciplinas: undefined;
   DisciplinaDetail: { code: string; name?: string };
-};
-
-export type MoreStackParamList = {
-  MoreHome: undefined;
   Mapa: undefined;
   Integralizacao: undefined;
   Simulador: undefined;
-  Planos: undefined;
+  Planos: { flow?: string; paywall?: boolean } | undefined;
+  PlanosPix: { paymentId: string; paywall?: boolean };
   Notificacoes: undefined;
   Sync: undefined;
   Perfil: undefined;
-};
-
-export type MainTabsParamList = {
-  Inicio: undefined;
-  Agenda: undefined;
-  Materias: NavigatorScreenParams<DisciplinasStackParamList>;
-  Mais: NavigatorScreenParams<MoreStackParamList>;
 };

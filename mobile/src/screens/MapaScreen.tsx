@@ -5,7 +5,9 @@ import type { MapaDisciplineStatus, MapaResponse } from "@acme/api-contracts";
 import { ApiClientError } from "../auth/api";
 import { fetchMapaGrafo } from "../api/mutations";
 import { fetchMapa } from "../cache/fetchers";
+import { useOnSyncComplete } from "../sync/useOnSyncComplete";
 import { brand } from "../theme/brand";
+import { CourseMapGrafo } from "../ui/CourseMapGrafo";
 import { cardStyles, StatCard } from "../ui/cards";
 import { EmptyState } from "../ui/EmptyState";
 import { ErrorBox } from "../ui/ErrorBox";
@@ -68,6 +70,10 @@ export function MapaScreen() {
     }, [load])
   );
 
+  useOnSyncComplete(() => {
+    void load(true);
+  });
+
   const donePct =
     data && data.stats.total > 0
       ? Math.round((data.stats.done / data.stats.total) * 100)
@@ -75,7 +81,7 @@ export function MapaScreen() {
 
   return (
     <Screen
-      title="Mapa PPC"
+      title="Mapa do Curso"
       eyebrow="Currículo"
       subtitle={data ? `${data.curso} · ${donePct}% concluído` : undefined}
       cacheHint={fromCache ? "Dados do cache offline" : null}
@@ -209,36 +215,15 @@ export function MapaScreen() {
             title="Grafo indisponível"
             message="Puxe para atualizar."
           />
+        ) : grafo.nodes.length === 0 ? (
+          <EmptyState title="Grafo vazio" />
         ) : (
-          <>
-            <View style={cardStyles.card}>
-              <Text style={cardStyles.cardMeta}>
-                {grafo.nodes.length} disciplinas · {grafo.edges.length} arestas
-                (pré = sólida · co = tracejada)
-              </Text>
-            </View>
-            <Text style={cardStyles.sectionTitle}>Pré / co-requisitos</Text>
-            {grafo.edges.length === 0 ? (
-              <EmptyState title="Sem arestas" />
-            ) : (
-              grafo.edges.slice(0, 80).map((edge, idx) => {
-                const src = grafo.nodes.find((n) => n.id === edge.source);
-                const tgt = grafo.nodes.find((n) => n.id === edge.target);
-                return (
-                  <View key={`${edge.id}-${idx}`} style={cardStyles.card}>
-                    <Text style={cardStyles.cardTitle}>
-                      {src?.data.shortLabel ?? edge.source} →{" "}
-                      {tgt?.data.shortLabel ?? edge.target}
-                    </Text>
-                    <Text style={cardStyles.cardMeta}>
-                      {edge.kind === "pre" ? "Pré-requisito" : "Co-requisito"} ·{" "}
-                      {edge.strokeStyle}
-                    </Text>
-                  </View>
-                );
-              })
-            )}
-          </>
+          <CourseMapGrafo
+            nodes={grafo.nodes}
+            edges={grafo.edges}
+            statusLabels={grafo.statusLabels}
+            layout={grafo.layout}
+          />
         )
       ) : null}
     </Screen>

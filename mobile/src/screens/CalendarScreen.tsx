@@ -1,96 +1,69 @@
 import { useCallback, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
   Pressable,
   RefreshControl,
+  ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import type {
   AcademicDateSemesterGroup,
   CalendarEvent,
-  ScheduleApiResponse,
 } from "@acme/api-contracts";
 import { ApiClientError } from "../auth/api";
 import {
   createCalendarEvent,
-  deleteCalendarEvent,
   toggleCalendarEvent,
 } from "../api/mutations";
-import { fetchCalendar, fetchSchedule } from "../cache/fetchers";
+import { fetchCalendar } from "../cache/fetchers";
+import { useOnSyncComplete } from "../sync/useOnSyncComplete";
 import { brand } from "../theme/brand";
-import { cardStyles, formatPtDate } from "../ui/cards";
-import { EmptyState } from "../ui/EmptyState";
+import {
+  CALENDAR_FILTER_OPTIONS,
+  CalendarMonthModule,
+  FILTER_LABEL_TO_TYPE,
+  type EventTypeFilter,
+} from "../ui/CalendarMonthModule";
+import { Card } from "../ui/cards";
 import { ErrorBox } from "../ui/ErrorBox";
 import { LoadingBlock } from "../ui/LoadingBlock";
 import { Screen } from "../ui/Screen";
-import { SegmentTabs } from "../ui/SegmentTabs";
-import { WeeklyScheduleGrid } from "../ui/WeeklyScheduleGrid";
-
-type Tab = "grade" | "eventos" | "datas";
-
-const TABS = [
-  { id: "grade" as const, label: "Grade" },
-  { id: "eventos" as const, label: "Eventos" },
-  { id: "datas" as const, label: "Datas" },
-];
-
-const EVENT_TYPES = [
-  "evento",
-  "tarefa",
-  "prova",
-  "aula",
-  "feriado",
-  "outro",
-] as const;
-
-const EVENT_TYPE_LABEL: Record<string, string> = {
-  tarefa: "Tarefa",
-  prova: "Prova",
-  evento: "Evento",
-  aula: "Aula",
-  feriado: "Feriado",
-  outro: "Outro",
-};
+import { SectionHeader } from "../ui/SectionHeader";
 
 function sortEvents(events: CalendarEvent[]): CalendarEvent[] {
   return [...events].sort((a, b) => a.date.localeCompare(b.date));
 }
 
+/**
+ * Calendário F28 — espelho de `CalendarioView`:
+ * filtros → mês + próximos → calendário acadêmico.
+ */
 export function CalendarScreen() {
-  const [tab, setTab] = useState<Tab>("grade");
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [academicGroups, setAcademicGroups] = useState<
     AcademicDateSemesterGroup[]
   >([]);
-  const [schedule, setSchedule] = useState<ScheduleApiResponse | null>(null);
   const [fromCache, setFromCache] = useState(false);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showForm, setShowForm] = useState(false);
-  const [title, setTitle] = useState("");
-  const [date, setDate] = useState("");
-  const [type, setType] = useState<(typeof EVENT_TYPES)[number]>("evento");
-  const [busy, setBusy] = useState(false);
-  const [formError, setFormError] = useState<string | null>(null);
+  const [filter, setFilter] = useState<EventTypeFilter>("todas");
+  const [busyCreate, setBusyCreate] = useState(false);
+
+  const activeLabel =
+    Object.entries(FILTER_LABEL_TO_TYPE).find(([, v]) => v === filter)?.[0] ??
+    "Todas";
 
   const load = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
     setError(null);
     try {
-      const [cal, sched] = await Promise.all([
-        fetchCalendar(),
-        fetchSchedule().catch(() => null),
-      ]);
+      const cal = await fetchCalendar();
       setEvents(sortEvents(cal.data.events));
       setAcademicGroups(cal.data.academicDateGroups);
-      setFromCache(cal.fromCache || Boolean(sched?.fromCache));
-      if (sched) setSchedule(sched.data);
+      setFromCache(cal.fromCache);
     } catch (err) {
       setError(
         err instanceof ApiClientError
@@ -109,29 +82,21 @@ export function CalendarScreen() {
     }, [load])
   );
 
-  async function onCreate() {
-    if (!title.trim() || !/^\d{4}-\d{2}-\d{2}$/.test(date.trim())) {
-      setFormError("Título e data AAAA-MM-DD são obrigatórios.");
-      return;
-    }
-    setBusy(true);
-    setFormError(null);
+  useOnSyncComplete(() => {
+    void load(true);
+  });
+
+  async function onCreate(input: {
+    title: string;
+    date: string;
+    type: "evento" | "tarefa" | "prova" | "aula" | "outro";
+  }) {
+    setBusyCreate(true);
     try {
-      await createCalendarEvent({
-        title: title.trim(),
-        date: date.trim(),
-        type,
-      });
-      setTitle("");
-      setDate("");
-      setShowForm(false);
+      await createCalendarEvent(input);
       await load(true);
-    } catch (err) {
-      setFormError(
-        err instanceof ApiClientError ? err.message : "Falha ao criar evento."
-      );
     } finally {
-      setBusy(false);
+      setBusyCreate(false);
     }
   }
 
@@ -144,31 +109,11 @@ export function CalendarScreen() {
     }
   }
 
-  function onDelete(ev: CalendarEvent) {
-    Alert.alert("Excluir evento", `Remover “${ev.title}”?`, [
-      { text: "Cancelar", style: "cancel" },
-      {
-        text: "Excluir",
-        style: "destructive",
-        onPress: () => {
-          void (async () => {
-            try {
-              await deleteCalendarEvent(ev.id);
-              await load(true);
-            } catch {
-              /* ignore */
-            }
-          })();
-        },
-      },
-    ]);
-  }
-
   return (
     <Screen
-      title="Agenda"
-      eyebrow="Calendário"
-      subtitle="Grade semanal, eventos e datas acadêmicas"
+      title="Calendário"
+      eyebrow="Agenda"
+      subtitle="Clique em qualquer atividade para ver detalhes"
       cacheHint={fromCache ? "Dados do cache offline" : null}
       scrollProps={{
         refreshControl: (
@@ -183,215 +128,171 @@ export function CalendarScreen() {
         ),
       }}
     >
-      <SegmentTabs tabs={TABS} value={tab} onChange={setTab} />
-
-      {loading && !schedule && events.length === 0 ? <LoadingBlock /> : null}
-      {error && !schedule && events.length === 0 ? (
+      {loading && events.length === 0 ? <LoadingBlock /> : null}
+      {error && events.length === 0 ? (
         <ErrorBox message={error} onRetry={() => void load()} />
       ) : null}
 
-      {tab === "grade" ? (
-        schedule ? (
-          <View style={cardStyles.card}>
-            <Text style={cardStyles.sectionTitle}>Grade da Semana</Text>
-            <WeeklyScheduleGrid schedule={schedule} compact />
-          </View>
-        ) : (
-          <EmptyState
-            title="Sem grade"
-            message="Sincronize com o SIGAA para ver os horários."
-          />
-        )
+      {error && events.length > 0 ? (
+        <Text style={styles.inlineError}>{error}</Text>
       ) : null}
 
-      {tab === "eventos" ? (
-        <>
-          <Pressable
-            style={styles.addBtn}
-            onPress={() => setShowForm((v) => !v)}
-          >
-            <Text style={styles.addBtnText}>
-              {showForm ? "Cancelar" : "+ Novo evento"}
-            </Text>
-          </Pressable>
-
-          {showForm ? (
-            <View style={cardStyles.card}>
-              <TextInput
-                style={styles.input}
-                placeholder="Título"
-                placeholderTextColor={brand.textMuted}
-                value={title}
-                onChangeText={setTitle}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="Data (AAAA-MM-DD)"
-                placeholderTextColor={brand.textMuted}
-                value={date}
-                onChangeText={setDate}
-                autoCapitalize="none"
-              />
-              <View style={styles.typeRow}>
-                {EVENT_TYPES.map((t) => (
-                  <Pressable
-                    key={t}
-                    style={[styles.typeChip, type === t && styles.typeActive]}
-                    onPress={() => setType(t)}
-                  >
-                    <Text
-                      style={[
-                        styles.typeText,
-                        type === t && styles.typeTextActive,
-                      ]}
-                    >
-                      {EVENT_TYPE_LABEL[t]}
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
+      <Card tight style={styles.filtersCard}>
+        <SectionHeader title="Filtrar eventos" icon="filter" />
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filterRow}
+        >
+          {CALENDAR_FILTER_OPTIONS.map((label) => {
+            const active = label === activeLabel;
+            return (
               <Pressable
-                style={[styles.saveBtn, busy && styles.disabled]}
-                onPress={() => void onCreate()}
-                disabled={busy}
+                key={label}
+                style={[styles.filterChip, active && styles.filterChipActive]}
+                onPress={() =>
+                  setFilter(FILTER_LABEL_TO_TYPE[label] ?? "todas")
+                }
               >
-                {busy ? (
-                  <ActivityIndicator color={brand.text} />
-                ) : (
-                  <Text style={styles.saveText}>Salvar</Text>
-                )}
-              </Pressable>
-              {formError ? <Text style={styles.error}>{formError}</Text> : null}
-            </View>
-          ) : null}
-
-          {events.length === 0 && !loading ? (
-            <EmptyState title="Nenhum evento" />
-          ) : (
-            events.map((ev, idx) => (
-              <View
-                key={`ev-${ev.id}-${idx}`}
-                style={[
-                  cardStyles.card,
-                  ev.color
-                    ? { borderLeftColor: ev.color, borderLeftWidth: 3 }
-                    : null,
-                ]}
-              >
-                <View style={cardStyles.row}>
-                  <Text style={[cardStyles.cardTitle, { flex: 1 }]}>
-                    {ev.title}
-                    {ev.done ? " ✓" : ""}
-                  </Text>
-                  <View style={cardStyles.badge}>
-                    <Text style={cardStyles.badgeText}>
-                      {EVENT_TYPE_LABEL[ev.type] ?? ev.type}
-                    </Text>
-                  </View>
-                </View>
-                <Text style={cardStyles.cardMeta}>
-                  {formatPtDate(ev.date)}
-                  {ev.timeStart ? ` · ${ev.timeStart}` : ""}
-                  {ev.timeEnd ? `–${ev.timeEnd}` : ""}
+                <Text
+                  style={[
+                    styles.filterChipText,
+                    active && styles.filterChipTextActive,
+                  ]}
+                >
+                  {label}
                 </Text>
-                {ev.subject ? (
-                  <Text style={cardStyles.cardMeta}>{ev.subject}</Text>
-                ) : null}
-                <View style={styles.actions}>
-                  <Pressable onPress={() => void onToggle(ev)}>
-                    <Text style={styles.actionGold}>
-                      {ev.done ? "Reabrir" : "Concluir"}
-                    </Text>
-                  </Pressable>
-                  {ev.manual !== false ? (
-                    <Pressable onPress={() => onDelete(ev)}>
-                      <Text style={styles.actionDanger}>Excluir</Text>
-                    </Pressable>
-                  ) : null}
-                </View>
-              </View>
-            ))
-          )}
-        </>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
+      </Card>
+
+      {!loading || events.length > 0 ? (
+        <CalendarMonthModule
+          events={events}
+          filter={filter}
+          busyCreate={busyCreate}
+          onToggleDone={(ev) => void onToggle(ev)}
+          onCreateEvent={onCreate}
+        />
       ) : null}
 
-      {tab === "datas" ? (
-        academicGroups.length === 0 && !loading ? (
-          <EmptyState title="Sem datas acadêmicas" />
+      <Card tight style={styles.academicCard}>
+        <SectionHeader title="Calendário Acadêmico" icon="clipboard" />
+        {academicGroups.length === 0 ? (
+          <Text style={styles.emptyAcademic}>Nenhuma informação</Text>
         ) : (
-          academicGroups.map((group, gIdx) => (
-            <View
-              key={`sem-${group.semestre}-${gIdx}`}
-              style={styles.semesterBlock}
-            >
-              <Text style={styles.semesterTitle}>{group.semestre}</Text>
-              {group.items.map((item, iIdx) => (
-                <View
-                  key={`date-${item.id}-${iIdx}`}
-                  style={cardStyles.card}
-                >
-                  <Text style={cardStyles.cardTitle}>{item.label}</Text>
-                  <Text style={cardStyles.cardMeta}>
-                    {formatPtDate(item.date)}
-                  </Text>
-                </View>
-              ))}
+          academicGroups.map((group, index) => (
+            <View key={`${group.semestre}-${index}`} style={styles.semesterBlock}>
+              {index > 0 ? <View style={styles.divider} /> : null}
+              <Text style={styles.semesterTitle}>
+                Semestre{" "}
+                <Text style={styles.semesterCode}>{group.semestre}</Text>
+              </Text>
+              {group.items.length === 0 ? (
+                <Text style={styles.emptyAcademic}>Nenhuma informação</Text>
+              ) : (
+                group.items.map((item, iIdx) => (
+                  <View
+                    key={`${group.semestre}-${item.label}-${item.date}-${iIdx}`}
+                    style={styles.academicRow}
+                  >
+                    <Text style={styles.academicLabel}>{item.label}</Text>
+                    <Text style={styles.academicValue}>{item.date}</Text>
+                  </View>
+                ))
+              )}
             </View>
           ))
-        )
-      ) : null}
+        )}
+      </Card>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  semesterBlock: { marginBottom: 12 },
-  semesterTitle: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: brand.gold,
+  inlineError: {
+    color: brand.danger,
     marginBottom: 8,
+    fontFamily: brand.fontBodySemi,
+    fontWeight: "600",
   },
-  addBtn: {
-    marginBottom: 12,
-    paddingVertical: 10,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: brand.gold,
-    alignItems: "center",
+  filtersCard: {
+    marginBottom: brand.space3,
   },
-  addBtnText: { color: brand.gold, fontWeight: "700" },
-  input: {
-    backgroundColor: "rgba(0,0,0,0.25)",
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: brand.border,
-    color: brand.text,
+  filterRow: {
+    flexDirection: "row",
+    gap: 8,
+    paddingVertical: 4,
+  },
+  filterChip: {
     paddingHorizontal: 12,
-    paddingVertical: 10,
-    marginBottom: 8,
-  },
-  typeRow: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginBottom: 10 },
-  typeChip: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
+    paddingVertical: 8,
+    borderRadius: brand.radiusSm,
     borderWidth: 1,
     borderColor: brand.border,
+    backgroundColor: "rgba(0,0,0,0.2)",
   },
-  typeActive: { borderColor: brand.gold, backgroundColor: "rgba(0,96,177,0.35)" },
-  typeText: { color: brand.textMuted, fontSize: 12, fontWeight: "700" },
-  typeTextActive: { color: brand.gold },
-  saveBtn: {
-    backgroundColor: brand.blue,
-    borderRadius: 10,
-    paddingVertical: 12,
-    alignItems: "center",
+  filterChipActive: {
+    borderColor: brand.gold,
+    backgroundColor: "rgba(232,198,106,0.14)",
   },
-  saveText: { color: brand.text, fontWeight: "800" },
-  disabled: { opacity: 0.55 },
-  error: { color: brand.danger, marginTop: 8, fontWeight: "600" },
-  actions: { flexDirection: "row", gap: 16, marginTop: 10 },
-  actionGold: { color: brand.gold, fontWeight: "700", fontSize: 12 },
-  actionDanger: { color: brand.danger, fontWeight: "700", fontSize: 12 },
+  filterChipText: {
+    fontSize: 12,
+    fontFamily: brand.fontBodySemi,
+    fontWeight: "600",
+    color: brand.textMuted,
+  },
+  filterChipTextActive: {
+    color: brand.gold200,
+  },
+  academicCard: {
+    marginTop: brand.space3,
+  },
+  semesterBlock: {
+    marginBottom: 4,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: brand.borderMuted,
+    marginVertical: 12,
+  },
+  semesterTitle: {
+    fontSize: 14,
+    fontFamily: brand.fontBodySemi,
+    fontWeight: "600",
+    color: brand.text,
+    marginBottom: 8,
+  },
+  semesterCode: {
+    color: brand.gold,
+    fontFamily: brand.fontBodyBold,
+    fontWeight: "700",
+  },
+  academicRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 12,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(255,255,255,0.06)",
+  },
+  academicLabel: {
+    flex: 1,
+    fontSize: 13,
+    fontFamily: brand.fontBody,
+    color: brand.text,
+  },
+  academicValue: {
+    fontSize: 13,
+    fontFamily: brand.fontBodySemi,
+    fontWeight: "600",
+    color: brand.textSecondary,
+  },
+  emptyAcademic: {
+    fontSize: 13,
+    color: brand.textMuted,
+    paddingVertical: 8,
+  },
 });

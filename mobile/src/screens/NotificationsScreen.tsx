@@ -11,6 +11,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import type { NotificationsSnapshotResponse } from "@acme/api-contracts";
 import { ApiClientError } from "../auth/api";
 import { fetchNotifications } from "../cache/fetchers";
+import { useOnSyncComplete } from "../sync/useOnSyncComplete";
 import { brand } from "../theme/brand";
 import { cardStyles, formatPtDate } from "../ui/cards";
 import { EmptyState } from "../ui/EmptyState";
@@ -59,6 +60,10 @@ export function NotificationsScreen() {
       void load(true);
     }, [load])
   );
+
+  useOnSyncComplete(() => {
+    void load(true);
+  });
 
   const items = data?.items ?? [];
 

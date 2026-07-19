@@ -5,7 +5,7 @@ import { StatCard } from "../../ui/cards";
 
 type Props = { stats: DashboardStats };
 
-/** Ordem e copy F28 StatsRow. */
+/** Ordem e ícones F28 StatsRow (star · chart · books · clipboard). */
 export function StatsModule({ stats }: Props) {
   return (
     <View style={styles.grid}>
@@ -14,24 +14,28 @@ export function StatsModule({ stats }: Props) {
         value={Number(stats.rg).toFixed(2)}
         detail="RG acumulado"
         tone="gold"
+        icon="star"
       />
       <StatCard
         label="Integralização"
         value={`${stats.integralizacaoPercent}%`}
         detail="do curso concluído"
         tone="blue"
+        icon="chart"
       />
       <StatCard
         label="Disciplinas"
         value={stats.disciplinasCursando}
         detail="cursando este semestre"
         tone="blue"
+        icon="books"
       />
       <StatCard
         label="Tarefas Pendentes"
         value={stats.tarefasPendentes}
         detail="entregas próximas"
         tone="danger"
+        icon="clipboard"
       />
     </View>
   );

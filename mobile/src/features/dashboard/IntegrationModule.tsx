@@ -2,81 +2,93 @@ import { StyleSheet, Text, View } from "react-native";
 import type { DashboardIntegralizacao } from "@acme/api-contracts";
 import { categoryPercent } from "../../lib/safe-text";
 import { brand } from "../../theme/brand";
-import { cardStyles } from "../../ui/cards";
+import { Card } from "../../ui/cards";
+import { ProgressBar } from "../../ui/ProgressBar";
+import { SectionHeader } from "../../ui/SectionHeader";
 
 type Props = { integralizacao: DashboardIntegralizacao };
 
+/** Clone de `IntegrationProgress` do site — badge %, barras ouro com glow. */
 export function IntegrationModule({ integralizacao }: Props) {
   return (
-    <>
-      <Text style={cardStyles.sectionTitle}>Integralização</Text>
-      <View style={cardStyles.card}>
-        <Text style={cardStyles.cardTitle}>
-          {integralizacao.totalDone}h / {integralizacao.totalHours}h ·{" "}
-          {integralizacao.percent}%
-        </Text>
-        <View style={styles.barTrack}>
-          <View
-            style={[
-              styles.barFill,
-              { width: `${Math.min(100, integralizacao.percent)}%` },
-            ]}
-          />
+    <Card tight style={{ marginBottom: brand.space4 }}>
+      <SectionHeader
+        title="Integralização"
+        icon="chart"
+        badge={`${integralizacao.percent}%`}
+        badgeTone="info"
+      />
+
+      <View style={styles.overall}>
+        <View style={styles.labelRow}>
+          <Text style={styles.label}>Total do Currículo</Text>
+          <Text style={styles.value}>
+            {integralizacao.totalDone}h / {integralizacao.totalHours}h
+          </Text>
         </View>
+        <ProgressBar percent={integralizacao.percent} tone="gold" height={10} />
+      </View>
+
+      <View style={styles.list}>
         {integralizacao.categories.map((cat, idx) => {
           const pct = categoryPercent(cat.done, cat.total);
           return (
-            <View key={`${cat.label}-${idx}`} style={styles.barBlock}>
-              <View style={cardStyles.row}>
+            <View key={`${cat.label}-${idx}`} style={styles.item}>
+              <View style={styles.labelRow}>
                 <Text style={styles.catLabel}>{cat.label}</Text>
-                <Text style={styles.catPct}>{pct}%</Text>
+                <Text style={styles.catValue}>
+                  {cat.pending > 0
+                    ? `${cat.pending}h pendentes`
+                    : `${cat.done}h / ${cat.total}h`}
+                </Text>
               </View>
-              <View style={styles.barTrackSm}>
-                <View style={[styles.barFill, { width: `${Math.min(100, pct)}%` }]} />
-              </View>
-              <Text style={cardStyles.cardMeta}>
-                {cat.pending > 0
-                  ? `${cat.pending}h pendentes`
-                  : `${cat.done}h / ${cat.total}h`}
-              </Text>
+              <ProgressBar percent={pct} tone="gold" height={8} />
             </View>
           );
         })}
       </View>
-    </>
+    </Card>
   );
 }
 
 const styles = StyleSheet.create({
-  barBlock: { marginTop: 12 },
-  catLabel: {
-    color: brand.text,
+  overall: {
+    marginBottom: brand.space5,
+  },
+  labelRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: brand.space2,
+    gap: 8,
+  },
+  label: {
     fontSize: 13,
+    fontFamily: brand.fontBodyMed,
+    fontWeight: "500",
+    color: brand.textSecondary,
+  },
+  value: {
+    fontSize: 13,
+    fontFamily: brand.fontBodySemi,
     fontWeight: "600",
+    color: brand.text,
+  },
+  list: {
+    gap: brand.space4,
+  },
+  item: {},
+  catLabel: {
+    fontSize: 12,
+    fontFamily: brand.fontBodyMed,
+    fontWeight: "500",
+    color: brand.textSecondary,
     flex: 1,
   },
-  catPct: {
-    color: brand.gold,
-    fontWeight: "800",
-    fontSize: 13,
-  },
-  barTrack: {
-    marginTop: 8,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: "rgba(255,255,255,0.08)",
-    overflow: "hidden",
-  },
-  barTrackSm: {
-    marginTop: 6,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: "rgba(255,255,255,0.08)",
-    overflow: "hidden",
-  },
-  barFill: {
-    height: "100%",
-    backgroundColor: brand.gold400,
-    borderRadius: 4,
+  catValue: {
+    fontSize: 12,
+    fontFamily: brand.fontBodySemi,
+    fontWeight: "600",
+    color: brand.text,
   },
 });
