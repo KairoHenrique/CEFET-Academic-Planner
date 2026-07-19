@@ -1,0 +1,10 @@
+﻿# EAS Build — reduzir archive
+node_modules/
+.expo/
+dist/
+android/
+ios/
+*.apk
+.git/
+**/.data/
+**/scrape-debug/
