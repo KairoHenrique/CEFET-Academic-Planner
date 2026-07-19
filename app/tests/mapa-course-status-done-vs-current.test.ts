@@ -5,6 +5,7 @@ import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 import type { HistoricoRow } from "../src/lib/types/db";
 import {
+  buildActiveCurrentDisciplinaSet,
   buildCompletedDisciplinaSet,
   buildCursandoDisciplinaSet,
   resolveCourseMapStatusResult,
@@ -55,5 +56,18 @@ describe("mapa course-status — concluída vs cursando", () => {
     const historico = [hist("COMP002", "2026.1", "cursando")];
     assert.equal(buildCursandoDisciplinaSet(historico).has("COMP002"), true);
     assert.equal(buildCompletedDisciplinaSet(historico).has("COMP002"), false);
+  });
+
+  test("portal vazio ignora MATR residual (férias / sociologia órfã)", () => {
+    const historico = [hist("04/7", "2026.1", "cursando")];
+    const current = buildActiveCurrentDisciplinaSet([], historico);
+    assert.equal(current.has("04/7"), false);
+    assert.equal(current.size, 0);
+  });
+
+  test("portal com turma ainda usa MATR + semestre como current", () => {
+    const historico = [hist("04/7", "2026.1", "cursando")];
+    const current = buildActiveCurrentDisciplinaSet(["04/7"], historico);
+    assert.equal(current.has("04/7"), true);
   });
 });

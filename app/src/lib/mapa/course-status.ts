@@ -136,6 +136,29 @@ export function buildCurrentDisciplinaSet(codes: string[]): Set<string> {
   return new Set(codes.map(normalizeCode));
 }
 
+/**
+ * Fonte de "cursando" no mapa / elegibilidade:
+ * - o que está no `semestre_atual` (portal) sempre conta;
+ * - MATR residual do PDF só conta se ainda houver semestre no portal.
+ * Férias / "Nenhuma turma neste semestre" → ignora MATR órfão (evita "1 CURSANDO").
+ */
+export function buildActiveCurrentDisciplinaSet(
+  semestreAtualCodes: string[],
+  historico: HistoricoRow[]
+): Set<string> {
+  const fromPortal = buildCurrentDisciplinaSet(semestreAtualCodes);
+  const fromHistoricoMatr =
+    semestreAtualCodes.length === 0
+      ? new Set<string>()
+      : buildCursandoDisciplinaSet(historico);
+
+  const current = mergeDisciplinaSets(fromPortal, fromHistoricoMatr);
+  for (const code of buildCompletedDisciplinaSet(historico)) {
+    current.delete(code);
+  }
+  return current;
+}
+
 export function mergeDisciplinaSets(...sets: Set<string>[]): Set<string> {
   const merged = new Set<string>();
   for (const set of sets) {
