@@ -43,6 +43,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# APK sideload (M16) — artefactos grandes fora do git
+# APK sideload (M16) â€” artefactos grandes fora do git
 public/releases/*.apk
 

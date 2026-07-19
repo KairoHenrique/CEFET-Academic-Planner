@@ -55,6 +55,8 @@ export interface NotificationPreferences {
   integralizacaoAlerts: boolean;
   /** B37 — datas acadêmicas: nova no sync, 1 dia antes e no dia. */
   academicDateAlerts: boolean;
+  /** Eventos pessoais criados pelo usuário. */
+  personalEvents: boolean;
 }
 
 export interface PerfilResponse {

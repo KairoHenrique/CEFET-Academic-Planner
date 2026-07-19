@@ -61,10 +61,6 @@ export function LoginCard({ children, foot, subtitle }: Props) {
         style={styles.topGlow}
         pointerEvents="none"
       />
-      <Animated.View
-        style={[styles.goldOrb, { opacity: glow }]}
-        pointerEvents="none"
-      />
 
       <ScrollView
         contentContainerStyle={[
@@ -146,15 +142,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 220,
-  },
-  goldOrb: {
-    position: "absolute",
-    top: 72,
-    alignSelf: "center",
-    width: 220,
-    height: 220,
-    borderRadius: 110,
-    backgroundColor: "rgba(232,198,106,0.12)",
   },
   scroll: {
     flexGrow: 1,

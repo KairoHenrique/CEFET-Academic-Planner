@@ -15,6 +15,7 @@ const PREF_KEYS = [
   "classReminders",
   "integralizacaoAlerts",
   "academicDateAlerts",
+  "personalEvents",
 ] as const satisfies ReadonlyArray<keyof NotificationPreferences>;
 
 function parseNotificationPreferences(

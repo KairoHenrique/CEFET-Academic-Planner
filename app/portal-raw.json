@@ -1,0 +1,34 @@
+{
+  "labelPairs": {
+    "SIGAA (Acadêmico)": "SIPAC (Administrativo) SIGRH (Recursos Humanos) SIGAdmin (Administração e Comunicação)",
+    "SIGEleição (Controle de Processos Eleitorais)": "Acesso Rápido (Outros Serviços de TI)",
+    "Caso ainda não possua cadastro no sistema, clique no link abaixo. Cadastre-se": "Caso tenha esquecido a senha, clique no link abaixo. Esqueci minha senha Familiares, caso ainda não possuam cadastro no SIGAA, clique no link abaixo. Cadastro de familiar Esqueceu a senha?"
+  },
+  "tableRows": [
+    [
+      "SIGAA (Acadêmico)",
+      "SIPAC (Administrativo)",
+      "SIGRH (Recursos Humanos)",
+      "SIGAdmin (Administração e Comunicação)"
+    ],
+    [
+      "SIGEleição (Controle de Processos Eleitorais)",
+      "Acesso Rápido (Outros Serviços de TI)"
+    ],
+    [
+      "Usuário:"
+    ],
+    [
+      "Senha:"
+    ],
+    [
+      "Caso ainda não possua cadastro no sistema, clique no link abaixo. Cadastre-se",
+      "Caso tenha esquecido a senha, clique no link abaixo. Esqueci minha senha",
+      "Familiares, caso ainda não possuam cadastro no SIGAA, clique no link abaixo. Cadastro de familiar Esqueceu a senha?"
+    ],
+    [
+      "Este sistema é melhor visualizado utilizando o Mozilla Firefox, para baixá-lo e instalá-lo, clique aqui."
+    ]
+  ],
+  "plainText": "\nEste sistema utiliza cookies para melhorar sua experiência de navegação. Para mais informações, acesse a Política de Cookies e a Política de Privacidade. Ciente CEFET-MG - SIGAA - Sistema Integrado de Gestão de Atividades Acadêmicas ATENÇÃO! O seu login é o seu CPF e sua senha é a mesma cadastrada na Identificação Única. O sistema diferencia letras maiúsculas de minúsculas na senha. Utilize apenas os números de seu CPF (sem sinais de pontuação). SIGAA (Acadêmico) SIPAC (Administrativo) SIGRH (Recursos Humanos) SIGAdmin (Administração e Comunicação) SIGEleição (Controle de Processos Eleitorais) Acesso Rápido (Outros Serviços de TI) Usuário e/ou senha inválidos Entrar no Sistema Usuário: Senha: Caso ainda não possua cadastro no sistema, clique no link abaixo. Cadastre-se Caso tenha esquecido a senha, clique no link abaixo. Esqueci minha senha Familiares, caso ainda não possuam cadastro no SIGAA, clique no link abaixo. Cadastro de familiar Esqueceu a senha? Este sistema é melhor visualizado utilizando o Mozilla Firefox, para baixá-lo e instalá-lo, clique aqui. SIGAA | Diretoria de Tecnologia da Informação - DTI - (31) 3319-7000 | Copyright © 2006-2026 - UFRN - vm-sig-app-06.infrati.cefetmg.br.inst06 - v4.17.0cefet178"
+}

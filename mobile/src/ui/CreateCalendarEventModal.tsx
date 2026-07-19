@@ -10,6 +10,7 @@ import {
   View,
 } from "react-native";
 import type { SubjectListItem } from "@acme/api-contracts";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { brand } from "../theme/brand";
 
 export const CREATE_EVENT_TYPES = [
@@ -112,6 +113,13 @@ function isHm(value: string): boolean {
   return !value || /^\d{2}:\d{2}$/.test(value);
 }
 
+function formatIsoToBR(iso: string): string {
+  if (!iso) return "";
+  const parts = iso.split("-");
+  if (parts.length !== 3) return iso;
+  return `${parts[2]}/${parts[1]}/${parts[0]}`;
+}
+
 export function CreateCalendarEventModal({
   visible,
   defaultDate,
@@ -131,6 +139,7 @@ export function CreateCalendarEventModal({
   const [endDate, setEndDate] = useState("");
   const [endTime, setEndTime] = useState("");
   const [recurrenceDays, setRecurrenceDays] = useState<number[]>([]);
+  const [activePicker, setActivePicker] = useState<"startDate" | "startTime" | "endDate" | "endTime" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [subjectMenuOpen, setSubjectMenuOpen] = useState(false);
 
@@ -156,6 +165,7 @@ export function CreateCalendarEventModal({
     setEndDate("");
     setEndTime("");
     setRecurrenceDays([]);
+    setActivePicker(null);
     setError(null);
     setSubjectMenuOpen(false);
   }, [visible, defaultDate, subjects]);
@@ -171,6 +181,46 @@ export function CreateCalendarEventModal({
         ? prev.filter((value) => value !== day)
         : [...prev, day].sort((a, b) => a - b)
     );
+  }
+
+  const onPickerChange = (event: any, selectedDate?: Date) => {
+    const current = activePicker;
+    setActivePicker(null);
+    if (event.type === "dismissed" || !selectedDate || !current) return;
+
+    if (current === "startDate" || current === "endDate") {
+      const y = selectedDate.getFullYear();
+      const m = String(selectedDate.getMonth() + 1).padStart(2, "0");
+      const d = String(selectedDate.getDate()).padStart(2, "0");
+      const str = `${y}-${m}-${d}`;
+      if (current === "startDate") setStartDate(str);
+      else setEndDate(str);
+    } else {
+      const h = String(selectedDate.getHours()).padStart(2, "0");
+      const m = String(selectedDate.getMinutes()).padStart(2, "0");
+      const str = `${h}:${m}`;
+      if (current === "startTime") setStartTime(str);
+      else setEndTime(str);
+    }
+  };
+
+  function getPickerValue() {
+    if (!activePicker) return new Date();
+    if (activePicker === "startDate" && startDate) return new Date(startDate + "T12:00:00");
+    if (activePicker === "endDate" && endDate) return new Date(endDate + "T12:00:00");
+    if (activePicker === "startTime" && startTime) {
+      const d = new Date();
+      const [h, m] = startTime.split(":");
+      d.setHours(Number(h), Number(m));
+      return d;
+    }
+    if (activePicker === "endTime" && endTime) {
+      const d = new Date();
+      const [h, m] = endTime.split(":");
+      d.setHours(Number(h), Number(m));
+      return d;
+    }
+    return new Date();
   }
 
   async function handleSubmit() {
@@ -219,7 +269,7 @@ export function CreateCalendarEventModal({
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <Pressable style={styles.backdrop} onPress={onClose}>
-        <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
+        <View style={styles.sheet} onStartShouldSetResponder={() => true}>
           <View style={styles.head}>
             <Text style={styles.title}>Novo evento</Text>
             <Pressable onPress={onClose} hitSlop={8} accessibilityLabel="Fechar">
@@ -328,25 +378,25 @@ export function CreateCalendarEventModal({
             <View style={styles.row}>
               <View style={styles.half}>
                 <Text style={styles.subLabel}>Data de início</Text>
-                <TextInput
-                  style={styles.input}
-                  value={startDate}
-                  onChangeText={setStartDate}
-                  placeholder="AAAA-MM-DD"
-                  placeholderTextColor={brand.textMuted}
-                  autoCapitalize="none"
-                />
+                <Pressable
+                  style={[styles.input, { justifyContent: "center" }]}
+                  onPress={() => setActivePicker("startDate")}
+                >
+                  <Text style={{ color: startDate ? brand.text : brand.textMuted, fontFamily: brand.fontBody, fontSize: 14 }}>
+                    {formatIsoToBR(startDate) || "DD/MM/AAAA"}
+                  </Text>
+                </Pressable>
               </View>
               <View style={styles.half}>
                 <Text style={styles.subLabel}>Hora de início</Text>
-                <TextInput
-                  style={styles.input}
-                  value={startTime}
-                  onChangeText={setStartTime}
-                  placeholder="HH:MM"
-                  placeholderTextColor={brand.textMuted}
-                  autoCapitalize="none"
-                />
+                <Pressable
+                  style={[styles.input, { justifyContent: "center" }]}
+                  onPress={() => setActivePicker("startTime")}
+                >
+                  <Text style={{ color: startTime ? brand.text : brand.textMuted, fontFamily: brand.fontBody, fontSize: 14 }}>
+                    {startTime || "HH:MM"}
+                  </Text>
+                </Pressable>
               </View>
             </View>
 
@@ -356,25 +406,25 @@ export function CreateCalendarEventModal({
             <View style={styles.row}>
               <View style={styles.half}>
                 <Text style={styles.subLabel}>Data de fim</Text>
-                <TextInput
-                  style={styles.input}
-                  value={endDate}
-                  onChangeText={setEndDate}
-                  placeholder="AAAA-MM-DD"
-                  placeholderTextColor={brand.textMuted}
-                  autoCapitalize="none"
-                />
+                <Pressable
+                  style={[styles.input, { justifyContent: "center" }]}
+                  onPress={() => setActivePicker("endDate")}
+                >
+                  <Text style={{ color: endDate ? brand.text : brand.textMuted, fontFamily: brand.fontBody, fontSize: 14 }}>
+                    {formatIsoToBR(endDate) || "DD/MM/AAAA"}
+                  </Text>
+                </Pressable>
               </View>
               <View style={styles.half}>
                 <Text style={styles.subLabel}>Hora de fim</Text>
-                <TextInput
-                  style={styles.input}
-                  value={endTime}
-                  onChangeText={setEndTime}
-                  placeholder="HH:MM"
-                  placeholderTextColor={brand.textMuted}
-                  autoCapitalize="none"
-                />
+                <Pressable
+                  style={[styles.input, { justifyContent: "center" }]}
+                  onPress={() => setActivePicker("endTime")}
+                >
+                  <Text style={{ color: endTime ? brand.text : brand.textMuted, fontFamily: brand.fontBody, fontSize: 14 }}>
+                    {endTime || "HH:MM"}
+                  </Text>
+                </Pressable>
               </View>
             </View>
             <Text style={styles.hint}>
@@ -440,7 +490,15 @@ export function CreateCalendarEventModal({
               <Text style={styles.cancelText}>Cancelar</Text>
             </Pressable>
           </ScrollView>
-        </Pressable>
+          {activePicker && (
+            <DateTimePicker
+              value={getPickerValue()}
+              mode={activePicker.includes("Time") ? "time" : "date"}
+              display="default"
+              onChange={onPickerChange}
+            />
+          )}
+        </View>
       </Pressable>
     </Modal>
   );
