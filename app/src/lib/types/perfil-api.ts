@@ -1,3 +1,5 @@
+import type { PriorityLevel } from "@/lib/types/priority";
+
 export interface PerfilAluno {
   matricula: string;
   nome: string;
@@ -61,10 +63,14 @@ export interface PerfilResponse {
   subscription: PerfilSubscription;
   sync: PerfilSyncStatus;
   notifications: NotificationPreferences;
+  /** Prioridades por código de disciplina — espelho site↔app. */
+  subjectPriorities: Record<string, PriorityLevel>;
 }
 
 export interface PatchPerfilBody {
   email?: string | null;
   phone?: string | null;
   notifications?: Partial<NotificationPreferences>;
+  /** Merge: códigos enviados atualizam o mapa na nuvem. */
+  subjectPriorities?: Record<string, PriorityLevel>;
 }

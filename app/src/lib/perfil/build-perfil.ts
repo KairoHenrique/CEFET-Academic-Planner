@@ -8,6 +8,7 @@ import {
   getSyncAutoIntervalMinutes,
   getSyncLastAt,
 } from "@/lib/sync/sync-preferences";
+import { getSubjectPrioritiesFromStore } from "@/lib/priority/subject-priorities-store";
 
 export function buildPerfil(): PerfilResponse {
   const aluno = getAluno();
@@ -32,5 +33,6 @@ export function buildPerfil(): PerfilResponse {
       lastSyncAt: getSyncLastAt(),
     },
     notifications: getNotificationPreferences(),
+    subjectPriorities: getSubjectPrioritiesFromStore(),
   };
 }

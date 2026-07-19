@@ -21,6 +21,11 @@ import type {
 import { isChType, isManualChType } from "@/lib/integralizacao/ch-catalog";
 import type { PostIntegralizacaoBody } from "@/lib/types/integralizacao-api";
 import type { PatchPerfilBody } from "@/lib/types/perfil-api";
+import {
+  isPriorityLevel,
+  normalizePriorityLevel,
+  type PriorityLevel,
+} from "@/lib/types/priority";
 
 const DISCIPLINA_FILTERS: DisciplinaListFilter[] = [
   "todas",
@@ -738,6 +743,31 @@ export function parsePatchPerfilBody(body: unknown): PatchPerfilBody {
     if (Object.keys(notifications).length > 0) {
       patch.notifications = notifications;
     }
+  }
+
+  if (record.subjectPriorities !== undefined) {
+    if (
+      !record.subjectPriorities ||
+      typeof record.subjectPriorities !== "object" ||
+      Array.isArray(record.subjectPriorities)
+    ) {
+      throw validationError("Prioridades de disciplinas inválidas.");
+    }
+
+    const raw = record.subjectPriorities as Record<string, unknown>;
+    const subjectPriorities: Record<string, PriorityLevel> = {};
+    for (const [code, value] of Object.entries(raw)) {
+      if (typeof code !== "string" || !code.trim()) {
+        throw validationError("Código de disciplina inválido na prioridade.");
+      }
+      if (typeof value !== "string" || !isPriorityLevel(value)) {
+        throw validationError(
+          `Prioridade inválida para ${code.trim()}.`
+        );
+      }
+      subjectPriorities[code.trim()] = normalizePriorityLevel(value);
+    }
+    patch.subjectPriorities = subjectPriorities;
   }
 
   return patch;

@@ -7,6 +7,9 @@ import {
   normalizeOptionalPhone,
 } from "@/lib/perfil/normalize-contact-patch";
 import { saveNotificationPreferences } from "@/lib/notifications/notification-preferences";
+import {
+  pgMergeSubjectPriorities,
+} from "@/lib/priority/subject-priorities-store";
 import type { PatchPerfilBody, PerfilResponse } from "@/lib/types/perfil-api";
 
 export async function patchPerfilCloud(
@@ -15,8 +18,9 @@ export async function patchPerfilCloud(
 ): Promise<PerfilResponse> {
   const hasAccountPatch = body.email !== undefined || body.phone !== undefined;
   const hasNotificationPatch = body.notifications !== undefined;
+  const hasPriorityPatch = body.subjectPriorities !== undefined;
 
-  if (!hasAccountPatch && !hasNotificationPatch) {
+  if (!hasAccountPatch && !hasNotificationPatch && !hasPriorityPatch) {
     throw validationError("Nenhuma alteração informada.");
   }
 
@@ -37,6 +41,10 @@ export async function patchPerfilCloud(
 
   if (hasNotificationPatch && body.notifications) {
     saveNotificationPreferences(body.notifications);
+  }
+
+  if (hasPriorityPatch && body.subjectPriorities) {
+    await pgMergeSubjectPriorities(profile.userId, body.subjectPriorities);
   }
 
   return buildPerfilCloud(updatedProfile);
