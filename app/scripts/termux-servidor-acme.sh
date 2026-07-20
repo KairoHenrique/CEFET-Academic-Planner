@@ -20,6 +20,7 @@ fi
 # Instala as dependências, se houver pacotes novos
 echo "[*] Verificando/instalando dependências..."
 if command -v npm &> /dev/null; then
+    export GYP_DEFINES="android_ndk_path=''"
     npm install --no-fund --no-audit
 fi
 
