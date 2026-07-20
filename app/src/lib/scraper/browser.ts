@@ -2,6 +2,7 @@ import { chromium, type Browser, type BrowserContext } from "playwright";
 import {
   SIGAA_BROWSER_CHANNEL,
   SIGAA_HEADLESS,
+  SIGAA_BROWSER_EXECUTABLE_PATH,
 } from "@/lib/scraper/constants";
 
 export async function launchSigaaBrowser(): Promise<Browser> {
@@ -12,6 +13,15 @@ export async function launchSigaaBrowser(): Promise<Browser> {
   if (SIGAA_BROWSER_CHANNEL) {
     return chromium.launch({
       channel: SIGAA_BROWSER_CHANNEL,
+      headless: SIGAA_HEADLESS,
+      args,
+    });
+  }
+
+  // Termux/ARM: Use explicit executable path if provided.
+  if (SIGAA_BROWSER_EXECUTABLE_PATH) {
+    return chromium.launch({
+      executablePath: SIGAA_BROWSER_EXECUTABLE_PATH,
       headless: SIGAA_HEADLESS,
       args,
     });

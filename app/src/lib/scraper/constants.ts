@@ -113,3 +113,12 @@ export const SIGAA_BROWSER_CHANNEL = (() => {
   }
   return null;
 })();
+
+/**
+ * Caminho absoluto para um executável customizado do Chromium (útil no Termux/Linux ARM).
+ */
+export const SIGAA_BROWSER_EXECUTABLE_PATH = (() => {
+  const fromLocal = readStringFromEnvLocal("SIGAA_BROWSER_EXECUTABLE_PATH");
+  const raw = (fromLocal ?? process.env.SIGAA_BROWSER_EXECUTABLE_PATH?.trim() ?? "");
+  return raw || null;
+})();
