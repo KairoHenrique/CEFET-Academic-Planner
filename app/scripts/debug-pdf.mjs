@@ -1,8 +1,10 @@
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
 async function debugPdf() {
-  const dataDir = path.join(process.cwd(), '.data');
+  const __dirname = path.dirname(fileURLToPath(import.meta.url));
+  const dataDir = path.join(__dirname, '..', '.data');
   if (!fs.existsSync(dataDir)) {
     console.log("Pasta .data não encontrada.");
     return;
