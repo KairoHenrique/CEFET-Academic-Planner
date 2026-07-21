@@ -60,6 +60,23 @@ function parseDisciplinas(text: string): HistoricoDisciplinaEntry[] {
       const situacaoMatch = line.match(new RegExp(`\\b(${SITUACAO_RE.source})$`, 'i'));
       const situacao = situacaoMatch ? situacaoMatch[1].toUpperCase() : "MATR"; // Padrão para MATR se não houver stats (cursando)
 
+      // Extrair estatísticas (CH, Hora Aula, Freq, Média, Conceito)
+      const statsMatch = line.match(/\s+(\d+)\s+(\d+)\s+\d+(?:\s+([\d,]+)\s+([\d.]+)\s+([A-E]))?(?:\s+[a-zA-Z]{3,7})$/);
+      let ch = 0;
+      let horaAula = 0;
+      let frequencia = null;
+      let media = null;
+      let conceito = null;
+      const optativo = /(?:^|\s)\*\s/.test(line.slice(0, 20));
+
+      if (statsMatch) {
+        ch = parseInt(statsMatch[1], 10);
+        horaAula = parseInt(statsMatch[2], 10);
+        if (statsMatch[3]) frequencia = parseFloat(statsMatch[3].replace(',', '.'));
+        if (statsMatch[4]) media = parseFloat(statsMatch[4]);
+        if (statsMatch[5]) conceito = statsMatch[5];
+      }
+
       // Limpar a linha para extrair apenas o nome
       let nome = line;
       nome = nome.replace(semestre, ""); // Remove semestre
@@ -69,19 +86,12 @@ function parseDisciplinas(text: string): HistoricoDisciplinaEntry[] {
       nome = nome.replace(/^\s*(?:[\d\.]+)\s+/, ""); 
       
       // Remove as estatísticas do final (ex: 60 50 01 90,0 58.0 E REP) ou parciais (ex: 60 50 01)
-      nome = nome.replace(/\s+\d+\s+\d+\s+\d+(?:\s+\d+(?:,\d+)?\s+\d+(?:\.\d+)?\s+[A-E]\s+[A-Z]{3,7})?$/, "");
+      nome = nome.replace(/\s+\d+\s+\d+\s+\d+(?:\s+[\d,]+\s+[\d.]+\s+[A-E])?(?:\s+[a-zA-Z]{3,7})?$/, "");
       
       // Remove título de professores conhecidos
-      nome = nome.replace(/\s+(?:MSc\.|Dr\.|Dra\.|Prof\.).*$/, "");
-      // Tenta remover professores sem título (ex: MICHEL PIRES DA SILVA (60h))
-      // Como o nome do professor sem título está em maiúsculas, é difícil separar perfeitamente,
-      // mas podemos remover tudo que vem a partir do primeiro "(XXh)" retroativo.
-      // Na verdade, a melhor heurística é remover desde o último espaço antes de um bloco com "(...h)" se houver.
-      // Uma regex simples para remover professores sem título (cujo nome termina com "(Xh)"):
-      const profMatch = nome.match(/\s+([A-Z\s]+(?:\(\d+h\)[,\s]*)+)$/);
-      if (profMatch) {
-          nome = nome.replace(profMatch[1], "");
-      }
+      nome = nome.replace(/\s+(?:MSc\.|Dr\.|Dra\.|Prof\.|Me\.|Ma\.).*$/, "");
+      // Remove (XXh) que possa ter sobrado no final (professores sem título)
+      nome = nome.replace(/\s*\(\d+h\)[,\s]*$/, "");
       
       nome = nome.trim();
 
@@ -90,7 +100,13 @@ function parseDisciplinas(text: string): HistoricoDisciplinaEntry[] {
         codigo,
         nome,
         situacao,
-      } as HistoricoDisciplinaEntry);
+        ch,
+        horaAula,
+        frequencia,
+        media,
+        conceito,
+        optativo,
+      });
     }
   }
 

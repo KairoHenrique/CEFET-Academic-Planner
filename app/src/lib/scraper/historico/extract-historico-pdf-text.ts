@@ -23,7 +23,41 @@ export async function extractHistoricoPdfText(buffer: Buffer): Promise<string> {
     for (let i = 1; i <= pdfDocument.numPages; i++) {
       const page = await pdfDocument.getPage(i);
       const textContent = await page.getTextContent();
-      const items = textContent.items.filter((i: any) => "str" in i && i.str.trim() !== "");
+      const items = textContent.items.filter((i: any) => {
+        if (!("str" in i)) return false;
+        const text = i.str.trim();
+        if (text === "") return false;
+        
+        // Ignorar textos de cabeçalho/rodapé baseando-se na coordenada Y
+        // Y próximo de 0 é rodapé, Y alto (ex: > 750) é cabeçalho.
+        // O histórico SIGAA tem cabeçalhos altos e rodapé (autenticidade, página) na altura Y=38.
+        // A última disciplina da página pode chegar a Y=57, então cortamos em 45.
+        const y = i.transform[5];
+        if (y < 45) return false; // Filtra tudo no rodapé da página (Para verificar a autenticidade, Página X de Y, etc)
+        if (y > 770) return false; // Filtra cabeçalho muito alto
+        
+        // Mantém filtro seguro para coisas que podem cruzar (embora raro)
+        const junk = [
+          "MINISTÉRIO DA EDUCAÇÃO",
+          "Secretaria de Educação",
+          "SECRETARIA DE REGISTRO",
+          "17.220.203/0001-96",
+          "Componente Curricular",
+          "Hora",
+          "Aula",
+          "Turma",
+          "Freq %",
+          "Média",
+          "Conceito",
+          "Situação",
+          "Ano/Período Letivo",
+          "CH"
+        ];
+        if (junk.some(j => text.includes(j))) return false;
+        if (/^[a-f0-9]{10}$/i.test(text)) return false;
+        
+        return true;
+      });
 
       // Encontrar âncoras (Semestres na primeira coluna)
       const anchors: { y: number; items: any[] }[] = [];
