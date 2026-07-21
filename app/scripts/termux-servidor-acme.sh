@@ -98,6 +98,13 @@ echo "[+] Tunnel URL detectada: $URL"
 
 # 3. Atualiza o secret
 echo "[*] Atualizando SIGAA_WORKER_URL no Cloudflare via wrangler..."
+
+# Hack Termux: O Wrangler no Node importa o workerd, que trava ao ler process.platform === 'android'.
+# Como 'secret put' não usa o binário do workerd (só faz chamada de API), nós podemos calar esse erro.
+if [ -f "node_modules/workerd/lib/main.js" ]; then
+    sed -i 's/throw new Error(`Unsupported platform/console.warn(`Bypass platform/g' node_modules/workerd/lib/main.js
+fi
+
 echo "$URL" | npx wrangler secret put SIGAA_WORKER_URL
 
 if [ $? -eq 0 ]; then
