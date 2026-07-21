@@ -67,7 +67,24 @@ export function withDb<TContext = unknown>(
       );
     }
 
-    return runWithUserDb(username, runHandler);
+    return runWithUserDb(username, async () => {
+      let localCursoId: string | undefined;
+      try {
+        const { getAluno } = await import("@/lib/db/queries");
+        const aluno = getAluno();
+        if (aluno && aluno.curso) {
+          const c = aluno.curso.toLowerCase();
+          if (c.includes("computa")) localCursoId = "eng-computacao";
+          else if (c.includes("mecatr")) localCursoId = "eng-mecatronica";
+          else if (c.includes("moda")) localCursoId = "design-moda";
+        }
+      } catch {
+        // Ignora erros caso a tabela ainda não exista ou banco não esteja pronto
+      }
+      
+      // Inject course id into the context for offline execution
+      return runWithQueryCursoId(localCursoId as any, runHandler);
+    });
   };
 }
 

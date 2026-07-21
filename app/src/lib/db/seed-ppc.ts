@@ -1,11 +1,22 @@
 import db from "./index";
-import { countDisciplinas, saveDisciplina, saveRequisito } from "./queries";
+import { countDisciplinas, saveDisciplina, saveRequisito, getAluno } from "./queries";
 import { normalizeCefetCh } from "@/lib/disciplinas/cefet-ch";
 import { resolvePpcEmenta } from "@/lib/disciplinas/resolve-ppc-ementa";
 import { loadPpcSeedData, type PpcSeedItem } from "@/lib/db/ppc-seed-loader";
 import { resolveQueryCursoId } from "@/lib/db/resolve-query-curso-id";
 
 function activeCursoId(): string {
+  try {
+    const aluno = getAluno();
+    if (aluno && aluno.curso) {
+      const c = aluno.curso.toLowerCase();
+      if (c.includes("computa")) return "eng-computacao";
+      if (c.includes("mecatr")) return "eng-mecatronica";
+      if (c.includes("moda")) return "design-moda";
+    }
+  } catch {
+    // Ignora se a tabela não estiver pronta
+  }
   return resolveQueryCursoId();
 }
 
