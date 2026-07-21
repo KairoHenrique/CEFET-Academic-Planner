@@ -66,6 +66,7 @@
     "nodemailer": "^9.0.3",
     "pdf-parse": "^1.1.1",
     "pdf2json": "^4.0.3",
+    "pdfjs-dist": "^3.11.174",
     "pdfreader": "^3.0.8",
     "pg-cloudflare": "^1.4.0",
     "playwright": "^1.61.1",

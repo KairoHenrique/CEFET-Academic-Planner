@@ -33,9 +33,8 @@ async function debugPdf() {
   console.log(`Lendo PDF: ${pdfPath}`);
   
   const buffer = fs.readFileSync(pdfPath);
-  const pdfParse = (await import('pdf-parse')).default;
-  const result = await pdfParse(buffer);
-  const text = result.text;
+  const { extractHistoricoPdfText } = await import('../src/lib/scraper/historico/extract-historico-pdf-text.js');
+  const text = await extractHistoricoPdfText(buffer);
   
   console.log("\n--- INÍCIO DO TEXTO EXTRAÍDO ---");
   const lines = text.split('\n');
