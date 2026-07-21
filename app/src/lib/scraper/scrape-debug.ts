@@ -31,8 +31,7 @@ export function dumpScrapeHtml(
   section: string,
   html: string | null
 ): void {
-  if (process.env.NODE_ENV === "production") return;
-  if (!SIGAA_SCRAPER_DEBUG || !html) return;
+  if (!html) return;
 
   const filename = `${Date.now()}-${safeSlug(disciplina)}-${safeSlug(section)}.html`;
   fs.writeFileSync(path.join(debugDir(), filename), html, "utf8");
