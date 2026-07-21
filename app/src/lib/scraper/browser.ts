@@ -8,20 +8,20 @@ import {
 export async function launchSigaaBrowser(): Promise<Browser> {
   const args = ["--no-sandbox", "--disable-dev-shm-usage"];
 
-  // PC home-worker: Chrome/Edge instalados do sistema (SIGAA_BROWSER_CHANNEL).
-  // Container/Fly: omitir a var → Chromium embutido do Playwright.
-  if (SIGAA_BROWSER_CHANNEL) {
+  // Termux/ARM: Use explicit executable path if provided.
+  if (SIGAA_BROWSER_EXECUTABLE_PATH) {
     return chromium.launch({
-      channel: SIGAA_BROWSER_CHANNEL,
+      executablePath: SIGAA_BROWSER_EXECUTABLE_PATH,
       headless: SIGAA_HEADLESS,
       args,
     });
   }
 
-  // Termux/ARM: Use explicit executable path if provided.
-  if (SIGAA_BROWSER_EXECUTABLE_PATH) {
+  // PC home-worker: Chrome/Edge instalados do sistema (SIGAA_BROWSER_CHANNEL).
+  // Container/Fly: omitir a var → Chromium embutido do Playwright.
+  if (SIGAA_BROWSER_CHANNEL) {
     return chromium.launch({
-      executablePath: SIGAA_BROWSER_EXECUTABLE_PATH,
+      channel: SIGAA_BROWSER_CHANNEL,
       headless: SIGAA_HEADLESS,
       args,
     });
