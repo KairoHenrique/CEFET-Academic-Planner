@@ -113,8 +113,11 @@ function parseDisciplinas(text: string): HistoricoDisciplinaEntry[] {
       let extra = line.replace(/\s+(?:MSc\.|Dr\.|Dra\.|Prof\.|Me\.|Ma\.).*$/, "");
       extra = extra.replace(/\s*\(\d+h\)[,\s]*$/, "").trim();
       
-      // Não adiciona se for lixo como números ou "APR" soltos
-      if (extra.length > 0 && !/^[\d\.,\s]+$/.test(extra) && !SITUACAO_RE.test(extra)) {
+      // Não adiciona se for lixo como números, "APR" soltos ou rodapé do CEFET
+      const isLixo = /^[\d\.,\s]+$/.test(extra) || SITUACAO_RE.test(extra);
+      const isRodape = extra.includes("CEFET") || extra.includes("MINAS GERAIS") || extra.includes("SISTEMA ACADÊMICO") || extra.includes("Data de Emissão");
+      
+      if (extra.length > 0 && !isLixo && !isRodape) {
         last.nome += " " + extra;
       }
     }
