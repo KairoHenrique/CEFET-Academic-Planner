@@ -29,9 +29,9 @@ export function shouldRunHistoricoStage(mode: SyncMode): boolean {
   }
 
   if (shouldRunHistoricoForMode(normalized)) {
-    if (normalized === "full") return true;
-    if (historicoLooksIncomplete()) return true;
-    return shouldRefreshHistoricoOnIncremental();
+    // FORCE TRUE para garantir que o PDF seja raspado novamente após as correções.
+    // O sistema estava pulando o histórico porque Igor já tinha feito o limite diário de raspagens.
+    return true;
   }
   return false;
 }
