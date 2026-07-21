@@ -100,7 +100,8 @@ export async function extractHistoricoPdfText(buffer: Buffer): Promise<string> {
         }
 
         // Se a distância for muito grande, não pertence à tabela (ex: cabeçalho da página)
-        if (closestAnchor && minDistance < 25) {
+        // Aumentado para 60 para não órfãr textos de disciplinas que ocupam 4 linhas (como IPC)
+        if (closestAnchor && minDistance < 60) {
           closestAnchor.items.push(item);
         } else {
           orphanItems.push(item);
