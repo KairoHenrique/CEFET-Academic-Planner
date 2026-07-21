@@ -58,6 +58,7 @@ fi
 # 1. Inicia o worker em background
 echo "[*] Iniciando worker:home..."
 export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+export SIGAA_BROWSER_CHANNEL=""
 export SIGAA_BROWSER_EXECUTABLE_PATH="/data/data/com.termux/files/usr/bin/chromium-browser"
 npm run worker:home > termux-worker.log 2>&1 &
 WORKER_PID=$!
