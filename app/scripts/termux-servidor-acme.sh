@@ -106,7 +106,7 @@ node << 'EOF'
 const fs = require('fs');
 const file = 'node_modules/workerd/lib/main.js';
 let code = fs.readFileSync(file, 'utf8');
-code = code.replace(/throw new Error\(`Unsupported platform.*?\);/g, 'pkg="dummy";subpath="dummy";');
+code = code.replace(/function pkgAndSubpathForCurrentPlatform\(\) \{[\s\S]*?return \{ pkg, subpath \};\n?\}/, 'function pkgAndSubpathForCurrentPlatform() { return { pkg: "dummy", subpath: "dummy" }; }');
 fs.writeFileSync(file, code);
 EOF
 fi
