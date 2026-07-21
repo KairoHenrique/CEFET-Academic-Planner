@@ -107,6 +107,16 @@ function parseDisciplinas(text: string): HistoricoDisciplinaEntry[] {
         conceito,
         optativo,
       });
+    } else if (disciplinas.length > 0 && !METADATA_LINE.test(line) && !line.includes("Carga Horária Integralizada") && !line.includes("Atividades") && !line.includes("Assinatura")) {
+      // Continuação de uma disciplina que quebrou de linha no PDF!
+      const last = disciplinas[disciplinas.length - 1];
+      let extra = line.replace(/\s+(?:MSc\.|Dr\.|Dra\.|Prof\.|Me\.|Ma\.).*$/, "");
+      extra = extra.replace(/\s*\(\d+h\)[,\s]*$/, "").trim();
+      
+      // Não adiciona se for lixo como números ou "APR" soltos
+      if (extra.length > 0 && !/^[\d\.,\s]+$/.test(extra) && !SITUACAO_RE.test(extra)) {
+        last.nome += " " + extra;
+      }
     }
   }
 
