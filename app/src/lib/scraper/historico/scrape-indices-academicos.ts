@@ -43,6 +43,10 @@ export async function scrapeIndicesAcademicos(page: Page): Promise<HistoricoSnap
     }
 
     // 3. Navegar para Minhas Notas para pegar as do semestre atual
+    console.info("[scraper:historico] Retornando ao Portal do Discente...");
+    await page.goto("https://sig.cefetmg.br/sigaa/portais/discente/discente.jsf");
+    await page.waitForLoadState("domcontentloaded");
+    
     console.info("[scraper:historico] Navegando para Consultar Minhas Notas...");
     const menuNotasClicked = await clickMenu(page, 'Minhas Notas');
     
@@ -84,82 +88,28 @@ export async function scrapeIndicesAcademicos(page: Page): Promise<HistoricoSnap
 }
 
 async function clickMenu(page: Page, text: string): Promise<boolean> {
-  const responsePromise = page.waitForResponse(
-    (resp) => resp.request().method() === "POST" && /discente\.jsf/i.test(resp.url()),
-    { timeout: SIGAA_NAVIGATION_TIMEOUT_MS }
-  ).catch(() => null);
-
-  const clicked = await page.evaluate((menuText) => {
-    // 1. Fallback: Tenta invocar a ação JSF diretamente para evitar bugs de eventos do mouse no JSCookMenu
-    // O JSCookMenu tem a seguinte estrutura no array: [icone, 'Nome do Menu', 'acao_jsf', 'form_id', descricao]
-    try {
-      const scripts = Array.from(document.querySelectorAll('script'));
-      for (const script of scripts) {
-        if (!script.textContent) continue;
-        const text = script.textContent;
-        const idx = text.indexOf(menuText);
-        if (idx !== -1) {
-          const substr = text.substring(idx);
-          const strings: string[] = [];
-          let inString = false, currentString = '', quoteChar = '', foundMenu = false;
-          
-          for (let i = 0; i < substr.length && strings.length < 2; i++) {
-            const char = substr[i];
-            if (!inString && (char === "'" || char === '"')) {
-              inString = true; quoteChar = char; currentString = '';
-            } else if (inString && char === quoteChar) {
-              inString = false;
-              if (foundMenu) strings.push(currentString);
-              else foundMenu = true;
-            } else if (inString) {
-              currentString += char;
-            }
-          }
-          
-          if (strings.length >= 2) {
-            const actionId = strings[0];
-            const formId = strings[1];
-            if (actionId.includes('#{') && formId.includes('form')) {
-              const form = document.getElementById(formId);
-              if (form && typeof (window as any).jsfcljs === 'function') {
-                const params: any = {};
-                params[actionId] = actionId;
-                (window as any).jsfcljs(form, params, '');
-                return true;
-              }
-            }
-          }
-        }
-      }
-    } catch (e) {
-      console.warn("Erro ao tentar JSF action direto:", e);
-    }
-
-    // 2. Método Clássico
-    const tds = Array.from(document.querySelectorAll('td.ThemeOfficeMenuItemText'));
-    const targetTd = tds.find(td => td.textContent?.trim().includes(menuText));
+  // O menu pai é 'Ensino' ou 'Pesquisa', mas no nosso caso é Ensino.
+  // Vamos focar no menu Ensino primeiro
+  try {
+    const ensinoLocator = page.locator('td').filter({ hasText: /^Ensino\s*/ }).first();
+    await ensinoLocator.hover({ timeout: 2000 });
+    await page.waitForTimeout(300); // Aguarda a animação do JSCookMenu
     
-    if (!targetTd) return false;
-    
-    let clickTarget: HTMLElement = targetTd as HTMLElement;
-    if (targetTd.parentElement && targetTd.parentElement.tagName === 'TR') {
-      clickTarget = targetTd.parentElement as HTMLElement;
+    const targetLocator = page.locator('td').filter({ hasText: text }).first();
+    const count = await targetLocator.count();
+    if (count === 0) {
+      console.warn(`Menu item ${text} não encontrado após hover em Ensino`);
+      return false;
     }
     
-    // JSCookMenu usa eventos de mouse (mouseup/mousedown) na linha (TR) para disparar a navegação
-    clickTarget.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
-    clickTarget.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
-    clickTarget.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
-    clickTarget.click();
+    const navigationPromise = page.waitForNavigation({ timeout: SIGAA_NAVIGATION_TIMEOUT_MS }).catch(() => null);
+    await targetLocator.click();
+    await navigationPromise;
     return true;
-  }, text);
-
-  if (clicked) {
-    await responsePromise;
-    await page.waitForLoadState("domcontentloaded", { timeout: SIGAA_NAVIGATION_TIMEOUT_MS }).catch(() => null);
+  } catch (e) {
+    console.warn(`Falha no clickMenu nativo para ${text}:`, e);
+    return false;
   }
-  
-  return clicked;
 }
 
 async function extractDisciplinasFromIndicesPage(page: Page): Promise<{ disciplinas: HistoricoDisciplinaEntry[], curso?: string }> {
@@ -167,23 +117,25 @@ async function extractDisciplinasFromIndicesPage(page: Page): Promise<{ discipli
   // Vamos buscar a tabela principal
   
   const entries = await page.evaluate(() => {
-    const disciplinas: HistoricoDisciplinaEntry[] = [];
-    let curso: string | undefined;
-    
-    // Tenta extrair o curso procurando a palavra "Curso:" em todo o HTML
-    const match = document.body.textContent?.match(/Curso:\s*(.+?)(?=\n|$)/i);
-    if (match && match[1]) {
-      curso = match[1].trim();
-    }
-    
-    // Procura por todas as tabelas na página
-    const tables = Array.from(document.querySelectorAll('table'));
-    if (!tables || tables.length === 0) return { disciplinas, curso };
+    try {
+      const disciplinas: any[] = [];
+      let curso: string | undefined;
+      
+      if (!document.body) return { disciplinas, curso };
+      
+      // Tenta extrair o curso procurando a palavra "Curso:" em todo o HTML
+      const match = document.body.textContent?.match(/Curso:\s*(.+?)(?=\n|$)/i);
+      if (match && match[1]) {
+        curso = match[1].trim();
+      }
+      
+      // Procura por todas as tabelas na página
+      const tables = Array.from(document.querySelectorAll('table'));
+      if (!tables || tables.length === 0) return { disciplinas, curso };
     
     for (const table of tables) {
       // Verifica se a tabela parece ser uma tabela de disciplinas
-      const normalizeStr = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
-      const headerText = normalizeStr(table.textContent || "");
+      const headerText = (table.textContent || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
       if (!headerText.includes("codigo") || !headerText.includes("disciplina") || !headerText.includes("situacao")) {
         continue;
       }
@@ -199,12 +151,14 @@ async function extractDisciplinasFromIndicesPage(page: Page): Promise<{ discipli
         // Se a linha tem apenas 1 ou 2 células e contém um ano.semestre (ex: 2025.2), é um agrupador
         if (row.cells.length <= 2 && /^\d{4}\.\d$/.test(rowText)) {
           currentSemestre = rowText;
+          console.log("Agrupador semestre encontrado:", currentSemestre);
           continue;
         }
         
         // Se a linha tem class agrupador
         if (row.classList.contains('agrupador')) {
           currentSemestre = rowText || currentSemestre;
+          console.log("Agrupador classe encontrado:", currentSemestre);
           continue;
         }
         
@@ -212,8 +166,7 @@ async function extractDisciplinasFromIndicesPage(page: Page): Promise<{ discipli
         
         // Tenta identificar o cabeçalho para mapear as colunas
         if (!foundHeader) {
-          const normalizeStr = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
-          const headerTexts = cells.map(c => normalizeStr(c.textContent || ""));
+          const headerTexts = cells.map(c => (c.textContent || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim());
           const hasCodigo = headerTexts.some(t => t.includes("codigo"));
           
           if (hasCodigo) {
@@ -223,32 +176,54 @@ async function extractDisciplinasFromIndicesPage(page: Page): Promise<{ discipli
             colRes = headerTexts.findIndex(t => t.includes("resultado"));
             colFal = headerTexts.findIndex(t => t.includes("faltas"));
             foundHeader = true;
+            console.log(`Header found! colCod:${colCod}, colDis:${colDis}, colSit:${colSit}`);
             continue;
           }
         }
         
         // Se ainda não achou o cabeçalho ou tem poucas células, pula
-        if (!foundHeader || cells.length < 3) continue;
+        if (!foundHeader || cells.length < 3) {
+          if (foundHeader) console.log("Skipped due to cells.length < 3:", cells.length);
+          continue;
+        }
+        
+        // Ajusta índices se a linha não tiver o td do rowspan do semestre (Minhas Notas)
+        // Isso acontece porque o th tem o semestre (ou a primeira td do semestre), e as próximas td não têm
+        // Então as células ficam deslocadas em -1
+        let actColCod = colCod;
+        let actColDis = colDis;
+        let actColSit = colSit;
+        let actColRes = colRes;
+        
+        // Verifica se esta linha tem menos colunas que o header que encontramos, o que indica rowspan
+        if (cells.length < 8 && colSit === 7) {
+            // Em Minhas Notas, colSit é 7 no cabeçalho (que tem 8 células: semestre + 7 colunas)
+            // Nas linhas de disciplina, temos 7 células
+            actColCod = 0;
+            actColDis = 1;
+            actColRes = 5;
+            actColSit = 6;
+        }
         
         // Se a linha é o próprio cabeçalho sendo repetido, pula
-        const txtCod = normalizeStr(cells[colCod]?.textContent || "");
+        const txtCod = (cells[actColCod]?.textContent || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
         if (txtCod === "codigo") continue;
         
-        const codigo = cells[colCod]?.textContent?.trim() || "";
-        const nome = cells[colDis]?.textContent?.trim() || "";
-        const resultado = colRes >= 0 ? (cells[colRes]?.textContent?.trim() || "") : "";
-        const situacao = colSit >= 0 ? (cells[colSit]?.textContent?.trim() || "") : "";
+        const codigo = cells[actColCod]?.textContent?.trim() || "";
+        const nome = cells[actColDis]?.textContent?.trim() || "";
+        const resultado = actColRes >= 0 ? (cells[actColRes]?.textContent?.trim() || "") : "";
+        const situacao = actColSit >= 0 ? (cells[actColSit]?.textContent?.trim() || "") : "";
         
+        console.log(`Row parsing: cod="${codigo}", nome="${nome}", sit="${situacao}"`);
+
         if (!codigo || !nome) {
+          console.log("Skipped because empty codigo or nome");
           continue;
         }
         
-        // O usuário pediu especificamente para ignorar REPROVADO ou vazios.
-        // Pegar apenas aprovados ou dispensados (créditos aproveitados).
         const sitUpper = situacao.toUpperCase();
-        if (!sitUpper.includes("APROVADO") && !sitUpper.includes("DISPENSADO") && !sitUpper.includes("INCORPORADO") && !sitUpper.includes("CUMPRIDO")) {
-          continue;
-        }
+        // Permite todas as situações, pois precisamos pegar as que ele está MATRICULADO nas Minhas Notas
+        // e também as que ele reprovou para o histórico ficar completo.
         
         // Parse Resultado
         let media: number | null = null;
@@ -271,9 +246,13 @@ async function extractDisciplinasFromIndicesPage(page: Page): Promise<{ discipli
           optativo: false,
         });
       }
+      }
+      
+      return { disciplinas, curso };
+    } catch (e: any) {
+      console.error("Error inside evaluate extractDisciplinas:", e.message || e);
+      return { disciplinas: [], curso: undefined };
     }
-    
-    return { disciplinas, curso };
   });
   
   return entries;
