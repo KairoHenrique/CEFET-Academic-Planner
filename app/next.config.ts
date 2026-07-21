@@ -12,7 +12,7 @@ const CLOUD_STUB_ALIASES: Record<string, string> = {
 
 const serverExternalPackages = isCloudflareBuild
   ? ["pg", "pg-cloudflare"]
-  : ["better-sqlite3", "playwright", "playwright-core", "pdf-parse", "pg"];
+  : ["better-sqlite3", "playwright", "playwright-core", "pdf-parse", "pg", "pdfjs-dist"];
 
 const cloudStubAliasAbs = Object.fromEntries(
   Object.entries(CLOUD_STUB_ALIASES).map(([key, rel]) => [
