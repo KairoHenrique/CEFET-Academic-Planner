@@ -42,97 +42,247 @@ function parseDisciplinas(text: string): HistoricoDisciplinaEntry[] {
     .filter((line) => line.trim().length > 0);
 
   const disciplinas: HistoricoDisciplinaEntry[] = [];
-  
-  let i = 0;
-  while (i < lines.length) {
-    const line = lines[i];
-    const semestreMatch = line.match(SEMESTRE_RE);
-    
-    // Pula até achar o início de uma disciplina (semestre)
-    if (!semestreMatch || METADATA_LINE.test(line) || /^PARTICIPAÇÕES NO ENADE/i.test(line)) {
-      i++;
+  let index = 0;
+
+  while (index < lines.length) {
+    const start = findDisciplinaStart(lines, index);
+    if (!start) {
+      index += 1;
       continue;
     }
-    
-    const semestre = semestreMatch[1];
-    const start = i;
-    let end = i + 1;
-    
-    // Escaneia as próximas linhas até encontrar o próximo semestre ou fim da seção
-    while (end < lines.length) {
-      const nextLine = lines[end];
-      if (SEMESTRE_RE.test(nextLine) && !METADATA_LINE.test(nextLine)) {
-        break;
-      }
-      if (/^PARTICIPAÇÕES NO ENADE/i.test(nextLine) || /^Componentes\s+Curriculares/i.test(nextLine) || /^Página\s+\d+/i.test(nextLine)) {
-        break;
-      }
-      end++;
-    }
-    
-    // Pega todas as linhas deste bloco e forma uma string compacta
-    const blockLines = lines.slice(start, end);
-    const compactBlock = blockLines.join(" ");
-    
-    // Extração robusta usando Regex global no bloco
-    const codigoMatch = compactBlock.match(/(?:^|\s)(G[T]?05[A-Z0-9]+(?:\.\s*\d+|\s*\d+)?)/i);
-    const situacaoMatch = compactBlock.match(new RegExp(`\\b(${SITUACAO_RE.source})\\b`, 'i'));
-    // CH HoraAula [Turma] [Freq Media Conceito] - Freq sempre tem vírgula!
-    const statsMatch = compactBlock.match(/\b(15|30|45|60|75|90|105|120|135|150|240|300|360|420)\s+(\d{2,3})(?:\s+\d{2})?(?:\s+(\d{1,3},\d)\s+([\d.]+)\s+([A-E]))?\b/i);
-    
-    const codigoBruto = codigoMatch ? codigoMatch[1] : null;
-    const codigo = codigoBruto ? codigoBruto.replace(/\s/g, "").toUpperCase() : null;
-    const situacao = situacaoMatch ? situacaoMatch[1].toUpperCase() : "MATR"; // Padrão MATR
-    const optativo = compactBlock.includes("*") || compactBlock.includes(" * ");
-    
-    let ch = 0, horaAula = 0, frequencia = null, media = null, conceito = null;
-    
-    if (statsMatch) {
-      ch = parseInt(statsMatch[1], 10);
-      horaAula = parseInt(statsMatch[2], 10);
-      if (statsMatch[3]) frequencia = parseFloat(statsMatch[3].replace(',', '.'));
-      if (statsMatch[4]) media = parseFloat(statsMatch[4]);
-      if (statsMatch[5]) conceito = statsMatch[5];
-    }
-    
-    if (codigo) {
-      // Limpeza agressiva do nome da matéria
-      let nome = compactBlock.replace(semestre, ""); // Remove semestre
-      nome = nome.replace(codigoBruto || codigo, ""); // Remove o código original do texto
-      nome = nome.replace(/\*/g, ""); // Remove asteriscos
-      if (statsMatch) nome = nome.replace(statsMatch[0], ""); // Remove as estatísticas do final
-      if (situacaoMatch) nome = nome.replace(new RegExp(`\\b${situacaoMatch[1]}\\b`, 'i'), ""); // Remove a situação
-      nome = nome.replace(/\s+(?:MSc\.|Dr\.|Dra\.|Prof\.|Me\.|Ma\.).*$/, ""); // Remove professores no final
-      nome = nome.replace(/\s*\(\d+h\)[,\s]*$/, ""); // Remove ch do professor
-      nome = nome.replace(/CEFET-MG.*?MINAS GERAIS/i, ""); // Remove rodapé inteiro
-      nome = nome.replace(/SISTEMA ACADÊMICO.*?Data de Emissão.*$/i, ""); // Remove rodapé 2
-      nome = nome.replace(/^\s*(?:[\d\.]+)\s+/, ""); // Remove número estranho no começo
-      nome = nome.replace(/\s*\([^\)]*\)\s*/g, " "); // Remove "(60h)" ou "(Professor)"
-      nome = nome.replace(/\s+/g, " ").trim(); // Normaliza espaços
-      
-      if (nome.length > 2) {
-        disciplinas.push({
-          semestre,
-          codigo,
-          nome,
-          situacao,
-          ch,
-          horaAula,
-          frequencia,
-          media,
-          conceito,
-          optativo,
-        });
-      }
-    }
-    
-    i = end;
+
+    const end = findDisciplinaEnd(lines, start.blockStart + 1);
+    const blockLines = lines.slice(start.blockStart, end);
+    const parsed = parseDisciplinaBlock(blockLines, start.semestre, start.nomeSeed);
+    if (parsed) disciplinas.push(parsed);
+
+    index = end;
   }
 
   return dedupeDisciplinas(disciplinas);
 }
 
+function findDisciplinaStart(
+  lines: string[],
+  fromIndex: number
+): { blockStart: number; semestre: string; nomeSeed: string } | null {
+  for (let index = fromIndex; index < lines.length; index += 1) {
+    const line = lines[index].trim();
+    const semestreMatch = line.match(SEMESTRE_RE);
+    if (!semestreMatch) continue;
 
+    const semestre = semestreMatch[1];
+    const inlineNome = semestreMatch[2]?.trim() ?? "";
+
+    if (METADATA_LINE.test(inlineNome) || METADATA_LINE.test(line)) continue;
+    if (/^PARTICIPAÇÕES NO ENADE/i.test(inlineNome)) continue;
+    if (!inlineNome && !looksLikeDisciplinaAhead(lines, index)) continue;
+
+    return {
+      blockStart: index,
+      semestre,
+      nomeSeed: inlineNome,
+    };
+  }
+
+  return null;
+}
+
+function looksLikeDisciplinaAhead(lines: string[], index: number): boolean {
+  const window = lines.slice(index + 1, index + 6);
+  return window.some(
+    (line) =>
+      PROFESSOR_LINE.test(line) ||
+      /^G[T]?05/i.test(line.trim()) ||
+      (/^[A-ZÁÉÍÓÚÂÊÔÃÕÇ]/.test(line) && !METADATA_LINE.test(line))
+  );
+}
+
+function findDisciplinaEnd(lines: string[], fromIndex: number): number {
+  for (let index = fromIndex; index < lines.length; index += 1) {
+    const line = lines[index].trim();
+
+    if (/^PARTICIPAÇÕES NO ENADE/i.test(line)) return index;
+    if (/^Componentes\s+Curriculares/i.test(line)) return index;
+    if (/^Página\s+\d+/i.test(line)) return index;
+
+    const semestreMatch = line.match(SEMESTRE_RE);
+    if (!semestreMatch) continue;
+    if (METADATA_LINE.test(line)) continue;
+
+    const inlineNome = semestreMatch[2]?.trim() ?? "";
+    if (inlineNome && !METADATA_LINE.test(inlineNome)) return index;
+    if (!inlineNome && looksLikeDisciplinaAhead(lines, index)) return index;
+  }
+
+  return lines.length;
+}
+
+function parseDisciplinaBlock(
+  blockLines: string[],
+  semestre: string,
+  nomeSeed: string
+): HistoricoDisciplinaEntry | null {
+  const block = blockLines.join("\n");
+  const situacao = extractSituacaoFromBlock(block);
+  if (!situacao) return null;
+
+  const codigo = mergeCodigoFromBlock(block);
+  const nome = extractNomeFromBlock(blockLines, semestre, nomeSeed);
+  const stats = extractStatsFromBlock(block);
+
+  if (!nome || nome.length < 3) return null;
+
+  return {
+    codigo: codigo ?? "",
+    nome,
+    semestre,
+    horaAula: stats.horaAula,
+    ch: stats.ch,
+    frequencia: stats.frequencia,
+    media: stats.media,
+    conceito: stats.conceito,
+    situacao,
+    optativo: stats.optativo,
+  };
+}
+
+/**
+ * Situação pode estar na mesma linha do professor ou em linha separada (layout variável).
+ */
+function extractSituacaoFromBlock(block: string): string | null {
+  const patterns = [
+    new RegExp(`\\(\\d+h\\)[^\\n]*?\\s\\d{2}\\s+(${SITUACAO_RE.source})\\b`, "i"),
+    new RegExp(`(?:^|\\n)\\s*\\d{2}\\s+(${SITUACAO_RE.source})\\s*(?:\\n|$)`, "im"),
+    new RegExp(`\\b(${SITUACAO_RE.source})\\b(?:\\s*\\n\\s*G[T]?05)`, "i"),
+  ];
+
+  for (const pattern of patterns) {
+    const match = block.match(pattern);
+    if (match?.[1]) return match[1].toUpperCase();
+  }
+
+  return null;
+}
+
+function extractNomeFromBlock(
+  blockLines: string[],
+  semestre: string,
+  nomeSeed: string
+): string {
+  const nomeLines: string[] = nomeSeed ? [nomeSeed] : [];
+  let passedSemestre = !nomeSeed;
+
+  for (const rawLine of blockLines) {
+    const line = rawLine.trim();
+    if (!line) continue;
+
+    if (line.startsWith(semestre)) {
+      const rest = line.slice(semestre.length).trim();
+      if (rest && !nomeSeed) nomeLines.push(rest);
+      passedSemestre = true;
+      continue;
+    }
+
+    if (!passedSemestre) continue;
+    if (PROFESSOR_LINE.test(line)) break;
+    if (/\(\d+h\)/i.test(line)) break;
+    if (/^G[T]?05/i.test(line)) break;
+    if (/^\d{2}\s+(?:APR|REP|MATR|TRANC|DISP)/i.test(line)) break;
+    if (/^\d+\s+[\d,.]+/.test(line)) break;
+    if (METADATA_LINE.test(line)) break;
+    if (/^PARTICIPAÇÕES NO ENADE/i.test(line)) break;
+
+    nomeLines.push(line);
+  }
+
+  return nomeLines
+    .join(" ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function mergeCodigoFromBlock(block: string): string | null {
+  const compact = block.replace(/\r?\n/g, " ").replace(/\s+/g, " ");
+  const inline = compact.match(/(G[T]?05[A-Z0-9]+(?:\.\d+)?)/i);
+  if (inline) return inline[1].toUpperCase();
+
+  const lines = block.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const codeMatch = lines[index].match(/^(G[T]?05[A-Z0-9.]+)/i);
+    if (!codeMatch) continue;
+
+    let codigo = codeMatch[1].replace(/\s/g, "");
+    const nextLine = lines[index + 1]?.trim() ?? "";
+    const fragmentMatch = nextLine.match(/^([\d.]+)\s/);
+
+    if (fragmentMatch) {
+      const fragment = fragmentMatch[1];
+      if (codigo.endsWith(".")) {
+        codigo += fragment.replace(/^\./, "");
+      } else if (/^\d+\.\d+$/.test(fragment)) {
+        codigo = codigo.replace(/0+$/, "") + fragment.replace(".", "");
+      } else {
+        codigo += codigo.includes(".") ? fragment : `.${fragment}`;
+      }
+    }
+
+    return codigo.toUpperCase();
+  }
+
+  return null;
+}
+
+function extractStatsFromBlock(block: string): {
+  ch: number;
+  horaAula: number;
+  frequencia: number | null;
+  media: number | null;
+  conceito: string | null;
+  optativo: boolean;
+} {
+  const statsMatch = block.match(
+    /G[T]?05[A-Z0-9.]+\s+(\d{2,})\s+([\d,.]+|--)\s+([\d,.-]+|--)(?:\s+(\*))?(?:\s+(\d+))?(?:\s+([A-F]|--))?/i
+  );
+
+  if (!statsMatch) {
+    const fallback = block.match(
+      /(?:^|\n)\s*(?:[\d.]+\s+)?(\d{2,})\s+([\d,.]+|--)\s+([\d,.-]+|--)(?:\s+(\*))?(?:\s+(\d+))?(?:\s+([A-F]|--))?/m
+    );
+    if (!fallback) {
+      return {
+        ch: 0,
+        horaAula: 0,
+        frequencia: null,
+        media: null,
+        conceito: null,
+        optativo: false,
+      };
+    }
+    return mapStatsMatch(fallback);
+  }
+
+  return mapStatsMatch(statsMatch);
+}
+
+function mapStatsMatch(match: RegExpMatchArray): {
+  ch: number;
+  horaAula: number;
+  frequencia: number | null;
+  media: number | null;
+  conceito: string | null;
+  optativo: boolean;
+} {
+  return {
+    ch: parseNum(match[1]) ?? 0,
+    frequencia: parseNum(match[2]),
+    media: parseNum(match[3]),
+    optativo: match[4] === "*",
+    horaAula: parseNum(match[5]) ?? 0,
+    conceito: match[6] && match[6] !== "--" ? match[6] : null,
+  };
+}
 
 function dedupeDisciplinas(
   entries: HistoricoDisciplinaEntry[]
