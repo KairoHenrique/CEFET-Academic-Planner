@@ -28,49 +28,45 @@ export async function scrapeIndicesAcademicos(page: Page): Promise<HistoricoSnap
 
     // 2. Navegar para a página de Índices Acadêmicos
     console.info("[scraper:historico] Navegando para Consultar Índices Acadêmicos...");
+    let menuClicked = await clickMenu(page, 'Índices Acadêmicos');
     
-    const responsePromise = page.waitForResponse(
-      (resp) => resp.request().method() === "POST" && /discente\.jsf|indicesAcademicos/i.test(resp.url()),
-      { timeout: SIGAA_NAVIGATION_TIMEOUT_MS }
-    ).catch(() => null);
+    let disciplinas: HistoricoDisciplinaEntry[] = [];
+    let curso: string | undefined;
 
-    // JSCookMenu usa eventos JS na tabela/linha
-    // Em vez de usar locator.click (que pode falhar se o menu estiver oculto/colapsado),
-    // vamos avaliar um script na página para procurar o texto e disparar o clique/submit nativo.
-    const menuClicked = await page.evaluate(() => {
-      const tds = Array.from(document.querySelectorAll('td.ThemeOfficeMenuItemText'));
-      const targetTd = tds.find(td => td.textContent?.trim().includes('Índices Acadêmicos') || td.textContent?.trim().includes('Minhas Notas'));
-      
-      if (!targetTd) return false;
-      
-      // O clique pode estar no TR ou no TD
-      let clickTarget: HTMLElement = targetTd as HTMLElement;
-      if (targetTd.parentElement && targetTd.parentElement.tagName === 'TR') {
-        clickTarget = targetTd.parentElement as HTMLElement;
-      }
-      
-      clickTarget.click();
-      return true;
-    });
-
-    if (!menuClicked) {
-      console.warn("[scraper:historico] Não encontrou o menu Consultar Índices Acadêmicos ou Minhas Notas!");
+    if (menuClicked) {
+      await dumpDebugHtml(page, "indices-academicos");
+      const extracted = await extractDisciplinasFromIndicesPage(page);
+      disciplinas = extracted.disciplinas;
+      if (extracted.curso) curso = extracted.curso;
+    } else {
+      console.warn("[scraper:historico] Não encontrou o menu Consultar Índices Acadêmicos!");
     }
-    
-    await responsePromise;
-    await page.waitForLoadState("domcontentloaded", { timeout: SIGAA_NAVIGATION_TIMEOUT_MS }).catch(() => null);
-    
-    await dumpDebugHtml(page, "indices-academicos");
 
-    // 3. Extrair as tabelas de disciplinas e o curso
-    const extractedData = await extractDisciplinasFromIndicesPage(page);
+    // 3. Navegar para Minhas Notas para pegar as do semestre atual
+    console.info("[scraper:historico] Navegando para Consultar Minhas Notas...");
+    const menuNotasClicked = await clickMenu(page, 'Minhas Notas');
+    
+    if (menuNotasClicked) {
+      await dumpDebugHtml(page, "minhas-notas");
+      const extracted = await extractDisciplinasFromIndicesPage(page);
+      
+      // Adicionar apenas as que já não foram adicionadas (evitar duplicatas pelo código)
+      for (const d of extracted.disciplinas) {
+        if (!disciplinas.some(existing => existing.codigo === d.codigo)) {
+          disciplinas.push(d);
+        }
+      }
+      if (!curso && extracted.curso) curso = extracted.curso;
+    } else {
+      console.warn("[scraper:historico] Não encontrou o menu Minhas Notas!");
+    }
 
-    console.info(`[scraper:historico] Extraídas ${extractedData.disciplinas.length} disciplinas da página de Índices Acadêmicos. Curso: ${extractedData.curso}`);
+    console.info(`[scraper:historico] Extraídas ${disciplinas.length} disciplinas totais. Curso: ${curso}`);
 
     return {
       scrapedAt: new Date().toISOString(),
-      curso: extractedData.curso,
-      disciplinas: extractedData.disciplinas,
+      curso,
+      disciplinas,
       chResumo,
       chTotais,
     };
@@ -85,6 +81,35 @@ export async function scrapeIndicesAcademicos(page: Page): Promise<HistoricoSnap
       chResumo: [],
     };
   }
+}
+
+async function clickMenu(page: Page, text: string): Promise<boolean> {
+  const responsePromise = page.waitForResponse(
+    (resp) => resp.request().method() === "POST" && /discente\.jsf/i.test(resp.url()),
+    { timeout: SIGAA_NAVIGATION_TIMEOUT_MS }
+  ).catch(() => null);
+
+  const clicked = await page.evaluate((menuText) => {
+    const tds = Array.from(document.querySelectorAll('td.ThemeOfficeMenuItemText'));
+    const targetTd = tds.find(td => td.textContent?.trim().includes(menuText));
+    
+    if (!targetTd) return false;
+    
+    let clickTarget: HTMLElement = targetTd as HTMLElement;
+    if (targetTd.parentElement && targetTd.parentElement.tagName === 'TR') {
+      clickTarget = targetTd.parentElement as HTMLElement;
+    }
+    
+    clickTarget.click();
+    return true;
+  }, text);
+
+  if (clicked) {
+    await responsePromise;
+    await page.waitForLoadState("domcontentloaded", { timeout: SIGAA_NAVIGATION_TIMEOUT_MS }).catch(() => null);
+  }
+  
+  return clicked;
 }
 
 async function extractDisciplinasFromIndicesPage(page: Page): Promise<{ disciplinas: HistoricoDisciplinaEntry[], curso?: string }> {
