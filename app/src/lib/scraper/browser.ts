@@ -36,14 +36,13 @@ export async function launchSigaaBrowser(): Promise<Browser> {
 export async function createSigaaContext(
   browser: Browser
 ): Promise<BrowserContext> {
-  const path = (await import("node:path")).default;
   const context = await browser.newContext({
-    locale: "pt-BR",
-    userAgent:
-      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+    userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
     ignoreHTTPSErrors: true,
-    acceptDownloads: true,
-    downloadsPath: path.join(process.cwd(), ".data", "downloads"),
+    viewport: { width: 1280, height: 720 },
+    javaScriptEnabled: true,
+    locale: "pt-BR",
+    timezoneId: "America/Sao_Paulo",
   });
 
   // Rodando via tsx/esbuild (worker B54, scripts B72), o bundler injeta o

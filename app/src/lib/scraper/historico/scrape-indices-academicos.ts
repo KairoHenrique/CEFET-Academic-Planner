@@ -2,14 +2,14 @@ import type { Page } from "playwright";
 import { SIGAA_NAVIGATION_TIMEOUT_MS, SIGAA_SCRAPER_DEBUG } from "@/lib/scraper/constants";
 import { ScraperError } from "@/lib/scraper/errors";
 import type { HistoricoDisciplinaEntry, HistoricoSnapshot } from "@/lib/scraper/types/historico";
-import { extractPortalRawData } from "@/lib/scraper/portal-discente/extract-portal-raw";
+import { extractPortalRawFromPage } from "@/lib/scraper/portal-discente/extract-portal-raw";
 import { parsePortalPageData } from "@/lib/scraper/portal-discente/parse-portal-page";
 import { dumpScrapeHtml } from "@/lib/scraper/scrape-debug";
 
 export async function scrapeIndicesAcademicos(page: Page): Promise<HistoricoSnapshot> {
   try {
     // 1. Extrair os dados da página principal para pegar a Integralização
-    const portalRaw = await extractPortalRawData(page);
+    const portalRaw = await extractPortalRawFromPage(page);
     const portalData = parsePortalPageData(portalRaw);
     
     // Mapear Integralização do Portal para o formato do Historico
