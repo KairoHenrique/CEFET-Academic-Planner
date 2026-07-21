@@ -26,24 +26,31 @@ export async function extractHistoricoPdfText(buffer: Buffer): Promise<string> {
       
       const items = textContent.items.filter((i: any) => "str" in i);
       
-      // Agrupar por coordenada Y (arredondada para evitar micro-diferenças)
-      const linesByY: Record<number, any[]> = {};
+      // Agrupar por coordenada Y com tolerância de 12 pontos
+      const linesByY: { y: number; items: any[] }[] = [];
       for (const item of items) {
-        const y = Math.round(item.transform[5]);
-        if (!linesByY[y]) linesByY[y] = [];
-        linesByY[y].push(item);
+        const y = item.transform[5];
+        let found = false;
+        for (const line of linesByY) {
+          if (Math.abs(line.y - y) < 12) {
+            line.items.push(item);
+            found = true;
+            break;
+          }
+        }
+        if (!found) {
+          linesByY.push({ y, items: [item] });
+        }
       }
       
       // Ordenar os Y em ordem decrescente (do topo da página para baixo)
-      const yKeys = Object.keys(linesByY)
-        .map(Number)
-        .sort((a, b) => b - a);
+      linesByY.sort((a, b) => b.y - a.y);
       
       let pageText = "";
-      for (const y of yKeys) {
-        // Ordenar os itens na mesma linha por coordenada X crescente (da esquerda para a direita)
-        const rowItems = linesByY[y].sort((a, b) => a.transform[4] - b.transform[4]);
-        pageText += rowItems.map(i => i.str).join(" ") + "\n";
+      for (const line of linesByY) {
+        // Ordenar os itens na mesma linha por coordenada X crescente
+        const rowItems = line.items.sort((a, b) => a.transform[4] - b.transform[4]);
+        pageText += rowItems.map(i => i.str.trim()).filter(s => s).join(" ") + "\n";
       }
       fullText += pageText + "\n\n";
     }

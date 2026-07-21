@@ -53,21 +53,28 @@ async function debugPdf() {
     
     const items = textContent.items.filter(i => "str" in i);
     
-    const linesByY = {};
+    const linesByY = [];
     for (const item of items) {
-      const y = Math.round(item.transform[5]);
-      if (!linesByY[y]) linesByY[y] = [];
-      linesByY[y].push(item);
+      const y = item.transform[5];
+      let found = false;
+      for (const line of linesByY) {
+        if (Math.abs(line.y - y) < 12) {
+          line.items.push(item);
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        linesByY.push({ y, items: [item] });
+      }
     }
     
-    const yKeys = Object.keys(linesByY)
-      .map(Number)
-      .sort((a, b) => b - a);
+    linesByY.sort((a, b) => b.y - a.y);
     
     let pageText = "";
-    for (const y of yKeys) {
-      const rowItems = linesByY[y].sort((a, b) => a.transform[4] - b.transform[4]);
-      pageText += rowItems.map(i => i.str).join(" ") + "\n";
+    for (const line of linesByY) {
+      const rowItems = line.items.sort((a, b) => a.transform[4] - b.transform[4]);
+      pageText += rowItems.map(i => i.str.trim()).filter(s => s).join(" ") + "\n";
     }
     text += pageText + "\n\n";
   }
