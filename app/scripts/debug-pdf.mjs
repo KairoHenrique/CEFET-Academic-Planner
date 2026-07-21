@@ -53,33 +53,12 @@ async function debugPdf() {
     
     const items = textContent.items.filter(i => "str" in i && i.str.trim() !== "");
     
-    items.sort((a, b) => {
-      const yDiff = b.transform[5] - a.transform[5];
-      if (Math.abs(yDiff) > 2) return yDiff;
-      return a.transform[4] - b.transform[4];
-    });
-
-    let currentBlock = [];
-    const blocks = [];
-
     for (const item of items) {
       const text = item.str.trim();
-      if (/^(?:19|20)\d{2}\.[12]$/.test(text) && item.transform[4] < 60) {
-        if (currentBlock.length > 0) blocks.push(currentBlock);
-        currentBlock = [item];
-      } else {
-        currentBlock.push(item);
+      if (text.includes("2024.2") || text.includes("G05PPYT0") || text.includes("GT05FEC") || text.includes("PROGRAMAÇÃO EM PYTHON")) {
+        console.log(`TEXT: "${text}" | X: ${item.transform[4].toFixed(2)} | Y: ${item.transform[5].toFixed(2)}`);
       }
     }
-    if (currentBlock.length > 0) blocks.push(currentBlock);
-
-    for (const block of blocks) {
-      const blockText = block.sort((a, b) => a.transform[4] - b.transform[4])
-                             .map(i => i.str.trim())
-                             .join(" ");
-      text += blockText + "\n";
-    }
-    text += "\n";
   }
   
   console.log("\n--- INÍCIO DO TEXTO EXTRAÍDO ---");
