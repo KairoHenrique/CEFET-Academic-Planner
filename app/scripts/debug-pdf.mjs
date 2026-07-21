@@ -33,20 +33,16 @@ async function debugPdf() {
   console.log(`Lendo PDF: ${pdfPath}`);
   
   const buffer = fs.readFileSync(pdfPath);
-  const PDFParser = (await import('pdf2json')).default;
+  const pdfParse = (await import('pdf-parse')).default;
+  const result = await pdfParse(buffer);
+  const text = result.text;
   
-  const pdfParser = new PDFParser(null, 1);
-  pdfParser.on("pdfParser_dataError", errData => console.error(errData.parserError));
-  pdfParser.on("pdfParser_dataReady", () => {
-      const text = pdfParser.getRawTextContent();
-      console.log("\n--- INÍCIO DO TEXTO EXTRAÍDO ---");
-      const lines = text.split('\n');
-      console.log(lines.slice(0, 60).join('\n'));
-      console.log("\n[...]\n");
-      console.log(lines.slice(-60).join('\n'));
-      console.log("--- FIM DO TEXTO EXTRAÍDO ---");
-  });
-  pdfParser.parseBuffer(buffer);
+  console.log("\n--- INÍCIO DO TEXTO EXTRAÍDO ---");
+  const lines = text.split('\n');
+  console.log(lines.slice(0, 60).join('\n'));
+  console.log("\n[...]\n");
+  console.log(lines.slice(-60).join('\n'));
+  console.log("--- FIM DO TEXTO EXTRAÍDO ---");
 }
 
 debugPdf();
