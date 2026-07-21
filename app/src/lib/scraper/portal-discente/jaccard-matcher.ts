@@ -45,7 +45,15 @@ export function jaccardIndex(a: Set<string>, b: Set<string>): number {
   }
 
   const union = a.size + b.size - intersection;
-  return union === 0 ? 0 : intersection / union;
+  let score = union === 0 ? 0 : intersection / union;
+  
+  // Se TODO o candidato (smaller) está contido no alvo (larger) (ex: alvo tem lixo extra como nome de professor)
+  // Damos um boost massivo para garantir o match
+  if (intersection === smaller.size && smaller.size >= 2) {
+    score = Math.max(score, 0.85); // Garante no mínimo 85% de score para subset perfeito
+  }
+
+  return score;
 }
 
 // ─── Disciplina Matching ─────────────────────────────────────────────────

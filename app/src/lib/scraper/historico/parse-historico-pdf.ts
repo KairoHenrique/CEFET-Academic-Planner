@@ -107,6 +107,7 @@ function parseDisciplinas(text: string): HistoricoDisciplinaEntry[] {
       nome = nome.replace(/CEFET-MG.*?MINAS GERAIS/i, ""); // Remove rodapé inteiro
       nome = nome.replace(/SISTEMA ACADÊMICO.*?Data de Emissão.*$/i, ""); // Remove rodapé 2
       nome = nome.replace(/^\s*(?:[\d\.]+)\s+/, ""); // Remove número estranho no começo
+      nome = nome.replace(/\s*\([^\)]*\)\s*/g, " "); // Remove "(60h)" ou "(Professor)"
       nome = nome.replace(/\s+/g, " ").trim(); // Normaliza espaços
       
       if (nome.length > 2) {
