@@ -196,11 +196,11 @@ function parseChResumo(text: string): {
   if (hourValues.length < 18) return { chResumo: [] };
 
   const specs = [
-    { tipo: "Optativa", exigido: 0, integralizado: 1, pendente: 2 },
-    { tipo: "Obrigatória", exigido: 8, integralizado: 7, pendente: 6 },
-    { tipo: "Complementar", exigido: 11, integralizado: 10, pendente: 9 },
-    { tipo: "Flexibilizada", exigido: 14, integralizado: 13, pendente: 12 },
-    { tipo: "Extensão", exigido: 17, integralizado: 16, pendente: 15 },
+    { tipo: "Obrigatória", exigido: 0, integralizado: 3, pendente: 6 },
+    { tipo: "Optativa", exigido: 1, integralizado: 4, pendente: 7 },
+    { tipo: "Complementar", exigido: 9, integralizado: 12, pendente: 15 },
+    { tipo: "Extensão", exigido: 10, integralizado: 13, pendente: 16 },
+    { tipo: "Flexibilizada", exigido: 11, integralizado: 14, pendente: 17 },
   ];
 
   const chResumo = specs.map(({ tipo, exigido, integralizado, pendente }) => ({
@@ -211,9 +211,9 @@ function parseChResumo(text: string): {
   }));
 
   const chTotais: HistoricoChTotais = {
-    exigido: hourValues[3] ?? 0,
-    integralizado: hourValues[4] ?? 0,
-    pendente: hourValues[5] ?? 0,
+    exigido: hourValues[2] ?? 0,
+    integralizado: hourValues[5] ?? 0,
+    pendente: hourValues[8] ?? 0,
   };
 
   return { chResumo, chTotais };
