@@ -40,6 +40,7 @@ export interface HistoricoChTotais {
 /** Snapshot completo do histórico escolar extraído do PDF do SIGAA. */
 export interface HistoricoSnapshot {
   scrapedAt: string;
+  curso?: string;
   disciplinas: HistoricoDisciplinaEntry[];
   chResumo: HistoricoChResumo[];
   chTotais?: HistoricoChTotais;

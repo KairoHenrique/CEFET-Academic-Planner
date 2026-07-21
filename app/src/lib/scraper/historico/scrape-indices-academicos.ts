@@ -44,9 +44,9 @@ export async function scrapeIndicesAcademicos(page: Page): Promise<HistoricoSnap
       if (!targetTd) return false;
       
       // O clique pode estar no TR ou no TD
-      let clickTarget: HTMLElement = targetTd;
+      let clickTarget: HTMLElement = targetTd as HTMLElement;
       if (targetTd.parentElement && targetTd.parentElement.tagName === 'TR') {
-        clickTarget = targetTd.parentElement;
+        clickTarget = targetTd.parentElement as HTMLElement;
       }
       
       clickTarget.click();
@@ -62,14 +62,15 @@ export async function scrapeIndicesAcademicos(page: Page): Promise<HistoricoSnap
     
     await dumpDebugHtml(page, "indices-academicos");
 
-    // 3. Extrair as tabelas de disciplinas
-    const disciplinas = await extractDisciplinasFromIndicesPage(page);
+    // 3. Extrair as tabelas de disciplinas e o curso
+    const extractedData = await extractDisciplinasFromIndicesPage(page);
 
-    console.info(`[scraper:historico] Extraídas ${disciplinas.length} disciplinas da página de Índices Acadêmicos.`);
+    console.info(`[scraper:historico] Extraídas ${extractedData.disciplinas.length} disciplinas da página de Índices Acadêmicos. Curso: ${extractedData.curso}`);
 
     return {
       scrapedAt: new Date().toISOString(),
-      disciplinas,
+      curso: extractedData.curso,
+      disciplinas: extractedData.disciplinas,
       chResumo,
       chTotais,
     };
@@ -86,79 +87,95 @@ export async function scrapeIndicesAcademicos(page: Page): Promise<HistoricoSnap
   }
 }
 
-async function extractDisciplinasFromIndicesPage(page: Page): Promise<HistoricoDisciplinaEntry[]> {
+async function extractDisciplinasFromIndicesPage(page: Page): Promise<{ disciplinas: HistoricoDisciplinaEntry[], curso?: string }> {
   // A página de Índices Acadêmicos possui várias tabelas agrupadas por semestre.
-  // Vamos buscar a tabela principal (geralmente class = "listagem" ou similar)
+  // Vamos buscar a tabela principal
   
   const entries = await page.evaluate(() => {
     const disciplinas: HistoricoDisciplinaEntry[] = [];
+    let curso: string | undefined;
     
-    // Procura por todas as tabelas listagem
-    const tables = document.querySelectorAll('table.listagem');
-    if (!tables || tables.length === 0) return [];
+    // Tenta extrair o curso procurando a palavra "Curso:" em todo o HTML
+    const match = document.body.textContent?.match(/Curso:\s*(.+?)(?=\n|$)/i);
+    if (match && match[1]) {
+      curso = match[1].trim();
+    }
     
-    // A tabela master tem thead com as colunas (Código, Disciplina, Unidade 1, etc)
-    // E tr.agrupador com o semestre (ex: 2025.2)
-    // E tr class="linhaImpar" ou "linhaPar" com as disciplinas.
+    // Procura por todas as tabelas na página
+    const tables = Array.from(document.querySelectorAll('table'));
+    if (!tables || tables.length === 0) return { disciplinas, curso };
     
     for (const table of tables) {
+      // Verifica se a tabela parece ser uma tabela de disciplinas
+      const headerText = table.textContent?.toLowerCase() || "";
+      if (!headerText.includes("código") || !headerText.includes("disciplina") || !headerText.includes("situação")) {
+        continue;
+      }
+
       const rows = Array.from(table.querySelectorAll('tr'));
       let currentSemestre = "";
       
       for (const row of rows) {
-        if (row.classList.contains('agrupador')) {
-          currentSemestre = row.textContent?.trim() || currentSemestre;
+        // Se a linha tem apenas 1 ou 2 células e contém um ano.semestre (ex: 2025.2), é um agrupador
+        const rowText = row.textContent?.trim() || "";
+        if (row.cells.length <= 2 && /^\d{4}\.\d$/.test(rowText)) {
+          currentSemestre = rowText;
           continue;
         }
         
-        if (row.classList.contains('linhaImpar') || row.classList.contains('linhaPar')) {
-          const cells = Array.from(row.querySelectorAll('td'));
-          if (cells.length < 7) continue;
-          
-          const codigo = cells[0].textContent?.trim() || "";
-          const nome = cells[1].textContent?.trim() || "";
-          // cell 2: Unidade 1, cell 3: Recuperação, cell 4: Resultado
-          const resultado = cells[4].textContent?.trim() || "";
-          const faltas = cells[5].textContent?.trim() || "";
-          const situacao = cells[6].textContent?.trim() || "";
-          
-          if (!codigo || !nome) continue;
-          
-          // O usuário pediu especificamente para ignorar REPROVADO ou vazios.
-          // Pegar apenas aprovados ou dispensados (créditos aproveitados).
-          const sitUpper = situacao.toUpperCase();
-          if (!sitUpper.includes("APROVADO") && !sitUpper.includes("DISPENSADO") && !sitUpper.includes("INCORPORADO") && !sitUpper.includes("CUMPRIDO")) {
-            continue;
-          }
-          
-          // Parse Resultado
-          let media: number | null = null;
-          if (resultado && resultado !== "-" && resultado !== "--") {
-            const numStr = resultado.replace(",", ".");
-            const num = parseFloat(numStr);
-            if (!isNaN(num)) media = num;
-          }
-          
-          // Parse Faltas
-          let frequencia: number | null = null;
-          
-          disciplinas.push({
-            semestre: currentSemestre,
-            codigo: codigo,
-            nome: nome,
-            situacao: situacao,
-            ch: 0, // Será resolvido no backend pelo banco de dados PPC
-            horaAula: 0, // Será resolvido no backend
-            frequencia: frequencia, // Ignorado
-            media: media,
-            conceito: isNaN(parseFloat(resultado.replace(",","."))) && resultado !== "-" && resultado !== "" ? resultado : null,
-            optativo: false,
-          });
+        // Se a linha tem class agrupador
+        if (row.classList.contains('agrupador')) {
+          currentSemestre = rowText || currentSemestre;
+          continue;
         }
+        
+        const cells = Array.from(row.querySelectorAll('td'));
+        if (cells.length < 7) continue;
+        
+        const codigo = cells[0].textContent?.trim() || "";
+        const nome = cells[1].textContent?.trim() || "";
+        const resultado = cells[4].textContent?.trim() || "";
+        const faltas = cells[5].textContent?.trim() || "";
+        const situacao = cells[6].textContent?.trim() || "";
+        
+        if (!codigo || !nome || codigo.toLowerCase() === "código" || nome.toLowerCase() === "disciplina") {
+          continue;
+        }
+        
+        // O usuário pediu especificamente para ignorar REPROVADO ou vazios.
+        // Pegar apenas aprovados ou dispensados (créditos aproveitados).
+        const sitUpper = situacao.toUpperCase();
+        if (!sitUpper.includes("APROVADO") && !sitUpper.includes("DISPENSADO") && !sitUpper.includes("INCORPORADO") && !sitUpper.includes("CUMPRIDO")) {
+          continue;
+        }
+        
+        // Parse Resultado
+        let media: number | null = null;
+        if (resultado && resultado !== "-" && resultado !== "--") {
+          const numStr = resultado.replace(",", ".");
+          const num = parseFloat(numStr);
+          if (!isNaN(num)) media = num;
+        }
+        
+        // Parse Faltas
+        let frequencia: number | null = null;
+        
+        disciplinas.push({
+          semestre: currentSemestre,
+          codigo: codigo,
+          nome: nome,
+          situacao: situacao,
+          ch: 0, // Será resolvido no backend pelo banco de dados PPC
+          horaAula: 0, // Será resolvido no backend
+          frequencia: frequencia, // Ignorado
+          media: media,
+          conceito: isNaN(parseFloat(resultado.replace(",","."))) && resultado !== "-" && resultado !== "" ? resultado : null,
+          optativo: false,
+        });
       }
     }
     
-    return disciplinas;
+    return { disciplinas, curso };
   });
   
   return entries;
