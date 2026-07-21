@@ -109,6 +109,7 @@ let code = fs.readFileSync(file, 'utf8');
 code = code.replace('let pkg;', 'let pkg = "dummy";');
 code = code.replace('let subpath;', 'let subpath = "dummy";');
 code = code.replace(/throw new Error/g, 'console.warn');
+code = code.replace(/throw e;/g, 'return { binPath: __filename };');
 fs.writeFileSync(file, code);
 EOF
 fi
