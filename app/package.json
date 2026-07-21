@@ -64,7 +64,7 @@
     "html-to-image": "^1.11.13",
     "next": "16.2.9",
     "nodemailer": "^9.0.3",
-    "pdf-parse": "^2.4.5",
+    "pdf-parse": "^1.1.1",
     "pg-cloudflare": "^1.4.0",
     "playwright": "^1.61.1",
     "qrcode": "^1.5.4",

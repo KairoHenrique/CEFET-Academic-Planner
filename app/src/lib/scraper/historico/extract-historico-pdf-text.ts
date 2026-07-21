@@ -1,14 +1,14 @@
 /**
- * Extrai texto do buffer PDF do histórico SIGAA (pdf-parse v2 / PDFParse).
+ * Extrai texto do buffer PDF do histórico SIGAA usando pdf-parse v1.1.1.
  */
 export async function extractHistoricoPdfText(buffer: Buffer): Promise<string> {
-  const { PDFParse } = await import("pdf-parse");
-  const parser = new PDFParse({ data: buffer });
+  const pdfParse = (await import("pdf-parse")).default;
 
   try {
-    const result = await parser.getText();
+    const result = await pdfParse(buffer);
     return result.text ?? "";
-  } finally {
-    await parser.destroy().catch(() => undefined);
+  } catch (error) {
+    console.error("Erro ao extrair texto do PDF:", error);
+    return "";
   }
 }
