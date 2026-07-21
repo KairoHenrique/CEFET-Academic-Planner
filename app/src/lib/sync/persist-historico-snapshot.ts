@@ -26,10 +26,14 @@ function mapSituacaoToStatus(
   switch (situacao.toUpperCase()) {
     case "APR":
     case "APRN":
+    case "APROVADO":
     case "DISP":
+    case "DISPENSADO":
     case "CUMP":
+    case "CUMPRIDO":
     case "TRANS":
     case "INCORP":
+    case "INCORPORADO":
       return "aprovado";
 
     case "REP":
@@ -37,19 +41,27 @@ function mapSituacaoToStatus(
     case "REPMF":
     case "REPN":
     case "REPNF":
+    case "REPROVADO":
       return "reprovado";
 
     case "TRANC":
+    case "TRANCADO":
       return "trancado";
 
     case "CANC":
+    case "CANCELADO":
       return "cancelado";
 
     case "MATR":
+    case "MATRICULADO":
       return "cursando";
 
     case "REC":
     default:
+      // Pode ser reprovado por falta, etc, mas tentamos um fallback:
+      if (situacao.toUpperCase().includes("APROVADO")) return "aprovado";
+      if (situacao.toUpperCase().includes("REPROVADO")) return "reprovado";
+      if (situacao.toUpperCase().includes("DISPENSADO")) return "aprovado";
       return null;
   }
 }
