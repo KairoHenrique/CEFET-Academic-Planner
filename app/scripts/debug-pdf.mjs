@@ -51,32 +51,35 @@ async function debugPdf() {
     const page = await pdfDocument.getPage(i);
     const textContent = await page.getTextContent();
     
-    const items = textContent.items.filter(i => "str" in i);
+    const items = textContent.items.filter(i => "str" in i && i.str.trim() !== "");
     
-    const linesByY = [];
+    items.sort((a, b) => {
+      const yDiff = b.transform[5] - a.transform[5];
+      if (Math.abs(yDiff) > 2) return yDiff;
+      return a.transform[4] - b.transform[4];
+    });
+
+    let currentBlock = [];
+    const blocks = [];
+
     for (const item of items) {
-      const y = item.transform[5];
-      let found = false;
-      for (const line of linesByY) {
-        if (Math.abs(line.y - y) < 12) {
-          line.items.push(item);
-          found = true;
-          break;
-        }
-      }
-      if (!found) {
-        linesByY.push({ y, items: [item] });
+      const text = item.str.trim();
+      if (/^(?:19|20)\d{2}\.[12]$/.test(text) && item.transform[4] < 60) {
+        if (currentBlock.length > 0) blocks.push(currentBlock);
+        currentBlock = [item];
+      } else {
+        currentBlock.push(item);
       }
     }
-    
-    linesByY.sort((a, b) => b.y - a.y);
-    
-    let pageText = "";
-    for (const line of linesByY) {
-      const rowItems = line.items.sort((a, b) => a.transform[4] - b.transform[4]);
-      pageText += rowItems.map(i => i.str.trim()).filter(s => s).join(" ") + "\n";
+    if (currentBlock.length > 0) blocks.push(currentBlock);
+
+    for (const block of blocks) {
+      const blockText = block.sort((a, b) => a.transform[4] - b.transform[4])
+                             .map(i => i.str.trim())
+                             .join(" ");
+      text += blockText + "\n";
     }
-    text += pageText + "\n\n";
+    text += "\n";
   }
   
   console.log("\n--- INÍCIO DO TEXTO EXTRAÍDO ---");
