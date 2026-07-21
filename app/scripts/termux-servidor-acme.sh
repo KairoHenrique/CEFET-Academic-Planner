@@ -48,10 +48,14 @@ if command -v npm &> /dev/null; then
     npm install --no-fund --no-audit --ignore-scripts
     # Reconstrói apenas o better-sqlite3 manualmente
     if [ -d "node_modules/better-sqlite3" ]; then
-        echo "[*] Recompilando better-sqlite3 nativo do Termux (from source)..."
-        export GYP_DEFINES="android_ndk_path=''"
-        export npm_config_build_from_source=true
-        npm rebuild better-sqlite3 --build-from-source
+        if [ ! -f "node_modules/.better-sqlite3-termux-compiled" ]; then
+            echo "[*] Recompilando better-sqlite3 nativo do Termux (from source)..."
+            export GYP_DEFINES="android_ndk_path=''"
+            export npm_config_build_from_source=true
+            npm rebuild better-sqlite3 --build-from-source && touch "node_modules/.better-sqlite3-termux-compiled"
+        else
+            echo "[*] better-sqlite3 já foi compilado, pulando etapa."
+        fi
     fi
 fi
 
