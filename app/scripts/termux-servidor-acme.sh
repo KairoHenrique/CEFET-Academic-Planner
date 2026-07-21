@@ -5,6 +5,12 @@
 
 echo "Iniciando ServidorACME no Termux..."
 
+# Limpa instâncias antigas para garantir que o código novo rode limpo
+echo "[*] Encerrando processos antigos do worker e cloudflared..."
+pkill -f "npm run worker:home" 2>/dev/null || true
+pkill -f "node" 2>/dev/null || true
+pkill -f "cloudflared" 2>/dev/null || true
+
 # Resolve o diretório do app baseado na localização do script
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." >/dev/null 2>&1 && pwd)"
 cd "$DIR" || exit 1
@@ -137,14 +143,77 @@ cleanup() {
     echo "[*] Parando servidores..."
     kill $TUNNEL_PID 2>/dev/null
     kill $WORKER_PID 2>/dev/null
-    echo "[+] Servidor parado."
-    exit 0
+    echo "[+] Tudo pronto! O servidor está rodando e conectado à nuvem."
 }
 
 trap cleanup SIGINT SIGTERM
 
-echo ""
-echo "Pressione Ctrl+C para parar o servidor."
+echo "--------------------------------------------------------"
+echo " Pressione uma tecla para executar um comando:"
+echo " [r] - Verificar GitHub (Atualizar e Reiniciar)"
+echo " [c] - Ver consumo de CPU/RAM (Para testar limites dos robôs)"
+echo " [q] - Sair e desligar o servidor"
+echo "--------------------------------------------------------"
 
-# Espera os processos
-wait $WORKER_PID $TUNNEL_PID
+while true; do
+    if read -t 300 -n 1 -s key; then
+        case $key in
+            r|R)
+                echo -e "\n[*] Buscando atualizações no GitHub..."
+                git fetch
+                LOCAL=$(git rev-parse HEAD)
+                REMOTE=$(git rev-parse @{u})
+                
+                if [ "$LOCAL" = "$REMOTE" ]; then
+                    echo "[+] Você já está na versão mais recente!"
+                else
+                    echo "[!] Atualização encontrada! Reiniciando o servidor para aplicar..."
+                    git pull origin main
+                    pkill -P $$ 2>/dev/null
+                    kill $WORKER_PID 2>/dev/null
+                    kill $TUNNEL_PID 2>/dev/null
+                    exec "$0" # Roda o script do zero
+                fi
+                echo "Pressione [r], [c] ou [q]"
+                ;;
+            c|C)
+                echo -e "\n--- MONITOR DE RECURSOS ---"
+                echo "Memória do Sistema:"
+                free -h 2>/dev/null || echo "(Comando free indisponível)"
+                echo "Processos mais pesados:"
+                top -n 1 -b 2>/dev/null | head -n 15 || echo "(Comando top indisponível)"
+                echo "---------------------------"
+                echo "Pressione [r], [c] ou [q]"
+                ;;
+            q|Q)
+                echo -e "\n[*] Desligando servidor e túnel..."
+                kill $WORKER_PID 2>/dev/null
+                kill $TUNNEL_PID 2>/dev/null
+                pkill -P $$ 2>/dev/null
+                exit 0
+                ;;
+        esac
+    else
+        # Tempo esgotado (5 minutos) - Checagem automática silenciosa
+        git fetch >/dev/null 2>&1
+        LOCAL=$(git rev-parse HEAD)
+        REMOTE=$(git rev-parse @{u})
+        
+        if [ "$LOCAL" != "$REMOTE" ]; then
+            echo -e "\n[!] Atualização automática encontrada no GitHub!"
+            
+            # Verifica se há algum robô do SIGAA (chromium) rodando
+            while pgrep -f "chromium" > /dev/null; do
+                echo "[!] Alguém está sincronizando agora (robô ativo). Aguardando 15 segundos..."
+                sleep 15
+            done
+            
+            echo "[*] Caminho livre! Nenhum robô rodando. Aplicando atualização e reiniciando..."
+            git pull origin main
+            pkill -P $$ 2>/dev/null
+            kill $WORKER_PID 2>/dev/null
+            kill $TUNNEL_PID 2>/dev/null
+            exec "$0" # Roda o script do zero
+        fi
+    fi
+done

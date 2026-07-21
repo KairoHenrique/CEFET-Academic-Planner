@@ -125,10 +125,17 @@ function saveHistoricoPdfDebug(buffer: Buffer): void {
     resolveUserDataDir(getActiveSigaaUsername()),
     "scrape-debug"
   );
+  
+  // Limpa o diretório de debug antes de salvar o novo, 
+  // garantindo que não acumulemos PDFs antigos.
+  if (fs.existsSync(debugDir)) {
+    fs.rmSync(debugDir, { recursive: true, force: true });
+  }
   fs.mkdirSync(debugDir, { recursive: true });
+  
   const filename = `${Date.now()}-historico-escolar.pdf`;
   fs.writeFileSync(path.join(debugDir, filename), buffer);
-  console.info(`[scraper:debug] PDF salvo: .data/scrape-debug/${filename}`);
+  console.info(`[scraper:debug] Diretório limpo. PDF salvo: .data/users/.../scrape-debug/${filename}`);
 }
 
 function buildEmptySnapshot(reason: string): HistoricoSnapshot {
