@@ -20,9 +20,11 @@ fi
 # Instala as dependências, se houver pacotes novos
 echo "[*] Verificando/instalando dependências..."
 if command -v npm &> /dev/null; then
-    export npm_config_platform=linux
+    # Ignora scripts para não dar crash no workerd (que não roda no Android)
+    npm install --no-fund --no-audit --ignore-scripts
+    # Reconstrói apenas o better-sqlite3 manualmente
     export GYP_DEFINES="android_ndk_path=''"
-    npm install --no-fund --no-audit
+    npm rebuild better-sqlite3
 fi
 
 
