@@ -40,8 +40,7 @@ export async function scrapePortalDiscente(
   const pageHtml = await page.content();
   dumpScrapeHtml("portal-discente", "pagina", pageHtml);
   const snapshot = parsePortalPageData(
-    { ...raw, html: pageHtml },
-    resolveQueryCursoId()
+    { ...raw, html: pageHtml }
   );
 
   if (snapshot.semestreAtual.length > 0) {

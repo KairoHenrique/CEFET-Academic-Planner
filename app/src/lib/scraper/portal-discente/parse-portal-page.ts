@@ -497,16 +497,29 @@ function parseAtividades(raw: PortalPageRawData): PortalAtividadePendente[] {
 
 export function parsePortalPageData(
   raw: PortalPageRawData,
-  cursoId: string = DEFAULT_CURSO_ID
+  cursoIdOverride?: string
 ): PortalDiscenteSnapshot {
+  const aluno = parseAluno(raw);
+  
+  let inferredCursoId = cursoIdOverride;
+  if (!inferredCursoId) {
+    if (aluno.curso?.toLowerCase().includes("mecatr")) {
+      inferredCursoId = "eng-mecatronica";
+    } else if (aluno.curso?.toLowerCase().includes("moda")) {
+      inferredCursoId = "design-moda";
+    } else {
+      inferredCursoId = DEFAULT_CURSO_ID; // "eng-computacao"
+    }
+  }
+
   const semestreAtual = parseDisciplinasSemestre(raw);
   const semestreLetivo =
     (raw.html ? inferSemestreAtualFromHtml(raw.html) : null) ?? null;
 
   return {
     scrapedAt: new Date().toISOString(),
-    aluno: parseAluno(raw),
-    integralizacao: parseIntegralizacao(raw, cursoId),
+    aluno,
+    integralizacao: parseIntegralizacao(raw, inferredCursoId),
     integralizacaoResumo: parseIntegralizacaoResumo(raw),
     semestreAtual,
     semestreLetivo,
