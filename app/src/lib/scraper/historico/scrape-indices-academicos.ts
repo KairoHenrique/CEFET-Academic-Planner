@@ -100,6 +100,10 @@ async function clickMenu(page: Page, text: string): Promise<boolean> {
       clickTarget = targetTd.parentElement as HTMLElement;
     }
     
+    // JSCookMenu usa eventos de mouse (mouseup/mousedown) na linha (TR) para disparar a navegação
+    clickTarget.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
+    clickTarget.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+    clickTarget.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
     clickTarget.click();
     return true;
   }, text);
