@@ -33,8 +33,45 @@ async function debugPdf() {
   console.log(`Lendo PDF: ${pdfPath}`);
   
   const buffer = fs.readFileSync(pdfPath);
-  const { extractHistoricoPdfText } = await import('../src/lib/scraper/historico/extract-historico-pdf-text.js');
-  const text = await extractHistoricoPdfText(buffer);
+  const { createRequire } = await import('module');
+  const require = createRequire(import.meta.url);
+  const pdfjs = require("pdfjs-dist/legacy/build/pdf.js");
+  pdfjs.GlobalWorkerOptions.workerSrc = require.resolve("pdfjs-dist/legacy/build/pdf.worker.js");
+
+  const loadingTask = pdfjs.getDocument({
+    data: new Uint8Array(buffer),
+    useSystemFonts: true,
+    disableFontFace: true,
+    standardFontDataUrl: require.resolve("pdfjs-dist/standard_fonts/"),
+  });
+
+  const pdfDocument = await loadingTask.promise;
+  let text = "";
+
+  for (let i = 1; i <= pdfDocument.numPages; i++) {
+    const page = await pdfDocument.getPage(i);
+    const textContent = await page.getTextContent();
+    
+    const items = textContent.items.filter(i => "str" in i);
+    
+    const linesByY = {};
+    for (const item of items) {
+      const y = Math.round(item.transform[5]);
+      if (!linesByY[y]) linesByY[y] = [];
+      linesByY[y].push(item);
+    }
+    
+    const yKeys = Object.keys(linesByY)
+      .map(Number)
+      .sort((a, b) => b - a);
+    
+    let pageText = "";
+    for (const y of yKeys) {
+      const rowItems = linesByY[y].sort((a, b) => a.transform[4] - b.transform[4]);
+      pageText += rowItems.map(i => i.str).join(" ") + "\n";
+    }
+    text += pageText + "\n\n";
+  }
   
   console.log("\n--- INÍCIO DO TEXTO EXTRAÍDO ---");
   const lines = text.split('\n');
