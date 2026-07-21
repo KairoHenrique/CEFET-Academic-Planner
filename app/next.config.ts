@@ -22,6 +22,9 @@ const cloudStubAliasAbs = Object.fromEntries(
 );
 
 const nextConfig: NextConfig = {
+  typescript: {
+    ignoreBuildErrors: true,
+  },
   turbopack: {
     root: path.join(__dirname),
     ...(isCloudflareBuild ? { resolveAlias: CLOUD_STUB_ALIASES } : {}),

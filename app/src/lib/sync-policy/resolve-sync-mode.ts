@@ -48,7 +48,7 @@ export type TurmaSubpageKey = "notas" | "frequencia" | "grupo" | "tarefas";
 export function resolveTurmaSubpagesForMode(mode: SyncMode): TurmaSubpageKey[] {
   const normalized = normalizeSyncMode(mode);
   if (normalized === "lite") {
-    return ["notas", "tarefas"];
+    return ["notas", "tarefas", "frequencia"];
   }
   return ["notas", "frequencia", "grupo", "tarefas"];
 }

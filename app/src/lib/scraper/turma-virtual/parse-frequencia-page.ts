@@ -210,9 +210,9 @@ export interface FrequenciaPageMeta {
 }
 
 const TOTAL_AULAS_PATTERN =
-  /N[uú]mero de Aulas definidas pela CH do Componente:[\s\S]{0,48}?(\d+)/i;
+  /N(?:[uúǧ]|&uacute;)mero de Aulas definidas pela CH do Componente:[\s\S]{0,48}?(\d+)/i;
 const MIN_FREQ_PATTERN =
-  /frequ[eê]ncia\s+m[ií]nima[\s\S]{0,120}?(\d+(?:[.,]\d+)?)\s*%/i;
+  /frequ(?:[eêǦ]|&ecirc;)ncia\s+m(?:[ií]|&iacute;)nima[\s\S]{0,120}?(\d+(?:[.,]\d+)?)\s*%/i;
 
 /** Máximo de faltas permitidas: (100% − freq. mínima) × total de aulas. */
 export function computeMaxFaltasFromAulasCh(

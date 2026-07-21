@@ -310,57 +310,10 @@ function parseFaltasFromStudentRow(
   subHeaderIndex: number,
   dataRow: string[]
 ): number | null {
-  const situacaoIndex = dataRow.findIndex((cell) => /^--$/i.test(cell.trim()));
-  if (situacaoIndex > 0) {
-    for (let index = situacaoIndex - 1; index >= 0; index -= 1) {
-      const value = dataRow[index]?.trim() ?? "";
-      if (/^\d+$/.test(value)) {
-        return parseBrDecimal(value);
-      }
-    }
-  }
-
-  const integerCells = dataRow
-    .map((cell) => cell.trim())
-    .filter((value) => /^\d+$/.test(value));
-  if (integerCells.length > 0) {
-    return parseBrDecimal(integerCells[integerCells.length - 1] ?? null);
-  }
-
-  for (let index = subHeaderIndex; index >= 0; index -= 1) {
-    const headerRow = rows[index];
-    const faltasIndex = headerRow.findIndex((cell) =>
-      /^faltas$/i.test(normalizeHeader(cell))
-    );
-    if (faltasIndex >= 0) {
-      const fromHeader = parseBrDecimal(dataRow[faltasIndex] ?? null);
-      if (fromHeader !== null) return fromHeader;
-    }
-  }
-
-  const trailingInteger = [...dataRow]
-    .reverse()
-    .find((cell) => /^\d+$/.test(cell.trim()));
-  return trailingInteger ? parseBrDecimal(trailingInteger) : null;
+  return null;
 }
 
 function parseMaxFaltasFromRows(rows: string[][]): number | null {
-  for (const row of rows) {
-    const faltasIndex = row.findIndex((cell) =>
-      /^faltas$/i.test(normalizeHeader(cell))
-    );
-    if (faltasIndex < 0) continue;
-
-    const dataRow = rows[rows.indexOf(row) + 1];
-    if (!dataRow) continue;
-    return parseBrDecimal(dataRow[faltasIndex] ?? null);
-  }
-
-  for (const row of rows) {
-    const faltasValue = row.findLast((cell) => /^\d+$/.test(cell.trim()));
-    if (faltasValue) return parseBrDecimal(faltasValue);
-  }
-
   return null;
 }
 

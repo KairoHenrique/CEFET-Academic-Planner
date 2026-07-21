@@ -77,36 +77,38 @@ async function main(): Promise<void> {
   const credentials = readCredentialsFromEnv();
 
   await runWithUserDb(credentials.username, async () => {
-    ensureDbReady();
+    await runWithScraperSqlite(async () => {
+      ensureDbReady();
 
-    console.log("\n[1/3] Sync completo (portal + histórico + turma virtual)…");
-    const syncResult = await runSync(
-      {
-        username: credentials.username,
-        password: credentials.password,
-        savePassword: false,
-      },
-      { mode: "full" }
-    );
-    for (const stage of syncResult.stages) {
-      console.log(
-        `  etapa ${stage.stage}: ${stage.outcome}${stage.message ? ` — ${stage.message}` : ""}`
+      console.log("\n[1/3] Sync completo (portal + histórico + turma virtual)…");
+      const syncResult = await runSync(
+        {
+          username: credentials.username,
+          password: credentials.password,
+          savePassword: false,
+        },
+        { mode: "full" }
       );
-    }
+      for (const stage of syncResult.stages) {
+        console.log(
+          `  etapa ${stage.stage}: ${stage.outcome}${stage.message ? ` — ${stage.message}` : ""}`
+        );
+      }
 
-    console.log("\n[2/3] Turmas ofertadas…");
-    const turmasResult = await runTurmasOfertadasSync(
-      { username: credentials.username, password: credentials.password },
-      { force: true }
-    );
-    console.log(`  ${turmasResult.message}`);
+      console.log("\n[2/3] Turmas ofertadas…");
+      const turmasResult = await runTurmasOfertadasSync(
+        { username: credentials.username, password: credentials.password },
+        { force: true }
+      );
+      console.log(`  ${turmasResult.message}`);
 
-    console.log("\n[3/3] Calendário acadêmico…");
-    const calendarioResult = await runCalendarioSync(
-      { username: credentials.username, password: credentials.password },
-      { force: true }
-    );
-    console.log(`  ${calendarioResult.message}`);
+      console.log("\n[3/3] Calendário acadêmico…");
+      const calendarioResult = await runCalendarioSync(
+        { username: credentials.username, password: credentials.password },
+        { force: true }
+      );
+      console.log(`  ${calendarioResult.message}`);
+    });
   });
 
   await verifyPostgresRows(credentials.username);
