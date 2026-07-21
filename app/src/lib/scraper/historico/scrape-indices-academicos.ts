@@ -107,8 +107,9 @@ async function extractDisciplinasFromIndicesPage(page: Page): Promise<{ discipli
     
     for (const table of tables) {
       // Verifica se a tabela parece ser uma tabela de disciplinas
-      const headerText = table.textContent?.toLowerCase() || "";
-      if (!headerText.includes("código") || !headerText.includes("disciplina") || !headerText.includes("situação")) {
+      const normalizeStr = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+      const headerText = normalizeStr(table.textContent || "");
+      if (!headerText.includes("codigo") || !headerText.includes("disciplina") || !headerText.includes("situacao")) {
         continue;
       }
 
@@ -136,12 +137,14 @@ async function extractDisciplinasFromIndicesPage(page: Page): Promise<{ discipli
         
         // Tenta identificar o cabeçalho para mapear as colunas
         if (!foundHeader) {
-          const headerTexts = cells.map(c => c.textContent?.trim().toLowerCase() || "");
-          const hasCodigo = headerTexts.some(t => t.includes("código"));
+          const normalizeStr = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+          const headerTexts = cells.map(c => normalizeStr(c.textContent || ""));
+          const hasCodigo = headerTexts.some(t => t.includes("codigo"));
+          
           if (hasCodigo) {
-            colCod = headerTexts.findIndex(t => t.includes("código"));
+            colCod = headerTexts.findIndex(t => t.includes("codigo"));
             colDis = headerTexts.findIndex(t => t.includes("disciplina"));
-            colSit = headerTexts.findIndex(t => t.includes("situação"));
+            colSit = headerTexts.findIndex(t => t.includes("situacao"));
             colRes = headerTexts.findIndex(t => t.includes("resultado"));
             colFal = headerTexts.findIndex(t => t.includes("faltas"));
             foundHeader = true;
@@ -153,8 +156,8 @@ async function extractDisciplinasFromIndicesPage(page: Page): Promise<{ discipli
         if (!foundHeader || cells.length < 3) continue;
         
         // Se a linha é o próprio cabeçalho sendo repetido, pula
-        const txtCod = cells[colCod]?.textContent?.trim().toLowerCase() || "";
-        if (txtCod === "código") continue;
+        const txtCod = normalizeStr(cells[colCod]?.textContent || "");
+        if (txtCod === "codigo") continue;
         
         const codigo = cells[colCod]?.textContent?.trim() || "";
         const nome = cells[colDis]?.textContent?.trim() || "";
