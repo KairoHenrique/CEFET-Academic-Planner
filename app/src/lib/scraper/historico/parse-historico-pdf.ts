@@ -43,318 +43,95 @@ function parseDisciplinas(text: string): HistoricoDisciplinaEntry[] {
 
   const disciplinas: HistoricoDisciplinaEntry[] = [];
   
-  for (const line of lines) {
-    if (SEMESTRE_RE.test(line)) {
-      // A linha perfeita: 2024.1 [*] G05CFVR1. [01] CÁLCULO... [Professor (Xh)] 90 75 01 96,0 96.0 A APR
-      
-      // Extrair semestre e código
-      const semestreMatch = line.match(SEMESTRE_RE);
-      if (!semestreMatch) continue;
-      const semestre = semestreMatch[1];
-      
-      const codigoMatch = line.match(/(?:^|\s)(G[T]?05[A-Z0-9]{3,7}\.?(?:0\d|\d)?)(?:\s|$)/);
-      if (!codigoMatch) continue;
-      const codigo = codigoMatch[1];
-
-      // Extrair situação (sempre a última palavra)
-      const situacaoMatch = line.match(new RegExp(`\\b(${SITUACAO_RE.source})$`, 'i'));
-      const situacao = situacaoMatch ? situacaoMatch[1].toUpperCase() : "MATR"; // Padrão para MATR se não houver stats (cursando)
-
-      // Extrair estatísticas (CH, Hora Aula, Freq, Média, Conceito)
-      const statsMatch = line.match(/\s+(\d+)\s+(\d+)\s+\d+(?:\s+([\d,]+)\s+([\d.]+)\s+([A-E]))?(?:\s+[a-zA-Z]{3,7})$/);
-      let ch = 0;
-      let horaAula = 0;
-      let frequencia = null;
-      let media = null;
-      let conceito = null;
-      const optativo = /(?:^|\s)\*\s/.test(line.slice(0, 20));
-
-      if (statsMatch) {
-        ch = parseInt(statsMatch[1], 10);
-        horaAula = parseInt(statsMatch[2], 10);
-        if (statsMatch[3]) frequencia = parseFloat(statsMatch[3].replace(',', '.'));
-        if (statsMatch[4]) media = parseFloat(statsMatch[4]);
-        if (statsMatch[5]) conceito = statsMatch[5];
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i];
+    const semestreMatch = line.match(SEMESTRE_RE);
+    
+    // Pula até achar o início de uma disciplina (semestre)
+    if (!semestreMatch || METADATA_LINE.test(line) || /^PARTICIPAÇÕES NO ENADE/i.test(line)) {
+      i++;
+      continue;
+    }
+    
+    const semestre = semestreMatch[1];
+    const start = i;
+    let end = i + 1;
+    
+    // Escaneia as próximas linhas até encontrar o próximo semestre ou fim da seção
+    while (end < lines.length) {
+      const nextLine = lines[end];
+      if (SEMESTRE_RE.test(nextLine) && !METADATA_LINE.test(nextLine)) {
+        break;
       }
-
-      // Limpar a linha para extrair apenas o nome
-      let nome = line;
-      nome = nome.replace(semestre, ""); // Remove semestre
-      nome = nome.replace(/(?:^|\s)\*\s/, " "); // Remove asterisco de optativa
-      nome = nome.replace(codigo, ""); // Remove código
-      // Remove a versão/crédito estranho após o código (ex: 01, 1, 9.1) que fica no começo
-      nome = nome.replace(/^\s*(?:[\d\.]+)\s+/, ""); 
+      if (/^PARTICIPAÇÕES NO ENADE/i.test(nextLine) || /^Componentes\s+Curriculares/i.test(nextLine) || /^Página\s+\d+/i.test(nextLine)) {
+        break;
+      }
+      end++;
+    }
+    
+    // Pega todas as linhas deste bloco e forma uma string compacta
+    const blockLines = lines.slice(start, end);
+    const compactBlock = blockLines.join(" ");
+    
+    // Extração robusta usando Regex global no bloco
+    const codigoMatch = compactBlock.match(/(?:^|\s)(G[T]?05[A-Z0-9]+(?:\.\s*\d+|\s*\d+)?)/i);
+    const situacaoMatch = compactBlock.match(new RegExp(`\\b(${SITUACAO_RE.source})\\b`, 'i'));
+    // CH HoraAula [Turma] [Freq Media Conceito] - Freq sempre tem vírgula!
+    const statsMatch = compactBlock.match(/\b(15|30|45|60|75|90|105|120|135|150|240|300|360|420)\s+(\d{2,3})(?:\s+\d{2})?(?:\s+(\d{1,3},\d)\s+([\d.]+)\s+([A-E]))?\b/i);
+    
+    const codigoBruto = codigoMatch ? codigoMatch[1] : null;
+    const codigo = codigoBruto ? codigoBruto.replace(/\s/g, "").toUpperCase() : null;
+    const situacao = situacaoMatch ? situacaoMatch[1].toUpperCase() : "MATR"; // Padrão MATR
+    const optativo = compactBlock.includes("*") || compactBlock.includes(" * ");
+    
+    let ch = 0, horaAula = 0, frequencia = null, media = null, conceito = null;
+    
+    if (statsMatch) {
+      ch = parseInt(statsMatch[1], 10);
+      horaAula = parseInt(statsMatch[2], 10);
+      if (statsMatch[3]) frequencia = parseFloat(statsMatch[3].replace(',', '.'));
+      if (statsMatch[4]) media = parseFloat(statsMatch[4]);
+      if (statsMatch[5]) conceito = statsMatch[5];
+    }
+    
+    if (codigo) {
+      // Limpeza agressiva do nome da matéria
+      let nome = compactBlock.replace(semestre, ""); // Remove semestre
+      nome = nome.replace(codigoBruto || codigo, ""); // Remove o código original do texto
+      nome = nome.replace(/\*/g, ""); // Remove asteriscos
+      if (statsMatch) nome = nome.replace(statsMatch[0], ""); // Remove as estatísticas do final
+      if (situacaoMatch) nome = nome.replace(new RegExp(`\\b${situacaoMatch[1]}\\b`, 'i'), ""); // Remove a situação
+      nome = nome.replace(/\s+(?:MSc\.|Dr\.|Dra\.|Prof\.|Me\.|Ma\.).*$/, ""); // Remove professores no final
+      nome = nome.replace(/\s*\(\d+h\)[,\s]*$/, ""); // Remove ch do professor
+      nome = nome.replace(/CEFET-MG.*?MINAS GERAIS/i, ""); // Remove rodapé inteiro
+      nome = nome.replace(/SISTEMA ACADÊMICO.*?Data de Emissão.*$/i, ""); // Remove rodapé 2
+      nome = nome.replace(/^\s*(?:[\d\.]+)\s+/, ""); // Remove número estranho no começo
+      nome = nome.replace(/\s+/g, " ").trim(); // Normaliza espaços
       
-      // Remove as estatísticas do final (ex: 60 50 01 90,0 58.0 E REP) ou parciais (ex: 60 50 01)
-      nome = nome.replace(/\s+\d+\s+\d+\s+\d+(?:\s+[\d,]+\s+[\d.]+\s+[A-E])?(?:\s+[a-zA-Z]{3,7})?$/, "");
-      
-      // Remove título de professores conhecidos
-      nome = nome.replace(/\s+(?:MSc\.|Dr\.|Dra\.|Prof\.|Me\.|Ma\.).*$/, "");
-      // Remove (XXh) que possa ter sobrado no final (professores sem título)
-      nome = nome.replace(/\s*\(\d+h\)[,\s]*$/, "");
-      
-      nome = nome.trim();
-
-      disciplinas.push({
-        semestre,
-        codigo,
-        nome,
-        situacao,
-        ch,
-        horaAula,
-        frequencia,
-        media,
-        conceito,
-        optativo,
-      });
-    } else if (disciplinas.length > 0 && !METADATA_LINE.test(line) && !line.includes("Carga Horária Integralizada") && !line.includes("Atividades") && !line.includes("Assinatura")) {
-      // Continuação de uma disciplina que quebrou de linha no PDF!
-      const last = disciplinas[disciplinas.length - 1];
-      let extra = line.replace(/\s+(?:MSc\.|Dr\.|Dra\.|Prof\.|Me\.|Ma\.).*$/, "");
-      extra = extra.replace(/\s*\(\d+h\)[,\s]*$/, "").trim();
-      
-      // Não adiciona se for lixo como números, "APR" soltos ou rodapé do CEFET
-      const isLixo = /^[\d\.,\s]+$/.test(extra) || SITUACAO_RE.test(extra);
-      const isRodape = extra.includes("CEFET") || extra.includes("MINAS GERAIS") || extra.includes("SISTEMA ACADÊMICO") || extra.includes("Data de Emissão");
-      
-      if (extra.length > 0 && !isLixo && !isRodape) {
-        last.nome += " " + extra;
+      if (nome.length > 2) {
+        disciplinas.push({
+          semestre,
+          codigo,
+          nome,
+          situacao,
+          ch,
+          horaAula,
+          frequencia,
+          media,
+          conceito,
+          optativo,
+        });
       }
     }
+    
+    i = end;
   }
 
   return dedupeDisciplinas(disciplinas);
 }
 
-function findDisciplinaStart(
-  lines: string[],
-  fromIndex: number
-): { blockStart: number; semestre: string; nomeSeed: string } | null {
-  for (let index = fromIndex; index < lines.length; index += 1) {
-    const line = lines[index].trim();
-    const semestreMatch = line.match(SEMESTRE_RE);
-    if (!semestreMatch) continue;
 
-    const semestre = semestreMatch[1];
-    const inlineNome = semestreMatch[2]?.trim() ?? "";
-
-    if (METADATA_LINE.test(inlineNome) || METADATA_LINE.test(line)) continue;
-    if (/^PARTICIPAÇÕES NO ENADE/i.test(inlineNome)) continue;
-    if (!inlineNome && !looksLikeDisciplinaAhead(lines, index)) continue;
-
-    return {
-      blockStart: index,
-      semestre,
-      nomeSeed: inlineNome,
-    };
-  }
-
-  return null;
-}
-
-function looksLikeDisciplinaAhead(lines: string[], index: number): boolean {
-  const window = lines.slice(index + 1, index + 6);
-  return window.some(
-    (line) =>
-      PROFESSOR_LINE.test(line) ||
-      /^G[T]?05/i.test(line.trim()) ||
-      (/^[A-ZÁÉÍÓÚÂÊÔÃÕÇ]/.test(line) && !METADATA_LINE.test(line))
-  );
-}
-
-function findDisciplinaEnd(lines: string[], fromIndex: number): number {
-  for (let index = fromIndex; index < lines.length; index += 1) {
-    const line = lines[index].trim();
-
-    if (/^PARTICIPAÇÕES NO ENADE/i.test(line)) return index;
-    if (/^Componentes\s+Curriculares/i.test(line)) return index;
-    if (/^Página\s+\d+/i.test(line)) return index;
-
-    const semestreMatch = line.match(SEMESTRE_RE);
-    if (!semestreMatch) continue;
-    if (METADATA_LINE.test(line)) continue;
-
-    const inlineNome = semestreMatch[2]?.trim() ?? "";
-    if (inlineNome && !METADATA_LINE.test(inlineNome)) return index;
-    if (!inlineNome && looksLikeDisciplinaAhead(lines, index)) return index;
-  }
-
-  return lines.length;
-}
-
-function parseDisciplinaBlock(
-  blockLines: string[],
-  semestre: string,
-  nomeSeed: string
-): HistoricoDisciplinaEntry | null {
-  const block = blockLines.join("\n");
-  const situacao = extractSituacaoFromBlock(block);
-  if (!situacao) return null;
-
-  const codigo = mergeCodigoFromBlock(block);
-  const nome = extractNomeFromBlock(blockLines, semestre, nomeSeed);
-  const stats = extractStatsFromBlock(block);
-
-  if (!nome || nome.length < 3) return null;
-
-  return {
-    codigo: codigo ?? "",
-    nome,
-    semestre,
-    horaAula: stats.horaAula,
-    ch: stats.ch,
-    frequencia: stats.frequencia,
-    media: stats.media,
-    conceito: stats.conceito,
-    situacao,
-    optativo: stats.optativo,
-  };
-}
-
-/**
- * Situação pode estar na mesma linha do professor ou em linha separada (layout variável).
- */
-function extractSituacaoFromBlock(block: string): string | null {
-  const patterns = [
-    new RegExp(`\\(\\d+h\\)[^\\n]*?\\s\\d{2}\\s+(${SITUACAO_RE.source})\\b`, "i"),
-    new RegExp(`(?:^|\\n)\\s*\\d{2}\\s+(${SITUACAO_RE.source})\\s*(?:\\n|$)`, "im"),
-    new RegExp(`\\b(${SITUACAO_RE.source})\\b(?:\\s*\\n\\s*G[T]?05)`, "i"),
-  ];
-
-  for (const pattern of patterns) {
-    const match = block.match(pattern);
-    if (match?.[1]) return match[1].toUpperCase();
-  }
-
-  return null;
-}
-
-function extractNomeFromBlock(
-  blockLines: string[],
-  semestre: string,
-  nomeSeed: string
-): string {
-  const nomeLines: string[] = nomeSeed ? [nomeSeed] : [];
-  let passedSemestre = !nomeSeed;
-  const INLINE_SITUACAO_RE = new RegExp(`\\b\\d{2}\\s+(?:${SITUACAO_RE.source}).*`, "i");
-
-  for (const rawLine of blockLines) {
-    const line = rawLine.trim();
-    if (!line) continue;
-
-    if (line.startsWith(semestre)) {
-      const rest = line.slice(semestre.length).trim();
-      if (rest && !nomeSeed) nomeLines.push(rest);
-      passedSemestre = true;
-      continue;
-    }
-
-    if (!passedSemestre) continue;
-    if (PROFESSOR_LINE.test(line)) break;
-    if (/\(\d+h\)/i.test(line)) break;
-    if (/^G[T]?05/i.test(line)) break;
-    if (/^\d{2}\s+(?:APR|REP|MATR|TRANC|DISP)/i.test(line)) break;
-    if (/^\d+\s+[\d,.]+/.test(line)) break;
-    if (METADATA_LINE.test(line)) break;
-    if (/^PARTICIPAÇÕES NO ENADE/i.test(line)) break;
-
-    const match = line.match(INLINE_SITUACAO_RE);
-    if (match) {
-      const cleanLine = line.slice(0, match.index).trim();
-      if (cleanLine) nomeLines.push(cleanLine);
-      break;
-    }
-
-    nomeLines.push(line);
-  }
-
-  return nomeLines
-    .join(" ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function mergeCodigoFromBlock(block: string): string | null {
-  const compact = block.replace(/\r?\n/g, " ").replace(/\s+/g, " ");
-  const inline = compact.match(/(G[T]?05[A-Z0-9]+(?:\.\d+)?)/i);
-  if (inline) return inline[1].toUpperCase();
-
-  const lines = block.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
-
-  for (let index = 0; index < lines.length; index += 1) {
-    const codeMatch = lines[index].match(/^(G[T]?05[A-Z0-9.]+)/i);
-    if (!codeMatch) continue;
-
-    let codigo = codeMatch[1].replace(/\s/g, "");
-    const nextLine = lines[index + 1]?.trim() ?? "";
-    const fragmentMatch = nextLine.match(/^([\d.]+)\s/);
-
-    if (fragmentMatch) {
-      const fragment = fragmentMatch[1];
-      if (codigo.endsWith(".")) {
-        codigo += fragment.replace(/^\./, "");
-      } else if (/^\d+\.\d+$/.test(fragment)) {
-        codigo = codigo.replace(/0+$/, "") + fragment.replace(".", "");
-      } else {
-        codigo += codigo.includes(".") ? fragment : `.${fragment}`;
-      }
-    }
-
-    return codigo.toUpperCase();
-  }
-
-  return null;
-}
-
-function extractStatsFromBlock(block: string): {
-  ch: number;
-  horaAula: number;
-  frequencia: number | null;
-  media: number | null;
-  conceito: string | null;
-  optativo: boolean;
-} {
-  const statsMatch = block.match(
-    /G[T]?05[A-Z0-9.]+\s+(\d{2,})\s+([\d,.]+|--)\s+([\d,.-]+|--)(?:\s+(\*))?(?:\s+(\d+))?(?:\s+([A-F]|--))?/i
-  );
-
-  if (!statsMatch) {
-    const fallback = block.match(
-      /(?:^|\n)\s*(?:[\d.]+\s+)?(\d{2,})\s+([\d,.]+|--)\s+([\d,.-]+|--)(?:\s+(\*))?(?:\s+(\d+))?(?:\s+([A-F]|--))?/m
-    );
-    if (!fallback) {
-      return {
-        ch: 0,
-        horaAula: 0,
-        frequencia: null,
-        media: null,
-        conceito: null,
-        optativo: false,
-      };
-    }
-    return mapStatsMatch(fallback);
-  }
-
-  return mapStatsMatch(statsMatch);
-}
-
-function mapStatsMatch(match: RegExpMatchArray): {
-  ch: number;
-  horaAula: number;
-  frequencia: number | null;
-  media: number | null;
-  conceito: string | null;
-  optativo: boolean;
-} {
-  return {
-    ch: parseNum(match[1]) ?? 0,
-    frequencia: parseNum(match[2]),
-    media: parseNum(match[3]),
-    optativo: match[4] === "*",
-    horaAula: parseNum(match[5]) ?? 0,
-    conceito: match[6] && match[6] !== "--" ? match[6] : null,
-  };
-}
 
 function dedupeDisciplinas(
   entries: HistoricoDisciplinaEntry[]
