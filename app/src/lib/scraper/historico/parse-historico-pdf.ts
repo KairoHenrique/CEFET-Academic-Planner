@@ -185,36 +185,71 @@ function parseChResumo(text: string): {
   chResumo: HistoricoChResumo[];
   chTotais?: HistoricoChTotais;
 } {
-  const anchor = text.search(/\bExigido\b[\s\S]{0,40}\bIntegralizado\b/);
-  if (anchor < 0) return { chResumo: [] };
+  const chResumo: HistoricoChResumo[] = [];
+  let chTotais: HistoricoChTotais | undefined;
 
-  const section = text.slice(anchor, anchor + 500);
-  const hourValues = [...section.matchAll(/(\d+)\s*h/gi)].map((match) =>
-    Number.parseInt(match[1], 10)
-  );
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
 
-  if (hourValues.length < 18) return { chResumo: [] };
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    
+    // Identificar cabeçalho de tabela
+    if (line.includes("Obrigatórias") || line.includes("Optativos") || line.includes("Complementares")) {
+      const currentColumns = line.split(/\s+/).map(c => {
+        if (c.includes("Obrigatória")) return "Obrigatória";
+        if (c.includes("Optativo")) return "Optativa";
+        if (c.includes("Complementar")) return "Complementar";
+        if (c.includes("Extensão")) return "Extensão";
+        if (c.includes("Flexibilização")) return "Flexibilizada";
+        if (c.includes("Total")) return "Total";
+        return c;
+      });
+      
+      // Parsear as próximas 3 linhas (Exigido, Integralizado, Pendente)
+      if (i + 3 < lines.length) {
+        const exigidoLine = lines[i+1];
+        const intLine = lines[i+2];
+        const pendLine = lines[i+3];
+        
+        const exigidoVals = [...exigidoLine.matchAll(/(\d+)\s*h/gi)].map(m => parseInt(m[1], 10));
+        const intVals = [...intLine.matchAll(/(\d+)\s*h/gi)].map(m => parseInt(m[1], 10));
+        const pendVals = [...pendLine.matchAll(/(\d+)\s*h/gi)].map(m => parseInt(m[1], 10));
+        
+        for (let col = 0; col < currentColumns.length; col++) {
+          const tipo = currentColumns[col];
+          if (!["Obrigatória", "Optativa", "Complementar", "Extensão", "Flexibilizada", "Total"].includes(tipo)) continue;
+          
+          const entry = {
+            tipo,
+            exigido: exigidoVals[col] ?? 0,
+            integralizado: intVals[col] ?? 0,
+            pendente: pendVals[col] ?? 0
+          };
+          
+          if (tipo === "Total") {
+            if (!chTotais || entry.exigido > chTotais.exigido) {
+              chTotais = { exigido: entry.exigido, integralizado: entry.integralizado, pendente: entry.pendente };
+            }
+          } else {
+            chResumo.push(entry as HistoricoChResumo);
+          }
+        }
+        
+        i += 3; // pular as 3 linhas processadas
+      }
+    }
+  }
 
-  const specs = [
-    { tipo: "Optativa", exigido: 0, integralizado: 1, pendente: 2 },
-    { tipo: "Obrigatória", exigido: 8, integralizado: 7, pendente: 6 },
-    { tipo: "Complementar", exigido: 11, integralizado: 10, pendente: 9 },
-    { tipo: "Flexibilizada", exigido: 14, integralizado: 13, pendente: 12 },
-    { tipo: "Extensão", exigido: 17, integralizado: 16, pendente: 15 },
-  ];
+  // Preencher os tipos que faltaram com zero
+  const requiredTipos = ["Obrigatória", "Optativa", "Complementar", "Extensão", "Flexibilizada"];
+  for (const tipo of requiredTipos) {
+    if (!chResumo.find(c => c.tipo === tipo)) {
+      chResumo.push({ tipo, exigido: 0, integralizado: 0, pendente: 0 } as HistoricoChResumo);
+    }
+  }
 
-  const chResumo = specs.map(({ tipo, exigido, integralizado, pendente }) => ({
-    tipo,
-    exigido: hourValues[exigido] ?? 0,
-    integralizado: hourValues[integralizado] ?? 0,
-    pendente: hourValues[pendente] ?? 0,
-  }));
+  // Ensure exact output order
+  const orderedResumo = requiredTipos.map(tipo => chResumo.find(c => c.tipo === tipo)!);
 
-  const chTotais: HistoricoChTotais = {
-    exigido: hourValues[3] ?? 0,
-    integralizado: hourValues[4] ?? 0,
-    pendente: hourValues[5] ?? 0,
-  };
-
-  return { chResumo, chTotais };
+  return { chResumo: orderedResumo, chTotais };
 }

@@ -22,11 +22,7 @@ export async function extractHistoricoPdfText(buffer: Buffer): Promise<string> {
 
     for (let i = 1; i <= pdfDocument.numPages; i++) {
       const page = await pdfDocument.getPage(i);
-      const textContent = await page.getTextContent({
-        normalizeWhitespace: false,
-        disableCombineTextItems: false
-      });
-
+      const textContent = await page.getTextContent();
       const items = textContent.items.filter((i: any) => {
         if (!("str" in i)) return false;
         const text = i.str.trim();
@@ -59,34 +55,78 @@ export async function extractHistoricoPdfText(buffer: Buffer): Promise<string> {
         return true;
       });
 
-      let lastY: number | null = null;
-      let lastXEnd: number | null = null;
-      let pageText = "";
+      // Encontrar âncoras (Semestres na primeira coluna)
+      const anchors: { y: number; items: any[] }[] = [];
+      const nonAnchors: any[] = [];
 
       for (const item of items) {
-        const currentY = item.transform[5];
-        const currentX = item.transform[4];
-        const width = item.width;
-        const str = item.str;
-        
-        // Se a diferença de Y for pequena (ex: < 4), consideramos na mesma linha
-        if (lastY !== null && Math.abs(lastY - currentY) < 4) {
-          // Se a distância X entre o fim do último item e o começo deste for maior que 3 (aprox 1 espaço)
-          if (lastXEnd !== null && currentX - lastXEnd > 3) {
-            pageText += " " + str;
-          } else {
-            pageText += str;
-          }
+        if (/^(?:19|20)\d{2}\.[12]$/.test(item.str.trim()) && item.transform[4] < 60) {
+          anchors.push({ y: item.transform[5], items: [item] });
         } else {
-          // Nova linha
-          pageText += "\n" + str;
+          nonAnchors.push(item);
         }
-        
-        lastY = currentY;
-        lastXEnd = currentX + width;
       }
 
-      fullText += pageText + "\n\n";
+      // Se não houver âncoras, agrupa horizontalmente
+      if (anchors.length === 0) {
+        const sortedItems = items.sort((a, b) => {
+          const yDiff = b.transform[5] - a.transform[5];
+          if (Math.abs(yDiff) > 8) return yDiff; // Tolerância maior para agrupar horizontal
+          return a.transform[4] - b.transform[4];
+        });
+        fullText += sortedItems.map(i => i.str.trim()).join(" ") + "\n\n";
+        continue;
+      }
+
+      anchors.sort((a, b) => b.y - a.y);
+
+      const orphanItems: any[] = [];
+      for (const item of nonAnchors) {
+        let closestAnchor = null;
+        let minDistance = Infinity;
+
+        for (const anchor of anchors) {
+          const distance = Math.abs(anchor.y - item.transform[5]);
+          if (distance < minDistance) {
+            minDistance = distance;
+            closestAnchor = anchor;
+          }
+        }
+
+        // Mantém 60 para não quebrar IPC
+        if (closestAnchor && minDistance < 60) {
+          closestAnchor.items.push(item);
+        } else {
+          orphanItems.push(item);
+        }
+      }
+
+      const headerItems = orphanItems.filter(i => i.transform[5] > anchors[0].y + 10);
+      if (headerItems.length > 0) {
+        const sortedHeader = headerItems.sort((a, b) => {
+          const yDiff = b.transform[5] - a.transform[5];
+          if (Math.abs(yDiff) > 8) return yDiff;
+          return a.transform[4] - b.transform[4];
+        });
+        fullText += sortedHeader.map(i => i.str.trim()).join(" ") + "\n";
+      }
+
+      for (const anchor of anchors) {
+        const rowItems = anchor.items.sort((a, b) => a.transform[4] - b.transform[4]);
+        fullText += rowItems.map(i => i.str.trim()).join(" ") + "\n";
+      }
+
+      const footerItems = orphanItems.filter(i => i.transform[5] < anchors[anchors.length - 1].y - 10);
+      if (footerItems.length > 0) {
+        const sortedFooter = footerItems.sort((a, b) => {
+          const yDiff = b.transform[5] - a.transform[5];
+          if (Math.abs(yDiff) > 8) return yDiff;
+          return a.transform[4] - b.transform[4];
+        });
+        fullText += sortedFooter.map(i => i.str.trim()).join(" ") + "\n";
+      }
+      
+      fullText += "\n";
     }
 
     return fullText;
