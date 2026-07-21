@@ -9,41 +9,46 @@ echo "Iniciando ServidorACME no Termux..."
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." >/dev/null 2>&1 && pwd)"
 cd "$DIR" || exit 1
 
+# Auto-instalação de dependências do Termux
+if command -v pkg &> /dev/null; then
+    echo "[*] Verificando dependências do sistema..."
+    
+    MISSING_PKGS=""
+    if ! command -v git &> /dev/null; then MISSING_PKGS="$MISSING_PKGS git"; fi
+    if ! command -v node &> /dev/null; then MISSING_PKGS="$MISSING_PKGS nodejs"; fi
+    if ! command -v python &> /dev/null; then MISSING_PKGS="$MISSING_PKGS python"; fi
+    if ! command -v make &> /dev/null; then MISSING_PKGS="$MISSING_PKGS make"; fi
+    if ! command -v clang &> /dev/null; then MISSING_PKGS="$MISSING_PKGS clang"; fi
+    if ! command -v cloudflared &> /dev/null; then MISSING_PKGS="$MISSING_PKGS cloudflared"; fi
+    
+    if [ ! -z "$MISSING_PKGS" ]; then
+        echo "[!] Instalando pacotes básicos faltantes:$MISSING_PKGS"
+        pkg install -y $MISSING_PKGS
+    fi
+    
+    if ! command -v chromium-browser &> /dev/null; then
+        echo "[!] Instalando Chromium (isso pode demorar alguns minutos)..."
+        pkg install -y x11-repo
+        pkg install -y chromium
+    fi
+else
+    echo "[-] Aviso: gerenciador 'pkg' não encontrado. Instale as dependências manualmente."
+fi
+
 # Auto-update: Busca o código mais recente no repositório
 echo "[*] Buscando atualizações no GitHub..."
 if command -v git &> /dev/null; then
     git pull origin main || echo "[-] Falha ao puxar código. Continuando com a versão local."
-else
-    echo "[-] Git não instalado. Pulando atualização automática."
 fi
 
 # Instala as dependências, se houver pacotes novos
-echo "[*] Verificando/instalando dependências..."
+echo "[*] Verificando/instalando dependências do projeto (npm)..."
 if command -v npm &> /dev/null; then
     # Ignora scripts para não dar crash no workerd (que não roda no Android)
     npm install --no-fund --no-audit --ignore-scripts
     # Reconstrói apenas o better-sqlite3 manualmente
     export GYP_DEFINES="android_ndk_path=''"
     npm rebuild better-sqlite3
-fi
-
-
-# Verifica dependências
-if ! command -v node &> /dev/null; then
-    echo "Erro: nodejs não está instalado. Rode: pkg install nodejs"
-    exit 1
-fi
-
-if ! command -v cloudflared &> /dev/null; then
-    echo "Erro: cloudflared não está instalado. Rode: pkg install cloudflared"
-    exit 1
-fi
-
-if ! command -v chromium-browser &> /dev/null; then
-    echo "Erro: Chromium não está instalado."
-    echo "Para rodar o Playwright no Termux, rode:"
-    echo "pkg install x11-repo && pkg install chromium"
-    exit 1
 fi
 
 # 1. Inicia o worker em background
