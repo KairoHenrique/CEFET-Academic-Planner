@@ -50,15 +50,69 @@ async function debugPdf() {
   for (let i = 1; i <= pdfDocument.numPages; i++) {
     const page = await pdfDocument.getPage(i);
     const textContent = await page.getTextContent();
-    
     const items = textContent.items.filter(i => "str" in i && i.str.trim() !== "");
-    
+
+    const anchors = [];
+    const nonAnchors = [];
+
     for (const item of items) {
-      const text = item.str.trim();
-      if (text.includes("2024.2") || text.includes("G05PPYT0") || text.includes("GT05FEC") || text.includes("PROGRAMAÇÃO EM PYTHON")) {
-        console.log(`TEXT: "${text}" | X: ${item.transform[4].toFixed(2)} | Y: ${item.transform[5].toFixed(2)}`);
+      if (/^(?:19|20)\d{2}\.[12]$/.test(item.str.trim()) && item.transform[4] < 60) {
+        anchors.push({ y: item.transform[5], items: [item] });
+      } else {
+        nonAnchors.push(item);
       }
     }
+
+    if (anchors.length === 0) {
+      const sortedItems = items.sort((a, b) => {
+        const yDiff = b.transform[5] - a.transform[5];
+        if (Math.abs(yDiff) > 2) return yDiff;
+        return a.transform[4] - b.transform[4];
+      });
+      text += sortedItems.map(i => i.str.trim()).join(" ") + "\n\n";
+      continue;
+    }
+
+    anchors.sort((a, b) => b.y - a.y);
+
+    const orphanItems = [];
+    for (const item of nonAnchors) {
+      let closestAnchor = null;
+      let minDistance = Infinity;
+
+      for (const anchor of anchors) {
+        const distance = Math.abs(anchor.y - item.transform[5]);
+        if (distance < minDistance) {
+          minDistance = distance;
+          closestAnchor = anchor;
+        }
+      }
+
+      if (closestAnchor && minDistance < 25) {
+        closestAnchor.items.push(item);
+      } else {
+        orphanItems.push(item);
+      }
+    }
+
+    const headerItems = orphanItems.filter(i => i.transform[5] > anchors[0].y + 10);
+    if (headerItems.length > 0) {
+      const sortedHeader = headerItems.sort((a, b) => (b.transform[5] - a.transform[5]) || (a.transform[4] - b.transform[4]));
+      text += sortedHeader.map(i => i.str.trim()).join(" ") + "\n";
+    }
+
+    for (const anchor of anchors) {
+      const rowItems = anchor.items.sort((a, b) => a.transform[4] - b.transform[4]);
+      text += rowItems.map(i => i.str.trim()).join(" ") + "\n";
+    }
+
+    const footerItems = orphanItems.filter(i => i.transform[5] < anchors[anchors.length - 1].y - 10);
+    if (footerItems.length > 0) {
+      const sortedFooter = footerItems.sort((a, b) => (b.transform[5] - a.transform[5]) || (a.transform[4] - b.transform[4]));
+      text += sortedFooter.map(i => i.str.trim()).join(" ") + "\n";
+    }
+    
+    text += "\n";
   }
   
   console.log("\n--- INÍCIO DO TEXTO EXTRAÍDO ---");
