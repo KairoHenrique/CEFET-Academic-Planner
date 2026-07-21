@@ -42,21 +42,56 @@ function parseDisciplinas(text: string): HistoricoDisciplinaEntry[] {
     .filter((line) => line.trim().length > 0);
 
   const disciplinas: HistoricoDisciplinaEntry[] = [];
-  let index = 0;
+  
+  for (const line of lines) {
+    if (SEMESTRE_RE.test(line)) {
+      // A linha perfeita: 2024.1 [*] G05CFVR1. [01] CÁLCULO... [Professor (Xh)] 90 75 01 96,0 96.0 A APR
+      
+      // Extrair semestre e código
+      const semestreMatch = line.match(SEMESTRE_RE);
+      if (!semestreMatch) continue;
+      const semestre = semestreMatch[1];
+      
+      const codigoMatch = line.match(/(?:^|\s)(G[T]?05[A-Z0-9]{3,7}\.?(?:0\d|\d)?)(?:\s|$)/);
+      if (!codigoMatch) continue;
+      const codigo = codigoMatch[1];
 
-  while (index < lines.length) {
-    const start = findDisciplinaStart(lines, index);
-    if (!start) {
-      index += 1;
-      continue;
+      // Extrair situação (sempre a última palavra)
+      const situacaoMatch = line.match(new RegExp(`\\b(${SITUACAO_RE.source})$`, 'i'));
+      const situacao = situacaoMatch ? situacaoMatch[1].toUpperCase() : "MATR"; // Padrão para MATR se não houver stats (cursando)
+
+      // Limpar a linha para extrair apenas o nome
+      let nome = line;
+      nome = nome.replace(semestre, ""); // Remove semestre
+      nome = nome.replace(/(?:^|\s)\*\s/, " "); // Remove asterisco de optativa
+      nome = nome.replace(codigo, ""); // Remove código
+      // Remove a versão/crédito estranho após o código (ex: 01, 1, 9.1) que fica no começo
+      nome = nome.replace(/^\s*(?:[\d\.]+)\s+/, ""); 
+      
+      // Remove as estatísticas do final (ex: 60 50 01 90,0 58.0 E REP) ou parciais (ex: 60 50 01)
+      nome = nome.replace(/\s+\d+\s+\d+\s+\d+(?:\s+\d+(?:,\d+)?\s+\d+(?:\.\d+)?\s+[A-E]\s+[A-Z]{3,7})?$/, "");
+      
+      // Remove título de professores conhecidos
+      nome = nome.replace(/\s+(?:MSc\.|Dr\.|Dra\.|Prof\.).*$/, "");
+      // Tenta remover professores sem título (ex: MICHEL PIRES DA SILVA (60h))
+      // Como o nome do professor sem título está em maiúsculas, é difícil separar perfeitamente,
+      // mas podemos remover tudo que vem a partir do primeiro "(XXh)" retroativo.
+      // Na verdade, a melhor heurística é remover desde o último espaço antes de um bloco com "(...h)" se houver.
+      // Uma regex simples para remover professores sem título (cujo nome termina com "(Xh)"):
+      const profMatch = nome.match(/\s+([A-Z\s]+(?:\(\d+h\)[,\s]*)+)$/);
+      if (profMatch) {
+          nome = nome.replace(profMatch[1], "");
+      }
+      
+      nome = nome.trim();
+
+      disciplinas.push({
+        semestre,
+        codigo,
+        nome,
+        situacao,
+      } as HistoricoDisciplinaEntry);
     }
-
-    const end = findDisciplinaEnd(lines, start.blockStart + 1);
-    const blockLines = lines.slice(start.blockStart, end);
-    const parsed = parseDisciplinaBlock(blockLines, start.semestre, start.nomeSeed);
-    if (parsed) disciplinas.push(parsed);
-
-    index = end;
   }
 
   return dedupeDisciplinas(disciplinas);
