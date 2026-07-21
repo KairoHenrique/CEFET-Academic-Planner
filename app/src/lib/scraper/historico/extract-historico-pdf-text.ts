@@ -15,7 +15,6 @@ export async function extractHistoricoPdfText(buffer: Buffer): Promise<string> {
       data: new Uint8Array(buffer),
       useSystemFonts: true,
       disableFontFace: true,
-      standardFontDataUrl: require.resolve("pdfjs-dist/standard_fonts/"),
     });
 
     const pdfDocument = await loadingTask.promise;
