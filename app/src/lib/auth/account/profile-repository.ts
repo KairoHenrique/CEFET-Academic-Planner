@@ -32,9 +32,18 @@ export async function findProfileByEmail(
 ): Promise<AppProfileRecord | null> {
   const pool = getPostgresPool();
   const result = await pool.query<ProfileRow>(
-    `SELECT user_id, cpf, email, telefone, curso_id, created_at
-     FROM app_profiles
-     WHERE lower(email) = lower($1)
+    `SELECT p.user_id, p.cpf, p.email, p.telefone, 
+            COALESCE(
+              CASE 
+                WHEN LOWER(a.curso) LIKE '%computa%' THEN 'eng-computacao'
+                WHEN LOWER(a.curso) LIKE '%mecatr%' THEN 'eng-mecatronica'
+                WHEN LOWER(a.curso) LIKE '%moda%' THEN 'design-moda'
+              END,
+              p.curso_id
+            ) as curso_id, p.created_at
+     FROM app_profiles p
+     LEFT JOIN aluno a ON a.user_id = p.user_id
+     WHERE lower(p.email) = lower($1)
      LIMIT 1`,
     [email]
   );
@@ -116,9 +125,18 @@ export async function findProfileByCpf(
 ): Promise<AppProfileRecord | null> {
   const pool = getPostgresPool();
   const result = await pool.query<ProfileRow>(
-    `SELECT user_id, cpf, email, telefone, curso_id, created_at
-     FROM app_profiles
-     WHERE cpf = $1
+    `SELECT p.user_id, p.cpf, p.email, p.telefone, 
+            COALESCE(
+              CASE 
+                WHEN LOWER(a.curso) LIKE '%computa%' THEN 'eng-computacao'
+                WHEN LOWER(a.curso) LIKE '%mecatr%' THEN 'eng-mecatronica'
+                WHEN LOWER(a.curso) LIKE '%moda%' THEN 'design-moda'
+              END,
+              p.curso_id
+            ) as curso_id, p.created_at
+     FROM app_profiles p
+     LEFT JOIN aluno a ON a.user_id = p.user_id
+     WHERE p.cpf = $1
      LIMIT 1`,
     [cpf]
   );
@@ -133,9 +151,18 @@ export async function findSyncTenantByCpf(
 ): Promise<{ userId: string; cursoId: AppCursoId } | null> {
   const pool = getPostgresPool();
   const result = await pool.query<{ user_id: string; curso_id: string }>(
-    `SELECT user_id, curso_id
-     FROM app_profiles
-     WHERE cpf = $1
+    `SELECT p.user_id, 
+            COALESCE(
+              CASE 
+                WHEN LOWER(a.curso) LIKE '%computa%' THEN 'eng-computacao'
+                WHEN LOWER(a.curso) LIKE '%mecatr%' THEN 'eng-mecatronica'
+                WHEN LOWER(a.curso) LIKE '%moda%' THEN 'design-moda'
+              END,
+              p.curso_id
+            ) as curso_id
+     FROM app_profiles p
+     LEFT JOIN aluno a ON a.user_id = p.user_id
+     WHERE p.cpf = $1
      LIMIT 1`,
     [cpf]
   );
@@ -161,9 +188,18 @@ export async function findProfileByUserId(
 ): Promise<AppProfileRecord | null> {
   const pool = getPostgresPool();
   const result = await pool.query<ProfileRow>(
-    `SELECT user_id, cpf, email, telefone, curso_id, created_at
-     FROM app_profiles
-     WHERE user_id = $1
+    `SELECT p.user_id, p.cpf, p.email, p.telefone, 
+            COALESCE(
+              CASE 
+                WHEN LOWER(a.curso) LIKE '%computa%' THEN 'eng-computacao'
+                WHEN LOWER(a.curso) LIKE '%mecatr%' THEN 'eng-mecatronica'
+                WHEN LOWER(a.curso) LIKE '%moda%' THEN 'design-moda'
+              END,
+              p.curso_id
+            ) as curso_id, p.created_at
+     FROM app_profiles p
+     LEFT JOIN aluno a ON a.user_id = p.user_id
+     WHERE p.user_id = $1
      LIMIT 1`,
     [userId]
   );
