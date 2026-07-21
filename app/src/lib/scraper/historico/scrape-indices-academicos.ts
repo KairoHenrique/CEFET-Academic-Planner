@@ -90,6 +90,52 @@ async function clickMenu(page: Page, text: string): Promise<boolean> {
   ).catch(() => null);
 
   const clicked = await page.evaluate((menuText) => {
+    // 1. Fallback: Tenta invocar a ação JSF diretamente para evitar bugs de eventos do mouse no JSCookMenu
+    // O JSCookMenu tem a seguinte estrutura no array: [icone, 'Nome do Menu', 'acao_jsf', 'form_id', descricao]
+    try {
+      const scripts = Array.from(document.querySelectorAll('script'));
+      for (const script of scripts) {
+        if (!script.textContent) continue;
+        const text = script.textContent;
+        const idx = text.indexOf(menuText);
+        if (idx !== -1) {
+          const substr = text.substring(idx);
+          const strings: string[] = [];
+          let inString = false, currentString = '', quoteChar = '', foundMenu = false;
+          
+          for (let i = 0; i < substr.length && strings.length < 2; i++) {
+            const char = substr[i];
+            if (!inString && (char === "'" || char === '"')) {
+              inString = true; quoteChar = char; currentString = '';
+            } else if (inString && char === quoteChar) {
+              inString = false;
+              if (foundMenu) strings.push(currentString);
+              else foundMenu = true;
+            } else if (inString) {
+              currentString += char;
+            }
+          }
+          
+          if (strings.length >= 2) {
+            const actionId = strings[0];
+            const formId = strings[1];
+            if (actionId.includes('#{') && formId.includes('form')) {
+              const form = document.getElementById(formId);
+              if (form && typeof (window as any).jsfcljs === 'function') {
+                const params: any = {};
+                params[actionId] = actionId;
+                (window as any).jsfcljs(form, params, '');
+                return true;
+              }
+            }
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("Erro ao tentar JSF action direto:", e);
+    }
+
+    // 2. Método Clássico
     const tds = Array.from(document.querySelectorAll('td.ThemeOfficeMenuItemText'));
     const targetTd = tds.find(td => td.textContent?.trim().includes(menuText));
     
