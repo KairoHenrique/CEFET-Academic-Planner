@@ -65,6 +65,7 @@
     "next": "16.2.9",
     "nodemailer": "^9.0.3",
     "pdf-parse": "^1.1.1",
+    "pdf2json": "^4.0.3",
     "pg-cloudflare": "^1.4.0",
     "playwright": "^1.61.1",
     "qrcode": "^1.5.4",

@@ -1,17 +1,26 @@
-import { createRequire } from "module";
-
 /**
- * Extrai texto do buffer PDF do histórico SIGAA usando pdf-parse v1.1.1.
+ * Extrai texto do buffer PDF do histórico SIGAA usando pdf2json (puro JS).
  */
 export async function extractHistoricoPdfText(buffer: Buffer): Promise<string> {
-  const require = createRequire(import.meta.url);
-  const pdfParse = require("pdf-parse");
+  const PDFParser = (await import("pdf2json")).default;
+  return new Promise((resolve) => {
+    const pdfParser = new PDFParser(null, 1);
 
-  try {
-    const result = await pdfParse(buffer);
-    return result.text ?? "";
-  } catch (error) {
-    console.error("Erro ao extrair texto do PDF:", error);
-    return "";
-  }
+    pdfParser.on("pdfParser_dataError", (errData: any) => {
+      console.error("Erro no pdf2json:", errData.parserError);
+      resolve(""); 
+    });
+
+    pdfParser.on("pdfParser_dataReady", () => {
+      resolve(pdfParser.getRawTextContent());
+    });
+
+    try {
+      pdfParser.parseBuffer(buffer);
+    } catch (error) {
+      console.error("Exceção ao chamar pdfParser.parseBuffer:", error);
+      resolve("");
+    }
+  });
 }
+
