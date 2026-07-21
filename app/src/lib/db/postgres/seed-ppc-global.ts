@@ -76,6 +76,21 @@ export async function seedPpcGlobalToPostgres(
 
   try {
     await client.query("BEGIN");
+    
+    // Deleta os requisitos primeiro para não dar erro de foreign key constraint nas disciplinas
+    await client.query("DELETE FROM requisitos WHERE curso_id = $1", [cursoId]);
+    
+    // Remove disciplinas antigas/vazadas do curso que não estão mais no JSON e não estão sendo usadas por alunos
+    await client.query(`
+      DELETE FROM disciplinas 
+      WHERE curso_id = $1
+      AND codigo NOT IN (SELECT disciplina_id FROM historico WHERE curso_id = $1)
+      AND codigo NOT IN (SELECT disciplina_id FROM semestre_atual WHERE curso_id = $1)
+      AND codigo NOT IN (SELECT disciplina_id FROM notas WHERE curso_id = $1)
+      AND codigo NOT IN (SELECT disciplina_id FROM faltas WHERE curso_id = $1)
+      AND codigo NOT IN (SELECT disciplina_id FROM tarefas WHERE curso_id = $1)
+    `, [cursoId]);
+
     for (const item of items) {
       await upsertDisciplina(client, cursoId, item);
     }
