@@ -27,6 +27,10 @@ export function syncPpcEmentasToDb(): void {
   const data = loadPpcSeedData(activeCursoId());
 
   const syncAll = db.transaction(() => {
+    // Remove todas as disciplinas canônicas antigas para evitar "vazamento/fusão" 
+    // de PPCs quando o usuário troca de curso (ex: Computação -> Moda -> Mecatrônica).
+    db.prepare("DELETE FROM disciplinas WHERE codigo LIKE '%/%'").run();
+
     for (const item of data) {
       saveDisciplina(withResolvedEmenta(item));
     }
