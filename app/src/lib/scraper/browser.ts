@@ -41,6 +41,7 @@ export async function createSigaaContext(
     userAgent:
       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
     ignoreHTTPSErrors: true,
+    acceptDownloads: true,
   });
 
   // Rodando via tsx/esbuild (worker B54, scripts B72), o bundler injeta o
