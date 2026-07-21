@@ -3,7 +3,15 @@
 /ServidorCEFET.exe
 /app/scripts/servidor-acme.ico
 
+# .env files
+.env*.local
+
+# Local data and secrets
+app/.data/
+*.apk
+*.sqlite*
+.wrangler/
+
 # APK sideload (M16)
 app/public/releases/*.apk
 mobile/*.apk
-

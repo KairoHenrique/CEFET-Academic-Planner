@@ -114,10 +114,13 @@ async function extractDisciplinasFromIndicesPage(page: Page): Promise<{ discipli
 
       const rows = Array.from(table.querySelectorAll('tr'));
       let currentSemestre = "";
+      let colCod = 0, colDis = 1, colRes = -1, colFal = -1, colSit = -1;
+      let foundHeader = false;
       
       for (const row of rows) {
-        // Se a linha tem apenas 1 ou 2 células e contém um ano.semestre (ex: 2025.2), é um agrupador
         const rowText = row.textContent?.trim() || "";
+        
+        // Se a linha tem apenas 1 ou 2 células e contém um ano.semestre (ex: 2025.2), é um agrupador
         if (row.cells.length <= 2 && /^\d{4}\.\d$/.test(rowText)) {
           currentSemestre = rowText;
           continue;
@@ -129,16 +132,36 @@ async function extractDisciplinasFromIndicesPage(page: Page): Promise<{ discipli
           continue;
         }
         
-        const cells = Array.from(row.querySelectorAll('td'));
-        if (cells.length < 7) continue;
+        const cells = Array.from(row.querySelectorAll('td, th'));
         
-        const codigo = cells[0].textContent?.trim() || "";
-        const nome = cells[1].textContent?.trim() || "";
-        const resultado = cells[4].textContent?.trim() || "";
-        const faltas = cells[5].textContent?.trim() || "";
-        const situacao = cells[6].textContent?.trim() || "";
+        // Tenta identificar o cabeçalho para mapear as colunas
+        if (!foundHeader) {
+          const headerTexts = cells.map(c => c.textContent?.trim().toLowerCase() || "");
+          const hasCodigo = headerTexts.some(t => t.includes("código"));
+          if (hasCodigo) {
+            colCod = headerTexts.findIndex(t => t.includes("código"));
+            colDis = headerTexts.findIndex(t => t.includes("disciplina"));
+            colSit = headerTexts.findIndex(t => t.includes("situação"));
+            colRes = headerTexts.findIndex(t => t.includes("resultado"));
+            colFal = headerTexts.findIndex(t => t.includes("faltas"));
+            foundHeader = true;
+            continue;
+          }
+        }
         
-        if (!codigo || !nome || codigo.toLowerCase() === "código" || nome.toLowerCase() === "disciplina") {
+        // Se ainda não achou o cabeçalho ou tem poucas células, pula
+        if (!foundHeader || cells.length < 3) continue;
+        
+        // Se a linha é o próprio cabeçalho sendo repetido, pula
+        const txtCod = cells[colCod]?.textContent?.trim().toLowerCase() || "";
+        if (txtCod === "código") continue;
+        
+        const codigo = cells[colCod]?.textContent?.trim() || "";
+        const nome = cells[colDis]?.textContent?.trim() || "";
+        const resultado = colRes >= 0 ? (cells[colRes]?.textContent?.trim() || "") : "";
+        const situacao = colSit >= 0 ? (cells[colSit]?.textContent?.trim() || "") : "";
+        
+        if (!codigo || !nome) {
           continue;
         }
         
@@ -157,9 +180,6 @@ async function extractDisciplinasFromIndicesPage(page: Page): Promise<{ discipli
           if (!isNaN(num)) media = num;
         }
         
-        // Parse Faltas
-        let frequencia: number | null = null;
-        
         disciplinas.push({
           semestre: currentSemestre,
           codigo: codigo,
@@ -167,7 +187,7 @@ async function extractDisciplinasFromIndicesPage(page: Page): Promise<{ discipli
           situacao: situacao,
           ch: 0, // Será resolvido no backend pelo banco de dados PPC
           horaAula: 0, // Será resolvido no backend
-          frequencia: frequencia, // Ignorado
+          frequencia: null, // Ignorado
           media: media,
           conceito: isNaN(parseFloat(resultado.replace(",","."))) && resultado !== "-" && resultado !== "" ? resultado : null,
           optativo: false,
