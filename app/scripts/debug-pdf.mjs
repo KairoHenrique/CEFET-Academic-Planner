@@ -1,6 +1,5 @@
 import fs from 'fs';
 import path from 'path';
-import { extractHistoricoPdfText } from '../src/lib/scraper/historico/extract-historico-pdf-text.js'; // Adjust if needed
 
 async function debugPdf() {
   const debugDir = path.join(process.cwd(), '.data', 'scrape-debug');
