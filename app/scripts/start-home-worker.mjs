@@ -14,9 +14,11 @@ const appRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const tsxCli = path.join(appRoot, "node_modules", "tsx", "dist", "cli.mjs");
 const main = path.join(appRoot, "worker", "main.ts");
 
+const preload = path.join(appRoot, "worker", "termux-preload.cjs");
+
 const child = spawn(
   process.execPath,
-  [tsxCli, "-C", "react-server", "--env-file=.env.local", main],
+  [tsxCli, "-C", "react-server", "--env-file=.env.local", "--require", preload, main],
   {
     cwd: appRoot,
     stdio: "inherit",
