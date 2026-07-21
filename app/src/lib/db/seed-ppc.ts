@@ -27,9 +27,21 @@ export function syncPpcEmentasToDb(): void {
   const data = loadPpcSeedData(activeCursoId());
 
   const syncAll = db.transaction(() => {
+    // Limpa requisitos antes para evitar falha de FOREIGN KEY de dependentes diretos
+    db.prepare("DELETE FROM requisitos").run();
+
     // Remove todas as disciplinas canônicas antigas para evitar "vazamento/fusão" 
     // de PPCs quando o usuário troca de curso (ex: Computação -> Moda -> Mecatrônica).
-    db.prepare("DELETE FROM disciplinas WHERE codigo LIKE '%/%'").run();
+    // Preserva as que já estão em uso pelo aluno para não quebrar chaves estrangeiras.
+    db.prepare(`
+      DELETE FROM disciplinas 
+      WHERE codigo LIKE '%/%'
+      AND codigo NOT IN (SELECT disciplina_id FROM historico)
+      AND codigo NOT IN (SELECT disciplina_id FROM semestre_atual)
+      AND codigo NOT IN (SELECT disciplina_id FROM notas)
+      AND codigo NOT IN (SELECT disciplina_id FROM faltas)
+      AND codigo NOT IN (SELECT disciplina_id FROM tarefas)
+    `).run();
 
     for (const item of data) {
       saveDisciplina(withResolvedEmenta(item));
