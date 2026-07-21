@@ -47,8 +47,12 @@ if command -v npm &> /dev/null; then
     # Ignora scripts para não dar crash no workerd (que não roda no Android)
     npm install --no-fund --no-audit --ignore-scripts
     # Reconstrói apenas o better-sqlite3 manualmente
-    export GYP_DEFINES="android_ndk_path=''"
-    npm rebuild better-sqlite3
+    if [ -d "node_modules/better-sqlite3" ]; then
+        echo "[*] Recompilando better-sqlite3 nativo do Termux (from source)..."
+        export GYP_DEFINES="android_ndk_path=''"
+        export npm_config_build_from_source=true
+        npm rebuild better-sqlite3 --build-from-source
+    fi
 fi
 
 # 1. Inicia o worker em background
