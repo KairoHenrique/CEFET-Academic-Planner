@@ -35,7 +35,27 @@ export async function scrapeIndicesAcademicos(page: Page): Promise<HistoricoSnap
     ).catch(() => null);
 
     // JSCookMenu usa eventos JS na tabela/linha
-    await page.locator('td').filter({ hasText: /^Consultar Índices Acadêmicos$/ }).click({ force: true });
+    // Em vez de usar locator.click (que pode falhar se o menu estiver oculto/colapsado),
+    // vamos avaliar um script na página para procurar o texto e disparar o clique/submit nativo.
+    const menuClicked = await page.evaluate(() => {
+      const tds = Array.from(document.querySelectorAll('td.ThemeOfficeMenuItemText'));
+      const targetTd = tds.find(td => td.textContent?.trim().includes('Índices Acadêmicos') || td.textContent?.trim().includes('Minhas Notas'));
+      
+      if (!targetTd) return false;
+      
+      // O clique pode estar no TR ou no TD
+      let clickTarget: HTMLElement = targetTd;
+      if (targetTd.parentElement && targetTd.parentElement.tagName === 'TR') {
+        clickTarget = targetTd.parentElement;
+      }
+      
+      clickTarget.click();
+      return true;
+    });
+
+    if (!menuClicked) {
+      console.warn("[scraper:historico] Não encontrou o menu Consultar Índices Acadêmicos ou Minhas Notas!");
+    }
     
     await responsePromise;
     await page.waitForLoadState("domcontentloaded", { timeout: SIGAA_NAVIGATION_TIMEOUT_MS }).catch(() => null);
