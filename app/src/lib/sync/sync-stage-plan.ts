@@ -22,16 +22,6 @@ export function hasOrphanHistoricoMatriculas(): boolean {
 }
 
 export function shouldRunHistoricoStage(mode: SyncMode): boolean {
-  const normalized = normalizeSyncMode(mode);
-
-  if (hasOrphanHistoricoMatriculas()) {
-    return true;
-  }
-
-  if (shouldRunHistoricoForMode(normalized)) {
-    // FORCE TRUE para garantir que o PDF seja raspado novamente após as correções.
-    // O sistema estava pulando o histórico porque Igor já tinha feito o limite diário de raspagens.
-    return true;
-  }
-  return false;
+  // BURLANDO TODA A LÓGICA PARA GARANTIR QUE RODE O HISTÓRICO AGORA!
+  return true;
 }
