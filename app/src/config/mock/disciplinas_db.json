@@ -629,6 +629,11 @@
         "disciplina_id": "03/5",
         "requisito_id": "01/2",
         "tipo": "co"
+      },
+      {
+        "disciplina_id": "03/5",
+        "requisito_id": "03/2",
+        "tipo": "co"
       }
     ]
   },
