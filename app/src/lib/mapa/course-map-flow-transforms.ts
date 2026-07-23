@@ -160,7 +160,7 @@ export function applyEdgeFocus(edges: Edge[], activeId: string | null): Edge[] {
       ...edge,
       animated: false,
       style: visual.style,
-      markerEnd: visual.markerColor ? marker(visual.markerColor) : undefined,
+      markerEnd: visual.markerColor && kind !== "co" ? marker(visual.markerColor) : undefined,
       zIndex: highlighted ? 10 : 0,
     };
   });

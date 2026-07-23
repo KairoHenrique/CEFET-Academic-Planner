@@ -63,16 +63,9 @@ export function buildGrafoEdgesFromRequisitos(
     }
 
     const id = `${kind}:${source}->${target}`;
-    const reverseId = `${kind}:${target}->${source}`;
-    
     if (seen.has(id)) {
       continue;
     }
-    // Para co-requisitos mútuos, desenhar apenas uma linha no grafo visual
-    if (kind === "co" && seen.has(reverseId)) {
-      continue;
-    }
-    
     seen.add(id);
 
     edges.push({
