@@ -5,6 +5,7 @@ import { JerseyBackground } from "@/components/JerseyBackground";
 import { AppShell } from "@/components/layout/AppShell";
 import { MaintenanceOverlay } from "@/components/layout/MaintenanceOverlay";
 import { getAppConfigJson } from "@/lib/sync-policy/app-config-store";
+import { isPostgresBackend } from "@/lib/db/backend/config";
 
 const inter = Inter({
   variable: "--font-inter",
