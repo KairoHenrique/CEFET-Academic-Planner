@@ -2,7 +2,7 @@
 # Fonte: docs/referencias/PPC_EngComp-Div-v3.pdf (3ª versão, 2026)
 # Colunas: período | código | nome | T | P | CH horas (col 5) | hora-aula (col 6, referência) | pré-req | co-req
 # CH canônica no app: 30 · 60 · 90 · 120 (25→30 · 50→60 · 75→90 · 100→120).
-# Ajustes vs PDF: 07/1→05/1 e 03/5→01/2 como pré-req (não co); 05/1↔05/2 co mútuo (OFT).
+# Ajustes vs PDF: 07/1→05/1; 05/1↔05/2 co mútuo (OFT).
 # Regenerar seed: node scripts/parse_ppc.js
 1º	01/1	Cálculo com Funções de uma Variável Real	X		90	75	-	-
 1º	02/1	Geometria Analítica e Álgebra Linear	X		60	50	-	-
@@ -33,7 +33,7 @@
 4º	03/2	Física Experimental - Eletromagnetismo	X		30	25	04/2 05/2	01/2
 4º	02/3	Algoritmos e Estruturas de Dados II	X		60	50	01/3 09/3	-
 4º	13/3	Linguagens de Programação	X	X	60	50	11/3 15/3	-
-4º	03/5	Análise de Circuitos Elétricos	X		60	50	01/2	-
+4º	03/5	Análise de Circuitos Elétricos	X		60	50	-	01/2
 4º	04/4	Arquitetura e Organização de Computadores II	X		30	25	01/4	05/4
 4º	05/4	Laboratório de Arquitetura e Organização de Computadores II	X		30	25	02/4	04/4
 5º	08/1	Estatística	X		60	50	04/1	-

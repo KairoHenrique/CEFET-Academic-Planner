@@ -7,6 +7,7 @@ import {
 import { buildPendingCalendarReminderSourcesFromEvents } from "@/lib/notifications/build-pending-calendar-reminder-sources";
 import { DEFAULT_NOTIFICATION_PREFERENCES } from "@/lib/notifications/notification-preferences-shared";
 import { pgGetNotificationPreferences } from "@/lib/notifications/notification-preferences-store";
+import { pgGetNotificationHistory, pgSaveNotificationHistory } from "@/lib/push/push-sent-fingerprints-store";
 import { postgresQueryDeps } from "@/lib/db/postgres/query-port";
 import { getActiveTenantUserId } from "@/lib/db/postgres/tenant-context";
 import {
@@ -65,7 +66,7 @@ export async function buildNotificationSnapshotCloud(): Promise<NotificationSnap
     eventosManuais,
   });
 
-  return buildNotificationSnapshotFromData({
+  const snapshot = buildNotificationSnapshotFromData({
     aluno,
     preferences,
     semestreRows,
@@ -75,4 +76,39 @@ export async function buildNotificationSnapshotCloud(): Promise<NotificationSnap
     integralizacao,
     academicRows,
   });
+
+  if (userId) {
+    const history = await pgGetNotificationHistory(userId);
+    let changed = false;
+    const now = new Date().toISOString();
+
+    for (const item of snapshot.items) {
+      const state = history.get(item.fingerprint);
+      if (!state) {
+        history.set(item.fingerprint, {
+          fingerprint: item.fingerprint,
+          discoveredAt: now,
+          isRead: false,
+        });
+        changed = true;
+        item.discoveredAt = now;
+        item.isRead = false;
+      } else {
+        item.discoveredAt = state.discoveredAt;
+        item.isRead = state.isRead;
+      }
+    }
+
+    if (changed) {
+      await pgSaveNotificationHistory(userId, history);
+    }
+
+    snapshot.items.sort((a, b) => {
+      const timeA = a.discoveredAt ? new Date(a.discoveredAt).getTime() : 0;
+      const timeB = b.discoveredAt ? new Date(b.discoveredAt).getTime() : 0;
+      return timeB - timeA;
+    });
+  }
+
+  return snapshot;
 }

@@ -618,7 +618,7 @@
       {
         "disciplina_id": "03/5",
         "requisito_id": "01/2",
-        "tipo": "pre"
+        "tipo": "co"
       }
     ]
   },

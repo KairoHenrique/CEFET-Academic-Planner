@@ -46,10 +46,18 @@ function filterUnread(
   items: NotificationSnapshotItem[],
   baseline: Set<string> | null
 ): NotificationSnapshotItem[] {
-  if (!baseline) return [];
-  return items.filter(
-    (item) => !isNotificationMarkedReadInBaseline(item.fingerprint, baseline)
-  );
+  return items.filter((item) => {
+    // Se o usuário clicou nesta sessão, o localStorage já sabe que foi lido
+    if (baseline && isNotificationMarkedReadInBaseline(item.fingerprint, baseline)) {
+      return false;
+    }
+    // Confia no backend Postgres
+    if (item.isRead !== undefined) {
+      return item.isRead === false;
+    }
+    // Fallback para SQLite local
+    return baseline ? !isNotificationMarkedReadInBaseline(item.fingerprint, baseline) : true;
+  });
 }
 
 function filterByPreferences(
@@ -166,7 +174,15 @@ export function useNotifications() {
     if (migrateAcademicDateAlertStableV1(stableFingerprints)) {
       bumped = true;
     } else if (preSync === null) {
-      seedNotificationBaselineIfMissing(stableFingerprints);
+      // Semeia o baseline local apenas para itens que não vieram do backend Postgres
+      // (itens locais SQLite sem `isRead` definido)
+      const unmanagedFingerprints = query.data.items
+        .filter(i => i.isRead === undefined)
+        .map(i => i.fingerprint);
+      
+      if (unmanagedFingerprints.length > 0) {
+        seedNotificationBaselineIfMissing(unmanagedFingerprints);
+      }
     }
     if (bumped) {
       setBaselineVersion((value) => value + 1);
@@ -236,8 +252,19 @@ export function useNotifications() {
 
   const markItemsAsRead = useCallback((fingerprints: string[]) => {
     if (fingerprints.length === 0) return;
+    
+    // Atualização otimista no frontend
     mergeNotificationBaseline(fingerprints);
     setBaselineVersion((value) => value + 1);
+    
+    // Sincroniza com o backend para marcar as notificações no banco (Global state)
+    fetch("/api/notifications/read", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ fingerprints })
+    }).catch((err) => {
+      console.warn("Failed to mark notifications read in backend", err);
+    });
   }, []);
 
   const getRecentPanelItems = useCallback(() => {

@@ -265,3 +265,14 @@ export async function getDevAuditLog(
 ): Promise<{ ok: true; entries: DevAuditEntry[] }> {
   return devRequestJson(`/api/dev/audit-log?limit=${limit}`);
 }
+
+export async function getDevMaintenancePolicy(): Promise<{ ok: true; policy: { enabled: boolean; pages: string; message: string } }> {
+  return devRequestJson("/api/dev/maintenance");
+}
+
+export async function putDevMaintenancePolicy(policy: { enabled: boolean; pages: string; message: string }): Promise<{ ok: true }> {
+  return devRequestJson("/api/dev/maintenance", {
+    method: "PUT",
+    body: JSON.stringify(policy),
+  });
+}

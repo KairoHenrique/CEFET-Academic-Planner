@@ -31,6 +31,9 @@ export interface NotificationSnapshotItem {
   disciplinaNome?: string;
   notaObtida?: number;
   notaMaxima?: number | null;
+  /** Propriedades de estado gerenciadas pelo DB/Histórico (Postgres) */
+  discoveredAt?: string;
+  isRead?: boolean;
 }
 
 export interface PendingTaskReminderSource {

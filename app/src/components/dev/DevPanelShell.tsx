@@ -10,6 +10,7 @@ import { DevPromotionsSection } from "@/components/dev/DevPromotionsSection";
 import { DevRobotsSection } from "@/components/dev/DevRobotsSection";
 import { DevSyncQueueSection } from "@/components/dev/DevSyncQueueSection";
 import { DevSyncPolicyForm } from "@/components/dev/DevSyncPolicyForm";
+import { DevMaintenanceSection } from "@/components/dev/DevMaintenanceSection";
 import {
   findDevPanelView,
   parseDevPanelView,
@@ -82,6 +83,10 @@ export function DevPanelShell({ operatorEmail, onLogout }: DevPanelShellProps) {
           <div className="col-12">
             <DevSyncPolicyForm enabled />
           </div>
+        ) : null}
+
+        {activeView === "manutencao" ? (
+          <DevMaintenanceSection />
         ) : null}
 
         {activeView === "audit" ? (

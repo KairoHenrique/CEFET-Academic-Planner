@@ -60,27 +60,8 @@ export interface NotificationSnapshotData {
   academicRows: CalendarioAcademicoRow[];
 }
 
-/** Tasks antes de notas; alertas derivados ao final, ordenados por data. */
-const KIND_DISPLAY_ORDER: Record<NotificationKind, number> = {
-  task: 0,
-  "task-reminder": 0,
-  grade: 1,
-  "calendar-event-reminder": 2,
-  "calendar-date-alert": 2,
-  "class-reminder": 2,
-  "integralizacao-alert": 3,
-  absence: 4,
-  "grade-risk": 4,
-  "task-late": 4,
-  "absence-failed": 4,
-  "morning-summary": 5,
-  "graduation-alert": 5,
-  "plan-expiring": 6,
-  promo: 7,
-  "subscription-renewed": 7,
-  "invalid-password": 8,
-  "app-updated": 9,
-};
+// A ordenação principal agora é feita por 'discoveredAt' na versão Cloud.
+// Aqui mantemos um fallback por 'at' (data do evento) decrescente.
 
 export interface NotificationSnapshot {
   items: NotificationSnapshotItem[];
@@ -184,10 +165,7 @@ export function buildNotificationSnapshotFromData(
   }
 
   items.sort((a, b) => {
-    const orderA = KIND_DISPLAY_ORDER[a.kind];
-    const orderB = KIND_DISPLAY_ORDER[b.kind];
-    if (orderA !== orderB) return orderA - orderB;
-    return (a.at ?? "").localeCompare(b.at ?? "");
+    return (b.at ?? "").localeCompare(a.at ?? "");
   });
 
   return {

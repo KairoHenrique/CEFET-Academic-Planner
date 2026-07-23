@@ -37,6 +37,12 @@ export const DEV_PANEL_VIEWS = [
     description: "Ações sensíveis registradas no ambiente.",
     icon: "clipboard" satisfies IconName,
   },
+  {
+    id: "manutencao",
+    label: "Manutenção",
+    description: "Popup de manutenção global e in-fechável.",
+    icon: "warning" satisfies IconName,
+  },
 ] as const;
 
 export type DevPanelViewId = (typeof DEV_PANEL_VIEWS)[number]["id"];

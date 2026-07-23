@@ -24,6 +24,8 @@ import {
   postDevRevokeSubscription,
   postDevRobotsRun,
   resetDevSyncPolicy,
+  getDevMaintenancePolicy,
+  putDevMaintenancePolicy,
 } from "@/lib/dev-panel/client-api";
 import type {
   DevGrantSubscriptionRequest,
@@ -276,5 +278,25 @@ export function useDevAuditLog(enabled: boolean) {
     queryFn: () => getDevAuditLog(15),
     enabled,
     staleTime: 30_000,
+  });
+}
+
+export function useDevMaintenancePolicy(enabled: boolean) {
+  return useQuery({
+    queryKey: [...queryKeys.all, "dev", "maintenance"],
+    queryFn: getDevMaintenancePolicy,
+    enabled,
+    retry: false,
+  });
+}
+
+export function useDevPutMaintenancePolicy() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: putDevMaintenancePolicy,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: [...queryKeys.all, "dev", "maintenance"] });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.devAuditLog() });
+    },
   });
 }
