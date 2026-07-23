@@ -40,7 +40,15 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const policyRaw = await getAppConfigJson("maintenance_policy");
+  let policyRaw = null;
+  if (!isPostgresBackend() || process.env.DATABASE_URL) {
+    try {
+      policyRaw = await getAppConfigJson("maintenance_policy");
+    } catch {
+      // Ignorar erro durante build estático
+    }
+  }
+
   const policy = policyRaw && typeof policyRaw === "object" 
     ? (policyRaw as { enabled?: boolean, pages?: string, message?: string }) 
     : { enabled: false, pages: "/*", message: "" };
