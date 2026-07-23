@@ -27,6 +27,15 @@ export function DevMaintenanceSection() {
     await mutation.mutateAsync({ enabled, pages, message });
   }
 
+  async function handleCompleteMaintenance() {
+    await mutation.mutateAsync({ 
+      enabled: false, 
+      pages: data?.policy?.pages || "/*", 
+      message: data?.policy?.message || "" 
+    });
+    setEnabled(false);
+  }
+
   if (isLoading) {
     return (
       <section className="card">
@@ -66,7 +75,33 @@ export function DevMaintenanceSection() {
         actions={actions}
       />
 
-      <div className="dev-policy-grid mt-4">
+      {data?.policy?.enabled && (
+        <div className="dev-active-promo mb-4 mt-4" style={{ borderColor: 'var(--danger)', background: 'rgba(224, 84, 84, 0.05)' }}>
+          <div className="dev-active-promo-head">
+            <span className="dev-active-promo-badge" style={{ background: 'var(--danger)', color: '#fff' }}>
+              ATIVA
+            </span>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <h3 className="dev-active-promo-title">Manutenção em andamento</h3>
+              <span style={{ fontSize: '0.8125rem', color: 'var(--text-tertiary)', marginTop: '2px' }}>
+                Bloqueando: <strong>{data.policy.pages === "/*" ? "Todas as páginas (Global)" : data.policy.pages}</strong>
+              </span>
+            </div>
+          </div>
+          <div className="dev-active-promo-actions">
+            <button 
+              type="button" 
+              className="btn-gold dev-action-btn"
+              disabled={mutation.isPending}
+              onClick={() => void handleCompleteMaintenance()}
+            >
+              {mutation.isPending ? "Aguarde..." : "Marcar como Concluída"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className={`dev-policy-grid ${data?.policy?.enabled ? 'mt-2' : 'mt-4'}`}>
         <fieldset className="dev-policy-group">
           <legend className="dev-policy-group-title">Status Global</legend>
           <div className="dev-policy-row">
