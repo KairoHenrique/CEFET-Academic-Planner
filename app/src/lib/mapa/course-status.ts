@@ -263,6 +263,7 @@ export interface CourseMapStatusContext {
   current: Set<string>;
   completed: Set<string>;
   preRequisitos: Map<string, string[]>;
+  coRequisitos: Map<string, string[]>;
   obrigatoriaDone: number;
   obrigatoriaTotal: number;
   allDisciplinas: DisciplinaRow[];
@@ -283,6 +284,32 @@ function arePreRequisitosMet(
   return required.every((code) => completed.has(code));
 }
 
+function isNodeLockedByPreOrCoReqs(
+  disciplinaId: string,
+  preRequisitos: Map<string, string[]>,
+  coRequisitos: Map<string, string[]>,
+  completed: Set<string>,
+  visited = new Set<string>()
+): boolean {
+  const code = normalizeCode(disciplinaId);
+  if (visited.has(code)) return false;
+  visited.add(code);
+
+  if (!arePreRequisitosMet(code, preRequisitos, completed)) {
+    return true;
+  }
+
+  const requiredCo = coRequisitos.get(code) ?? [];
+  for (const co of requiredCo) {
+    if (completed.has(co)) continue;
+    if (isNodeLockedByPreOrCoReqs(co, preRequisitos, coRequisitos, completed, visited)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 export function resolveCourseMapStatusResult(
   context: CourseMapStatusContext
 ): CourseMapStatusResult {
@@ -297,7 +324,7 @@ export function resolveCourseMapStatusResult(
     return { status: "current" };
   }
 
-  if (!arePreRequisitosMet(code, context.preRequisitos, context.completed)) {
+  if (isNodeLockedByPreOrCoReqs(code, context.preRequisitos, context.coRequisitos, context.completed)) {
     return { status: "locked", blockedBy: "prereq" };
   }
 
@@ -337,6 +364,7 @@ export function resolveCourseMapStatus(
     current,
     completed,
     preRequisitos,
+    coRequisitos: new Map<string, string[]>(),
     obrigatoriaDone: Number.MAX_SAFE_INTEGER,
     obrigatoriaTotal: 0,
     allDisciplinas: [],

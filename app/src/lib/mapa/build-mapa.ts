@@ -12,6 +12,7 @@ import {
   buildActiveCurrentDisciplinaSet,
   buildGradeTotalsByDisciplinaCode,
   buildPreRequisitoMap,
+  buildCoRequisitoMap,
   countStatusTotals,
   mergeCompletedWithClosedSemesterGrades,
   normalizeDisciplinaCode,
@@ -78,6 +79,7 @@ function buildPeriods(
   current: Set<string>,
   completed: Set<string>,
   preRequisitos: Map<string, string[]>,
+  coRequisitos: Map<string, string[]>,
   obrigatoriaDone: number,
   obrigatoriaTotal: number,
   allDisciplinas: DisciplinaRow[]
@@ -98,6 +100,7 @@ function buildPeriods(
         current,
         completed,
         preRequisitos,
+        coRequisitos,
         obrigatoriaDone,
         obrigatoriaTotal,
         allDisciplinas,
@@ -158,6 +161,7 @@ function assembleMapaFromData(input: MapaAssemblyInput): MapaResponse {
     current.delete(code);
   }
   const preRequisitos = buildPreRequisitoMap(requisitos);
+  const coRequisitos = buildCoRequisitoMap(requisitos);
   const catalog = getChCatalogForCurso(resolveQueryCursoId());
   const syncedObrigatoria =
     integralizacaoRows.find(
@@ -179,6 +183,7 @@ function assembleMapaFromData(input: MapaAssemblyInput): MapaResponse {
     current,
     completed,
     preRequisitos,
+    coRequisitos,
     obrigatoriaDone,
     obrigatoriaTotal,
     gradeDisciplinas

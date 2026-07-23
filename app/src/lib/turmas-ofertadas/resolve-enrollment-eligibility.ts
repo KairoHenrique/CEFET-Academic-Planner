@@ -19,11 +19,11 @@ export interface EnrollmentEligibilityContext
     | "completed"
     | "current"
     | "preRequisitos"
+    | "coRequisitos"
     | "obrigatoriaDone"
     | "obrigatoriaTotal"
   > {
   failed: Set<string>;
-  coRequisitos: Map<string, string[]>;
   disciplinas: DisciplinaRow[];
 }
 
