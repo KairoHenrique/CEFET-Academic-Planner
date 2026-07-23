@@ -86,7 +86,9 @@ export function DevPanelShell({ operatorEmail, onLogout }: DevPanelShellProps) {
         ) : null}
 
         {activeView === "manutencao" ? (
-          <DevMaintenanceSection />
+          <div className="col-12">
+            <DevMaintenanceSection />
+          </div>
         ) : null}
 
         {activeView === "audit" ? (
