@@ -54,49 +54,57 @@ export function MaintenanceOverlay({ enabled, pages, message }: MaintenanceOverl
 
   return (
     <div 
-      className="fixed bottom-0 left-0 right-0 z-[40] flex flex-col items-center justify-center p-4"
       style={{
-        top: "72px", // Fica abaixo da Navbar (que normalmente tem 72px)
-        backgroundColor: "rgba(0, 16, 32, 0.98)", // Sem blur, apenas cor sólida escura para não lagar
+        position: "fixed",
+        top: "72px",
+        bottom: "0",
+        left: "0",
+        right: "0",
+        zIndex: 9998,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "20px",
+        backgroundColor: "rgba(0, 8, 20, 0.85)", 
+        backdropFilter: "blur(8px)",
+        WebkitBackdropFilter: "blur(8px)"
       }}
     >
-      <div 
-        className="max-w-md w-full rounded-2xl p-8 border text-center shadow-2xl relative overflow-hidden"
-        style={{
-          backgroundColor: "rgba(10, 25, 47, 0.95)",
-          borderColor: "rgba(0, 255, 170, 0.3)",
-          boxShadow: "0 0 40px rgba(0, 255, 170, 0.15)"
-        }}
-      >
-        <div 
-          className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 opacity-10 rounded-full"
-          style={{ backgroundColor: "var(--primary-color, #00ffa6)" }}
-        />
-        
-        <div className="relative z-10 flex flex-col items-center gap-6">
-          <div className="relative w-24 h-24 flex items-center justify-center">
-            {/* Bolinha girando */}
-            <div 
-              className="absolute inset-0 rounded-full border-4 border-slate-800 animate-spin"
-              style={{ borderTopColor: "var(--primary-color, #00ffa6)", animationDuration: "1.5s" }}
-            />
-            {/* Texto de porcentagem (falso para dar feedback visual) */}
-            <div className="flex flex-col items-center mt-1">
-              <Icon name="sync" size={16} style={{ color: "var(--primary-color, #00ffa6)" }} className="mb-1" />
-              <span className="text-sm font-bold text-[var(--primary-color)]">{percent}%</span>
+      <div className="modal-panel" style={{ width: "100%", maxWidth: "450px", position: "relative", overflow: "hidden" }}>
+        <header className="modal-header">
+          <div className="modal-header-main" style={{ width: "100%", justifyContent: "center" }}>
+            <h2 className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--gold, #d4af37)' }}>
+              <Icon name="warning" size={18} />
+              Página em Manutenção
+            </h2>
+          </div>
+        </header>
+
+        <div className="modal-body" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "24px", padding: "24px", textAlign: "center" }}>
+          
+          <div style={{ position: "relative", width: "80px", height: "80px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <svg 
+              style={{ position: "absolute", inset: 0, width: "100%", height: "100%", animation: "spin 2s linear infinite" }}
+              viewBox="0 0 50 50"
+            >
+              <circle cx="25" cy="25" r="20" fill="none" stroke="rgba(212, 175, 55, 0.2)" strokeWidth="4" />
+              <circle cx="25" cy="25" r="20" fill="none" stroke="var(--gold, #d4af37)" strokeWidth="4" strokeDasharray="30 100" strokeLinecap="round" />
+            </svg>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: "4px" }}>
+              <Icon name="sync" size={18} style={{ color: "var(--gold, #d4af37)", marginBottom: "2px" }} />
+              <span style={{ fontSize: "12px", fontWeight: "bold", color: "var(--gold, #d4af37)" }}>{percent}%</span>
             </div>
           </div>
           
-          <div>
-            <h2 className="text-xl font-bold text-white tracking-tight mb-2" style={{ fontFamily: "var(--font-outfit)" }}>
-              Essa página está em manutenção
-            </h2>
-            <p className="text-slate-300 text-sm leading-relaxed" style={{ fontFamily: "var(--font-inter)" }}>
-              {message}
-            </p>
-          </div>
+          <p style={{ color: "var(--text-secondary, #9fb0c3)", fontSize: "0.9375rem", lineHeight: "1.6", margin: 0 }}>
+            {message}
+          </p>
         </div>
       </div>
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+      `}} />
     </div>
   );
 }
