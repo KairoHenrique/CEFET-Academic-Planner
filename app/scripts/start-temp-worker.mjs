@@ -19,7 +19,7 @@ const tunnelProc = spawn("npx", ["-y", "cloudflared", "tunnel", "--url", "http:/
 
 let updatedSecret = false;
 
-function handleLine(line: string) {
+function handleLine(line) {
   console.log(`[túnel] ${line}`);
   const match = line.match(/https:\/\/[a-zA-Z0-9-]+\.trycloudflare\.com/);
   if (match && !updatedSecret) {
@@ -48,11 +48,11 @@ function handleLine(line: string) {
   }
 }
 
-tunnelProc.stdout.on("data", (data: Buffer) => {
+tunnelProc.stdout.on("data", (data) => {
   data.toString().split("\n").forEach((line) => line.trim() && handleLine(line));
 });
 
-tunnelProc.stderr.on("data", (data: Buffer) => {
+tunnelProc.stderr.on("data", (data) => {
   data.toString().split("\n").forEach((line) => line.trim() && handleLine(line));
 });
 
