@@ -5,9 +5,11 @@ import { fileURLToPath } from "node:url";
 const appRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 // Libera portas 8787 e 8788 caso tenham ficado presas em execuções anteriores
+console.log("Liberando portas de execuções anteriores...");
 try {
-  execSync("fuser -k 8787/tcp 8788/tcp", { stdio: "ignore" });
+  execSync("fuser -k -9 8787/tcp 8788/tcp", { stdio: "ignore" });
 } catch {}
+Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 1500);
 
 console.log("1/3 Iniciando Worker local do SIGAA...");
 const workerProc = spawn("npx", ["tsx", "--env-file=.env.local", "worker/main.ts"], {
