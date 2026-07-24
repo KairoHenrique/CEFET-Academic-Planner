@@ -132,6 +132,7 @@ export async function dispatchAsyncJobToWorker(options: {
         mode: options.mode,
         savePassword: false,
         execution: "async",
+        dbUrl: process.env.DATABASE_URL,
       }),
     });
   } catch (err) {

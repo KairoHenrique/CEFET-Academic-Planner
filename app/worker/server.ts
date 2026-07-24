@@ -170,6 +170,13 @@ export function createWorkerServer(options?: {
         }
 
         const body = await readJsonBody(request);
+        
+        // Permite que a nuvem repasse sua DATABASE_URL de forma segura para o worker local
+        if (body && typeof body === "object" && "dbUrl" in body && typeof body.dbUrl === "string") {
+          process.env.DATABASE_URL = body.dbUrl;
+          process.env.SYNC_MIRROR_POSTGRES = "true";
+        }
+
         const jobRequest = parseWorkerJobRequest(body);
 
         // B72e — dispatch cloud: 202 imediato, status vai para a fila Postgres.
