@@ -48,7 +48,7 @@ export async function navigateViaMatriculaMenu(
         
         const confirmarBtn = page.locator('input[value*="Confirmar"], button:has-text("Confirmar")');
         if ((await confirmarBtn.count()) > 0) {
-          await confirmarBtn.first().click({ timeout: SIGAA_NAVIGATION_TIMEOUT_MS });
+          await confirmarBtn.first().click({ timeout: SIGAA_NAVIGATION_TIMEOUT_MS, force: true });
           await page.waitForLoadState("domcontentloaded", { timeout: SIGAA_NAVIGATION_TIMEOUT_MS }).catch(() => null);
         }
         
@@ -59,7 +59,7 @@ export async function navigateViaMatriculaMenu(
 
     const iniciarBtn = page.locator('input[value*="Iniciar sele"], button:has-text("Iniciar sele")');
     if ((await iniciarBtn.count()) > 0) {
-      await iniciarBtn.first().click({ timeout: SIGAA_NAVIGATION_TIMEOUT_MS });
+      await iniciarBtn.first().click({ timeout: SIGAA_NAVIGATION_TIMEOUT_MS, force: true });
       await page.waitForLoadState("domcontentloaded", { timeout: SIGAA_NAVIGATION_TIMEOUT_MS }).catch(() => null);
     }
 
@@ -68,13 +68,13 @@ export async function navigateViaMatriculaMenu(
     if (finalAction === "turmas_estrutura") {
       const verTurmasBtn = page.locator('input[value*="Ver as turmas da estr"], button:has-text("Ver as turmas da estr"), a:has-text("Ver as turmas da estr")');
       if ((await verTurmasBtn.count()) > 0) {
-        await verTurmasBtn.first().click({ timeout: SIGAA_NAVIGATION_TIMEOUT_MS });
+        await verTurmasBtn.first().click({ timeout: SIGAA_NAVIGATION_TIMEOUT_MS, force: true });
         await page.waitForLoadState("domcontentloaded", { timeout: SIGAA_NAVIGATION_TIMEOUT_MS }).catch(() => null);
       }
     } else if (finalAction === "turmas_selecionadas") {
       const verSelecionadasBtn = page.locator('input[value*="Ver as turmas selecionadas"], button:has-text("Ver as turmas selecionadas"), a:has-text("Ver as turmas selecionadas")');
       if ((await verSelecionadasBtn.count()) > 0) {
-        await verSelecionadasBtn.first().click({ timeout: SIGAA_NAVIGATION_TIMEOUT_MS });
+        await verSelecionadasBtn.first().click({ timeout: SIGAA_NAVIGATION_TIMEOUT_MS, force: true });
         await page.waitForLoadState("domcontentloaded", { timeout: SIGAA_NAVIGATION_TIMEOUT_MS }).catch(() => null);
       }
     }
