@@ -39,24 +39,21 @@ export const POST = async (request: Request) => {
         );
       }
 
-      const enqueued = await enqueueCloudSyncJob({
+      const result = await runCloudSyncDirect({
         username: credentials.username,
         password: credentials.password || undefined,
-        mode: "deep",
-        lane: "priority",
-        trigger: "manual",
+        mode: credentials.mode || "deep",
         robot: "turmas",
       });
 
       return apiSuccess(
         {
           ok: true as const,
-          cloud: true as const,
-          jobId: enqueued.job.jobId,
+          cloud: false as const,
           rowsWritten: 0,
-          message: "Sincronização de turmas enfileirada.",
+          message: "Sincronização de turmas concluída via notebook.",
         },
-        enqueued.reused ? 200 : 202
+        200
       );
     }
 
