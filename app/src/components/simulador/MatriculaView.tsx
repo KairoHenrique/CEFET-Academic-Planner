@@ -10,17 +10,17 @@ import { ScheduleTableSkeleton } from "@/components/schedule/ScheduleTableSkelet
 import { CourseMapFlowGraph } from "@/components/mapa/CourseMapFlowGraph";
 import { DashboardStateCard } from "@/components/dashboard/DashboardStateCard";
 import { MapaSkeleton } from "@/components/mapa/MapaSkeleton";
-import { useTurmasOfertadas } from "@/hooks/useTurmasOfertadas";
-import { useTurmasOfertadasSync } from "@/hooks/useTurmasOfertadasSync";
+import { useTurmasSelecionadasSync } from "@/hooks/useTurmasSelecionadasSync";
+import { LOAD_TURMAS_SELECIONADAS_EVENT } from "@/components/simulador/EnrollmentSimulator";
 import { useMapaGrafo } from "@/hooks/useMapaGrafo";
 import { resolveNextAcademicSemesterLabel } from "@/lib/academic/resolve-academic-semester";
 import { filterSimuladorTurmas } from "@/lib/simulador/turma-course-utils";
 
 export function MatriculaView() {
   const turmas = useTurmasOfertadas();
-  // Sem autoRun: sincroniza só no clique de "Atualizar SIGAA"/"Buscar turmas"
-  // ou no sync geral. Abrir a página apenas lê o que já está no banco.
-  const sync = useTurmasOfertadasSync();
+  // O Simulador sempre precisa do catálogo global.
+  // A sincronização manual agora é exclusiva para "Minhas Turmas".
+  const sync = useTurmasSelecionadasSync();
   const grafo = useMapaGrafo();
 
   const semestreLabel =
@@ -120,16 +120,20 @@ export function MatriculaView() {
         <article className="card enrollment-card">
           <EnrollmentSyncBar
             syncedAt={turmas.data.syncedAt}
-          syncing={sync.syncing}
-          syncProgress={sync.progress}
-          syncStepLabel={sync.stepLabel}
-          syncError={sync.error}
-            syncMessage={sync.lastMessage}
-            syncMessageTone={sync.lastMessageTone}
+            syncing={sync.syncing}
+            syncError={sync.error}
             passwordPromptOpen={sync.passwordPromptOpen}
-            onRequestSync={(force) => sync.requestSync({ force: force === true })}
+            onRequestSync={() => sync.requestSync((selectedTurmas) => {
+              window.dispatchEvent(
+                new CustomEvent(LOAD_TURMAS_SELECIONADAS_EVENT, { detail: { turmas: selectedTurmas } })
+              );
+            })}
             onClosePasswordPrompt={() => sync.setPasswordPromptOpen(false)}
-            onSubmitPassword={(password) => sync.submitPasswordAndSync(password, { force: true })}
+            onSubmitPassword={(password) => sync.submitPasswordAndSync(password, (selectedTurmas) => {
+              window.dispatchEvent(
+                new CustomEvent(LOAD_TURMAS_SELECIONADAS_EVENT, { detail: { turmas: selectedTurmas } })
+              );
+            })}
           />
 
           {showEmptyState ? (
@@ -142,9 +146,9 @@ export function MatriculaView() {
               <button
                 type="button"
                 className="btn-gold"
-                onClick={() => sync.requestSync({ force: true })}
+                onClick={() => sync.requestSync()}
               >
-                Buscar turmas no SIGAA
+                Sincronizar Minhas Turmas
               </button>
             </section>
           ) : (

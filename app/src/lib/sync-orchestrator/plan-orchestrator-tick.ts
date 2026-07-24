@@ -2,6 +2,8 @@ import type { AppCursoId } from "@/lib/auth/account/types";
 import type { EffectiveSyncPolicy } from "@/lib/sync-policy/types";
 import { isGlobalRefreshDue } from "@/lib/sync-orchestrator/global-refresh-scheduler";
 import { isWithinNightlyWindow } from "@/lib/sync-orchestrator/nightly-window";
+import { getTurmasOfertadas } from "@/lib/db/queries";
+import { resolveNextAcademicSemesterLabel } from "@/lib/academic/resolve-academic-semester";
 
 export type OrchestratorAction =
   | { type: "run_global_calendario"; reason: string }
@@ -62,12 +64,22 @@ export function planOrchestratorTick(input: {
     });
   }
 
+  const targetSemester = resolveNextAcademicSemesterLabel(input.now);
+  const hasTurmas = getTurmasOfertadas(targetSemester).length > 0;
+  // Se não temos turmas (antes da matrícula), checamos a cada 1 hora.
+  // Se já temos turmas (durante a matrícula), checamos a cada 12 horas.
+  const dynamicDays = hasTurmas ? 0.5 : (1 / 24);
+
   for (const cursoId of ACTIVE_CURSO_IDS) {
     const turmaPolicy =
       input.policy.globalTurmasByCurso[cursoId] ?? {
         mode: "interval" as const,
         days: 1,
       };
+      
+    // Sobrescreve policy default com o comportamento dinâmico solicitado
+    turmaPolicy.days = dynamicDays;
+
     const lastAt = input.state.turmasLastAtByCurso[cursoId] ?? null;
 
     if (isGlobalRefreshDue(turmaPolicy, lastAt, input.now, force)) {

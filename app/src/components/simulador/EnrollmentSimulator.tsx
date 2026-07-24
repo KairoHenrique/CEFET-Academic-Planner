@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import {
   ExpandableStage,
@@ -63,6 +63,10 @@ import {
   type ScheduleSlotData,
 } from "@/config/mock/schedule";
 import type { TurmaOfertadaCourse, TurmasOfertadasResponse } from "@/lib/types/turmas-ofertadas-api";
+
+import type { TurmaSelecionadaItem } from "@/lib/scraper/turmas-selecionadas/parse-turmas-selecionadas";
+
+export const LOAD_TURMAS_SELECIONADAS_EVENT = "simulador:load-turmas-selecionadas";
 
 interface EnrollmentSimulatorProps {
   data: TurmasOfertadasResponse;
@@ -631,12 +635,40 @@ export function EnrollmentSimulator({ data }: EnrollmentSimulatorProps) {
     [clearGroupPreview, loadSimulation, placementContext, visible.courses]
   );
 
-  const handleDeleteSimulation = useCallback(
-    async (id: string) => {
-      await deleteSimulation(id);
-    },
-    [deleteSimulation]
-  );
+  useEffect(() => {
+    const handleLoadTurmas = (e: Event) => {
+      const customEvent = e as CustomEvent<{ turmas: TurmaSelecionadaItem[] }>;
+      const turmas = customEvent.detail?.turmas;
+      if (!turmas || !Array.isArray(turmas)) return;
+
+      const turmaSigaaIds = turmas
+        .map((t) => {
+          const matching = visible.courses.find(
+            (c) =>
+              c.sigaaComponente === t.codigoDisciplina &&
+              (!t.turmaCodigo || c.sigaaTurma === t.turmaCodigo)
+          );
+          return matching?.turmaSigaaId;
+        })
+        .filter(Boolean) as string[];
+
+      const nextSchedule = buildScheduleFromTurmaIds(
+        turmaSigaaIds,
+        visible.courses,
+        placementContext
+      );
+      setSchedule(nextSchedule);
+      setSelectedCourse(null);
+      clearGroupPreview();
+      setConflictNotice(null);
+      setDetail(null);
+      setCorequisitoRollbackPrompt(null);
+      setDraggedTurmaId(null);
+    };
+
+    window.addEventListener(LOAD_TURMAS_SELECIONADAS_EVENT, handleLoadTurmas);
+    return () => window.removeEventListener(LOAD_TURMAS_SELECIONADAS_EVENT, handleLoadTurmas);
+  }, [clearGroupPreview, placementContext, visible.courses]);
 
   return (
     <>

@@ -14,13 +14,11 @@ const SYNC_SUCCESS_FEEDBACK_MS = 4500;
 interface EnrollmentSyncBarProps {
   syncedAt: string | null;
   syncing: boolean;
-  syncProgress: number;
-  syncStepLabel: string;
   syncError: string | null;
-  syncMessage: string | null;
+  syncMessage?: string | null;
   syncMessageTone?: TurmasSyncFeedbackTone | null;
   passwordPromptOpen: boolean;
-  onRequestSync: (force?: boolean) => void;
+  onRequestSync: () => void;
   onClosePasswordPrompt: () => void;
   onSubmitPassword: (password: string) => void;
 }
@@ -33,8 +31,6 @@ function feedbackClassName(tone: TurmasSyncFeedbackTone): string {
 export function EnrollmentSyncBar({
   syncedAt,
   syncing,
-  syncProgress,
-  syncStepLabel,
   syncError,
   syncMessage,
   syncMessageTone = "success",
@@ -99,18 +95,14 @@ export function EnrollmentSyncBar({
           type="button"
           className="enrollment-sync-btn"
           disabled={syncing}
-          onClick={() => onRequestSync(true)}
+          onClick={() => onRequestSync()}
         >
           <Icon name="sync" size={15} />
-          {syncing ? "Buscando…" : "Atualizar SIGAA"}
+          {syncing ? "Buscando…" : "Sincronizar Minhas Turmas"}
         </button>
       </header>
 
-      {syncing ? (
-        <div className="enrollment-sync-progress">
-          <SyncProgress progress={syncProgress} stepLabel={syncStepLabel} />
-        </div>
-      ) : null}
+
 
       {showFeedback ? (
         <p

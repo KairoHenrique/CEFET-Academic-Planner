@@ -20,6 +20,7 @@ import type { TurmasOfertadasSnapshot } from "@/lib/scraper/types/turmas-ofertad
 export interface ScrapeTurmasOfertadasOptions {
   skipPortalGoto?: boolean;
   referenceDate?: Date;
+  password?: string;
 }
 
 function buildUnavailableSnapshot(
@@ -84,6 +85,7 @@ export async function scrapeTurmasOfertadas(
 
     const navigated = await navigateToTurmasOfertadas(page, {
       skipReturnToPortal: options?.skipPortalGoto,
+      password: options?.password,
     });
 
     if (!navigated) {

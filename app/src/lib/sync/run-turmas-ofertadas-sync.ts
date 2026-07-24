@@ -119,6 +119,7 @@ async function executeTurmasRobot(
     const snapshot = await scrapeTurmasOfertadas(page, {
       skipPortalGoto: false,
       referenceDate: options.referenceDate,
+      password: credentials.password,
     });
     const result = await persistTurmasOfertadasSnapshot(snapshot);
 

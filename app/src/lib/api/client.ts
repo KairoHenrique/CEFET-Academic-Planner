@@ -309,6 +309,24 @@ export async function postTurmasOfertadasSync(
   );
 }
 
+export interface TurmasSelecionadasSyncResponse {
+  ok: boolean;
+  turmas: import("@/lib/scraper/turmas-selecionadas/parse-turmas-selecionadas").TurmaSelecionadaItem[];
+}
+
+export async function postTurmasSelecionadasSync(
+  credentials: SyncRequest
+): Promise<TurmasSelecionadasSyncResponse> {
+  return requestJson<TurmasSelecionadasSyncResponse>(
+    "/api/sync/turmas-selecionadas",
+    {
+      method: "POST",
+      body: JSON.stringify(credentials),
+    },
+    credentials.username
+  );
+}
+
 export async function getTurmasOfertadas(): Promise<TurmasOfertadasResponse> {
   return requestJson<TurmasOfertadasResponse>("/api/turmas-ofertadas");
 }

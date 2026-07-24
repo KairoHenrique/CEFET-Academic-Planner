@@ -10,6 +10,7 @@ import {
   returnToPortal,
 } from "@/lib/scraper/turma-virtual/portal-turma-navigation";
 import { sleep } from "@/lib/scraper/turma-virtual/html-utils";
+import { navigateViaMatriculaMenu } from "@/lib/scraper/turmas-ofertadas/navigate-via-matricula";
 
 /** Bean Ensino → Consultar Turmas do Próx. Semestre (SIGAA CEFET). */
 export const TURMAS_OFERTADAS_BEAN_ACTION =
@@ -20,7 +21,7 @@ const TURMAS_MENU_LABEL =
 
 export async function navigateToTurmasOfertadas(
   page: Page,
-  options?: { skipReturnToPortal?: boolean }
+  options?: { skipReturnToPortal?: boolean; password?: string }
 ): Promise<boolean> {
   if (!options?.skipReturnToPortal) {
     await returnToPortal(page);
@@ -41,6 +42,12 @@ export async function navigateToTurmasOfertadas(
 
   if (await clickTurmasMenuItem(page)) {
     await sleep(1200);
+    const html = await page.content().catch(() => "");
+    if (isTurmasOfertadasPageHtml(html)) return true;
+  }
+
+  // Tentar fallback pela Matrícula On-Line (período de matrícula)
+  if (await navigateViaMatriculaMenu(page, { password: options?.password, finalAction: "turmas_estrutura" })) {
     const html = await page.content().catch(() => "");
     if (isTurmasOfertadasPageHtml(html)) return true;
   }
