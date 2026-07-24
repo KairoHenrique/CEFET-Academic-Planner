@@ -134,22 +134,32 @@ export async function dispatchAsyncJobToWorker(options: {
         execution: "async",
       }),
     });
-  } catch {
+  } catch (err) {
+    console.error("[cloud-sync] Erro ao conectar ao worker:", err);
     throw new ApiError(
       "SIGAA_OFFLINE",
-      "Worker de sincronização inacessível. Tente novamente em instantes.",
+      `Worker de sincronização inacessível (${err instanceof Error ? err.message : String(err)}).`,
       503
     );
   }
 
   if (response.status !== 202) {
     const detail = await response.text().catch(() => "");
+    let jsonMsg: string | undefined;
+    let jsonCode: string | undefined;
+    try {
+      const parsed = JSON.parse(detail);
+      jsonMsg = parsed?.error?.message || parsed?.message;
+      jsonCode = parsed?.error?.code || parsed?.code;
+    } catch {}
+
+    const errorMsg = jsonMsg || (detail ? detail.slice(0, 150) : `HTTP ${response.status}`);
     console.error(
       `[cloud-sync] Worker rejeitou dispatch (${response.status}): ${detail.slice(0, 200)}`
     );
     throw new ApiError(
-      "SIGAA_OFFLINE",
-      "Worker de sincronização indisponível no momento.",
+      jsonCode || "SIGAA_OFFLINE",
+      `Worker indisponível (${response.status}): ${errorMsg}`,
       503
     );
   }
@@ -276,28 +286,36 @@ export async function runCloudSyncDirect(input: {
         execution: "sync",
       }),
     });
-  } catch {
+  } catch (err) {
+    console.error("[cloud-sync] Erro de rede no direct sync:", err);
     throw new ApiError(
       "SIGAA_OFFLINE",
-      "Worker de sincronização inacessível. Tente novamente em instantes.",
+      `Worker de sincronização inacessível (${err instanceof Error ? err.message : String(err)}).`,
       503
     );
   }
 
-  const payload = (await response.json().catch(() => null)) as
-    | {
-        status?: string;
-        steps?: Array<{ label: string; progress: number }>;
-        partial?: boolean;
-        payload?: unknown;
-        error?: { code: string; message: string };
-      }
-    | null;
+  const rawText = await response.text().catch(() => "");
+  let payload: {
+    status?: string;
+    steps?: Array<{ label: string; progress: number }>;
+    partial?: boolean;
+    payload?: unknown;
+    error?: { code: string; message: string };
+    message?: string;
+    code?: string;
+  } | null = null;
+
+  try {
+    payload = JSON.parse(rawText);
+  } catch {}
 
   if (!response.ok || payload?.status !== "completed") {
-    const code = payload?.error?.code ?? "SIGAA_OFFLINE";
+    const code = payload?.error?.code ?? payload?.code ?? "SIGAA_OFFLINE";
     const message =
-      payload?.error?.message ?? "Falha na sincronização via worker.";
+      payload?.error?.message ??
+      payload?.message ??
+      (rawText ? rawText.slice(0, 150) : `Falha no worker (HTTP ${response.status})`);
     throw new ApiError(
       code === "SIGAA_AUTH_FAILED" || code === "INVALID_CREDENTIALS"
         ? code
