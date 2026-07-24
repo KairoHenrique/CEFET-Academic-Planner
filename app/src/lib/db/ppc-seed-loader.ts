@@ -1,5 +1,4 @@
-import fs from "node:fs";
-import path from "node:path";
+
 import type { AppCursoId } from "@/lib/auth/account/types";
 import { isAppCursoId } from "@/lib/auth/account/curso-catalog";
 import { DEFAULT_CURSO_ID } from "@/lib/db/backend/config";
@@ -35,17 +34,14 @@ export function resolvePpcSeedFileName(
   return SEED_FILE_BY_CURSO["eng-computacao"];
 }
 
+import engComp from "@/config/mock/disciplinas_db.json";
+import engMeca from "@/config/mock/disciplinas_db_eng-mecatronica.json";
+import designModa from "@/config/mock/disciplinas_db_design-moda.json";
+
 export function loadPpcSeedData(
   cursoId: AppCursoId | string = DEFAULT_CURSO_ID
 ): PpcSeedItem[] {
-  const fileName = resolvePpcSeedFileName(cursoId);
-  const dataPath = path.join(
-    process.cwd(),
-    "src",
-    "config",
-    "mock",
-    fileName
-  );
-  const rawData = fs.readFileSync(dataPath, "utf-8");
-  return JSON.parse(rawData) as PpcSeedItem[];
+  if (cursoId === "eng-mecatronica") return engMeca as PpcSeedItem[];
+  if (cursoId === "design-moda") return designModa as PpcSeedItem[];
+  return engComp as PpcSeedItem[];
 }
