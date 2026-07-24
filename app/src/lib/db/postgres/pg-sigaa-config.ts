@@ -1,4 +1,3 @@
-import "server-only";
 import { getPostgresPool } from "@/lib/db/postgres/pool";
 import { getActiveTenantUserId } from "@/lib/db/postgres/tenant-context";
 import {

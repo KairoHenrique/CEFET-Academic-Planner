@@ -1,4 +1,3 @@
-import "server-only";
 import { isAppCursoId } from "@/lib/auth/account/curso-catalog";
 import { findSyncTenantByCpf } from "@/lib/auth/account/profile-repository";
 import { runWithQueryCursoId } from "@/lib/auth/account/query-curso-context";

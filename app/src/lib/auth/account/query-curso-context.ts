@@ -1,5 +1,4 @@
 import { AsyncLocalStorage } from "node:async_hooks";
-import "server-only";
 import type { AppCursoId } from "@/lib/auth/account/types";
 
 const cursoContext = new AsyncLocalStorage<AppCursoId | undefined>();
