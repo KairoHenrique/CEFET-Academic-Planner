@@ -15,3 +15,4 @@ app/.data/
 # APK sideload (M16)
 app/public/releases/*.apk
 mobile/*.apk
+tmp.json
