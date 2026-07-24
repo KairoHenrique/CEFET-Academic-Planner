@@ -10,7 +10,7 @@ try {
 } catch {}
 
 console.log("1/3 Iniciando Worker local do SIGAA...");
-const workerProc = spawn("npm", ["run", "worker:home"], {
+const workerProc = spawn("npx", ["tsx", "--env-file=.env.local", "worker/main.ts"], {
   cwd: appRoot,
   stdio: "inherit",
   env: process.env,

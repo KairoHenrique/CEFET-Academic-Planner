@@ -15,9 +15,12 @@ export function AppDownloadFab() {
       aria-label="Baixar app Android na Play Store"
       title="Baixe nosso app na Play Store"
     >
-      <div className="app-dl-qr-card" style={{ padding: "12px", alignItems: "center", gap: "8px" }}>
-        <Icon name="smartphone" size={36} />
-        <span className="app-dl-qr-card-label" style={{ marginTop: "4px" }}>Disponível no<br/>Google Play</span>
+      <div className="app-dl-qr-card" style={{ padding: "6px 8px", alignItems: "center" }}>
+        <img
+          src="/google-play-badge.svg"
+          alt="Disponível no Google Play"
+          style={{ width: "135px", height: "auto", display: "block", borderRadius: "6px" }}
+        />
       </div>
     </a>
   );
