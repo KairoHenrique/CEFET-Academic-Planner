@@ -6,6 +6,8 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+export const dynamic = "force-static";
+
 export default function DevPage() {
   return <DevPanelPage />;
 }
