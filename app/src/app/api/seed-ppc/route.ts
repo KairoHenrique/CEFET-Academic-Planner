@@ -1,14 +1,12 @@
 export const dynamic = "force-dynamic";
 
 import { apiErrorResponse, apiSuccess } from "@/lib/api/response";
-import { ensureDbReady } from "@/lib/db/bootstrap";
 import { countGlobalDisciplinas, seedAllPpcGlobalToPostgres } from "@/lib/db/postgres/seed-ppc-global";
 
 export const runtime = "nodejs";
 
 export const GET = async () => {
   try {
-    ensureDbReady();
     const results = await seedAllPpcGlobalToPostgres();
     const output = [];
     
