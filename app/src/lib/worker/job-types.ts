@@ -1,7 +1,7 @@
 import type { SyncMode } from "@/lib/types/sync-pipeline";
 
 /** r1 = pipeline completo por usuário · turmas/calendario = catálogo global (B72e). */
-export type WorkerRobotId = "r1" | "turmas" | "calendario";
+export type WorkerRobotId = "r1" | "turmas" | "calendario" | "turmas-selecionadas";
 
 /** sync = responde ao fim do job · async = 202 imediato + status na fila Postgres (B72e). */
 export type WorkerJobExecution = "sync" | "async";
@@ -31,6 +31,7 @@ export interface WorkerJobSuccess {
   durationMs: number;
   partial?: boolean;
   steps: Array<{ label: string; progress: number }>;
+  payload?: unknown;
 }
 
 export interface WorkerJobFailure {

@@ -5,6 +5,7 @@ import { runWithUserDb } from "@/lib/db/connection-manager";
 import { runCalendarioSync } from "@/lib/sync/run-calendario-sync";
 import { runSync } from "@/lib/sync/run-sync";
 import { runTurmasOfertadasSync } from "@/lib/sync/run-turmas-ofertadas-sync";
+import { runTurmasSelecionadasSync } from "@/lib/sync/run-turmas-selecionadas-sync";
 import { runWithSyncTenantContext } from "@/lib/sync/run-with-sync-tenant-context";
 import type { BrowserJobSlot } from "@/lib/worker/browser-job-slot";
 import type {
@@ -18,6 +19,7 @@ import type { WorkerRuntimeState } from "@/lib/worker/worker-runtime-state";
 interface WorkerPipelineOutcome {
   partial: boolean;
   steps: Array<{ label: string; progress: number }>;
+  payload?: unknown;
 }
 
 function mapJobError(error: unknown): WorkerJobFailure["error"] {
@@ -88,6 +90,15 @@ async function runRobotPipeline(
     };
   }
 
+  if (request.robot === "turmas-selecionadas") {
+    const turmas = await runTurmasSelecionadasSync(credentials);
+    return {
+      partial: false,
+      steps: [{ label: "Turmas selecionadas sincronizadas", progress: 100 }],
+      payload: turmas,
+    };
+  }
+
   const pipeline = await runSync(credentials, {
     mode: request.mode ?? "full",
   });
@@ -129,6 +140,7 @@ export async function runWorkerSyncJob(
       durationMs: Date.now() - startedAt,
       partial: pipeline.partial || undefined,
       steps: pipeline.steps,
+      payload: pipeline.payload,
     };
   } catch (error) {
     return {

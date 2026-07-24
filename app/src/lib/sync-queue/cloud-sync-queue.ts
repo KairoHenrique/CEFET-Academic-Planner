@@ -239,10 +239,12 @@ export async function runCloudSyncDirect(input: {
   username: string;
   password?: string;
   mode: SyncMode;
+  robot?: import("@/lib/worker/job-types").WorkerRobotId;
 }): Promise<{
   steps: Array<{ label: string; progress: number }>;
   partial?: boolean;
   jobId: string;
+  payload?: unknown;
 }> {
   const config = resolveWorkerDispatchConfig();
   if (!config) {
@@ -266,7 +268,7 @@ export async function runCloudSyncDirect(input: {
       },
       body: JSON.stringify({
         jobId,
-        robot: "r1",
+        robot: input.robot ?? "r1",
         username: input.username,
         passwordEnc,
         mode: input.mode,
@@ -287,6 +289,7 @@ export async function runCloudSyncDirect(input: {
         status?: string;
         steps?: Array<{ label: string; progress: number }>;
         partial?: boolean;
+        payload?: unknown;
         error?: { code: string; message: string };
       }
     | null;
@@ -308,6 +311,7 @@ export async function runCloudSyncDirect(input: {
     steps: payload.steps ?? [],
     partial: payload.partial,
     jobId,
+    payload: payload.payload,
   };
 }
 
