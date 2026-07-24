@@ -1,8 +1,13 @@
-import { spawn } from "node:child_process";
+import { execSync, spawn } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const appRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+
+// Libera portas 8787 e 8788 caso tenham ficado presas em execuções anteriores
+try {
+  execSync("fuser -k 8787/tcp 8788/tcp", { stdio: "ignore" });
+} catch {}
 
 console.log("1/3 Iniciando Worker local do SIGAA...");
 const workerProc = spawn("npm", ["run", "worker:home"], {
