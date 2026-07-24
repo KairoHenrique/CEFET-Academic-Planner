@@ -4,16 +4,28 @@ import { usePathname } from "next/navigation";
 import { Icon } from "@/components/ui/Icon";
 import { useEffect, useState } from "react";
 
-interface MaintenanceOverlayProps {
+interface MaintenancePolicy {
   enabled: boolean;
   pages: string;
   message: string;
 }
 
-export function MaintenanceOverlay({ enabled, pages, message }: MaintenanceOverlayProps) {
+export function MaintenanceOverlay() {
   const pathname = usePathname();
   const [isMounted, setIsMounted] = useState(false);
   const [percent, setPercent] = useState(0);
+  const [policy, setPolicy] = useState<MaintenancePolicy | null>(null);
+
+  useEffect(() => {
+    fetch('/api/maintenance')
+      .then(res => res.json())
+      .then(data => {
+        if (data.ok && data.policy) {
+          setPolicy(data.policy);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     setIsMounted(true);
@@ -23,13 +35,13 @@ export function MaintenanceOverlay({ enabled, pages, message }: MaintenanceOverl
     return () => clearInterval(interval);
   }, []);
 
-  if (!isMounted || !enabled) {
+  if (!isMounted || !policy || !policy.enabled) {
     return null;
   }
 
   // Verificar se o pathname atual corresponde ao padrão em `pages`
   // Ex: "/*" ou "/simulador, /mapa"
-  const paths = pages.split(",").map(p => p.trim()).filter(Boolean);
+  const paths = policy.pages.split(",").map(p => p.trim()).filter(Boolean);
   
   // Se não estiver na rota de dev (para não trancar o painel dev!)
   if (pathname?.startsWith("/dev")) {
@@ -37,7 +49,7 @@ export function MaintenanceOverlay({ enabled, pages, message }: MaintenanceOverl
   }
 
   let shouldShow = false;
-  if (pages === "/*" || pages === "*") {
+  if (policy.pages === "/*" || policy.pages === "*") {
     shouldShow = true;
   } else {
     shouldShow = paths.some(p => {
@@ -56,10 +68,10 @@ export function MaintenanceOverlay({ enabled, pages, message }: MaintenanceOverl
     <div 
       style={{
         position: "fixed",
-        top: "72px",
-        bottom: "0",
-        left: "0",
-        right: "0",
+        top: 0,
+        bottom: 0,
+        left: 0,
+        right: 0,
         zIndex: 9998,
         display: "flex",
         flexDirection: "column",
@@ -98,7 +110,7 @@ export function MaintenanceOverlay({ enabled, pages, message }: MaintenanceOverl
           </div>
           
           <p style={{ color: "var(--text-secondary, #9fb0c3)", fontSize: "0.9375rem", lineHeight: "1.6", margin: 0 }}>
-            {message}
+            {policy.message}
           </p>
         </div>
       </div>

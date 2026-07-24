@@ -15,6 +15,7 @@ import { LOAD_TURMAS_SELECIONADAS_EVENT } from "@/components/simulador/Enrollmen
 import { useMapaGrafo } from "@/hooks/useMapaGrafo";
 import { resolveNextAcademicSemesterLabel } from "@/lib/academic/resolve-academic-semester";
 import { filterSimuladorTurmas } from "@/lib/simulador/turma-course-utils";
+import { useTurmasOfertadas } from "@/hooks/useTurmasOfertadas";
 
 export function MatriculaView() {
   const turmas = useTurmasOfertadas();

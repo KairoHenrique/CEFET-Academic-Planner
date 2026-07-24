@@ -1,4 +1,4 @@
-import { useEffect, useState, type ComponentType, type ReactNode } from "react";
+import { useCallback, useEffect, useState, type ComponentType, type ReactNode } from "react";
 import { StyleSheet, View } from "react-native";
 import {
   createNativeStackNavigator,
@@ -14,6 +14,7 @@ import { setAvatarFromNome, setAvatarInitials } from "../perfil/avatar-store";
 import { useAvatarInitials } from "../perfil/useAvatarInitials";
 import { startManualLiteSync } from "../sync/manual-lite-sync";
 import { useMobileSync } from "../sync/useMobileSync";
+import { useOnSyncComplete } from "../sync/useOnSyncComplete";
 import { brand } from "../theme/brand";
 import { SyncProgressOverlay } from "../ui/SyncProgressOverlay";
 import { CalendarScreen } from "../screens/CalendarScreen";
@@ -28,6 +29,8 @@ import { PlanosScreen } from "../screens/PlanosScreen";
 import { PlanosPixScreen } from "../screens/PlanosPixScreen";
 import { SimuladorScreen } from "../screens/SimuladorScreen";
 import { F28Navbar } from "./F28Navbar";
+import { fetchNotifications } from "../cache/fetchers";
+import { mergeMobileNotificationItems } from "../features/notifications/merge-mobile-notification-items";
 import { MobileDrawer } from "./MobileDrawer";
 import type { RootStackParamList } from "./types";
 import {
@@ -45,6 +48,26 @@ function ShellChrome({ children }: { children: ReactNode }) {
   const { startTutorialForRoute } = useTutorial();
   const { checkManually } = useUpdateCheck();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  const loadNotifications = useCallback(async () => {
+    try {
+      const res = await fetchNotifications();
+      if (res?.data) {
+        const items = mergeMobileNotificationItems(res.data);
+        const unread = items.filter(item => item.isRead === false || item.isRead === undefined).length;
+        setUnreadCount(unread);
+      }
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    void loadNotifications();
+  }, [loadNotifications]);
+
+  useOnSyncComplete(() => {
+    void loadNotifications();
+  });
   const sync = useMobileSync();
   const initials = useAvatarInitials();
   const activeRoute = useNavigationState((state) => {
@@ -97,6 +120,7 @@ function ShellChrome({ children }: { children: ReactNode }) {
         onPressBrand={() => navigation.navigate("Dashboard")}
         syncing={sync.syncing}
         initials={initials}
+        unreadCount={unreadCount}
       />
       <SyncProgressOverlay />
       <View style={styles.content}>{children}</View>

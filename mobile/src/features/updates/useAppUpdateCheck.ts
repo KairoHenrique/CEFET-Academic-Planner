@@ -1,14 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { fetchReleaseManifest } from "./fetch-release-manifest";
+import { useCallback, useState } from "react";
+import { Linking } from "react-native";
 import { resolveInstalledAppVersion } from "./resolve-installed-version";
-import {
-  dismissUpdateVersion,
-  getDismissedUpdateVersion,
-  isUpdateSessionSnoozed,
-  snoozeUpdateForSession,
-} from "./update-preferences";
 import type { UpdatePromptChoice } from "./AppUpdateModal";
-import { isRemoteNewer } from "./version-compare";
 
 export type UpdatePromptState = {
   localVersion: string;
@@ -23,118 +16,42 @@ export type ManualCheckResult =
   | { kind: "error"; message: string };
 
 type Options = {
-  /** Checagem automática ao montar (entrada no app autenticado). */
   autoCheck?: boolean;
 };
 
 export function useAppUpdateCheck(options: Options = {}) {
-  const autoCheck = options.autoCheck !== false;
   const [prompt, setPrompt] = useState<UpdatePromptState | null>(null);
   const [toast, setToast] = useState<{
     kicker: string;
     message: string;
     tone: "ok" | "info" | "warn";
   } | null>(null);
-  const checkingRef = useRef(false);
 
   const dismissToast = useCallback(() => setToast(null), []);
 
-  const evaluateUpdate = useCallback(async (manual: boolean) => {
-    if (checkingRef.current) {
-      return { kind: "busy" as const };
-    }
-    checkingRef.current = true;
+  const checkManually = useCallback(async (): Promise<ManualCheckResult> => {
     try {
-      const localVersion = resolveInstalledAppVersion();
-      const manifest = await fetchReleaseManifest();
-
-      if (!isRemoteNewer(localVersion, manifest.version)) {
-        if (manual) {
-          setToast({
-            kicker: "Atualizações",
-            message: `Você já está na versão mais recente (${localVersion}).`,
-            tone: "ok",
-          });
-        }
-        return {
-          kind: "upToDate" as const,
-          localVersion,
-        };
-      }
-
-      const dismissed = await getDismissedUpdateVersion();
-      if (
-        !manual &&
-        dismissed &&
-        !isRemoteNewer(dismissed, manifest.version)
-      ) {
-        return { kind: "suppressed" as const };
-      }
-
-      if (!manual && isUpdateSessionSnoozed()) {
-        return { kind: "snoozed" as const };
-      }
-
-      const nextPrompt: UpdatePromptState = {
-        localVersion,
-        remoteVersion: manifest.version,
-        apkUrl: manifest.apkUrl,
-        notes: manifest.notes,
-      };
-      setPrompt(nextPrompt);
-      return { kind: "available" as const, prompt: nextPrompt };
+      await Linking.openURL("market://details?id=br.cefethub.acme");
     } catch {
-      if (manual) {
+      try {
+        await Linking.openURL("https://play.google.com/store/apps/details?id=br.cefethub.acme");
+      } catch {
         setToast({
           kicker: "Atualizações",
-          message: "Não foi possível verificar agora. Tente de novo em instantes.",
+          message: "Não foi possível abrir a Play Store.",
           tone: "warn",
         });
+        return { kind: "error", message: "Não foi possível abrir a Play Store." };
       }
-      return {
-        kind: "error" as const,
-        message: "Falha ao verificar atualização.",
-      };
-    } finally {
-      checkingRef.current = false;
     }
+    return { kind: "upToDate", localVersion: resolveInstalledAppVersion() };
   }, []);
-
-  useEffect(() => {
-    if (!autoCheck) return;
-    void evaluateUpdate(false);
-  }, [autoCheck, evaluateUpdate]);
-
-  const checkManually = useCallback(async (): Promise<ManualCheckResult> => {
-    const result = await evaluateUpdate(true);
-    if (result.kind === "upToDate") {
-      return { kind: "upToDate", localVersion: result.localVersion };
-    }
-    if (result.kind === "available") {
-      return { kind: "available", prompt: result.prompt };
-    }
-    return {
-      kind: "error",
-      message: "Não foi possível verificar agora.",
-    };
-  }, [evaluateUpdate]);
 
   const handleChoice = useCallback(
     async (choice: UpdatePromptChoice) => {
-      const current = prompt;
       setPrompt(null);
-      if (!current) return;
-
-      if (choice === "later") {
-        snoozeUpdateForSession();
-        return;
-      }
-
-      if (choice === "dismiss") {
-        await dismissUpdateVersion(current.remoteVersion);
-      }
     },
-    [prompt]
+    []
   );
 
   return {

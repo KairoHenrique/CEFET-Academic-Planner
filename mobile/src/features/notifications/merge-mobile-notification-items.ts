@@ -258,5 +258,12 @@ export function mergeMobileNotificationItems(
     seen.add(item.fingerprint);
     merged.push(item);
   }
+  
+  merged.sort((a, b) => {
+    const timeA = a.at ? new Date(a.at).getTime() : 0;
+    const timeB = b.at ? new Date(b.at).getTime() : 0;
+    return timeB - timeA;
+  });
+
   return merged;
 }

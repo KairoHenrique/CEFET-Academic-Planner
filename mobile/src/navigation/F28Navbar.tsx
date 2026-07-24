@@ -62,11 +62,7 @@ export function F28Navbar({
           >
             <Icon name="bell" size={18} color={brand.gold} />
             {unreadCount > 0 ? (
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>
-                  {unreadCount > 9 ? "9+" : String(unreadCount)}
-                </Text>
-              </View>
+              <View style={styles.badge} />
             ) : null}
           </Pressable>
 
@@ -171,21 +167,12 @@ const styles = StyleSheet.create({
   },
   badge: {
     position: "absolute",
-    top: 4,
-    right: 4,
-    minWidth: 16,
-    height: 16,
-    borderRadius: 8,
-    backgroundColor: brand.danger,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 3,
-  },
-  badgeText: {
-    fontSize: 9,
-    fontFamily: brand.fontBodyBold,
-    fontWeight: "700",
-    color: brand.white,
+    top: 10,
+    right: 10,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: brand.gold,
   },
   avatarBtn: {
     width: 36,

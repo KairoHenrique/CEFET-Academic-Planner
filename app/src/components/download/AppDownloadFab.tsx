@@ -1,26 +1,23 @@
-"use client";
-
-import { APP_RELEASE } from "@/config/app-download";
-import { AppDownloadQr } from "@/components/download/AppDownloadQr";
+import { Icon } from "@/components/ui/Icon";
 
 /**
  * Widget fixo (canto inferior direito) — só desktop.
- * QR sempre visível + borda dourada + “Baixar app”. Sem modal.
+ * Substituído de QR Code para botão da Play Store.
  */
 export function AppDownloadFab() {
   return (
     <a
-      href={APP_RELEASE.pagePath}
+      href="https://play.google.com/store/apps/details?id=br.cefethub.acme"
+      target="_blank"
+      rel="noopener noreferrer"
       className="app-dl-fab-root"
       data-tutorial-id="app-download-fab"
-      aria-label={`${APP_RELEASE.label} — escanear QR ou abrir página`}
-      title="Escaneie o QR no celular ou clique para abrir o download"
+      aria-label="Baixar app Android na Play Store"
+      title="Baixe nosso app na Play Store"
     >
-      <div className="app-dl-qr-card">
-        <div className="app-dl-qr-card-frame">
-          <AppDownloadQr size={80} className="app-dl-qr-card-img" />
-        </div>
-        <span className="app-dl-qr-card-label">Baixar app</span>
+      <div className="app-dl-qr-card" style={{ padding: "12px", alignItems: "center", gap: "8px" }}>
+        <Icon name="smartphone" size={36} />
+        <span className="app-dl-qr-card-label" style={{ marginTop: "4px" }}>Disponível no<br/>Google Play</span>
       </div>
     </a>
   );

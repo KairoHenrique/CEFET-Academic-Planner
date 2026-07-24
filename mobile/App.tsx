@@ -33,6 +33,7 @@ import { registerPushForCurrentSession, setupPushNotifications } from "./src/pus
 import { hydrateAvatarInitials } from "./src/perfil/avatar-store";
 import { LoginScreen } from "./src/screens/LoginScreen";
 import { brand } from "./src/theme/brand";
+import { MaintenanceOverlay } from "./src/ui/MaintenanceOverlay";
 
 async function lockAppPortrait(): Promise<void> {
   try {
@@ -125,6 +126,7 @@ export default function App() {
     return (
       <SafeAreaProvider>
         <LoginScreen apiConfigured={apiOk} />
+        <MaintenanceOverlay />
         <StatusBar style="light" />
       </SafeAreaProvider>
     );
@@ -138,6 +140,7 @@ export default function App() {
         <NavigationContainer theme={navTheme}>
           <PaywallStack session={session} />
         </NavigationContainer>
+        <MaintenanceOverlay />
         <StatusBar style="light" />
       </SafeAreaProvider>
     );
@@ -148,6 +151,7 @@ export default function App() {
       <NavigationContainer theme={navTheme}>
         <AppShell />
       </NavigationContainer>
+      <MaintenanceOverlay />
       <StatusBar style="light" />
     </SafeAreaProvider>
   );

@@ -4,8 +4,6 @@ import "./globals.css";
 import { JerseyBackground } from "@/components/JerseyBackground";
 import { AppShell } from "@/components/layout/AppShell";
 import { MaintenanceOverlay } from "@/components/layout/MaintenanceOverlay";
-import { getAppConfigJson } from "@/lib/sync-policy/app-config-store";
-import { isPostgresBackend } from "@/lib/db/backend/config";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -36,33 +34,16 @@ export const viewport: Viewport = {
   themeColor: "#001020",
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  let policyRaw = null;
-  if (!isPostgresBackend() || process.env.DATABASE_URL) {
-    try {
-      policyRaw = await getAppConfigJson("maintenance_policy");
-    } catch {
-      // Ignorar erro durante build estático
-    }
-  }
-
-  const policy = policyRaw && typeof policyRaw === "object" 
-    ? (policyRaw as { enabled?: boolean, pages?: string, message?: string }) 
-    : { enabled: false, pages: "/*", message: "" };
-
   return (
     <html lang="pt-BR" className={`${inter.variable} ${outfit.variable}`}>
       <body>
         <JerseyBackground />
-        <MaintenanceOverlay 
-          enabled={Boolean(policy.enabled)} 
-          pages={policy.pages || "/*"} 
-          message={policy.message || "Nosso site estará temporariamente indisponível para uma atualização. Voltaremos em breve!"} 
-        />
+        <MaintenanceOverlay />
         <AppShell>{children}</AppShell>
       </body>
     </html>
