@@ -27,12 +27,13 @@ export function parseWorkerJobRequest(body: unknown): WorkerJobRequest {
   const robot =
     record.robot === "r1" ||
     record.robot === "turmas" ||
-    record.robot === "calendario"
+    record.robot === "calendario" ||
+    record.robot === "turmas-selecionadas"
       ? record.robot
       : null;
   if (!robot) {
     throw validationError(
-      'Campo robot deve ser "r1", "turmas" ou "calendario" (B54/B72e).'
+      'Campo robot deve ser "r1", "turmas", "calendario" ou "turmas-selecionadas" (B54/B72e).'
     );
   }
 
