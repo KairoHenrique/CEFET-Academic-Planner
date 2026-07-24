@@ -1,8 +1,8 @@
 import { resolveNextAcademicSemesterLabel } from "@/lib/academic/resolve-academic-semester";
 import { loginSigaaOnPage } from "@/lib/scraper/auth";
 import { SIGAA_SCRAPER_MOCK } from "@/lib/scraper/constants";
+import { scrapeTurmasEstrutura } from "@/lib/scraper/turmas-ofertadas/scrape-turmas-estrutura";
 import {
-  scrapeTurmasOfertadas,
   scrapeTurmasOfertadasMock,
 } from "@/lib/scraper/turmas-ofertadas/scrape-turmas-ofertadas";
 import { withSyncBrowser } from "@/lib/scraper/session-context";
@@ -116,8 +116,7 @@ async function executeTurmasRobot(
   return withSyncBrowser(async (page) => {
     await loginSigaaOnPage(page, credentials);
 
-    const snapshot = await scrapeTurmasOfertadas(page, {
-      skipPortalGoto: false,
+    const snapshot = await scrapeTurmasEstrutura(page, {
       referenceDate: options.referenceDate,
       password: credentials.password,
     });
