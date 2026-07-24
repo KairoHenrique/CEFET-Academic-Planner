@@ -1,0 +1,5 @@
+
+> app@0.1.0 worker:home
+> node scripts/start-home-worker.mjs
+
+[worker] SIGAA Playwright worker ouvindo :8788 · maxConcurrent=1
