@@ -3,7 +3,7 @@ import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
 import { JerseyBackground } from "@/components/JerseyBackground";
 import { AppShell } from "@/components/layout/AppShell";
-import { MaintenanceOverlay } from "@/components/layout/MaintenanceOverlay";
+
 
 const inter = Inter({
   variable: "--font-inter",
@@ -43,7 +43,6 @@ export default function RootLayout({
     <html lang="pt-BR" className={`${inter.variable} ${outfit.variable}`}>
       <body>
         <JerseyBackground />
-        <MaintenanceOverlay />
         <AppShell>{children}</AppShell>
       </body>
     </html>

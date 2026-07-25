@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
 import { AuthGate } from "@/components/auth/AuthGate";
+import { MaintenanceGuard } from "@/components/layout/MaintenanceGuard";
 import { SubscriptionAccessGuard } from "@/components/auth/SubscriptionAccessGuard";
 import { AutoSyncRunner } from "@/components/profile/AutoSyncRunner";
 import { SessionActivityTracker } from "@/components/auth/SessionActivityTracker";
@@ -47,13 +48,15 @@ export function AppShell({ children }: AppShellProps) {
                 isLegalPage ? "main-content-legal" : ""
               } ${isDownload ? "main-content-download" : ""}`}
             >
-              {showStudentChrome ? (
-                <div key={pathname} className="route-transition">
-                  {children}
-                </div>
-              ) : (
-                children
-              )}
+              <MaintenanceGuard>
+                {showStudentChrome ? (
+                  <div key={pathname} className="route-transition">
+                    {children}
+                  </div>
+                ) : (
+                  children
+                )}
+              </MaintenanceGuard>
             </main>
           </SubscriptionAccessGuard>
         </AuthGate>

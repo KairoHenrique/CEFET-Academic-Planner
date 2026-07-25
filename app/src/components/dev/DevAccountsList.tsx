@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useMemo } from "react";
 import type { DevAccountPublicView } from "@/lib/dev-panel/types";
 import { DevSectionHeader } from "@/components/dev/DevSectionHeader";
 import {
@@ -53,6 +54,13 @@ export function DevAccountsList({
     </label>
   );
 
+  const [cursoFilter, setCursoFilter] = useState<string>("all");
+
+  const filteredAccounts = useMemo(() => {
+    if (cursoFilter === "all") return accounts;
+    return accounts.filter((acc) => acc.cursoId === cursoFilter);
+  }, [accounts, cursoFilter]);
+
   return (
     <section
       className={`card data-table-wrap dev-accounts-card ${className}`}
@@ -64,11 +72,37 @@ export function DevAccountsList({
         actions={searchField}
       />
 
+      <div style={{ padding: "0 24px", display: "flex", gap: "8px", borderBottom: "1px solid var(--border)", marginBottom: "16px" }}>
+        {[
+          { id: "all", label: "Todos" },
+          { id: "eng-mecatronica", label: "Mecatrônica" },
+          { id: "eng-computacao", label: "Computação" },
+          { id: "design-moda", label: "Moda" }
+        ].map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setCursoFilter(tab.id)}
+            style={{
+              background: "none",
+              border: "none",
+              padding: "12px 16px",
+              color: cursoFilter === tab.id ? "var(--gold, #d4af37)" : "var(--text-secondary, #9fb0c3)",
+              borderBottom: cursoFilter === tab.id ? "2px solid var(--gold, #d4af37)" : "2px solid transparent",
+              cursor: "pointer",
+              fontWeight: cursoFilter === tab.id ? "bold" : "normal",
+              fontSize: "0.875rem"
+            }}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
       {loading ? (
         <p className="dev-empty-state" role="status">
           Carregando contas…
         </p>
-      ) : accounts.length === 0 ? (
+      ) : filteredAccounts.length === 0 ? (
         <p className="dev-empty-state">Nenhuma conta encontrada.</p>
       ) : (
         <table className="data-table dev-accounts-table">
@@ -85,7 +119,7 @@ export function DevAccountsList({
             </tr>
           </thead>
           <tbody>
-            {accounts.map((account) => {
+            {filteredAccounts.map((account) => {
               const selected = selectedAccountRef === account.accountRef;
 
               return (

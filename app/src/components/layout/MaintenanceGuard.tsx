@@ -2,14 +2,15 @@
 
 import { usePathname } from "next/navigation";
 import { Icon } from "@/components/ui/Icon";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
+
 interface MaintenancePolicy {
   enabled: boolean;
   pages: string;
   message: string;
 }
 
-export function MaintenanceOverlay() {
+export function MaintenanceGuard({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [isMounted, setIsMounted] = useState(false);
   const [percent, setPercent] = useState(0);
@@ -35,16 +36,15 @@ export function MaintenanceOverlay() {
   }, []);
 
   if (!isMounted || !policy || !policy.enabled) {
-    return null;
+    return <>{children}</>;
   }
 
   // Verificar se o pathname atual corresponde ao padrão em `pages`
-  // Ex: "/*" ou "/simulador, /mapa"
   const paths = policy.pages.split(",").map(p => p.trim()).filter(Boolean);
   
   // Se não estiver na rota de dev (para não trancar o painel dev!)
   if (pathname?.startsWith("/dev")) {
-    return null;
+    return <>{children}</>;
   }
 
   let shouldShow = false;
@@ -59,66 +59,21 @@ export function MaintenanceOverlay() {
     });
   }
 
-  // Effect to lock scroll and prevent background interactions
-  useEffect(() => {
-    if (shouldShow) {
-      document.body.style.overflow = "hidden";
-      document.body.style.pointerEvents = "none";
-      // Hide main app elements from screen readers
-      const nextRoot = document.getElementById("__next") || document.body;
-      if (nextRoot && nextRoot !== document.body) {
-        nextRoot.setAttribute("aria-hidden", "true");
-      }
-    }
-    return () => {
-      document.body.style.overflow = "";
-      document.body.style.pointerEvents = "";
-      const nextRoot = document.getElementById("__next");
-      if (nextRoot) {
-        nextRoot.removeAttribute("aria-hidden");
-      }
-    };
-  }, [shouldShow]);
-
   if (!shouldShow) {
-    return null;
+    return <>{children}</>;
   }
 
   return (
-    <div 
-      style={{
-        position: "fixed",
-        top: 0,
-        bottom: 0,
-        left: 0,
-        right: 0,
-        zIndex: 9998,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "20px",
-        backgroundColor: "rgba(0, 8, 20, 0.85)", 
-        backdropFilter: "blur(8px)",
-        WebkitBackdropFilter: "blur(8px)",
-        pointerEvents: "auto" // Re-enable pointer events for the modal itself
-      }}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="maintenance-title"
-    >
-      <div className="modal-panel" style={{ width: "100%", maxWidth: "450px", position: "relative", overflow: "hidden" }}>
-        <header className="modal-header">
-          <div className="modal-header-main" style={{ width: "100%", justifyContent: "center" }}>
-            <h2 id="maintenance-title" className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--gold, #d4af37)' }}>
-              <Icon name="warning" size={18} />
-              Página em Manutenção
-            </h2>
-          </div>
+    <div style={{ padding: "24px", display: "flex", justifyContent: "center", alignItems: "center", minHeight: "60vh" }}>
+      <div className="card" style={{ width: "100%", maxWidth: "450px", position: "relative", overflow: "hidden" }}>
+        <header className="card-header" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Icon name="warning" size={18} style={{ color: 'var(--gold, #d4af37)' }} />
+          <h2 style={{ fontSize: '1.25rem', color: 'var(--gold, #d4af37)', margin: 0 }}>
+            Página em Manutenção
+          </h2>
         </header>
 
-        <div className="modal-body" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "24px", padding: "24px", textAlign: "center" }}>
-          
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "24px", padding: "24px", textAlign: "center" }}>
           <div style={{ position: "relative", width: "80px", height: "80px", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <svg 
               style={{ position: "absolute", inset: 0, width: "100%", height: "100%", animation: "spin 2s linear infinite" }}
