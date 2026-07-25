@@ -2,8 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { Icon } from "@/components/ui/Icon";
-import { useEffect, useState } from "react";
-
+import { useEffect, useState, useRef } from "react";
 interface MaintenancePolicy {
   enabled: boolean;
   pages: string;
@@ -60,6 +59,27 @@ export function MaintenanceOverlay() {
     });
   }
 
+  // Effect to lock scroll and prevent background interactions
+  useEffect(() => {
+    if (shouldShow) {
+      document.body.style.overflow = "hidden";
+      document.body.style.pointerEvents = "none";
+      // Hide main app elements from screen readers
+      const nextRoot = document.getElementById("__next") || document.body;
+      if (nextRoot && nextRoot !== document.body) {
+        nextRoot.setAttribute("aria-hidden", "true");
+      }
+    }
+    return () => {
+      document.body.style.overflow = "";
+      document.body.style.pointerEvents = "";
+      const nextRoot = document.getElementById("__next");
+      if (nextRoot) {
+        nextRoot.removeAttribute("aria-hidden");
+      }
+    };
+  }, [shouldShow]);
+
   if (!shouldShow) {
     return null;
   }
@@ -80,13 +100,17 @@ export function MaintenanceOverlay() {
         padding: "20px",
         backgroundColor: "rgba(0, 8, 20, 0.85)", 
         backdropFilter: "blur(8px)",
-        WebkitBackdropFilter: "blur(8px)"
+        WebkitBackdropFilter: "blur(8px)",
+        pointerEvents: "auto" // Re-enable pointer events for the modal itself
       }}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="maintenance-title"
     >
       <div className="modal-panel" style={{ width: "100%", maxWidth: "450px", position: "relative", overflow: "hidden" }}>
         <header className="modal-header">
           <div className="modal-header-main" style={{ width: "100%", justifyContent: "center" }}>
-            <h2 className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--gold, #d4af37)' }}>
+            <h2 id="maintenance-title" className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--gold, #d4af37)' }}>
               <Icon name="warning" size={18} />
               Página em Manutenção
             </h2>
