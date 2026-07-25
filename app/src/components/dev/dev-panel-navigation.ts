@@ -40,7 +40,7 @@ export const DEV_PANEL_VIEWS = [
   {
     id: "manutencao",
     label: "Manutenção",
-    description: "Popup de manutenção global e in-fechável.",
+    description: "Tela de manutenção global substitutiva.",
     icon: "warning" satisfies IconName,
   },
 ] as const;

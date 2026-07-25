@@ -69,9 +69,9 @@ export function DevMaintenanceSection() {
     <section className="card" aria-labelledby="dev-maintenance-title">
       <DevSectionHeader
         icon="warning"
-        title="Configuração do Popup"
+        title="Configuração da Manutenção"
         titleId="dev-maintenance-title"
-        subtitle="Defina onde e como o popup in-fechável será exibido."
+        subtitle="Defina onde e como a tela de manutenção será exibida."
         actions={actions}
       />
 
@@ -137,7 +137,7 @@ export function DevMaintenanceSection() {
             </label>
             
             <label className="form-field dev-policy-field" style={{ minWidth: "100%" }}>
-              <span className="form-label">Mensagem do Popup</span>
+              <span className="form-label">Mensagem da Tela</span>
               <textarea 
                 className="form-input" 
                 style={{ resize: "vertical", minHeight: "80px" }}
