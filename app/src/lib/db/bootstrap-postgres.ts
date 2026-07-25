@@ -24,6 +24,7 @@ export async function ensurePostgresReady(): Promise<void> {
     "20260717120000_b74_account_referrals.sql",
     "20260717120100_b74_account_referrals_rls.sql",
     "20260719120000_support_notify_email_kind.sql",
+    "20260724000000_fix_turmas_ofertadas_unique.sql",
   ];
 
   const migration = await pool.query<{ filename: string }>(

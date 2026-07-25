@@ -55,8 +55,9 @@ async function mirrorGlobalTables(
       ...new Set(snapshot.turmasOfertadas.map((turma) => turma.semestre)),
     ];
     for (const semestre of semestres) {
-      await client.query("DELETE FROM turmas_ofertadas WHERE semestre = $1", [
+      await client.query("DELETE FROM turmas_ofertadas WHERE semestre = $1 AND curso_id = $2", [
         semestre,
+        fallbackCursoId
       ]);
     }
     if (snapshot.turmasOfertadas.length > 0) {
@@ -78,10 +79,9 @@ async function mirrorGlobalTables(
           turma.tipo_turma, turma.departamento, turma.horario_indefinido,
           turma.categoria, turma.curso_id ?? fallbackCursoId, turma.synced_at,
         ]),
-        `ON CONFLICT (turma_sigaa_id) DO UPDATE SET
+        `ON CONFLICT (curso_id, turma_sigaa_id) DO UPDATE SET
            vagas_ocupadas = EXCLUDED.vagas_ocupadas,
-           synced_at = EXCLUDED.synced_at,
-           curso_id = EXCLUDED.curso_id`
+           synced_at = EXCLUDED.synced_at`
       );
     }
 

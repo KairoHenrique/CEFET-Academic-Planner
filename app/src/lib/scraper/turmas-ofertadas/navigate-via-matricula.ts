@@ -2,6 +2,7 @@ import type { Page } from "playwright";
 import { SIGAA_NAVIGATION_TIMEOUT_MS } from "@/lib/scraper/constants";
 import { sleep } from "@/lib/scraper/turma-virtual/html-utils";
 import { isTurmasOfertadasPageHtml } from "@/lib/scraper/turmas-ofertadas/is-turmas-ofertadas-page";
+import { dismissSigaaCookieBanner, dismissSigaaBlockingOverlays } from "@/lib/scraper/turma-virtual/portal-turma-navigation";
 
 export async function navigateViaMatriculaMenu(
   page: Page,
@@ -11,6 +12,9 @@ export async function navigateViaMatriculaMenu(
   }
 ): Promise<boolean> {
   try {
+    await dismissSigaaCookieBanner(page);
+    await dismissSigaaBlockingOverlays(page);
+    
     const ensino = page.locator("span.ThemeOfficeMainFolderText, td.ThemeOfficeMainFolderText", {
       hasText: /^Ensino$/i,
     });
@@ -32,7 +36,7 @@ export async function navigateViaMatriculaMenu(
     });
     if ((await realizarMatriculaLink.count()) === 0) return false;
 
-    await realizarMatriculaLink.first().click({ timeout: SIGAA_NAVIGATION_TIMEOUT_MS });
+    await realizarMatriculaLink.first().click({ timeout: SIGAA_NAVIGATION_TIMEOUT_MS, force: true });
     await page.waitForLoadState("domcontentloaded", { timeout: SIGAA_NAVIGATION_TIMEOUT_MS }).catch(() => null);
 
     // Passo 2: Confirmar dados e Iniciar
@@ -40,16 +44,19 @@ export async function navigateViaMatriculaMenu(
     if (pass) {
       let retries = 4;
       while (retries > 0) {
-        const passwordInput = page.locator('input[type="password"]');
-        if ((await passwordInput.count()) === 0) break;
-
-        await passwordInput.first().fill(pass);
-        await sleep(300);
-        
-        const confirmarBtn = page.locator('input[value*="Confirmar"], button:has-text("Confirmar")');
-        if ((await confirmarBtn.count()) > 0) {
-          await confirmarBtn.first().click({ timeout: SIGAA_NAVIGATION_TIMEOUT_MS, force: true });
-          await page.waitForLoadState("domcontentloaded", { timeout: SIGAA_NAVIGATION_TIMEOUT_MS }).catch(() => null);
+        const passwordInput = page.locator('input[type="password"]').first();
+        try {
+          await passwordInput.waitFor({ state: "visible", timeout: 2000 });
+          await passwordInput.fill(pass);
+          await sleep(300);
+          
+          const confirmarBtn = page.locator('input[value*="Confirmar"], button:has-text("Confirmar")').first();
+          await Promise.all([
+            page.waitForNavigation({ waitUntil: "domcontentloaded", timeout: 30000 }).catch(() => null),
+            confirmarBtn.click({ timeout: SIGAA_NAVIGATION_TIMEOUT_MS, force: true }),
+          ]);
+        } catch {
+          break; // Não achou o input de senha, já passou
         }
         
         retries--;
@@ -57,25 +64,44 @@ export async function navigateViaMatriculaMenu(
       }
     }
 
-    const iniciarBtn = page.locator('input[value*="Iniciar sele"], button:has-text("Iniciar sele")');
-    if ((await iniciarBtn.count()) > 0) {
-      await iniciarBtn.first().click({ timeout: SIGAA_NAVIGATION_TIMEOUT_MS, force: true });
-      await page.waitForLoadState("domcontentloaded", { timeout: SIGAA_NAVIGATION_TIMEOUT_MS }).catch(() => null);
+    try {
+      await dismissSigaaCookieBanner(page);
+      await dismissSigaaBlockingOverlays(page);
+      const iniciarBtn = page.locator('input[value*="Iniciar sele"], button:has-text("Iniciar sele")').first();
+      await iniciarBtn.waitFor({ state: "visible", timeout: 5000 });
+      await Promise.all([
+        page.waitForNavigation({ waitUntil: "domcontentloaded", timeout: 30000 }).catch(() => null),
+        iniciarBtn.click({ timeout: SIGAA_NAVIGATION_TIMEOUT_MS, force: true }),
+      ]);
+    } catch {
+      // Ignorar caso já esteja na tela
     }
 
     const finalAction = options?.finalAction ?? "turmas_estrutura";
 
     if (finalAction === "turmas_estrutura") {
-      const verTurmasBtn = page.locator('input[value*="Ver as turmas da estr"], button:has-text("Ver as turmas da estr"), a:has-text("Ver as turmas da estr")');
-      if ((await verTurmasBtn.count()) > 0) {
-        await verTurmasBtn.first().click({ timeout: SIGAA_NAVIGATION_TIMEOUT_MS, force: true });
-        await page.waitForLoadState("domcontentloaded", { timeout: SIGAA_NAVIGATION_TIMEOUT_MS }).catch(() => null);
+      try {
+        const verTurmasBtn = page.locator('input[value*="Ver as turmas da estr"], button:has-text("Ver as turmas da estr"), a:has-text("Ver as turmas da estr")').first();
+        await verTurmasBtn.waitFor({ state: "visible", timeout: 5000 });
+        await Promise.all([
+          page.waitForNavigation({ waitUntil: "domcontentloaded", timeout: 30000 }).catch(() => null),
+          verTurmasBtn.click({ timeout: SIGAA_NAVIGATION_TIMEOUT_MS, force: true }),
+        ]);
+      } catch {
+        // Ignorar
       }
     } else if (finalAction === "turmas_selecionadas") {
-      const verSelecionadasBtn = page.locator('input[value*="Ver as turmas selecionadas"], button:has-text("Ver as turmas selecionadas"), a:has-text("Ver as turmas selecionadas")');
-      if ((await verSelecionadasBtn.count()) > 0) {
-        await verSelecionadasBtn.first().click({ timeout: SIGAA_NAVIGATION_TIMEOUT_MS, force: true });
-        await page.waitForLoadState("domcontentloaded", { timeout: SIGAA_NAVIGATION_TIMEOUT_MS }).catch(() => null);
+      try {
+        await dismissSigaaCookieBanner(page);
+        await dismissSigaaBlockingOverlays(page);
+        const verSelecionadasBtn = page.locator('input[value*="Ver as turmas selecionadas"], button:has-text("Ver as turmas selecionadas"), a:has-text("Ver as turmas selecionadas")').first();
+        await verSelecionadasBtn.waitFor({ state: "visible", timeout: 5000 });
+        await Promise.all([
+          page.waitForNavigation({ waitUntil: "domcontentloaded", timeout: 30000 }).catch(() => null),
+          verSelecionadasBtn.click({ timeout: SIGAA_NAVIGATION_TIMEOUT_MS, force: true }),
+        ]);
+      } catch {
+        // Ignorar
       }
     }
 

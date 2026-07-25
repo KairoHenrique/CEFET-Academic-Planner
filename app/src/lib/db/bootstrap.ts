@@ -6,7 +6,7 @@ import {
   resetConnectionsForTests,
   resolveDbPathForUser,
 } from "./connection-manager";
-import { assertSqliteAllowed } from "./backend/sqlite-guard";
+import { assertSqliteAllowed } from "@/lib/db/backend/sqlite-guard";
 import { countDisciplinas } from "./queries";
 import { seedPpcIfEmpty, syncPpcEmentasToDb } from "./seed-ppc";
 
@@ -102,7 +102,7 @@ function ensureTurmasOfertadasTable(
       categoria TEXT,
       curso_id TEXT DEFAULT 'eng-computacao',
       synced_at TEXT,
-      UNIQUE(turma_sigaa_id)
+      UNIQUE(curso_id, turma_sigaa_id)
     );
   `);
 

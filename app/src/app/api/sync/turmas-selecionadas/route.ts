@@ -33,7 +33,7 @@ export const POST = async (request: Request) => {
       const result = await runCloudSyncDirect({
         username: credentials.username,
         password: credentials.password,
-        mode: credentials.mode,
+        mode: credentials.mode || "lite",
         robot: "turmas-selecionadas"
       });
 

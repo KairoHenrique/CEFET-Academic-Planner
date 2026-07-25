@@ -61,7 +61,7 @@ export function loadTurmasCatalogSnapshot(
       rows.find((row) => row.synced_at)?.synced_at ??
       getTurmasOfertadasLastAt(),
     courses: mapRowsToCourses(rows, context),
-    enrollmentContext: serializeEnrollmentContextForClient(context),
+    enrollmentContext: serializeEnrollmentContextForClient(context, rows),
   };
 }
 
@@ -100,7 +100,7 @@ export async function loadTurmasCatalogSnapshotAsync(
     semestre,
     syncedAt: rows.find((row) => row.synced_at)?.synced_at ?? null,
     courses: mapRowsToCourses(rows, context),
-    enrollmentContext: serializeEnrollmentContextForClient(context),
+    enrollmentContext: serializeEnrollmentContextForClient(context, rows),
   };
 }
 

@@ -9,6 +9,7 @@ import { runWithUserDb } from "@/lib/db/connection-manager";
 import {
   enqueueCloudSyncJob,
   isCloudSyncWorkerConfigured,
+  runCloudSyncDirect,
 } from "@/lib/sync-queue/cloud-sync-queue";
 import { runTurmasOfertadasSync } from "@/lib/sync/run-turmas-ofertadas-sync";
 import { runWithSyncTenantContext } from "@/lib/sync/run-with-sync-tenant-context";

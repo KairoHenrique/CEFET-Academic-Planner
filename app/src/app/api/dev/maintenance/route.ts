@@ -35,7 +35,7 @@ export async function PUT(request: Request) {
     await appendDevAuditLog({
       operatorEmail: operator.email,
       action: "UPDATE_MAINTENANCE_POLICY",
-      metadata: { enabled: body.enabled, pages: body.pages }
+      detail: { enabled: body.enabled, pages: body.pages }
     });
 
     return apiSuccess({ ok: true as const });

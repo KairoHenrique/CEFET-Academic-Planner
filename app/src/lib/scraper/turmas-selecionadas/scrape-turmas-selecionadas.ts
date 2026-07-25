@@ -1,6 +1,7 @@
 import type { Page } from "playwright";
 import { SIGAA_NAVIGATION_TIMEOUT_MS } from "@/lib/scraper/constants";
 import { sleep } from "@/lib/scraper/turma-virtual/html-utils";
+import { dumpScrapeHtml } from "@/lib/scraper/scrape-debug";
 import { navigateViaMatriculaMenu } from "@/lib/scraper/turmas-ofertadas/navigate-via-matricula";
 import { parseTurmasSelecionadasTableHtml, type TurmaSelecionadaItem } from "@/lib/scraper/turmas-selecionadas/parse-turmas-selecionadas";
 
@@ -20,6 +21,8 @@ export async function scrapeTurmasSelecionadas(
     }
 
     const html = await page.content();
+    require("fs").writeFileSync(".data/scrape-debug/" + Date.now() + "-turmas-selecionadas-lista.html", html);
+
     const turmas = parseTurmasSelecionadasTableHtml(html);
     return turmas;
   } catch (error) {

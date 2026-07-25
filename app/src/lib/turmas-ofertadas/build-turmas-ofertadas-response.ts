@@ -7,7 +7,9 @@ import type { TurmasOfertadasResponse } from "@/lib/types/turmas-ofertadas-api";
 
 function snapshotToResponse(snapshot: TurmasCatalogSnapshot): TurmasOfertadasResponse {
   const curso = snapshot.courses.filter((item) => item.categoria === "curso");
-  const optativas = snapshot.courses.filter((item) => item.categoria === "optativa");
+  const optativas = snapshot.courses.filter(
+    (item) => item.categoria === "optativa" || item.categoria === "outros"
+  );
 
   return {
     semestre: snapshot.semestre,

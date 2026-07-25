@@ -30,7 +30,8 @@ export async function persistTurmasOfertadasSnapshot(
   }
 
   const writePort = resolvePlannerWritePort();
-  await writePort.turmasOfertadas.clearForSemestre(snapshot.semestreAlvo);
+  const cursoId = resolveQueryCursoId();
+  await writePort.turmasOfertadas.clearForSemestre(snapshot.semestreAlvo, cursoId);
   const disciplinas = getDisciplinas();
   const turmas = dedupeTurmasOfertadasItemsByResolvedCode(
     snapshot.turmas,
@@ -72,6 +73,21 @@ export async function persistTurmasOfertadasSnapshot(
       curso_id: resolveQueryCursoId(),
       synced_at: snapshot.scrapedAt,
     });
+  }
+
+  if (snapshot.requisitos) {
+    const validCodes = new Set(disciplinas.map((d) => d.codigo));
+    for (const req of snapshot.requisitos) {
+      if (!validCodes.has(req.disciplinaCodigo) || !validCodes.has(req.requisitoCodigo)) {
+        continue;
+      }
+      await writePort.turmasOfertadas.saveRequisito({
+        disciplina_codigo: req.disciplinaCodigo,
+        requisito_codigo: req.requisitoCodigo,
+        tipo: req.tipo,
+        curso_id: cursoId,
+      });
+    }
   }
 
   console.info(

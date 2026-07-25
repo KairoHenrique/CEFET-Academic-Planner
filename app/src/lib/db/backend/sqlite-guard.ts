@@ -6,22 +6,19 @@ const scraperSqliteOverride = new AsyncLocalStorage<boolean>();
 
 /**
  * Permite o staging SQLite do scraper dentro de um processo em modo
- * Postgres (B72d) — dev local ou worker Node. Nunca vale no deploy
- * Cloudflare (sem filesystem): `isCloudDeployment()` tem precedência.
+ * Postgres (B72d) — dev local ou worker Node.
+ * Tem precedência absoluta se chamado explicitamente (ex: worker local com PLANNER_CLOUD=true herdado).
  */
 export function runWithScraperSqlite<T>(operation: () => T): T {
-  if (isCloudDeployment()) {
-    return operation();
-  }
   return scraperSqliteOverride.run(true, operation);
 }
 
 export function isSqliteAllowed(): boolean {
-  if (isCloudDeployment()) {
-    return false;
-  }
   if (scraperSqliteOverride.getStore() === true) {
     return true;
+  }
+  if (isCloudDeployment()) {
+    return false;
   }
   return !isPostgresBackend();
 }

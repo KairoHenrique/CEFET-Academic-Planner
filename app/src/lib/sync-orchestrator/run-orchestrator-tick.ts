@@ -18,6 +18,7 @@ import {
   planOrchestratorTick,
   type OrchestratorState,
 } from "@/lib/sync-orchestrator/plan-orchestrator-tick";
+import { resolveNextAcademicSemesterLabel } from "@/lib/academic/resolve-academic-semester";
 
 export interface OrchestratorTickResult {
   ok: true;
@@ -158,11 +159,27 @@ export async function runSyncOrchestratorTick(options?: {
   const state = await loadOrchestratorState();
   const eligibleCpfs = await listEligibleCpfsForDeepSync();
 
+  const targetSemester = resolveNextAcademicSemesterLabel(now);
+  let hasTurmas = false;
+  
+  if (isPostgresBackend()) {
+    const pool = getPostgresPool();
+    const result = await pool.query<{ count: string }>(
+      `SELECT count(*) as count FROM turmas_ofertadas_catalog WHERE semestre = $1`,
+      [targetSemester]
+    );
+    hasTurmas = parseInt(result.rows[0].count, 10) > 0;
+  } else {
+    const { getTurmasOfertadas } = await import("@/lib/db/queries");
+    hasTurmas = getTurmasOfertadas(targetSemester).length > 0;
+  }
+
   const plan = planOrchestratorTick({
     now,
     policy,
     state,
     eligibleCpfs,
+    hasTurmas,
     force: options?.force,
   });
 

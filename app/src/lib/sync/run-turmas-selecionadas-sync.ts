@@ -18,6 +18,12 @@ export async function runTurmasSelecionadasSync(
   return withSyncBrowser(async (page) => {
     await loginSigaaOnPage(page, credentials);
     const turmas = await scrapeTurmasSelecionadas(page, credentials.password);
+    
+    console.log("========================================");
+    console.log("[scraper:turmas-selecionadas] RESULTADO DA EXTRAÇÃO:");
+    console.log(JSON.stringify(turmas, null, 2));
+    console.log("========================================");
+
     return turmas;
   });
 }

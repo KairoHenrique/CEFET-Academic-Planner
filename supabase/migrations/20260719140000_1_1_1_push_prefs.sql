@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS user_push_prefs (
-  user_id text PRIMARY KEY REFERENCES app_profiles(id) ON DELETE CASCADE,
+  user_id uuid PRIMARY KEY REFERENCES app_profiles(user_id) ON DELETE CASCADE,
   alert_grades boolean NOT NULL DEFAULT true,
   alert_absences boolean NOT NULL DEFAULT true,
   alert_tasks boolean NOT NULL DEFAULT true,

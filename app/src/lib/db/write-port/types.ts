@@ -10,9 +10,11 @@ import type { TurmaOfertadaRow } from "@/lib/types/db";
  */
 export interface TurmasOfertadasWriter {
   /** Remove as turmas do semestre antes de regravar o snapshot. */
-  clearForSemestre(semestre: string): Promise<void>;
+  clearForSemestre(semestre: string, cursoId: string): Promise<void>;
   /** Upsert idempotente por `turma_sigaa_id`. */
   save(row: Omit<TurmaOfertadaRow, "id">): Promise<void>;
+  /** Upsert de requisitos de disciplina (para preencher optativas ausentes no PPC). */
+  saveRequisito(row: { disciplina_codigo: string; requisito_codigo: string; tipo: string; curso_id: string }): Promise<void>;
 }
 
 /**

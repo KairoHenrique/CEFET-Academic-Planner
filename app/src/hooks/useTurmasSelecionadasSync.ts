@@ -32,6 +32,7 @@ export function useTurmasSelecionadasSync() {
       try {
         const result = await postTurmasSelecionadasSync({
           ...creds,
+          password: creds.password || "",
           mode: "incremental",
         });
 

@@ -19,6 +19,7 @@ import type {
   NotaRow,
   RequisitoRow,
   SemestreAtualWithDisciplina,
+  TurmaOfertadaRow,
 } from "@/lib/types/db";
 import type { TurmasOfertadasEnrollmentContext } from "@/lib/types/turmas-ofertadas-api";
 
@@ -87,7 +88,8 @@ export function assembleTurmasEnrollmentContext(input: {
 }
 
 export function serializeEnrollmentContextForClient(
-  context: TurmasEnrollmentContext
+  context: TurmasEnrollmentContext,
+  turmasOfertadasRows?: Pick<TurmaOfertadaRow, "codigo_disciplina" | "nome">[]
 ): TurmasOfertadasEnrollmentContext {
   const disciplinaNames: TurmasOfertadasEnrollmentContext["disciplinaNames"] =
     {};
@@ -96,6 +98,15 @@ export function serializeEnrollmentContextForClient(
     const name = disciplina.nome?.trim();
     if (!code || !name) continue;
     disciplinaNames[code] = name;
+  }
+
+  if (turmasOfertadasRows) {
+    for (const row of turmasOfertadasRows) {
+      const code = normalizeDisciplinaCode(row.codigo_disciplina);
+      if (!disciplinaNames[code] && row.nome) {
+        disciplinaNames[code] = row.nome.trim();
+      }
+    }
   }
 
   const coRequisitos: TurmasOfertadasEnrollmentContext["coRequisitos"] = {};

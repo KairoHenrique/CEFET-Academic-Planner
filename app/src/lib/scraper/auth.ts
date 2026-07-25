@@ -82,30 +82,43 @@ async function dismissPendingNotifications(
     // "actionable" do Playwright falha por overlays; onclick depende de
     // helpers globais que podem não ter carregado.
     const submitted = await page.evaluate((senha) => {
+      // 1. Tentar form de questionário (requer senha)
       const form = document.querySelector<HTMLFormElement>(
         'form[action*="notificacoes_pendentes"]'
       );
-      if (!form) return false;
+      if (form) {
+        const senhaInput = form.querySelector<HTMLInputElement>(
+          'input[type="password"]'
+        );
+        if (senhaInput) senhaInput.value = senha;
 
-      const senhaInput = form.querySelector<HTMLInputElement>(
-        'input[type="password"]'
-      );
-      if (senhaInput) senhaInput.value = senha;
+        const link = form.querySelector<HTMLAnchorElement>(
+          'a[id$="btnResponderQuestionario"]'
+        );
+        const paramName = link?.id;
+        if (paramName) {
+          const hidden = document.createElement("input");
+          hidden.type = "hidden";
+          hidden.name = paramName;
+          hidden.value = paramName;
+          form.appendChild(hidden);
+        }
 
-      const link = form.querySelector<HTMLAnchorElement>(
-        'a[id$="btnResponderQuestionario"]'
-      );
-      const paramName = link?.id;
-      if (paramName) {
-        const hidden = document.createElement("input");
-        hidden.type = "hidden";
-        hidden.name = paramName;
-        hidden.value = paramName;
-        form.appendChild(hidden);
+        form.submit();
+        return true;
       }
 
-      form.submit();
-      return true;
+      // 2. Tentar botão genérico de "Estou Ciente" ou "Ciente" (sem senha)
+      const elements = Array.from(document.querySelectorAll('input[type="submit"], button, a, input[type="button"]'));
+      for (const el of elements) {
+        const text = (el.textContent || (el as HTMLInputElement).value || '').toLowerCase().trim();
+        if (text === 'ciente' || text === 'estou ciente' || text === 'confirmar leitura' || text === 'li e concordo') {
+          (el as HTMLElement).click();
+          return true;
+        }
+      }
+
+      return false;
     }, credentials.password);
 
     if (!submitted) return;

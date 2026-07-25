@@ -16,6 +16,7 @@ import { EnrollmentSidebar } from "@/components/simulador/EnrollmentSidebar";
 import { useSimuladorChoques } from "@/hooks/useSimuladorChoques";
 import { useSimuladorSimulacoes } from "@/hooks/useSimuladorSimulacoes";
 import { buildScheduleFromTurmaIds } from "@/lib/simulador/build-schedule-from-simulation";
+import { parseSigaaCodigoHorario } from "@/lib/schedule/parse-sigaa-codigo";
 import {
   buildTurmaShortLabelRegistry,
   filterSimuladorTurmas,
@@ -641,22 +642,50 @@ export function EnrollmentSimulator({ data }: EnrollmentSimulatorProps) {
       const turmas = customEvent.detail?.turmas;
       if (!turmas || !Array.isArray(turmas)) return;
 
-      const turmaSigaaIds = turmas
-        .map((t) => {
-          const matching = visible.courses.find(
-            (c) =>
-              c.sigaaComponente === t.codigoDisciplina &&
-              (!t.turmaCodigo || c.sigaaTurma === t.turmaCodigo)
-          );
-          return matching?.turmaSigaaId;
-        })
-        .filter(Boolean) as string[];
+      let nextSchedule = createEmptySchedule();
 
-      const nextSchedule = buildScheduleFromTurmaIds(
-        turmaSigaaIds,
-        visible.courses,
-        placementContext
-      );
+      for (const t of turmas) {
+        let course = visible.courses.find(
+          (c) =>
+            (c.sigaaComponente === t.sigaaComponente || c.code === t.codigoDisciplina) &&
+            (!t.turmaCodigo || c.turmaCodigo === t.turmaCodigo)
+        );
+
+        if (!course && t.codigoHorario) {
+          course = {
+            turmaSigaaId: `synthetic:${t.sigaaComponente}:${t.turmaCodigo}`,
+            code: t.codigoDisciplina,
+            name: t.nome,
+            status: "unlocked",
+            pendingPrereqCodes: [],
+            prerequisiteHint: null,
+            coRequisitoCodes: [],
+            waivedCoRequisitoCodes: [],
+            color: "#94a3b8",
+            room: t.local || "—",
+            professor: "—",
+            ch: 60,
+            turmaCodigo: t.turmaCodigo,
+            semestre: "Atual",
+            codigoHorario: t.codigoHorario,
+            vagas: null,
+            slots: parseSigaaCodigoHorario(t.codigoHorario).map(s => ({ day: s.dayIdx, slot: s.slotIdx })),
+            situacao: "atendida",
+            categoria: "curso",
+            scheduleBlocker: false,
+            scheduleWarningMessage: null,
+            sigaaComponente: t.sigaaComponente,
+            departamento: null,
+          } as TurmaOfertadaCourse;
+        }
+
+        if (course) {
+          // Check placement to avoid throwing, even though they shouldn't conflict
+          if (canPlaceTurmaOnSchedule(course, nextSchedule, placementContext)) {
+            nextSchedule = placeTurmaOnSchedule(course, nextSchedule, placementContext);
+          }
+        }
+      }
       setSchedule(nextSchedule);
       setSelectedCourse(null);
       clearGroupPreview();
@@ -727,7 +756,7 @@ export function EnrollmentSimulator({ data }: EnrollmentSimulatorProps) {
             onClearSchedule={handleClearSchedule}
             onSaveSimulation={handleSaveSimulation}
             onLoadSimulation={(id) => void handleLoadSimulation(id)}
-            onDeleteSimulation={(id) => void handleDeleteSimulation(id)}
+            onDeleteSimulation={(id) => void deleteSimulation(id)}
           />
         </div>
 

@@ -20,10 +20,17 @@ export interface TurmaOfertadaItem {
   horarioIndefinido: boolean;
 }
 
+export interface TurmaOfertadaRequisitoItem {
+  disciplinaCodigo: string;
+  requisitoCodigo: string;
+  tipo: "pre" | "co";
+}
+
 export interface TurmasOfertadasSnapshot {
   scrapedAt: string;
   semestreAlvo: string;
   turmas: TurmaOfertadaItem[];
+  requisitos?: TurmaOfertadaRequisitoItem[];
   unavailable?: boolean;
   unavailableReason?: string;
 }

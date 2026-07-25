@@ -1125,8 +1125,26 @@ export function saveTurmaOfertada(
   ).run(row);
 }
 
-export function clearTurmasOfertadasForSemestre(semestre: string): void {
-  db.prepare("DELETE FROM turmas_ofertadas WHERE semestre = ?").run(semestre);
+export function clearTurmasOfertadasForSemestre(semestre: string, cursoId: string): void {
+  db.prepare("DELETE FROM turmas_ofertadas WHERE semestre = ? AND curso_id = ?").run(semestre, cursoId);
+}
+
+export function saveRequisitoDisciplina(row: {
+  disciplina_codigo: string;
+  requisito_codigo: string;
+  tipo: string;
+  curso_id: string; // Will be ignored in SQLite as it doesn't have it
+}): void {
+  db.prepare(
+    `
+    INSERT INTO requisitos (
+      disciplina_id, requisito_id, tipo
+    ) VALUES (
+      @disciplina_codigo, @requisito_codigo, @tipo
+    )
+    ON CONFLICT(disciplina_id, requisito_id) DO NOTHING
+    `
+  ).run(row);
 }
 
 // --- SIMULADOR (B34) ---

@@ -3,6 +3,7 @@ import { resolveNextAcademicSemesterLabel } from "@/lib/academic/resolve-academi
 import { stripHtmlTags } from "@/lib/scraper/turma-virtual/html-utils";
 import type {
   TurmaOfertadaItem,
+  TurmaOfertadaRequisitoItem,
   TurmasOfertadasSnapshot,
 } from "@/lib/scraper/types/turmas-ofertadas";
 
@@ -36,7 +37,9 @@ export function parseTurmasEstruturaHtml(
   
   let currentCodigoDisciplina: string | null = null;
   let currentNomeDisciplina: string | null = null;
-  let isPermitida = false;
+  
+  const internalIdMap = new Map<string, string>();
+  const rawRequisitos: { internalIdTarget: string, expr: string, tipoStr: string }[] = [];
 
   const rowPattern = /<tr[^>]*class=["']([^"']*)["'][^>]*>([\s\S]*?)<\/tr>/gi;
   let match;
@@ -50,8 +53,6 @@ export function parseTurmasEstruturaHtml(
     if (className.includes("disciplina")) {
       const cells = Array.from(rowHtml.matchAll(/<td[^>]*>([\s\S]*?)<\/td>/gi));
       if (cells.length >= 2) {
-        const permitidaCell = cells[0][1];
-        isPermitida = permitidaCell.includes("matricula_permitida");
 
         const anchorMatch = cells[1][1].match(/<a[^>]*>([\s\S]*?)<\/a>/i);
         const anchorText = stripHtmlTags(anchorMatch ? anchorMatch[1] : cells[1][1]).trim();
@@ -64,12 +65,31 @@ export function parseTurmasEstruturaHtml(
           currentCodigoDisciplina = anchorText.substring(0, 10).trim();
           currentNomeDisciplina = anchorText;
         }
+
+        const painelMatch = cells[1][1].match(/PainelComponente\.show\((\d+)/i);
+        const internalIdTarget = painelMatch ? painelMatch[1] : null;
+
+        if (internalIdTarget && currentCodigoDisciplina) {
+          internalIdMap.set(internalIdTarget, currentCodigoDisciplina);
+        }
+
+        const reqCell = cells[cells.length - 1]?.[1] || "";
+        const reqMatchAll = reqCell.matchAll(/PainelConsultaTurmas\.show\('([^']+)'\s*,\s*'([^']+)'\)/gi);
+        for (const rMatch of reqMatchAll) {
+          if (internalIdTarget) {
+            rawRequisitos.push({
+              internalIdTarget,
+              expr: rMatch[1],
+              tipoStr: rMatch[2]
+            });
+          }
+        }
       }
       continue;
     }
 
     if (className.includes("linhaPar") || className.includes("linhaImpar")) {
-      if (!currentCodigoDisciplina || !currentNomeDisciplina || !isPermitida) continue;
+      if (!currentCodigoDisciplina || !currentNomeDisciplina) continue;
 
       const cells = Array.from(rowHtml.matchAll(/<td[^>]*>([\s\S]*?)<\/td>/gi)).map(m => stripHtmlTags(m[1]).replace(/\s+/g, " ").trim());
       if (cells.length < 7) continue;
@@ -88,7 +108,7 @@ export function parseTurmasEstruturaHtml(
 
       turmas.push({
         turmaSigaaId: `${semestreAlvo}:${currentCodigoDisciplina}:${turmaCodigo}:${codigoHorario}`,
-        sigaaComponente: null,
+        sigaaComponente: currentCodigoDisciplina,
         codigoDisciplina: currentCodigoDisciplina,
         nome: currentNomeDisciplina,
         turmaCodigo,
@@ -108,9 +128,36 @@ export function parseTurmasEstruturaHtml(
     }
   }
 
+  const requisitos: TurmaOfertadaRequisitoItem[] = [];
+  
+  for (const raw of rawRequisitos) {
+    const disciplinaCodigo = internalIdMap.get(raw.internalIdTarget);
+    if (!disciplinaCodigo) continue;
+
+    // Apenas pre-requisitos e co-requisitos (ignoramos equivalentes por enquanto)
+    if (!raw.tipoStr.toLowerCase().includes("requisito")) continue;
+
+    const tipo: "pre" | "co" = raw.tipoStr.toLowerCase().includes("co-req") ? "co" : "pre";
+    
+    // Expressões comuns: "( ( 5128 E 3850 ) )"
+    const requiredIds = Array.from(raw.expr.matchAll(/\d+/g)).map(m => m[0]);
+    
+    for (const reqId of requiredIds) {
+      const requisitoCodigo = internalIdMap.get(reqId);
+      if (requisitoCodigo) {
+        requisitos.push({
+          disciplinaCodigo,
+          requisitoCodigo,
+          tipo
+        });
+      }
+    }
+  }
+
   return {
     scrapedAt,
     semestreAlvo,
     turmas,
+    requisitos,
   };
 }

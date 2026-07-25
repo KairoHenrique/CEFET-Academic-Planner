@@ -159,7 +159,7 @@ export async function dispatchAsyncJobToWorker(options: {
       `[cloud-sync] Worker rejeitou dispatch (${response.status}): ${detail.slice(0, 200)}`
     );
     throw new ApiError(
-      jsonCode || "SIGAA_OFFLINE",
+      (jsonCode as any) || "SIGAA_OFFLINE",
       `Worker indisponível (${response.status}): ${errorMsg}`,
       503
     );

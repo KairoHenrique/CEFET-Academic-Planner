@@ -41,6 +41,7 @@ export function planOrchestratorTick(input: {
   policy: EffectiveSyncPolicy;
   state: OrchestratorState;
   eligibleCpfs: string[];
+  hasTurmas: boolean;
   force?: boolean;
 }): OrchestratorTickPlan {
   const actions: OrchestratorAction[] = [];
@@ -64,8 +65,7 @@ export function planOrchestratorTick(input: {
     });
   }
 
-  const targetSemester = resolveNextAcademicSemesterLabel(input.now);
-  const hasTurmas = getTurmasOfertadas(targetSemester).length > 0;
+  const hasTurmas = input.hasTurmas;
   // Se não temos turmas (antes da matrícula), checamos a cada 1 hora.
   // Se já temos turmas (durante a matrícula), checamos a cada 12 horas.
   const dynamicDays = hasTurmas ? 0.5 : (1 / 24);
