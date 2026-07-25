@@ -42,6 +42,7 @@ export interface TurmaOfertadaCourse {
   ch: number;
   turmaCodigo: string | null;
   semestre: string;
+  periodo: number | null;
   codigoHorario: string | null;
   vagas: number | null;
   slots: TurmaOfertadaSlot[];

@@ -251,7 +251,7 @@ function GroupCard({
   const primary = group.variants[0];
   const shortBase = formatTurmaShortLabel({ code: group.code, name: group.name });
   const isObrigatoria = primary?.categoria === "curso";
-  const periodo = primary?.semestre && /^\d+$/.test(primary.semestre) ? `${primary.semestre}º` : null;
+  const periodo = primary?.periodo ? `${primary.periodo}º` : null;
   const short = isObrigatoria && periodo ? `${shortBase} | ${periodo}` : shortBase;
   const showConflict = shouldShowGroupScheduleConflictBadge(
     group.variants,
@@ -381,7 +381,7 @@ function CourseCard({
   );
   const shortBase = formatTurmaShortLabel(course);
   const isObrigatoria = course.categoria === "curso";
-  const periodo = course.semestre && /^\d+$/.test(course.semestre) ? `${course.semestre}º` : null;
+  const periodo = course.periodo ? `${course.periodo}º` : null;
   const short = isObrigatoria && periodo ? `${shortBase} | ${periodo}` : shortBase;
   const horario = formatTurmaHorarioDisplay(course);
   const activeCoreqs = course.coRequisitoCodes.filter(

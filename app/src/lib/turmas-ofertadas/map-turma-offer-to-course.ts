@@ -157,6 +157,7 @@ export function mapTurmaRowToCourse(
     ch: normalizeCefetCh(row.carga_horaria ?? disciplina?.carga_horaria ?? 60),
     turmaCodigo: row.turma_codigo,
     semestre: row.semestre,
+    periodo: disciplina?.periodo ?? null,
     codigoHorario,
     vagas: row.vagas,
     slots,
