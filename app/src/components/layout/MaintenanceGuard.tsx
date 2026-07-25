@@ -66,7 +66,7 @@ export function MaintenanceGuard({ children }: { children: React.ReactNode }) {
   return (
     <div style={{ padding: "24px", display: "flex", justifyContent: "center", alignItems: "center", minHeight: "60vh" }}>
       <div className="card" style={{ width: "100%", maxWidth: "450px", position: "relative", overflow: "hidden" }}>
-        <header className="card-header" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <header className="card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
           <Icon name="warning" size={18} style={{ color: 'var(--gold, #d4af37)' }} />
           <h2 style={{ fontSize: '1.25rem', color: 'var(--gold, #d4af37)', margin: 0 }}>
             Página em Manutenção
