@@ -74,7 +74,7 @@ export function EnrollmentCourseGroupCard({
     name: group.name,
   });
   const isObrigatoria = primaryVariant?.categoria === "curso";
-  const periodo = primaryVariant?.periodo ? `${primaryVariant.periodo}º` : null;
+  const periodo = primaryVariant?.periodo ? `${primaryVariant.periodo}º Período` : null;
   const groupShortLabel = isObrigatoria && periodo ? `${groupShortBase} | ${periodo}` : groupShortBase;
   const groupLockState = primaryVariant
     ? resolveEnrollmentCourseSelectability(
