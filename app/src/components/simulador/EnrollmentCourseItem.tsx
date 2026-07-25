@@ -65,7 +65,10 @@ export function EnrollmentCourseItem({
     : undefined;
   const horarioLabel = formatTurmaHorarioDisplay(course);
   const horarioTooltip = formatTurmaHorarioLegivel(course);
-  const shortLabel = formatTurmaShortLabel(course);
+  const shortBase = formatTurmaShortLabel(course);
+  const isObrigatoria = course.categoria === "curso";
+  const periodo = course.semestre && /^\d+$/.test(course.semestre) ? `${course.semestre}º` : null;
+  const shortLabel = isObrigatoria && periodo ? `${shortBase} | ${periodo}` : shortBase;
   const uncertainSchedule =
     Boolean(course.scheduleWarningMessage) && !course.scheduleBlocker;
   const conditionalPrereq = course.status === "conditional";

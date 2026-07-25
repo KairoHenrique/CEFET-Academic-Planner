@@ -2,13 +2,14 @@
   "expo": {
     "name": "ACME HUB",
     "slug": "acme-hub",
-    "version": "1.0.5",
+    "version": "1.0.8",
     "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "scheme": "acmehub",
     "platforms": [
-      "android"
+      "android",
+      "web"
     ],
     "splash": {
       "image": "./assets/splash-icon.png",
@@ -17,6 +18,7 @@
     },
     "android": {
       "package": "br.cefethub.acme",
+      "versionCode": 3,
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "backgroundColor": "#000814",
@@ -52,6 +54,7 @@
       "@react-native-community/datetimepicker"
     ],
     "extra": {
+      "apiBaseUrl": "https://acme-hub.khfm.workers.dev",
       "eas": {
         "projectId": "9e0eaddd-a802-465e-8474-cfd6ae69d75d"
       }

@@ -69,10 +69,13 @@ export function EnrollmentCourseGroupCard({
     ? `${ENROLLMENT_COREQUISITO_ACTIVE_PREFIX} ${formatDisciplinaCodeNames(activeCoreqs, catalog, placementContext.disciplinaNames)}.`
     : undefined;
   const multiHorarioTooltip = buildMultiHorarioTooltip(group.variants.length);
-  const groupShortLabel = formatTurmaShortLabel({
+  const groupShortBase = formatTurmaShortLabel({
     code: group.code,
     name: group.name,
   });
+  const isObrigatoria = primaryVariant?.categoria === "curso";
+  const periodo = primaryVariant?.semestre && /^\d+$/.test(primaryVariant.semestre) ? `${primaryVariant.semestre}º` : null;
+  const groupShortLabel = isObrigatoria && periodo ? `${groupShortBase} | ${periodo}` : groupShortBase;
   const groupLockState = primaryVariant
     ? resolveEnrollmentCourseSelectability(
         primaryVariant,
