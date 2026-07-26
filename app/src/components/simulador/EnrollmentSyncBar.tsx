@@ -93,7 +93,7 @@ export function EnrollmentSyncBar({
 
         <button
           type="button"
-          className="enrollment-sync-btn"
+          className={`enrollment-sync-btn${syncing ? " enrollment-sync-btn--loading" : ""}`}
           disabled={syncing}
           onClick={() => onRequestSync()}
         >

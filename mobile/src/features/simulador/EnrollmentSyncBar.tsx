@@ -1,5 +1,12 @@
-import { useEffect, useState } from "react";
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import {
+  ActivityIndicator,
+  Animated,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { brand } from "../../theme/brand";
 import { Icon } from "../../ui/Icon";
 
@@ -20,6 +27,7 @@ export function EnrollmentSyncBar({
   onRequestSync,
 }: Props) {
   const [visibleMessage, setVisibleMessage] = useState(message ?? null);
+  const shimmerAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     setVisibleMessage(message ?? null);
@@ -32,6 +40,28 @@ export function EnrollmentSyncBar({
     return () => clearTimeout(timer);
   }, [message]);
 
+  // Animação de shimmer no botão enquanto syncing
+  useEffect(() => {
+    if (syncing) {
+      const loop = Animated.loop(
+        Animated.timing(shimmerAnim, {
+          toValue: 1,
+          duration: 1500,
+          useNativeDriver: false,
+        })
+      );
+      loop.start();
+      return () => loop.stop();
+    } else {
+      shimmerAnim.setValue(0);
+    }
+  }, [syncing, shimmerAnim]);
+
+  const shimmerTranslateX = shimmerAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["-100%", "100%"],
+  });
+
   return (
     <View style={styles.bar}>
       <Text style={styles.status}>
@@ -42,17 +72,26 @@ export function EnrollmentSyncBar({
             : "Sem sincronização recente"}
       </Text>
       <Pressable
-        style={[styles.btn, syncing && styles.disabled]}
+        style={[styles.btn]}
         onPress={onRequestSync}
         disabled={syncing}
       >
+        {/* Barra de progresso shimmer animada */}
+        {syncing && (
+          <Animated.View
+            style={[
+              styles.shimmer,
+              { transform: [{ translateX: shimmerTranslateX as unknown as number }] },
+            ]}
+          />
+        )}
         {syncing ? (
           <ActivityIndicator size="small" color="#1a1408" />
         ) : (
           <Icon name="sync" size={14} color="#1a1408" />
         )}
         <Text style={styles.btnText}>
-          {syncing ? "Aguarde…" : "Puxar Minhas Turmas"}
+          {syncing ? "Buscando…" : "Puxar Minhas Turmas"}
         </Text>
       </Pressable>
       {visibleMessage ? <Text style={styles.msg}>{visibleMessage}</Text> : null}
@@ -82,6 +121,17 @@ const styles = StyleSheet.create({
     borderRadius: brand.radiusMd,
     backgroundColor: brand.gold,
     paddingHorizontal: 14,
+    overflow: "hidden",
+    position: "relative",
+  },
+  shimmer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(255, 255, 255, 0.25)",
+    width: "100%",
   },
   btnText: {
     fontSize: 14,
@@ -89,7 +139,6 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#1a1408",
   },
-  disabled: { opacity: 0.55 },
   msg: {
     fontSize: 12,
     fontFamily: brand.fontBody,

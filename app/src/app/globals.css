@@ -9873,6 +9873,9 @@ body.mobile-nav-open {
   border: 1px solid var(--border-default);
   cursor: pointer;
   transition: border-color 0.15s ease, background 0.15s ease;
+  position: relative;
+  overflow: hidden;
+  z-index: 0;
 }
 
 .enrollment-sync-btn:hover:not(:disabled) {
@@ -9881,8 +9884,38 @@ body.mobile-nav-open {
 }
 
 .enrollment-sync-btn:disabled {
-  opacity: 0.6;
   cursor: not-allowed;
+}
+
+.enrollment-sync-btn .sync-icon-spinning {
+  animation: spin 1s linear infinite;
+}
+
+/* Barra de progresso indeterminada dentro do botão */
+.enrollment-sync-btn--loading::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(212, 168, 67, 0.18) 25%,
+    rgba(212, 168, 67, 0.35) 50%,
+    rgba(212, 168, 67, 0.18) 75%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: enrollment-sync-shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes enrollment-sync-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 .enrollment-sync-feedback {
