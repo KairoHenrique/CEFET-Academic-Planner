@@ -22,7 +22,7 @@ import {
   listSimulacoes,
   saveSimulacao,
 } from "../api/mutations";
-import { runTurmasOfertadasSync } from "../sync/turmas-ofertadas-sync";
+import { postTurmasSelecionadasSync } from "../api/mutations";
 import { useOnSyncComplete } from "../sync/useOnSyncComplete";
 import {
   EnrollmentCatalog,
@@ -105,7 +105,8 @@ export function SimuladorScreen() {
     onScrollToSchedule: scrollToSchedule,
   });
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
     setError(null);
     try {
       const [turmas, saved, grafoData] = await Promise.all([
@@ -130,13 +131,12 @@ export function SimuladorScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      setLoading(true);
-      void load();
+      void load(true);
     }, [load])
   );
 
   useOnSyncComplete(() => {
-    void load();
+    void load(true);
   });
 
   const requestTurmasSync = useCallback(async () => {
@@ -145,23 +145,23 @@ export function SimuladorScreen() {
     setTurmasSyncMsg(null);
     setError(null);
     try {
-      const result = await runTurmasOfertadasSync({ force: true });
-      if (!result.skipped) {
-        setTurmasSyncMsg(
-          result.message || "Turmas ofertadas atualizadas."
-        );
+      const result = await postTurmasSelecionadasSync();
+      if (result.ok && result.turmas.length > 0) {
+        sim.loadFromTurmasSelecionadas(result.turmas);
+        setTurmasSyncMsg("Turmas importadas com sucesso.");
+      } else {
+        setTurmasSyncMsg("Nenhuma turma encontrada no SIGAA.");
       }
-      await load();
     } catch (err) {
       setError(
         err instanceof ApiClientError
           ? err.message
-          : "Não foi possível atualizar as turmas ofertadas."
+          : "Não foi possível puxar as turmas matriculadas."
       );
     } finally {
       setTurmasSyncing(false);
     }
-  }, [turmasSyncing, load]);
+  }, [turmasSyncing, sim]);
 
   useEffect(() => {
     const ids = sim.scheduleStats.placedTurmaIds;
@@ -343,8 +343,8 @@ export function SimuladorScreen() {
                 >
                   <Text style={styles.goldBtnText}>
                     {turmasSyncing
-                      ? "Buscando turmas…"
-                      : "Buscar turmas no SIGAA"}
+                      ? "Puxando turmas…"
+                      : "Puxar minhas turmas do SIGAA"}
                   </Text>
                 </Pressable>
               </View>

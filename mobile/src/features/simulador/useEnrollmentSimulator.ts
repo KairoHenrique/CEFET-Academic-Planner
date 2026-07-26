@@ -7,6 +7,8 @@ import type {
 } from "./types";
 import { createEmptySchedule, scheduleCellKey } from "./types";
 import { buildScheduleFromTurmaIds } from "./lib/build-schedule-from-simulation";
+import { parseSigaaCodigoHorario } from "./lib/deps/parse-sigaa-codigo";
+import type { TurmaSelecionadaItem } from "../../api/mutations";
 import {
   buildSimuladorPlacementContext,
 } from "./lib/corequisito-schedule-policy";
@@ -560,6 +562,70 @@ export function useEnrollmentSimulator(
     [visible, placementContext, clearGroupPreview]
   );
 
+  /** Importa turmas selecionadas do SIGAA para a grade — lógica espelhada do web. */
+  const loadFromTurmasSelecionadas = useCallback(
+    (turmas: TurmaSelecionadaItem[]) => {
+      if (!visible) return;
+
+      let nextSchedule = createEmptySchedule();
+
+      for (const t of turmas) {
+        let course = visible.courses.find(
+          (c) =>
+            (c.sigaaComponente === t.sigaaComponente || c.code === t.codigoDisciplina) &&
+            (!t.turmaCodigo || c.turmaCodigo === t.turmaCodigo)
+        );
+
+        // Se não achou no catálogo mas tem horário, cria curso sintético
+        if (!course && t.codigoHorario) {
+          course = {
+            turmaSigaaId: `synthetic:${t.sigaaComponente}:${t.turmaCodigo}`,
+            code: t.codigoDisciplina,
+            name: t.nome,
+            status: "unlocked",
+            pendingPrereqCodes: [],
+            prerequisiteHint: null,
+            coRequisitoCodes: [],
+            waivedCoRequisitoCodes: [],
+            color: "#94a3b8",
+            room: t.local || "—",
+            professor: "—",
+            ch: 60,
+            turmaCodigo: t.turmaCodigo,
+            semestre: "Atual",
+            codigoHorario: t.codigoHorario,
+            vagas: null,
+            slots: parseSigaaCodigoHorario(t.codigoHorario).map((s) => ({
+              day: s.dayIdx,
+              slot: s.slotIdx,
+            })),
+            situacao: "atendida",
+            categoria: "curso",
+            scheduleBlocker: false,
+            scheduleWarningMessage: null,
+            sigaaComponente: t.sigaaComponente,
+            departamento: null,
+            periodo: null,
+          } as TurmaOfertadaCourse;
+        }
+
+        if (course) {
+          if (canPlaceTurmaOnSchedule(course, nextSchedule, placementContext)) {
+            nextSchedule = placeTurmaOnSchedule(course, nextSchedule, placementContext);
+          }
+        }
+      }
+
+      setSchedule(nextSchedule);
+      setSelectedCourse(null);
+      clearGroupPreview();
+      setConflictNotice(null);
+      setDetail(null);
+      setCorequisitoRollbackPrompt(null);
+    },
+    [visible, placementContext, clearGroupPreview]
+  );
+
   return {
     visible,
     shortLabelRegistry,
@@ -596,6 +662,7 @@ export function useEnrollmentSimulator(
     requestRemoveTurma,
     confirmCorequisitoRollback,
     loadFromTurmaIds,
+    loadFromTurmasSelecionadas,
     formatShortLabel: (course: TurmaOfertadaCourse) =>
       formatTurmaShortLabel(course, shortLabelRegistry),
     scheduleCellKey,

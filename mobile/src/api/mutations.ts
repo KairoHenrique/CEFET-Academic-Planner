@@ -255,3 +255,40 @@ export async function patchAppearance(
     }
   );
 }
+
+export interface TurmaSelecionadaItem {
+  turmaCodigo: string | null;
+  codigoDisciplina: string;
+  sigaaComponente: string;
+  nome: string;
+  codigoHorario?: string | null;
+  local?: string | null;
+}
+
+export async function postTurmasSelecionadasSync(): Promise<{
+  ok: boolean;
+  turmas: TurmaSelecionadaItem[];
+}> {
+  const session = getSession();
+  if (!session?.cpf) {
+    throw new ApiClientError(
+      "Faça login para buscar turmas selecionadas.",
+      401,
+      "UNAUTHORIZED"
+    );
+  }
+  return requestJson("/api/sync/turmas-selecionadas", {
+    method: "POST",
+    body: JSON.stringify({
+      username: session.cpf,
+      mode: "incremental",
+    }),
+  });
+}
+
+export async function markNotificationsAsRead(): Promise<unknown> {
+  return requestJson("/api/notifications/read", {
+    method: "POST",
+  });
+}
+
