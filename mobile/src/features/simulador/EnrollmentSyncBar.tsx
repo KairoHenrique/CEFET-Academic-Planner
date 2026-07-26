@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 import { brand } from "../../theme/brand";
 import { Icon } from "../../ui/Icon";
 
@@ -46,9 +46,13 @@ export function EnrollmentSyncBar({
         onPress={onRequestSync}
         disabled={syncing}
       >
-        <Icon name="sync" size={14} color="#1a1408" />
+        {syncing ? (
+          <ActivityIndicator size="small" color="#1a1408" />
+        ) : (
+          <Icon name="sync" size={14} color="#1a1408" />
+        )}
         <Text style={styles.btnText}>
-          {syncing ? "Aguarde…" : "Atualizar SIGAA"}
+          {syncing ? "Aguarde…" : "Puxar Minhas Turmas"}
         </Text>
       </Pressable>
       {visibleMessage ? <Text style={styles.msg}>{visibleMessage}</Text> : null}

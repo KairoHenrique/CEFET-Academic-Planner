@@ -97,7 +97,7 @@ export function EnrollmentSyncBar({
           disabled={syncing}
           onClick={() => onRequestSync()}
         >
-          <Icon name="sync" size={15} />
+          <Icon name="sync" size={15} className={syncing ? "sync-icon-spinning" : undefined} />
           {syncing ? "Buscando…" : "Sincronizar Minhas Turmas"}
         </button>
       </header>
