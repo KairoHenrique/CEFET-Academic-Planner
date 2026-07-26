@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Icon } from "@/components/ui/Icon";
 import { Modal } from "@/components/ui/Modal";
 import { Input } from "@/components/ui/Input";
@@ -28,6 +28,46 @@ function feedbackClassName(tone: TurmasSyncFeedbackTone): string {
   return "enrollment-sync-feedback enrollment-sync-feedback--warning";
 }
 
+/** Progresso simulado: acelera no começo e desacelera perto de 90%. */
+function useSyncProgress(syncing: boolean) {
+  const [progress, setProgress] = useState(0);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const clearTick = useCallback(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => {
+    if (syncing) {
+      setProgress(0);
+      intervalRef.current = setInterval(() => {
+        setProgress((prev) => {
+          if (prev < 30) return prev + 3;
+          if (prev < 60) return prev + 1.5;
+          if (prev < 85) return prev + 0.5;
+          if (prev < 92) return prev + 0.15;
+          return prev;
+        });
+      }, 100);
+    } else {
+      clearTick();
+      setProgress((prev) => {
+        if (prev > 0) return 100;
+        return 0;
+      });
+      // Reset after completion flash
+      const t = setTimeout(() => setProgress(0), 600);
+      return () => clearTimeout(t);
+    }
+    return clearTick;
+  }, [syncing, clearTick]);
+
+  return Math.round(progress);
+}
+
 export function EnrollmentSyncBar({
   syncedAt,
   syncing,
@@ -42,6 +82,7 @@ export function EnrollmentSyncBar({
   const [password, setPassword] = useState("");
   const [successDismissed, setSuccessDismissed] = useState(false);
   const formattedSync = formatTurmasSyncedAt(syncedAt);
+  const progress = useSyncProgress(syncing);
 
   const syncStatusLabel = useMemo(() => {
     if (syncing) return null;
@@ -93,12 +134,14 @@ export function EnrollmentSyncBar({
 
         <button
           type="button"
-          className={`enrollment-sync-btn${syncing ? " enrollment-sync-btn--loading" : ""}`}
+          className={`enrollment-sync-btn${syncing || progress > 0 ? " enrollment-sync-btn--loading" : ""}`}
           disabled={syncing}
           onClick={() => onRequestSync()}
+          style={syncing || progress > 0 ? { "--sync-progress": `${progress}%` } as React.CSSProperties : undefined}
         >
+          <span className="enrollment-sync-btn-fill" aria-hidden="true" />
           <Icon name="sync" size={15} className={syncing ? "sync-icon-spinning" : undefined} />
-          {syncing ? "Buscando…" : "Sincronizar Minhas Turmas"}
+          {syncing ? `Buscando… ${progress}%` : "Sincronizar Minhas Turmas"}
         </button>
       </header>
 
@@ -149,3 +192,4 @@ export function EnrollmentSyncBar({
     </>
   );
 }
+

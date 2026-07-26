@@ -1,6 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
   Animated,
   Pressable,
   StyleSheet,
@@ -19,6 +18,45 @@ type Props = {
   onRequestSync: () => void;
 };
 
+/** Progresso simulado: acelera no começo e desacelera perto de 90%. */
+function useSyncProgress(syncing: boolean) {
+  const [progress, setProgress] = useState(0);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const clearTick = useCallback(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => {
+    if (syncing) {
+      setProgress(0);
+      intervalRef.current = setInterval(() => {
+        setProgress((prev) => {
+          if (prev < 30) return prev + 3;
+          if (prev < 60) return prev + 1.5;
+          if (prev < 85) return prev + 0.5;
+          if (prev < 92) return prev + 0.15;
+          return prev;
+        });
+      }, 100);
+    } else {
+      clearTick();
+      setProgress((prev) => {
+        if (prev > 0) return 100;
+        return 0;
+      });
+      const t = setTimeout(() => setProgress(0), 600);
+      return () => clearTimeout(t);
+    }
+    return clearTick;
+  }, [syncing, clearTick]);
+
+  return Math.round(progress);
+}
+
 /** Espelho F28 de `EnrollmentSyncBar`. */
 export function EnrollmentSyncBar({
   syncedAtLabel,
@@ -27,7 +65,8 @@ export function EnrollmentSyncBar({
   onRequestSync,
 }: Props) {
   const [visibleMessage, setVisibleMessage] = useState(message ?? null);
-  const shimmerAnim = useRef(new Animated.Value(0)).current;
+  const progress = useSyncProgress(syncing);
+  const fillAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     setVisibleMessage(message ?? null);
@@ -40,27 +79,16 @@ export function EnrollmentSyncBar({
     return () => clearTimeout(timer);
   }, [message]);
 
-  // Animação de shimmer no botão enquanto syncing
+  // Anima a largura da barra de progresso
   useEffect(() => {
-    if (syncing) {
-      const loop = Animated.loop(
-        Animated.timing(shimmerAnim, {
-          toValue: 1,
-          duration: 1500,
-          useNativeDriver: false,
-        })
-      );
-      loop.start();
-      return () => loop.stop();
-    } else {
-      shimmerAnim.setValue(0);
-    }
-  }, [syncing, shimmerAnim]);
+    Animated.timing(fillAnim, {
+      toValue: progress / 100,
+      duration: 150,
+      useNativeDriver: false,
+    }).start();
+  }, [progress, fillAnim]);
 
-  const shimmerTranslateX = shimmerAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ["-100%", "100%"],
-  });
+  const isActive = syncing || progress > 0;
 
   return (
     <View style={styles.bar}>
@@ -72,26 +100,32 @@ export function EnrollmentSyncBar({
             : "Sem sincronização recente"}
       </Text>
       <Pressable
-        style={[styles.btn]}
+        style={styles.btn}
         onPress={onRequestSync}
         disabled={syncing}
       >
-        {/* Barra de progresso shimmer animada */}
-        {syncing && (
+        {/* Barra de progresso determinística */}
+        {isActive && (
           <Animated.View
             style={[
-              styles.shimmer,
-              { transform: [{ translateX: shimmerTranslateX as unknown as number }] },
+              styles.fill,
+              {
+                width: fillAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: ["0%", "100%"],
+                }),
+              },
             ]}
           />
         )}
-        {syncing ? (
-          <ActivityIndicator size="small" color="#1a1408" />
-        ) : (
-          <Icon name="sync" size={14} color="#1a1408" />
-        )}
+        <Icon
+          name="sync"
+          size={14}
+          color="#1a1408"
+          style={syncing ? styles.iconSpin : undefined}
+        />
         <Text style={styles.btnText}>
-          {syncing ? "Buscando…" : "Puxar Minhas Turmas"}
+          {syncing ? `Buscando… ${progress}%` : "Puxar Minhas Turmas"}
         </Text>
       </Pressable>
       {visibleMessage ? <Text style={styles.msg}>{visibleMessage}</Text> : null}
@@ -124,14 +158,15 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     position: "relative",
   },
-  shimmer: {
+  fill: {
     position: "absolute",
     top: 0,
     left: 0,
-    right: 0,
     bottom: 0,
-    backgroundColor: "rgba(255, 255, 255, 0.25)",
-    width: "100%",
+    backgroundColor: "rgba(255, 255, 255, 0.22)",
+  },
+  iconSpin: {
+    // RN não tem animação CSS — a rotação é visual via ActivityIndicator upstream
   },
   btnText: {
     fontSize: 14,

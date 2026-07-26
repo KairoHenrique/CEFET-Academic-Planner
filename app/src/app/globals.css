@@ -9891,18 +9891,28 @@ body.mobile-nav-open {
   animation: spin 1s linear infinite;
 }
 
-/* Barra de progresso indeterminada dentro do botão */
-.enrollment-sync-btn--loading::before {
+/* Preenchimento de progresso dentro do botão */
+.enrollment-sync-btn-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: var(--sync-progress, 0%);
+  background: rgba(212, 168, 67, 0.28);
+  transition: width 0.15s ease-out;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Shimmer sutil por cima da barra de progresso */
+.enrollment-sync-btn--loading .enrollment-sync-btn-fill::after {
   content: "";
   position: absolute;
   inset: 0;
-  z-index: -1;
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(212, 168, 67, 0.18) 25%,
-    rgba(212, 168, 67, 0.35) 50%,
-    rgba(212, 168, 67, 0.18) 75%,
+    rgba(255, 255, 255, 0.12) 50%,
     transparent 100%
   );
   background-size: 200% 100%;
