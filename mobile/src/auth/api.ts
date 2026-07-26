@@ -32,6 +32,11 @@ export class ApiClientError extends Error {
   }
 }
 
+let isMaintenanceMode = false;
+export function setMaintenanceMode(enabled: boolean) {
+  isMaintenanceMode = enabled;
+}
+
 async function parseJson(response: Response): Promise<unknown> {
   const text = await response.text();
   if (!text) return null;
@@ -42,11 +47,39 @@ async function parseJson(response: Response): Promise<unknown> {
   }
 }
 
+const TRANSIENT_STATUS = new Set([500, 502, 503, 504]);
+const MAX_RETRIES = 2;
+const RETRY_BASE_MS = 800;
+
+function friendlyErrorMessage(status: number, serverMsg?: string | null): string {
+  if (serverMsg && serverMsg !== `HTTP ${status}`) return serverMsg;
+  if (status === 503) return "Servidor temporariamente indisponível. Tente novamente em instantes.";
+  if (status === 500) return "Erro interno do servidor. Tente novamente.";
+  if (status === 502) return "Falha na comunicação com o servidor.";
+  if (status === 504) return "O servidor demorou para responder. Tente novamente.";
+  if (status === 401) return "Sessão expirada. Faça login novamente.";
+  if (status === 403) return "Acesso negado.";
+  return `Erro inesperado (${status}). Tente novamente.`;
+}
+
+function isRetriableMethod(init?: RequestInit): boolean {
+  const method = (init?.method ?? "GET").toUpperCase();
+  return method === "GET" || method === "HEAD";
+}
+
+async function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export async function requestJson<T>(
   path: string,
   init: RequestInit & { auth?: boolean } = {}
 ): Promise<T> {
   const base = getApiBaseUrl();
+
+  if (isMaintenanceMode && !path.includes("/api/maintenance")) {
+    throw new ApiClientError("Aplicativo em manutenção.", 503, "MAINTENANCE");
+  }
 
   if (init.auth !== false) {
     await ensureFreshSession().catch(() => null);
@@ -62,23 +95,58 @@ export async function requestJson<T>(
     Object.assign(headers, buildAuthHeaders());
   }
 
-  const response = await fetch(`${base}${path}`, {
-    ...init,
-    headers,
-  });
+  const canRetry = isRetriableMethod(init);
+  let lastError: ApiClientError | null = null;
 
-  const payload = await parseJson(response);
+  for (let attempt = 0; attempt <= (canRetry ? MAX_RETRIES : 0); attempt++) {
+    if (attempt > 0) {
+      await delay(RETRY_BASE_MS * attempt);
+    }
 
-  if (!response.ok) {
-    const err = payload as { message?: string; code?: string } | null;
-    throw new ApiClientError(
-      err?.message ?? `HTTP ${response.status}`,
-      response.status,
-      err?.code
-    );
+    let response: Response;
+    try {
+      response = await fetch(`${base}${path}`, {
+        ...init,
+        headers,
+      });
+    } catch (networkErr) {
+      // Erro de rede (offline, DNS, timeout) — retenta se possível
+      lastError = new ApiClientError(
+        "Não foi possível conectar ao servidor. Verifique sua conexão.",
+        0,
+        "NETWORK_ERROR"
+      );
+      if (canRetry && attempt < MAX_RETRIES) continue;
+      throw lastError;
+    }
+
+    const payload = await parseJson(response);
+
+    if (!response.ok) {
+      const err = payload as { message?: string; code?: string } | null;
+
+      // Para erros transitórios, retenta automaticamente
+      if (canRetry && TRANSIENT_STATUS.has(response.status) && attempt < MAX_RETRIES) {
+        lastError = new ApiClientError(
+          friendlyErrorMessage(response.status, err?.message),
+          response.status,
+          err?.code
+        );
+        continue;
+      }
+
+      throw new ApiClientError(
+        friendlyErrorMessage(response.status, err?.message),
+        response.status,
+        err?.code
+      );
+    }
+
+    return payload as T;
   }
 
-  return payload as T;
+  // Fallback — não deveria chegar aqui
+  throw lastError ?? new ApiClientError("Erro desconhecido.", 0, "UNKNOWN");
 }
 
 export async function postAuthLogin(
