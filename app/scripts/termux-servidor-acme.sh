@@ -137,12 +137,67 @@ else
     echo "[-] Aviso: Tunel no ar, mas falhou ao atualizar o secret no Cloudflare."
 fi
 
+# 4. Inicia cron loop local (background)
+echo "[*] Iniciando loop de cron local em background..."
+# O CRON_SECRET é lido do app/.env.local (ou você pode setá-lo no Termux)
+# Vamos extraí-lo do .env.local para fazer as chamadas locais autenticadas
+CRON_SECRET=$(grep -oE '^CRON_SECRET=.*' .env.local 2>/dev/null | cut -d '=' -f 2- | tr -d '"' | tr -d "'" || echo "")
+
+if [ -z "$CRON_SECRET" ]; then
+    echo "[-] Aviso: CRON_SECRET não encontrado em .env.local. Crons locais vão falhar por falta de autorização."
+fi
+
+# Função loop do cron
+run_crons() {
+    echo "[cron] Loop de crons iniciado (PID $$)"
+    while true; do
+        # Aguarda 5 minutos
+        sleep 300
+        
+        echo "[cron] Disparando /api/cron/notification-reminders..."
+        curl -s -X POST "https://acme-hub.khfm.workers.dev/api/cron/notification-reminders" \
+             -H "Authorization: Bearer $CRON_SECRET" \
+             -H "Content-Type: application/json" -o /dev/null
+             
+        # Para evitar enfileirar tudo junto, aguarda mais 10 minutos (total 15 min do ciclo anterior) para o orchestrator
+        # Obs: como é um loop simples, vamos disparar o orchestrator a cada 3x que o de notificação rodar
+        # ou apenas criar dois loops
+    done
+}
+
+# Criamos um subshell pra cada cron pra ficar mais fácil
+(
+    while true; do
+        sleep 300 # 5 min
+        echo "[cron] $(date '+%H:%M:%S') Disparando notification-reminders..."
+        curl -s -X POST "https://acme-hub.khfm.workers.dev/api/cron/notification-reminders" \
+             -H "Authorization: Bearer $CRON_SECRET" \
+             -H "Content-Type: application/json" -o /dev/null &
+    done
+) &
+CRON_NOTIF_PID=$!
+
+(
+    while true; do
+        sleep 900 # 15 min
+        echo "[cron] $(date '+%H:%M:%S') Disparando sync-orchestrator..."
+        curl -s -X POST "https://acme-hub.khfm.workers.dev/api/cron/sync-orchestrator" \
+             -H "Authorization: Bearer $CRON_SECRET" \
+             -H "Content-Type: application/json" -o /dev/null &
+    done
+) &
+CRON_SYNC_PID=$!
+
+echo "[+] Crons locais ativos: Reminders(5m) e SyncOrchestrator(15m)."
+
 # Função de limpeza
 cleanup() {
     echo ""
     echo "[*] Parando servidores..."
     kill $TUNNEL_PID 2>/dev/null
     kill $WORKER_PID 2>/dev/null
+    kill $CRON_NOTIF_PID 2>/dev/null
+    kill $CRON_SYNC_PID 2>/dev/null
     echo "[+] Tudo pronto! O servidor está rodando e conectado à nuvem."
 }
 

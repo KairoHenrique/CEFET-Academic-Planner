@@ -13,6 +13,7 @@ export type NotificationRemindersCronResult = {
  * ativos (respeitando prefs) que ainda não foram enviados.
  */
 export async function runNotificationRemindersCron(): Promise<NotificationRemindersCronResult> {
+  console.info("[cron] Iniciando runNotificationRemindersCron...");
   const pool = getPostgresPool();
   const result = await pool.query<{ user_id: string; cpf: string }>(
     `SELECT DISTINCT user_id, cpf
@@ -23,6 +24,8 @@ export async function runNotificationRemindersCron(): Promise<NotificationRemind
   let pushed = 0;
   let skipped = 0;
   let errors = 0;
+
+  console.info(`[cron] Encontrados ${result.rows.length} usuários únicos com tokens de push.`);
 
   for (const row of result.rows) {
     try {
@@ -35,10 +38,13 @@ export async function runNotificationRemindersCron(): Promise<NotificationRemind
       } else {
         skipped += 1;
       }
-    } catch {
+    } catch (err) {
+      console.error(`[cron] Erro ao processar user=${row.user_id.slice(0, 8)}`, err);
       errors += 1;
     }
   }
+
+  console.info(`[cron] Concluído: ${pushed} pushes enviados, ${skipped} pulados, ${errors} erros.`);
 
   return {
     users: result.rows.length,

@@ -59,8 +59,10 @@ export async function dispatchNotificationPushesForUser(input: {
   userId: string;
   cpf: string;
 }): Promise<{ sent: number; skipped: boolean; reason?: string }> {
+  console.info(`[push] Avaliando pushes para user=${input.userId.slice(0, 8)}... (CPF=${input.cpf.slice(0, 3)}...)`);
   const preferences = await pgGetNotificationPreferences(input.userId);
   if (!anyAcademicPrefOn(preferences)) {
+    console.info(`[push] Skiped user=${input.userId.slice(0, 8)}: Nenhuma preferência acadêmica ativa.`);
     return {
       sent: 0,
       skipped: true,
@@ -71,15 +73,18 @@ export async function dispatchNotificationPushesForUser(input: {
   const pool = resolvePushDataPool();
   const tokens = await listPushTokensByCpf(pool, input.cpf);
   if (tokens.length === 0) {
+    console.info(`[push] Skiped user=${input.userId.slice(0, 8)}: Nenhum token de push registrado.`);
     return { sent: 0, skipped: true, reason: "no_tokens" };
   }
+  console.info(`[push] Encontrados ${tokens.length} tokens para user=${input.userId.slice(0, 8)}`);
 
   let snapshot;
   try {
     snapshot = await runWithTenantUserId(input.userId, () =>
       buildNotificationSnapshotCloud()
     );
-  } catch {
+  } catch (err) {
+    console.warn(`[push] Skiped user=${input.userId.slice(0, 8)}: Falha ao gerar snapshot`, err);
     return { sent: 0, skipped: true, reason: "snapshot_unavailable" };
   }
 
@@ -90,11 +95,14 @@ export async function dispatchNotificationPushesForUser(input: {
     pendingClassSessions: snapshot.pendingClassSessions,
     preferences: snapshot.preferences,
   });
+  console.info(`[push] ${items.length} itens ativos (pós-filtro) para user=${input.userId.slice(0, 8)}`);
 
   const alreadySent = await pgGetPushSentFingerprints(input.userId);
+  console.info(`[push] ${alreadySent.size} fingerprints já enviados anteriormente para user=${input.userId.slice(0, 8)}`);
 
   // Primeira execução do usuário: só baselina fingerprints (sem push em massa).
   if (alreadySent.size === 0 && items.length > 0) {
+    console.info(`[push] Bootstrap para user=${input.userId.slice(0, 8)}: Marcando ${items.length} itens como enviados silenciosamente.`);
     await pgMarkPushFingerprintsSent(
       input.userId,
       items.map((item) => item.fingerprint)
@@ -109,6 +117,7 @@ export async function dispatchNotificationPushesForUser(input: {
     items,
     alreadySent,
   });
+  console.info(`[push] Disparados ${sent} novos pushes para user=${input.userId.slice(0, 8)}`);
 
   return { sent, skipped: sent === 0 };
 }
