@@ -1,7 +1,13 @@
 import { eachIsoDateInRange, isoDateToWeekdayIndex } from "@/lib/calendar/date-range";
 import { findPeriodoLetivoBounds } from "@/lib/calendar/expand-academic-calendar-events";
+import {
+  inferDefaultPeriodoLetivoBounds,
+  resolveSemestreForClassBounds,
+} from "@/lib/calendar/infer-periodo-letivo-bounds";
 import { resolveSubjectShortLabel } from "@/lib/disciplinas/subject-display-name";
+import { parseHorarioTraduzido } from "@/lib/schedule/parse-horario-traduzido";
 import { parseSigaaCodigoHorario } from "@/lib/schedule/parse-sigaa-codigo";
+import type { ScheduleCellPosition } from "@/lib/schedule/sigaa-slot-map";
 import type { CalendarEvent } from "@/lib/types/calendar";
 import type {
   CalendarioAcademicoRow,
@@ -18,6 +24,24 @@ function encodeAulaEventId(
   return `aula-${safeCode}-${date}-${slotIdx}`;
 }
 
+function sortPositions(
+  positions: ScheduleCellPosition[]
+): ScheduleCellPosition[] {
+  return [...positions].sort((a, b) => {
+    if (a.dayIdx !== b.dayIdx) return a.dayIdx - b.dayIdx;
+    return a.slotIdx - b.slotIdx;
+  });
+}
+
+/** Mesmo fallback da grade: codigo_horario SIGAA, senão horario_traduzido. */
+function resolveClassSchedulePositions(
+  row: SemestreAtualWithDisciplina
+): ScheduleCellPosition[] {
+  const fromSigaa = parseSigaaCodigoHorario(row.codigo_horario);
+  if (fromSigaa.length > 0) return sortPositions(fromSigaa);
+  return sortPositions(parseHorarioTraduzido(row.horario_traduzido));
+}
+
 function resolveTurmaBounds(
   row: SemestreAtualWithDisciplina,
   academicRows: CalendarioAcademicoRow[]
@@ -29,7 +53,13 @@ function resolveTurmaBounds(
     };
   }
 
-  return findPeriodoLetivoBounds(academicRows, null);
+  const fromPeriodoLetivo = findPeriodoLetivoBounds(academicRows, null);
+  if (fromPeriodoLetivo) return fromPeriodoLetivo;
+
+  const semestre = resolveSemestreForClassBounds(
+    academicRows.map((academic) => academic.semestre)
+  );
+  return inferDefaultPeriodoLetivoBounds(semestre);
 }
 
 /** Gera ocorrências de aula (dia + horário) até o fim da turma ou do período letivo. */
@@ -40,13 +70,11 @@ export function expandClassSessionEvents(input: {
   const events: CalendarEvent[] = [];
 
   for (const row of input.semestreRows) {
-    if (!row.codigo_horario?.trim()) continue;
+    const positions = resolveClassSchedulePositions(row);
+    if (positions.length === 0) continue;
 
     const bounds = resolveTurmaBounds(row, input.academicRows);
     if (!bounds) continue;
-
-    const positions = parseSigaaCodigoHorario(row.codigo_horario);
-    if (positions.length === 0) continue;
 
     const subjectLabel = resolveSubjectShortLabel(
       row.disciplina_id,

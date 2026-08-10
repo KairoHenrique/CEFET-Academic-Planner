@@ -37,7 +37,19 @@ export function parseTurmaDisciplinaPages(
   const faltas = raw.frequenciaHtml
     ? parseFrequenciaPageHtml(raw.frequenciaHtml)
     : [];
-  if (!raw.frequenciaHtml) warnings.push("frequência indisponível");
+  if (!raw.frequenciaHtml) {
+    warnings.push("frequência indisponível");
+  } else if (faltas.length === 0) {
+    // Espelho do aviso de notas: HTML chegou, mas o parser não extraiu linhas.
+    // Sem isso, shouldReplaceSyncedFaltas apaga faltas sync antigas.
+    const hintsFrequencia =
+      /Mapa de Frequ|Frequ[eê]ncia|Presente|\d+\s+Falta|Faltou|N[aã]o\s+Registrad|\d{2}\/\d{2}\/\d{4}/i.test(
+        raw.frequenciaHtml
+      );
+    if (hintsFrequencia) {
+      warnings.push("frequência não parseada");
+    }
+  }
 
   const maxFaltasFromFreq = parseMaxFaltasFromFrequenciaHtml(raw.frequenciaHtml);
   const maxFaltas = maxFaltasFromFreq ?? notasResult.maxFaltas;

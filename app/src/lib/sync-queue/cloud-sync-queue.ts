@@ -166,6 +166,61 @@ export async function dispatchAsyncJobToWorker(options: {
   }
 }
 
+async function markCloudJobDispatchFailed(
+  pool: ReturnType<typeof getPostgresPool>,
+  jobId: string
+): Promise<void> {
+  await pool.query(
+    `UPDATE sync_jobs
+     SET status = 'failed', finished_at = now(),
+         error_code = 'WORKER_DISPATCH_FAILED',
+         error_message = 'Falha ao despachar job ao worker.'
+     WHERE id = $1 AND status IN ('queued', 'running')`,
+    [jobId]
+  );
+}
+
+/**
+ * Job `queued` reusado sem novo POST ao worker = UI presa em ~19%.
+ * Reenvia o dispatch; se o worker já tiver claimado, o claim falha no-op.
+ */
+async function reuseOrRedispatchActiveJob(options: {
+  pool: ReturnType<typeof getPostgresPool>;
+  config: WorkerDispatchConfig;
+  job: Awaited<ReturnType<typeof pgFindActiveSyncJobByUsername>>;
+  input: CloudEnqueueSyncInput;
+  robot: PgSyncJobRobot;
+}): Promise<EnqueueSyncJobResult | null> {
+  const { pool, config, job, input, robot } = options;
+  if (!job) return null;
+
+  if (job.status === "running") {
+    return { job: pgSyncJobRowToView(job), reused: true };
+  }
+
+  if (job.status !== "queued") {
+    return { job: pgSyncJobRowToView(job), reused: true };
+  }
+
+  const passwordEnc = await resolveCloudPasswordEnc(input);
+  try {
+    await dispatchAsyncJobToWorker({
+      config,
+      jobId: job.id,
+      robot,
+      username: input.username,
+      passwordEnc,
+      mode: input.mode,
+    });
+  } catch (error) {
+    await markCloudJobDispatchFailed(pool, job.id);
+    throw error;
+  }
+
+  const refreshed = (await pgFindSyncJobById(pool, job.id)) ?? job;
+  return { job: pgSyncJobRowToView(refreshed), reused: true };
+}
+
 export async function enqueueCloudSyncJob(
   input: CloudEnqueueSyncInput
 ): Promise<EnqueueSyncJobResult> {
@@ -181,17 +236,22 @@ export async function enqueueCloudSyncJob(
   const pool = getPostgresPool();
   await pgReclaimStaleSyncJobs(pool);
 
+  const robot = input.robot ?? "r1";
+
   if (input.idempotencyKey) {
     const existingByKey = await pgFindActiveSyncJobByIdempotencyKey(
       pool,
       input.idempotencyKey
     );
-    if (existingByKey) {
-      return { job: pgSyncJobRowToView(existingByKey), reused: true };
-    }
+    const reused = await reuseOrRedispatchActiveJob({
+      pool,
+      config,
+      job: existingByKey,
+      input,
+      robot: existingByKey?.robot ?? robot,
+    });
+    if (reused) return reused;
   }
-
-  const robot = input.robot ?? "r1";
 
   // Reuso por usuário só vale para o pipeline r1 — jobs de catálogo (turmas/
   // calendário) usam a credencial de um CPF elegível e não devem colidir.
@@ -200,9 +260,14 @@ export async function enqueueCloudSyncJob(
       pool,
       input.username
     );
-    if (activeJob) {
-      return { job: pgSyncJobRowToView(activeJob), reused: true };
-    }
+    const reused = await reuseOrRedispatchActiveJob({
+      pool,
+      config,
+      job: activeJob,
+      input,
+      robot,
+    });
+    if (reused) return reused;
   }
 
   const passwordEnc = await resolveCloudPasswordEnc(input);
@@ -228,14 +293,7 @@ export async function enqueueCloudSyncJob(
       mode: input.mode,
     });
   } catch (error) {
-    await pool.query(
-      `UPDATE sync_jobs
-       SET status = 'failed', finished_at = now(),
-           error_code = 'WORKER_DISPATCH_FAILED',
-           error_message = 'Falha ao despachar job ao worker.'
-       WHERE id = $1`,
-      [jobId]
-    );
+    await markCloudJobDispatchFailed(pool, jobId);
     throw error;
   }
 

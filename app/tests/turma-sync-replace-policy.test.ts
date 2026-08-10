@@ -78,6 +78,12 @@ describe("turma-sync-replace-policy", () => {
       false
     );
     assert.equal(
+      shouldReplaceSyncedFaltas(
+        disciplina({ scrapeWarnings: ["frequência não parseada"] })
+      ),
+      false
+    );
+    assert.equal(
       shouldReplaceSyncedGrupo(
         disciplina({ scrapeWarnings: ["grupo indisponível"] })
       ),

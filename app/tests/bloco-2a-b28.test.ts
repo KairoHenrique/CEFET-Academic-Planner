@@ -521,6 +521,37 @@ describe("B28 — parse turma virtual", () => {
     assert.equal(disciplina.tarefas.length, 1);
     assert.equal(disciplina.scrapeWarnings.length, 0);
   });
+
+  test("avisa frequência não parseada quando HTML parece mapa mas vem vazio", async () => {
+    const { parseTurmaDisciplinaPages } = await import(
+      "../src/lib/scraper/turma-virtual/parse-turma-disciplina"
+    );
+    const { shouldReplaceSyncedFaltas } = await import(
+      "../src/lib/sync/turma-sync-replace-policy"
+    );
+
+    const disciplina = parseTurmaDisciplinaPages({
+      sigaaNome: "Engenharia de Software",
+      sigaaUrl: "https://sig.cefetmg.br/mock",
+      notasHtml: null,
+      frequenciaHtml: `
+        <h3>Mapa de Frequências</h3>
+        <table class="listing">
+          <tr><th>Data</th><th>Frequência</th></tr>
+        </table>
+      `,
+      grupoHtml: null,
+      tarefasHtml: null,
+      tarefaDetalhesHtml: {},
+    });
+
+    assert.equal(disciplina.faltas.length, 0);
+    assert.ok(
+      disciplina.scrapeWarnings.includes("frequência não parseada"),
+      `warnings=${JSON.stringify(disciplina.scrapeWarnings)}`
+    );
+    assert.equal(shouldReplaceSyncedFaltas(disciplina), false);
+  });
 });
 
 describe("B28 — scrapeTurmaVirtual (mock)", () => {

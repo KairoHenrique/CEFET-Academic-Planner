@@ -50,6 +50,43 @@ describe("Calendário — datas institucionais expandidas", () => {
   });
 });
 
+function semestreRow(
+  overrides: Partial<{
+    disciplina_id: string;
+    nome: string;
+    codigo_horario: string | null;
+    horario_traduzido: string | null;
+    turma_data_inicio: string | null;
+    turma_data_fim: string | null;
+  }> = {}
+) {
+  return {
+    disciplina_id: "ENG-SOFT",
+    nome: "ENGENHARIA DE SOFTWARE",
+    carga_horaria: 60,
+    local: "101",
+    codigo_horario: "4M12 6M56" as string | null,
+    horario_traduzido: null as string | null,
+    cor: "#F47067",
+    apelido: "Eng. Software",
+    nome_exibicao: null,
+    local_exibicao: null,
+    horario_exibicao: null,
+    professor_exibicao: null,
+    horas_semanais_exibicao: null,
+    grupo_nome: null,
+    professor: null,
+    max_faltas: null,
+    nota_maxima: null,
+    nota_aprovacao: null,
+    arquivos_baixados: null,
+    pdf_auto_download: null,
+    turma_data_inicio: "2026-02-23" as string | null,
+    turma_data_fim: "2026-03-05" as string | null,
+    ...overrides,
+  };
+}
+
 describe("Calendário — aulas até fim da turma", () => {
   test("gera aulas na quarta e sexta até data fim", async () => {
     const { expandClassSessionEvents } = await import(
@@ -57,32 +94,7 @@ describe("Calendário — aulas até fim da turma", () => {
     );
 
     const events = expandClassSessionEvents({
-      semestreRows: [
-        {
-          disciplina_id: "ENG-SOFT",
-          nome: "ENGENHARIA DE SOFTWARE",
-          carga_horaria: 60,
-          local: "101",
-          codigo_horario: "4M12 6M56",
-          horario_traduzido: null,
-          cor: "#F47067",
-          apelido: "Eng. Software",
-          nome_exibicao: null,
-          local_exibicao: null,
-          horario_exibicao: null,
-          professor_exibicao: null,
-          horas_semanais_exibicao: null,
-          grupo_nome: null,
-          professor: null,
-          max_faltas: null,
-          nota_maxima: null,
-          nota_aprovacao: null,
-          arquivos_baixados: null,
-          pdf_auto_download: null,
-          turma_data_inicio: "2026-02-23",
-          turma_data_fim: "2026-03-05",
-        },
-      ],
+      semestreRows: [semestreRow()],
       academicRows: [],
     });
 
@@ -91,6 +103,74 @@ describe("Calendário — aulas até fim da turma", () => {
     assert.ok(events.every((event) => event.date <= "2026-03-05"));
     assert.ok(events.some((event) => event.date === "2026-02-25"));
     assert.ok(events.some((event) => event.date === "2026-02-27"));
+  });
+
+  test("usa horario_traduzido quando codigo_horario está vazio", async () => {
+    const { expandClassSessionEvents } = await import(
+      "../src/lib/calendar/expand-class-session-events"
+    );
+
+    const events = expandClassSessionEvents({
+      semestreRows: [
+        semestreRow({
+          codigo_horario: null,
+          horario_traduzido: "Qua 07:00 · Sex 15:50",
+          turma_data_inicio: "2026-02-23",
+          turma_data_fim: "2026-03-05",
+        }),
+      ],
+      academicRows: [],
+    });
+
+    assert.ok(events.length > 0);
+    assert.ok(events.some((event) => event.date === "2026-02-25"));
+    assert.ok(events.some((event) => event.date === "2026-02-27"));
+  });
+
+  test("fallback de período letivo aproximado sem turma_data nem Período Letivo", async () => {
+    const { expandClassSessionEvents } = await import(
+      "../src/lib/calendar/expand-class-session-events"
+    );
+
+    const events = expandClassSessionEvents({
+      semestreRows: [
+        semestreRow({
+          turma_data_inicio: null,
+          turma_data_fim: null,
+        }),
+      ],
+      academicRows: [
+        {
+          id: 99,
+          evento: "Matrícula OnLine",
+          data_inicio: "2026-07-20",
+          data_fim: "2026-07-22",
+          semestre: "2026.2",
+        },
+      ],
+    });
+
+    assert.ok(events.length > 0);
+    assert.ok(events.every((event) => event.date >= "2026-08-01"));
+    assert.ok(events.every((event) => event.date <= "2026-12-20"));
+  });
+});
+
+describe("Calendário — bounds aproximados do semestre", () => {
+  test("infere janela .1 e .2", async () => {
+    const { inferDefaultPeriodoLetivoBounds } = await import(
+      "../src/lib/calendar/infer-periodo-letivo-bounds"
+    );
+
+    assert.deepEqual(inferDefaultPeriodoLetivoBounds("2026.1"), {
+      dataInicio: "2026-03-01",
+      dataFim: "2026-07-15",
+    });
+    assert.deepEqual(inferDefaultPeriodoLetivoBounds("2026.2"), {
+      dataInicio: "2026-08-01",
+      dataFim: "2026-12-20",
+    });
+    assert.equal(inferDefaultPeriodoLetivoBounds("invalid"), null);
   });
 });
 
