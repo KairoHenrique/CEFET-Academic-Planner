@@ -8,25 +8,26 @@ import {
   Text,
   View,
 } from "react-native";
-import type { CalendarEvent, SubjectListItem } from "@acme/api-contracts";
+import type {
+  AcademicTask,
+  CalendarEvent,
+  SubjectListItem,
+} from "@acme/api-contracts";
+import {
+  canDeleteCalendarEvent,
+  parseTaskIdFromCalendarEvent,
+} from "../lib/calendar-event-utils";
 import { hexWithAlpha } from "../lib/color-mix";
 import { brand } from "../theme/brand";
+import { EventDetailContent, TaskDetailContent } from "./ActivityDetail";
 import { Card, formatPtDate } from "./cards";
+import { DetailModal } from "./DetailModal";
 import { Icon } from "./Icon";
 import { SectionHeader } from "./SectionHeader";
 import {
   CreateCalendarEventModal,
   type CreateCalendarEventInput,
 } from "./CreateCalendarEventModal";
-
-function canDeleteCalendarEvent(event: CalendarEvent): boolean {
-  if (event.id.startsWith("academico-") || event.id.startsWith("aula-")) {
-    return false;
-  }
-  if (event.id.startsWith("evento-")) return true;
-  if (event.id.startsWith("tarefa-")) return event.manual === true;
-  return event.manual === true;
-}
 
 const WEEKDAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
@@ -91,6 +92,7 @@ const TYPE_LABEL: Record<string, string> = {
 
 type Props = {
   events: CalendarEvent[];
+  tasks?: AcademicTask[];
   filter: EventTypeFilter;
   busyCreate?: boolean;
   busyDelete?: boolean;
@@ -98,6 +100,8 @@ type Props = {
   onToggleDone?: (ev: CalendarEvent) => void;
   onDeleteEvent?: (ev: CalendarEvent) => Promise<void> | void;
   onCreateEvent?: (input: CreateCalendarEventInput) => Promise<void> | void;
+  onOpenSubject?: (code: string) => void;
+  onToggleTask?: (task: AcademicTask) => void;
 };
 
 function toIso(year: number, month: number, day: number): string {
@@ -116,6 +120,7 @@ function eventAccent(ev: CalendarEvent): string {
 /** Calendário F28 — mês (dots) + próximos eventos; toque no dia abre modal. */
 export function CalendarMonthModule({
   events,
+  tasks = [],
   filter,
   busyCreate = false,
   busyDelete = false,
@@ -123,6 +128,8 @@ export function CalendarMonthModule({
   onToggleDone,
   onDeleteEvent,
   onCreateEvent,
+  onOpenSubject,
+  onToggleTask,
 }: Props) {
   const [cursor, setCursor] = useState(() => {
     const n = new Date();
@@ -184,6 +191,13 @@ export function CalendarMonthModule({
   }, [filtered]);
 
   const dayEvents = dayModal != null ? eventsByDay[dayModal] ?? [] : [];
+
+  const selectedTask = useMemo(() => {
+    if (!selected) return null;
+    const taskId = parseTaskIdFromCalendarEvent(selected);
+    if (taskId == null) return null;
+    return tasks.find((task) => task.id === taskId) ?? null;
+  }, [selected, tasks]);
 
   async function submitCreate(input: CreateCalendarEventInput) {
     if (!onCreateEvent) return;
@@ -364,80 +378,58 @@ export function CalendarMonthModule({
         </Pressable>
       </Modal>
 
-      {/* Detalhe do evento */}
-      <Modal
+      <DetailModal
         visible={selected != null}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setSelected(null)}
+        title={selected?.title ?? "Evento"}
+        onClose={() => setSelected(null)}
       >
-        <Pressable style={styles.modalBackdrop} onPress={() => setSelected(null)}>
-          <Pressable style={styles.modalSheet} onPress={(e) => e.stopPropagation()}>
-            {selected ? (
-              <>
-                <Text style={styles.modalTitle}>{selected.title}</Text>
-                <Text style={styles.eventMeta}>
-                  {formatPtDate(selected.date)}
-                  {selected.subject ? ` · ${selected.subject}` : ""}
-                </Text>
-                {selected.description ? (
-                  <Text style={[styles.eventMeta, { marginTop: 12 }]}>
-                    {selected.description}
-                  </Text>
-                ) : null}
-                {onToggleDone ? (
-                  <Pressable
-                    style={styles.addDayBtn}
-                    onPress={() => {
-                      onToggleDone(selected);
-                      setSelected(null);
-                    }}
-                  >
-                    <Text style={styles.addDayBtnText}>
-                      {selected.done ? "Reabrir" : "Concluir"}
-                    </Text>
-                  </Pressable>
-                ) : null}
-                {onDeleteEvent && canDeleteCalendarEvent(selected) ? (
-                  <Pressable
-                    style={[styles.deleteBtn, busyDelete && { opacity: 0.6 }]}
-                    disabled={busyDelete}
-                    onPress={() => {
-                      Alert.alert(
-                        "Excluir evento",
-                        `Remover “${selected.title}”? Esta ação não pode ser desfeita.`,
-                        [
-                          { text: "Cancelar", style: "cancel" },
-                          {
-                            text: "Excluir",
-                            style: "destructive",
-                            onPress: () => {
-                              void (async () => {
-                                await onDeleteEvent(selected);
-                                setSelected(null);
-                              })();
-                            },
+        {selected && selectedTask ? (
+          <TaskDetailContent
+            task={selectedTask}
+            onClose={() => setSelected(null)}
+            onOpenSubject={onOpenSubject}
+            onToggleDone={
+              onToggleTask
+                ? () => {
+                    onToggleTask(selectedTask);
+                    setSelected(null);
+                  }
+                : undefined
+            }
+          />
+        ) : selected ? (
+          <EventDetailContent
+            event={selected}
+            onClose={() => setSelected(null)}
+            onOpenSubject={onOpenSubject}
+            onToggleDone={onToggleDone}
+            isDeleting={busyDelete}
+            onDelete={
+              onDeleteEvent && canDeleteCalendarEvent(selected)
+                ? (ev) => {
+                    Alert.alert(
+                      "Excluir evento",
+                      `Remover “${ev.title}”? Esta ação não pode ser desfeita.`,
+                      [
+                        { text: "Cancelar", style: "cancel" },
+                        {
+                          text: "Excluir",
+                          style: "destructive",
+                          onPress: () => {
+                            void (async () => {
+                              await onDeleteEvent(ev);
+                              setSelected(null);
+                            })();
                           },
-                        ]
-                      );
-                    }}
-                  >
-                    <Text style={styles.deleteBtnText}>
-                      {busyDelete ? "Excluindo…" : "Excluir"}
-                    </Text>
-                  </Pressable>
-                ) : null}
-                <Pressable
-                  style={styles.closeBtn}
-                  onPress={() => setSelected(null)}
-                >
-                  <Text style={styles.closeBtnText}>Fechar</Text>
-                </Pressable>
-              </>
-            ) : null}
-          </Pressable>
-        </Pressable>
-      </Modal>
+                        },
+                      ]
+                    );
+                  }
+                : undefined
+            }
+          />
+        ) : null}
+      </DetailModal>
 
       {/* Novo evento — paridade com AddEventForm do site */}
       <CreateCalendarEventModal

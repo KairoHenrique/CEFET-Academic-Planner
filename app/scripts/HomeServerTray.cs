@@ -151,13 +151,19 @@ namespace HomeServerTray
 
             try
             {
-                var wpsi = new ProcessStartInfo("cmd.exe", "/c npm run worker:home");
+                string workerLog = Path.Combine(appDir, ".data", "home-worker.log");
+                string workerDir = Path.GetDirectoryName(workerLog);
+                if (!Directory.Exists(workerDir)) Directory.CreateDirectory(workerDir);
+
+                var wpsi = new ProcessStartInfo("cmd.exe",
+                    "/c npm run worker:home > \"" + workerLog + "\" 2>&1");
                 wpsi.WorkingDirectory = appDir;
                 wpsi.UseShellExecute = false;
                 wpsi.CreateNoWindow = true;
                 wpsi.WindowStyle = ProcessWindowStyle.Hidden;
                 workerProc = Process.Start(wpsi);
-                Log("worker:home pid=" + (workerProc != null ? workerProc.Id.ToString() : "?"));
+                Log("worker:home pid=" + (workerProc != null ? workerProc.Id.ToString() : "?") +
+                    " log=" + workerLog);
             }
             catch (Exception ex) { Log("erro worker: " + ex.Message); }
 
@@ -205,11 +211,24 @@ namespace HomeServerTray
             try
             {
                 Log("Atualizando SIGAA_WORKER_URL=" + url);
-                var psi = new ProcessStartInfo("cmd.exe",
-                    "/c echo " + url + "| npx wrangler secret put SIGAA_WORKER_URL");
+                string token = ReadEnvLocalValue("CLOUDFLARE_API_TOKEN");
+                var psi = new ProcessStartInfo();
+                psi.FileName = "cmd.exe";
+                psi.Arguments =
+                    "/c echo " + url +
+                    "| npx wrangler secret put SIGAA_WORKER_URL --name acme-hub";
                 psi.WorkingDirectory = appDir;
                 psi.UseShellExecute = false;
                 psi.CreateNoWindow = true;
+                if (!string.IsNullOrEmpty(token))
+                {
+                    psi.EnvironmentVariables["CLOUDFLARE_API_TOKEN"] = token;
+                    Log("CLOUDFLARE_API_TOKEN carregado do .env.local");
+                }
+                else
+                {
+                    Log("Aviso: CLOUDFLARE_API_TOKEN ausente no .env.local");
+                }
                 Process p = Process.Start(psi);
                 p.WaitForExit();
                 Log("wrangler secret put exit=" + p.ExitCode);
@@ -229,6 +248,31 @@ namespace HomeServerTray
                 }
             }
             catch (Exception ex) { Log("erro UpdateSecret: " + ex.Message); }
+        }
+
+        static string ReadEnvLocalValue(string key)
+        {
+            try
+            {
+                string path = Path.Combine(appDir, ".env.local");
+                if (!File.Exists(path)) return null;
+                foreach (string raw in File.ReadAllLines(path))
+                {
+                    string line = raw.Trim();
+                    if (line.Length == 0 || line.StartsWith("#")) continue;
+                    if (!line.StartsWith(key + "=")) continue;
+                    string value = line.Substring(key.Length + 1).Trim();
+                    if (value.Length >= 2 &&
+                        ((value[0] == '"' && value[value.Length - 1] == '"') ||
+                         (value[0] == '\'' && value[value.Length - 1] == '\'')))
+                    {
+                        value = value.Substring(1, value.Length - 2);
+                    }
+                    return value;
+                }
+            }
+            catch (Exception ex) { Log("erro ReadEnvLocal: " + ex.Message); }
+            return null;
         }
 
         static void StopServers()

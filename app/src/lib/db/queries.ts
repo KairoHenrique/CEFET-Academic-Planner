@@ -675,11 +675,13 @@ export function saveTarefa(tarefa: Omit<TarefaRow, "id">): void {
     `
     INSERT INTO tarefas (
       disciplina_id, titulo, descricao, data_inicio, data_fim, hora_fim, tipo,
-      possui_nota, concluida, manual, instrucoes, entregaveis, pontuacao_maxima
+      possui_nota, concluida, manual, instrucoes, entregaveis, pontuacao_maxima,
+      sigaa_link_id
     )
     VALUES (
       @disciplina_id, @titulo, @descricao, @data_inicio, @data_fim, @hora_fim, @tipo,
-      @possui_nota, @concluida, @manual, @instrucoes, @entregaveis, @pontuacao_maxima
+      @possui_nota, @concluida, @manual, @instrucoes, @entregaveis, @pontuacao_maxima,
+      @sigaa_link_id
     )
   `
   ).run({
@@ -819,6 +821,7 @@ export function upsertSyncedTarefa(tarefa: Omit<TarefaRow, "id">): void {
       UPDATE tarefas
       SET descricao = ?, data_inicio = ?, data_fim = ?, hora_fim = ?, tipo = ?,
           possui_nota = ?, instrucoes = ?, entregaveis = ?, pontuacao_maxima = ?,
+          sigaa_link_id = COALESCE(?, sigaa_link_id),
           concluida = CASE WHEN COALESCE(concluida_override, 0) = 1 THEN concluida ELSE ? END
       WHERE id = ?
     `
@@ -832,6 +835,7 @@ export function upsertSyncedTarefa(tarefa: Omit<TarefaRow, "id">): void {
       instrucoes,
       entregaveis,
       tarefa.pontuacao_maxima,
+      tarefa.sigaa_link_id ?? null,
       concluidaSync,
       existing.id
     );

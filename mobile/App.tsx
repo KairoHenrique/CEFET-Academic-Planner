@@ -27,9 +27,11 @@ import {
   type MobileAuthSession,
 } from "./src/auth/session";
 import { hasApiBaseUrl } from "./src/config/env";
+import { navigationRef } from "./src/navigation/navigation-ref";
 import { AppShell } from "./src/navigation/AppShell";
 import { PaywallStack } from "./src/navigation/PaywallStack";
 import { registerPushForCurrentSession, setupPushNotifications } from "./src/push/register";
+import { setupNotificationNavigationListeners } from "./src/push/notification-navigation";
 import { hydrateAvatarInitials } from "./src/perfil/avatar-store";
 import { LoginScreen } from "./src/screens/LoginScreen";
 import { brand } from "./src/theme/brand";
@@ -80,6 +82,7 @@ export default function App() {
   useEffect(() => {
     void lockAppPortrait();
     void setupPushNotifications();
+    const removePushNav = setupNotificationNavigationListeners();
     const unsub = subscribeSession((next) => {
       setSessionState(next);
       if (next && resolveAppDestination(next.subscription.status) === "home") {
@@ -107,7 +110,10 @@ export default function App() {
       }
       setReady(true);
     })();
-    return unsub;
+    return () => {
+      removePushNav();
+      unsub();
+    };
   }, []);
 
   if (!ready) {
@@ -137,7 +143,7 @@ export default function App() {
   if (destination === "paywall") {
     return (
       <SafeAreaProvider>
-        <NavigationContainer theme={navTheme}>
+        <NavigationContainer ref={navigationRef} theme={navTheme}>
           <PaywallStack session={session} />
         </NavigationContainer>
         <MaintenanceOverlay />
@@ -148,7 +154,7 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <NavigationContainer theme={navTheme}>
+      <NavigationContainer ref={navigationRef} theme={navTheme}>
         <AppShell />
       </NavigationContainer>
       <MaintenanceOverlay />

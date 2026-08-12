@@ -197,6 +197,10 @@ export function SubjectTasksPanel({
       ? (saveMutation.error ?? deleteMutation.error)?.message
       : null;
 
+  const handleDetailSubmit = useCallback(() => {
+    invalidate();
+  }, [invalidate]);
+
   return (
     <>
       <div className="card card-full-height">
@@ -371,6 +375,7 @@ export function SubjectTasksPanel({
             onClose={closeDetailModal}
             onToggleDone={handleDetailToggle}
             onEdit={handleDetailEdit}
+            onSubmitted={handleDetailSubmit}
           />
         )}
       </Modal>

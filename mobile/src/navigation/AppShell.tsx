@@ -55,7 +55,7 @@ function ShellChrome({ children }: { children: ReactNode }) {
       const res = await fetchNotifications();
       if (res?.data) {
         const items = mergeMobileNotificationItems(res.data);
-        const unread = items.filter(item => item.isRead === false || item.isRead === undefined).length;
+        const unread = items.length;
         setUnreadCount(unread);
       }
     } catch {}

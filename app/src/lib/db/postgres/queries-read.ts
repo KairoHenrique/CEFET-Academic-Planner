@@ -299,6 +299,8 @@ export function mapTarefaRow(row: Record<string, unknown>): TarefaRow {
     entregaveis: row.entregaveis != null ? String(row.entregaveis) : null,
     pontuacao_maxima:
       row.pontuacao_maxima != null ? Number(row.pontuacao_maxima) : null,
+    sigaa_link_id:
+      row.sigaa_link_id != null ? String(row.sigaa_link_id) : null,
   };
 }
 

@@ -54,6 +54,7 @@ function runMigrations(database: ReturnType<typeof getActiveDatabase>): void {
   addColumnIfMissing(database, "tarefas", "entregaveis", "TEXT");
   addColumnIfMissing(database, "tarefas", "pontuacao_maxima", "REAL");
   addColumnIfMissing(database, "tarefas", "hora_fim", "TEXT DEFAULT '23:59'");
+  addColumnIfMissing(database, "tarefas", "sigaa_link_id", "TEXT");
   addColumnIfMissing(database, "notas", "nota_override", "INTEGER DEFAULT 0");
   addColumnIfMissing(database, "notas", "nota_extra", "INTEGER DEFAULT 0");
   addColumnIfMissing(database, "faltas", "manual", "INTEGER DEFAULT 0");

@@ -8,8 +8,10 @@ echo "Iniciando ServidorACME no Termux..."
 # Limpa instâncias antigas para garantir que o código novo rode limpo
 echo "[*] Encerrando processos antigos do worker e cloudflared..."
 pkill -f "npm run worker:home" 2>/dev/null || true
-pkill -f "node" 2>/dev/null || true
+pkill -f "scripts/start-home-worker" 2>/dev/null || true
+pkill -f "tsx.*worker/main" 2>/dev/null || true
 pkill -f "cloudflared" 2>/dev/null || true
+# NÃO use pkill -f node — mata tudo (incluindo o próprio setup) e deixa o túnel órfão.
 
 # Resolve o diretório do app baseado na localização do script
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." >/dev/null 2>&1 && pwd)"
@@ -111,8 +113,60 @@ done
 
 echo "[+] Tunnel URL detectada: $URL"
 
-# 3. Atualiza o secret
+# Aguarda worker local responder antes de publicar o secret (evita 530/1016).
+echo "[*] Aguardando health local em http://127.0.0.1:8787/health ..."
+HEALTH_OK=0
+for i in $(seq 1 60); do
+    if curl -fsS --max-time 3 "http://127.0.0.1:8787/health" >/dev/null 2>&1; then
+        HEALTH_OK=1
+        break
+    fi
+    if ! kill -0 $WORKER_PID 2>/dev/null; then
+        echo "[-] Erro: Worker morreu enquanto aguardava health. Veja termux-worker.log"
+        kill $TUNNEL_PID 2>/dev/null
+        exit 1
+    fi
+    sleep 1
+done
+if [ "$HEALTH_OK" != "1" ]; then
+    echo "[-] Timeout: worker local não respondeu /health. Abortando secret put."
+    echo "    tail -n 40 termux-worker.log"
+    kill $TUNNEL_PID 2>/dev/null
+    kill $WORKER_PID 2>/dev/null
+    exit 1
+fi
+
+echo "[*] Testando health PÚBLICO do túnel ($URL/health)..."
+PUBLIC_OK=0
+for i in $(seq 1 30); do
+    if curl -fsS --max-time 8 "$URL/health" 2>/dev/null | grep -q '"ok"'; then
+        PUBLIC_OK=1
+        break
+    fi
+    sleep 2
+done
+if [ "$PUBLIC_OK" != "1" ]; then
+    echo "[-] Túnel público NÃO responde /health. NÃO vou atualizar o secret (evita 1016)."
+    echo "    Verifique: termux-cloudflared.log e se o Wi-Fi bloqueia cloudflared."
+    kill $TUNNEL_PID 2>/dev/null
+    kill $WORKER_PID 2>/dev/null
+    exit 1
+fi
+echo "[+] Túnel público OK."
+
+# 3. Atualiza o secret (precisa do token — wrangler NÃO lê .env.local sozinho)
 echo "[*] Atualizando SIGAA_WORKER_URL no Cloudflare via wrangler..."
+
+# Carrega CLOUDFLARE_API_TOKEN do .env.local (obrigatório no Termux)
+if [ -f .env.local ]; then
+    CF_TOKEN=$(grep -E '^CLOUDFLARE_API_TOKEN=' .env.local | tail -n 1 | cut -d '=' -f 2- | tr -d '"' | tr -d "'" | tr -d '\r')
+    if [ -n "$CF_TOKEN" ]; then
+        export CLOUDFLARE_API_TOKEN="$CF_TOKEN"
+        echo "[*] CLOUDFLARE_API_TOKEN carregado do .env.local"
+    else
+        echo "[-] CLOUDFLARE_API_TOKEN ausente em .env.local — secret put pode falhar/atualizar conta errada."
+    fi
+fi
 
 # Hack Termux: O Wrangler no Node importa o workerd, que trava ao ler process.platform === 'android'.
 # Como 'secret put' não usa o binário do workerd, nós podemos silenciar o erro injetando variáveis dummy usando Node.
@@ -129,12 +183,18 @@ fs.writeFileSync(file, code);
 EOF
 fi
 
-echo "$URL" | npx wrangler secret put SIGAA_WORKER_URL
+# Garante URL limpa (sem CRLF/espaço) no secret
+URL_CLEAN=$(printf '%s' "$URL" | tr -d '\r\n' | sed 's/[[:space:]]*$//')
+printf '%s' "$URL_CLEAN" | npx wrangler secret put SIGAA_WORKER_URL --name acme-hub
 
 if [ $? -eq 0 ]; then
-    echo "[+] Servidor no ar! Tunel conectado e URL atualizada."
+    echo "[+] Secret SIGAA_WORKER_URL atualizado para: $URL_CLEAN"
+    echo "[+] Servidor no ar! Deixe ESTA sessão aberta (não feche o Termux)."
+    echo "    Teste agora no app. Se der 1016 de novo, o túnel caiu — rode o script outra vez."
 else
-    echo "[-] Aviso: Tunel no ar, mas falhou ao atualizar o secret no Cloudflare."
+    echo "[-] FALHA ao atualizar o secret no Cloudflare."
+    echo "    Cole esta URL no notebook e rode:"
+    echo "    printf '%s' '$URL_CLEAN' | npx wrangler secret put SIGAA_WORKER_URL --name acme-hub"
 fi
 
 # 4. Inicia cron loop local (background)

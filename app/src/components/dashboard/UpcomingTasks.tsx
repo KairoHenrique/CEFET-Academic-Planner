@@ -102,6 +102,12 @@ export function UpcomingTasks({ tasks: initialTasks }: UpcomingTasksProps) {
     toggleTask(selectedFromState.id);
   }, [selectedFromState]);
 
+  const handleDetailSubmit = useCallback(() => {
+    invalidateTaskSyncQueries(queryClient, {
+      subjectCode: selectedFromState?.subjectCode,
+    });
+  }, [queryClient, selectedFromState?.subjectCode]);
+
   return (
     <>
       <div className="card card-full-height">
@@ -194,6 +200,7 @@ export function UpcomingTasks({ tasks: initialTasks }: UpcomingTasksProps) {
             task={selectedFromState}
             onClose={closeDetailModal}
             onToggleDone={handleDetailToggle}
+            onSubmitted={handleDetailSubmit}
           />
         )}
       </Modal>

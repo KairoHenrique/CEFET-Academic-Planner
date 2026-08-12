@@ -5,7 +5,7 @@ import type {
   SubjectDetailResponse,
   SyncQueueEnqueueResponse,
 } from "@acme/api-contracts";
-import { ApiClientError, requestJson } from "../auth/api";
+import { ApiClientError, requestForm, requestJson } from "../auth/api";
 import { getSession } from "../auth/session";
 
 export async function toggleTarefa(
@@ -16,6 +16,13 @@ export async function toggleTarefa(
     method: "PATCH",
     body: JSON.stringify({ action: "toggle", concluida }),
   });
+}
+
+export async function submitTarefaToSigaa(
+  id: number,
+  form: FormData
+): Promise<{ submissionId: string; status: string; message: string }> {
+  return requestForm(`/api/tarefas/${id}/submit`, form, { method: "POST" });
 }
 
 export async function deleteTarefa(id: number): Promise<unknown> {

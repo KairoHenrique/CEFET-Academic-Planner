@@ -188,6 +188,45 @@ async function requestJson<T>(
   return body;
 }
 
+export interface SubmitTarefaResponse {
+  submissionId: string;
+  status: string;
+  message: string;
+}
+
+/** Multipart — não envia Content-Type (boundary automático). */
+export async function submitTarefaToSigaa(
+  id: number,
+  form: FormData
+): Promise<SubmitTarefaResponse> {
+  let response: Response;
+  try {
+    response = await fetch(`/api/tarefas/${id}/submit`, {
+      method: "POST",
+      body: form,
+      headers: {
+        ...buildRequestAuthHeaders(),
+      },
+    });
+  } catch {
+    throw new ApiClientError(
+      "Não foi possível conectar ao servidor.",
+      "NETWORK_ERROR",
+      0
+    );
+  }
+
+  const body = await parseJsonBody<SubmitTarefaResponse & ApiFailureBody>(response);
+  if (!response.ok) {
+    throw new ApiClientError(
+      body.message ?? "Falha no envio.",
+      body.code ?? "INTERNAL_ERROR",
+      response.status
+    );
+  }
+  return body;
+}
+
 export async function getAuthConfig(
   init?: RequestInit
 ): Promise<AuthConfigResponse> {

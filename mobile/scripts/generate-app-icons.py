@@ -85,6 +85,34 @@ def place_optically(
     return canvas
 
 
+def make_notification_monochrome(logo: Image.Image, size: int = 96) -> Image.Image:
+    """
+    Ícone de notificação Android — silhueta branca em fundo transparente.
+    (Material exige monochrome; cor vem do `color` no app.json / canal.)
+    """
+    cropped, _, _ = crop_content(logo)
+    canvas = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    max_side = int(size * 0.72)
+    lw, lh = cropped.size
+    scale = min(max_side / lw, max_side / lh)
+    nw, nh = max(1, int(lw * scale)), max(1, int(lh * scale))
+    resized = cropped.resize((nw, nh), Image.Resampling.LANCZOS)
+    arr = np.asarray(resized).astype(np.float64)
+    alpha = arr[:, :, 3]
+    luminance = 0.299 * arr[:, :, 0] + 0.587 * arr[:, :, 1] + 0.114 * arr[:, :, 2]
+    mask = np.clip((alpha / 255.0) * (luminance / 255.0), 0, 1)
+    white = np.zeros((nh, nw, 4), dtype=np.uint8)
+    white[:, :, 0] = 255
+    white[:, :, 1] = 255
+    white[:, :, 2] = 255
+    white[:, :, 3] = (mask * 255).astype(np.uint8)
+    glyph = Image.fromarray(white, "RGBA")
+    x = (size - nw) // 2
+    y = (size - nh) // 2
+    canvas.alpha_composite(glyph, (x, y))
+    return canvas
+
+
 def main() -> None:
     logo = Image.open(LOGO).convert("RGBA")
     OUT.mkdir(parents=True, exist_ok=True)
@@ -98,6 +126,12 @@ def main() -> None:
     )
     Image.new("RGB", (1024, 1024), NAVY_RGB).save(
         OUT / "android-icon-background.png", "PNG", optimize=True
+    )
+    make_notification_monochrome(logo, 96).save(
+        OUT / "android-icon-monochrome.png", "PNG", optimize=True
+    )
+    make_notification_monochrome(logo, 192).save(
+        OUT / "notification-icon.png", "PNG", optimize=True
     )
     place_optically(logo, 512, 0.11).save(WEB_ICON, "PNG", optimize=True)
 

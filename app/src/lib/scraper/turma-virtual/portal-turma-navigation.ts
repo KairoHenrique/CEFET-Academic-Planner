@@ -254,24 +254,35 @@ async function waitForSubpageContent(
   timeoutMs = 8000
 ): Promise<string | null> {
   const deadline = Date.now() + timeoutMs;
+  let lastHtml: string | null = null;
+  let lastUrl = "";
 
   while (Date.now() < deadline) {
     await page.waitForLoadState("domcontentloaded").catch(() => undefined);
     try {
       const html = await page.content();
       const url = page.url();
+      lastHtml = html;
+      lastUrl = url;
 
-      if (html !== previousHtml && htmlMatchesAny(html, config.contentPatterns)) {
+      const contentOk =
+        html !== previousHtml && htmlMatchesAny(html, config.contentPatterns);
+      const urlOk = config.urlPatterns.some((pattern) => pattern.test(url));
+
+      if (contentOk || (urlOk && htmlMatchesAny(html, config.contentPatterns))) {
         if (!config.validateHtml || config.validateHtml(html)) {
           return html;
         }
-      }
 
-      if (config.urlPatterns.some((pattern) => pattern.test(url))) {
-        if (htmlMatchesAny(html, config.contentPatterns)) {
-          if (!config.validateHtml || config.validateHtml(html)) {
-            return html;
-          }
+        // Conteúdo/URL batem, mas o validator estrito falhou — ainda assim
+        // devolve o HTML para o parser (ex.: mapa de frequência com layout novo).
+        if (urlOk || /Mapa\s+de\s+Frequ|FrequenciaAluno/i.test(html)) {
+          dumpScrapeHtml(
+            "rejected-validate",
+            `${config.key}-soft`,
+            html
+          );
+          return html;
         }
       }
     } catch {
@@ -282,11 +293,19 @@ async function waitForSubpageContent(
   }
 
   try {
-    const html = await page.content();
+    const html = lastHtml ?? (await page.content());
     if (htmlMatchesAny(html, config.contentPatterns)) {
       if (!config.validateHtml || config.validateHtml(html)) {
         return html;
       }
+      if (
+        config.urlPatterns.some((pattern) => pattern.test(lastUrl || page.url())) ||
+        /Mapa\s+de\s+Frequ|FrequenciaAluno/i.test(html)
+      ) {
+        dumpScrapeHtml("rejected-validate", `${config.key}-timeout-soft`, html);
+        return html;
+      }
+      dumpScrapeHtml("rejected-validate", `${config.key}-timeout`, html);
     }
   } catch {
     // ignorar
@@ -307,15 +326,17 @@ async function isInsideTurmaVirtual(page: Page): Promise<boolean> {
 export async function extractPortalDisciplinaLinks(
   page: Page
 ): Promise<TurmaVirtualIndexEntry[]> {
-  if (!page.url().includes("discente")) {
-    await page.goto(SIGAA_PORTAL_DISCENTE_URL, {
-      waitUntil: "domcontentloaded",
-      timeout: SIGAA_NAVIGATION_TIMEOUT_MS,
-    });
-  }
+  // Sempre recarrega o portal — após histórico a URL ainda pode ser
+  // *discente* sem o bloco form_acessarTurmaVirtual visível.
+  await page.goto(SIGAA_PORTAL_DISCENTE_URL, {
+    waitUntil: "domcontentloaded",
+    timeout: SIGAA_NAVIGATION_TIMEOUT_MS,
+  });
   await dismissSigaaCookieBanner(page);
+  await dismissSigaaBlockingOverlays(page);
+  await sleep(800);
 
-  return page.evaluate(
+  const entries = await page.evaluate(
     ({ patternSource, turmaHrefPatternSource }) => {
       const pattern = new RegExp(patternSource);
       const turmaHrefPattern = new RegExp(turmaHrefPatternSource, "i");
@@ -330,8 +351,12 @@ export async function extractPortalDisciplinaLinks(
 
         const isSemestreLink = pattern.test(nome);
         const isTurmaVirtualHref = turmaHrefPattern.test(href);
-        const isTurmaVirtualOnclick = /frontEndIdTurma/i.test(onclick);
-        if (!isSemestreLink && !isTurmaVirtualHref && !isTurmaVirtualOnclick) return;
+        const isTurmaVirtualOnclick =
+          /frontEndIdTurma/i.test(onclick) ||
+          /form_acessarTurmaVirtual/i.test(onclick);
+        if (!isSemestreLink && !isTurmaVirtualHref && !isTurmaVirtualOnclick) {
+          return;
+        }
         if (seen.has(nome)) return;
 
         seen.add(nome);
@@ -349,6 +374,15 @@ export async function extractPortalDisciplinaLinks(
       turmaHrefPatternSource: TURMA_VIRTUAL_HREF_PATTERN.source,
     }
   );
+
+  console.info(
+    `[scraper:turma] Links no portal: ${entries.length}` +
+      (entries.length
+        ? ` — ${entries.map((e) => e.sigaaNome).join(", ")}`
+        : " (nenhum form_acessarTurmaVirtual/frontEndIdTurma)")
+  );
+
+  return entries;
 }
 
 function normalizeTurmaDisciplinaKey(nome: string): string {
@@ -402,30 +436,89 @@ export function mergeTurmaVirtualEntries(
 
 /* ---------- Portal: entrar na disciplina ---------- */
 
+function normalizeMatchKey(nome: string): string {
+  return normalizeTurmaDisciplinaKey(nome);
+}
+
+async function clickTurmaVirtualByNome(
+  page: Page,
+  disciplinaLabel: string
+): Promise<boolean> {
+  const targetKey = normalizeMatchKey(disciplinaLabel);
+  if (!targetKey) return false;
+
+  return page.evaluate((key) => {
+    const normalize = (value: string) =>
+      value
+        .replace(/\s*\(\d{4}\.\d\)\s*$/, "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/[^\w\s]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+
+    const anchors = Array.from(document.querySelectorAll("a"));
+    const match = anchors.find((anchor) => {
+      const onclick = anchor.getAttribute("onclick") ?? "";
+      if (
+        !/frontEndIdTurma/i.test(onclick) &&
+        !/form_acessarTurmaVirtual/i.test(onclick)
+      ) {
+        return false;
+      }
+      const nome = (anchor.textContent ?? "").replace(/\s+/g, " ").trim();
+      return normalize(nome) === key;
+    });
+
+    if (!match) return false;
+    (match as HTMLAnchorElement).click();
+    return true;
+  }, targetKey);
+}
+
 async function enterDisciplinaFromPortal(
   page: Page,
   disciplinaLabel: string
 ): Promise<boolean> {
-  if (!page.url().includes("discente.jsf")) {
-    await page.goto(SIGAA_PORTAL_DISCENTE_URL, {
-      waitUntil: "domcontentloaded",
-      timeout: SIGAA_NAVIGATION_TIMEOUT_MS,
-    });
-    await dismissSigaaCookieBanner(page);
-  }
+  await page.goto(SIGAA_PORTAL_DISCENTE_URL, {
+    waitUntil: "domcontentloaded",
+    timeout: SIGAA_NAVIGATION_TIMEOUT_MS,
+  });
+  await dismissSigaaCookieBanner(page);
+  await dismissSigaaBlockingOverlays(page);
+  await sleep(500);
 
   const urlBefore = page.url();
-  const exact = page.getByRole("link", { name: disciplinaLabel, exact: true });
 
-  if ((await exact.count()) > 0) {
-    await exact.click();
-  } else {
-    const baseName = disciplinaLabel.replace(/\s*\(\d{4}\.\d\)\s*$/, "").trim();
-    const fuzzy = page.getByRole("link", {
-      name: new RegExp(baseName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i"),
-    });
-    if ((await fuzzy.count()) === 0) return false;
-    await fuzzy.first().click();
+  // 1) Clique direto no form_acessarTurmaVirtual (nome sem sufixo 2026.2)
+  let clicked = await clickTurmaVirtualByNome(page, disciplinaLabel);
+
+  if (!clicked) {
+    const exact = page.getByRole("link", { name: disciplinaLabel, exact: true });
+    if ((await exact.count()) > 0) {
+      await exact.click();
+      clicked = true;
+    } else {
+      const baseName = disciplinaLabel.replace(/\s*\(\d{4}\.\d\)\s*$/, "").trim();
+      const fuzzy = page.getByRole("link", {
+        name: new RegExp(
+          `^\\s*${baseName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*$`,
+          "i"
+        ),
+      });
+      if ((await fuzzy.count()) > 0) {
+        await fuzzy.first().click();
+        clicked = true;
+      }
+    }
+  }
+
+  if (!clicked) {
+    console.warn(
+      `[scraper:turma] Link não encontrado no portal para "${disciplinaLabel}"`
+    );
+    return false;
   }
 
   await sleep(2500);
@@ -434,17 +527,8 @@ async function enterDisciplinaFromPortal(
   if (await isInsideTurmaVirtual(page)) return true;
 
   // JSF às vezes exige segundo clique — só se ainda estiver no portal
-  if (page.url() === urlBefore && page.url().includes("discente.jsf")) {
-    const baseName = disciplinaLabel.replace(/\s*\(\d{4}\.\d\)\s*$/, "").trim();
-    const retry = page.getByRole("link", { name: disciplinaLabel, exact: true });
-    if ((await retry.count()) > 0) {
-      await retry.click();
-    } else {
-      const fuzzy = page.getByRole("link", {
-        name: new RegExp(baseName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i"),
-      });
-      if ((await fuzzy.count()) > 0) await fuzzy.first().click();
-    }
+  if (page.url() === urlBefore || page.url().includes("discente.jsf")) {
+    await clickTurmaVirtualByNome(page, disciplinaLabel);
     await sleep(2500);
     await page.waitForLoadState("domcontentloaded").catch(() => undefined);
   }
@@ -524,6 +608,11 @@ async function navigateToSubpage(
   console.warn(
     `[scraper:turma] "${disciplinaLabel}" — falha ao carregar "${config.key}"`
   );
+  try {
+    dumpScrapeHtml(disciplinaLabel, `${config.key}-failed`, await page.content());
+  } catch {
+    // ignorar
+  }
   return null;
 }
 

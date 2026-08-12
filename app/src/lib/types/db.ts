@@ -96,6 +96,7 @@ export interface TarefaRow {
   instrucoes: string | null;
   entregaveis: string | null;
   pontuacao_maxima: number | null;
+  sigaa_link_id?: string | null;
 }
 
 export interface GrupoMembroRow {

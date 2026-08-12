@@ -230,6 +230,7 @@ export async function persistPortalSnapshot(
       instrucoes: resolveAtividadeInstrucoes(atividade, preserved),
       entregaveis: resolveAtividadeEntregaveis(atividade, preserved),
       pontuacao_maxima: null,
+      sigaa_link_id: atividade.linkId ?? null,
     });
   }
 

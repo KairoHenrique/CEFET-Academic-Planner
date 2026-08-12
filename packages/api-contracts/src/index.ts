@@ -175,6 +175,8 @@ export interface AcademicTask {
   deliverables: string[];
   hasGrade: boolean;
   maxGrade?: number;
+  sigaaLinkId?: string | null;
+  submittable?: boolean;
 }
 
 export interface SubjectSummary {

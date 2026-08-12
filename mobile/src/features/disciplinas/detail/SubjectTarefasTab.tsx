@@ -9,6 +9,8 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { AcademicTask } from "@acme/api-contracts";
 import { ApiClientError } from "../../../auth/api";
 import {
@@ -16,8 +18,11 @@ import {
   deleteTarefa,
   toggleTarefa,
 } from "../../../api/mutations";
+import type { RootStackParamList } from "../../../navigation/types";
 import { brand } from "../../../theme/brand";
+import { TaskDetailContent } from "../../../ui/ActivityDetail";
 import { formatPtDate } from "../../../ui/cards";
+import { DetailModal } from "../../../ui/DetailModal";
 import { EmptyState } from "../../../ui/EmptyState";
 import { Icon } from "../../../ui/Icon";
 
@@ -65,7 +70,10 @@ function matchesFilter(task: AcademicTask, filter: DueFilter): boolean {
 
 /** Painel Tarefas F28 — título, badge pendentes, filtros, lista. */
 export function SubjectTarefasTab({ code, tasks, onChanged }: Props) {
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [busyId, setBusyId] = useState<number | null>(null);
+  const [selected, setSelected] = useState<AcademicTask | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [titulo, setTitulo] = useState("");
   const [dataFim, setDataFim] = useState("");
@@ -157,12 +165,13 @@ export function SubjectTarefasTab({ code, tasks, onChanged }: Props) {
     }
   }
 
+  const selectedLive =
+    selected && tasks.find((task) => task.id === selected.id);
+
   function renderTask(task: AcademicTask, faded = false) {
     return (
-      <View
-        key={`task-${task.id}`}
-        style={[styles.taskCard, faded && styles.taskDone]}
-      >
+      <Pressable key={`task-${task.id}`} onPress={() => setSelected(task)}>
+        <View style={[styles.taskCard, faded && styles.taskDone]}>
         <View style={styles.taskRow}>
           <Text style={[styles.taskTitle, faded && styles.taskTitleDone]}>
             {task.title}
@@ -185,11 +194,13 @@ export function SubjectTarefasTab({ code, tasks, onChanged }: Props) {
         <Pressable onPress={() => onDelete(task)} style={styles.del}>
           <Text style={styles.delText}>Excluir</Text>
         </Pressable>
-      </View>
+        </View>
+      </Pressable>
     );
   }
 
   return (
+    <>
     <View style={styles.panel}>
       <View style={styles.header}>
         <View style={styles.titleLeft}>
@@ -291,6 +302,25 @@ export function SubjectTarefasTab({ code, tasks, onChanged }: Props) {
         </>
       )}
     </View>
+
+    <DetailModal
+      visible={Boolean(selectedLive)}
+      title={selectedLive?.title ?? "Tarefa"}
+      onClose={() => setSelected(null)}
+    >
+      {selectedLive ? (
+        <TaskDetailContent
+          task={selectedLive}
+          onClose={() => setSelected(null)}
+          onOpenSubject={(subjectCode) =>
+            navigation.navigate("DisciplinaDetail", { code: subjectCode })
+          }
+          onToggleDone={() => void onToggle(selectedLive)}
+          onSubmitted={onChanged}
+        />
+      ) : null}
+    </DetailModal>
+    </>
   );
 }
 

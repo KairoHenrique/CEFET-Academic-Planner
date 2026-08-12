@@ -12,6 +12,7 @@ import { disciplinaDetailPath } from "@/lib/disciplinas/disciplina-path";
 import { Icon } from "./Icon";
 import { EventTypeBadge } from "./EventTypeBadge";
 import { FormattedDescription } from "./FormattedDescription";
+import { SubmitTaskPanel } from "@/components/tasks/SubmitTaskPanel";
 
 interface EventDetailContentProps {
   event: CalendarEvent;
@@ -164,6 +165,7 @@ interface TaskDetailContentProps {
   onClose: () => void;
   onToggleDone?: () => void;
   onEdit?: () => void;
+  onSubmitted?: () => void;
 }
 
 export const TaskDetailContent = memo(function TaskDetailContent({
@@ -171,6 +173,7 @@ export const TaskDetailContent = memo(function TaskDetailContent({
   onClose,
   onToggleDone,
   onEdit,
+  onSubmitted,
 }: TaskDetailContentProps) {
   return (
     <>
@@ -222,6 +225,8 @@ export const TaskDetailContent = memo(function TaskDetailContent({
           Vale até <strong>{task.maxGrade} pontos</strong> na disciplina.
         </p>
       )}
+
+      <SubmitTaskPanel task={task} onSubmitted={onSubmitted} />
 
       <div className="detail-actions">
         <Link

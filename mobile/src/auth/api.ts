@@ -149,6 +149,47 @@ export async function requestJson<T>(
   throw lastError ?? new ApiClientError("Erro desconhecido.", 0, "UNKNOWN");
 }
 
+/** Multipart (FormData) — não define Content-Type (boundary automático). */
+export async function requestForm<T>(
+  path: string,
+  form: FormData,
+  init: RequestInit & { auth?: boolean } = {}
+): Promise<T> {
+  const base = getApiBaseUrl();
+
+  if (init.auth !== false) {
+    await ensureFreshSession().catch(() => null);
+  }
+
+  const headers: Record<string, string> = {
+    Accept: "application/json",
+    ...(init.headers as Record<string, string> | undefined),
+  };
+
+  if (init.auth !== false) {
+    Object.assign(headers, buildAuthHeaders());
+  }
+
+  const response = await fetch(`${base}${path}`, {
+    ...init,
+    method: init.method ?? "POST",
+    headers,
+    body: form,
+  });
+
+  const payload = await parseJson(response);
+  if (!response.ok) {
+    const err = payload as { message?: string; code?: string } | null;
+    throw new ApiClientError(
+      friendlyErrorMessage(response.status, err?.message),
+      response.status,
+      err?.code
+    );
+  }
+
+  return payload as T;
+}
+
 export async function postAuthLogin(
   body: LoginAccountBody
 ): Promise<AccountAuthResponse> {

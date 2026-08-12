@@ -44,6 +44,10 @@ export function AcademicCalendarModule({ groups }: Props) {
   return (
     <Card tight style={styles.card}>
       <SectionHeader title="Calendário Acadêmico" icon="clipboard" />
+      <Text style={styles.subtitle}>
+        Datas institucionais do SIGAA. Suas aulas aparecem no calendário acima
+        (filtro Aula).
+      </Text>
 
       {groups.length === 0 ? (
         <Text style={styles.empty}>Nenhuma informação</Text>
@@ -107,6 +111,14 @@ export function AcademicCalendarModule({ groups }: Props) {
 const styles = StyleSheet.create({
   card: {
     marginTop: brand.space3,
+  },
+  subtitle: {
+    fontSize: 12,
+    lineHeight: 18,
+    fontFamily: brand.fontBody,
+    color: brand.textMuted,
+    marginBottom: brand.space2,
+    marginTop: -4,
   },
   empty: {
     fontSize: 13,

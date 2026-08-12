@@ -17,4 +17,8 @@ export interface AcademicTask {
   deliverables: string[];
   hasGrade: boolean;
   maxGrade?: number;
+  /** ID do link JSF em Minhas atividades (`formAtividades:…`). */
+  sigaaLinkId?: string | null;
+  /** Tarefa sincronizada do SIGAA e ainda não enviada. */
+  submittable?: boolean;
 }

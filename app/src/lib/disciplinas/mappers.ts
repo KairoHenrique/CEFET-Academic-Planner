@@ -50,6 +50,11 @@ export function mapTarefaToAcademicTask(
     deliverables: parseJsonArray(row.entregaveis),
     hasGrade: row.possui_nota === 1,
     maxGrade: row.pontuacao_maxima ?? undefined,
+    sigaaLinkId: row.sigaa_link_id ?? null,
+    submittable:
+      row.manual === 0 &&
+      row.concluida === 0 &&
+      Boolean(row.sigaa_link_id?.trim()),
   };
 }
 

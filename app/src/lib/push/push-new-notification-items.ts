@@ -89,6 +89,7 @@ export async function pushNewNotificationItems(input: {
       data: {
         type: item.kind,
         fingerprint: item.fingerprint,
+        href: item.href,
       },
     });
   }

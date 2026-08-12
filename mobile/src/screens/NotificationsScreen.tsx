@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  Pressable,
   RefreshControl,
   StyleSheet,
   Text,
@@ -10,6 +11,7 @@ import type { NotificationsSnapshotResponse } from "@acme/api-contracts";
 import { ApiClientError } from "../auth/api";
 import { fetchNotifications } from "../cache/fetchers";
 import { mergeMobileNotificationItems } from "../features/notifications/merge-mobile-notification-items";
+import { navigateFromNotificationHref } from "../navigation/resolve-notification-href";
 import { useOnSyncComplete } from "../sync/useOnSyncComplete";
 import { brand } from "../theme/brand";
 import { cardStyles, formatPtDate } from "../ui/cards";
@@ -17,6 +19,7 @@ import { EmptyState } from "../ui/EmptyState";
 import { ErrorBox } from "../ui/ErrorBox";
 import { LoadingBlock } from "../ui/LoadingBlock";
 import { Screen } from "../ui/Screen";
+import { goldRipple, pressableOpacityStyle } from "../ui/pressableStyles";
 
 const KIND_LABEL: Record<string, string> = {
   task: "Tarefa",
@@ -106,7 +109,14 @@ export function NotificationsScreen() {
         <EmptyState title="Nenhuma notificação" />
       ) : (
         items.map((item, idx) => (
-          <View key={`${item.fingerprint}-${idx}`} style={cardStyles.card}>
+          <Pressable
+            key={`${item.fingerprint}-${idx}`}
+            android_ripple={goldRipple}
+            style={({ pressed }) =>
+              pressableOpacityStyle(pressed, cardStyles.card)
+            }
+            onPress={() => navigateFromNotificationHref(item.href)}
+          >
             <View style={cardStyles.row}>
               <Text style={[cardStyles.cardTitle, { flex: 1 }]}>
                 {item.title}
@@ -129,7 +139,7 @@ export function NotificationsScreen() {
                 {item.notaMaxima != null ? `/${item.notaMaxima}` : ""}
               </Text>
             ) : null}
-          </View>
+          </Pressable>
         ))
       )}
     </Screen>

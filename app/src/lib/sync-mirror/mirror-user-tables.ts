@@ -277,14 +277,14 @@ async function mirrorTarefas(
       "user_id", "curso_id", "disciplina_id", "titulo", "descricao",
       "data_inicio", "data_fim", "hora_fim", "tipo", "possui_nota",
       "concluida", "manual", "concluida_override", "instrucoes",
-      "entregaveis", "pontuacao_maxima",
+      "entregaveis", "pontuacao_maxima", "sigaa_link_id",
     ],
     rows.map((tarefa) => [
       tenant.userId, tenant.cursoId, tarefa.disciplina_id, tarefa.titulo,
       tarefa.descricao, tarefa.data_inicio, tarefa.data_fim,
       tarefa.hora_fim ?? "23:59", tarefa.tipo, tarefa.possui_nota,
       tarefa.concluida, 0, 0, tarefa.instrucoes, tarefa.entregaveis,
-      tarefa.pontuacao_maxima,
+      tarefa.pontuacao_maxima, tarefa.sigaa_link_id ?? null,
     ])
   );
 }

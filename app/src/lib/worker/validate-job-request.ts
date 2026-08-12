@@ -28,13 +28,22 @@ export function parseWorkerJobRequest(body: unknown): WorkerJobRequest {
     record.robot === "r1" ||
     record.robot === "turmas" ||
     record.robot === "calendario" ||
-    record.robot === "turmas-selecionadas"
+    record.robot === "turmas-selecionadas" ||
+    record.robot === "submit-tarefa"
       ? record.robot
       : null;
   if (!robot) {
     throw validationError(
-      'Campo robot deve ser "r1", "turmas", "calendario" ou "turmas-selecionadas" (B54/B72e).'
+      'Campo robot deve ser "r1", "turmas", "calendario", "turmas-selecionadas" ou "submit-tarefa".'
     );
+  }
+
+  const submissionId =
+    typeof record.submissionId === "string"
+      ? record.submissionId.trim()
+      : undefined;
+  if (robot === "submit-tarefa" && !submissionId) {
+    throw validationError("Campo submissionId é obrigatório para submit-tarefa.");
   }
 
   const execution =
@@ -58,5 +67,6 @@ export function parseWorkerJobRequest(body: unknown): WorkerJobRequest {
     mode,
     savePassword: record.savePassword === true,
     execution,
+    submissionId,
   };
 }

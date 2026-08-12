@@ -6,6 +6,7 @@ import { runCalendarioSync } from "@/lib/sync/run-calendario-sync";
 import { runSync } from "@/lib/sync/run-sync";
 import { runTurmasOfertadasSync } from "@/lib/sync/run-turmas-ofertadas-sync";
 import { runTurmasSelecionadasSync } from "@/lib/sync/run-turmas-selecionadas-sync";
+import { runSubmitTarefaJob } from "@/lib/task-submissions/run-submit-tarefa";
 import { runWithSyncTenantContext } from "@/lib/sync/run-with-sync-tenant-context";
 import type { BrowserJobSlot } from "@/lib/worker/browser-job-slot";
 import type {
@@ -96,6 +97,23 @@ async function runRobotPipeline(
       partial: false,
       steps: [{ label: "Turmas selecionadas sincronizadas", progress: 100 }],
       payload: turmas,
+    };
+  }
+
+  if (request.robot === "submit-tarefa") {
+    const submissionId = request.submissionId?.trim();
+    if (!submissionId) {
+      throw new Error("submissionId ausente no job submit-tarefa.");
+    }
+    const result = await runSubmitTarefaJob({
+      username: request.username,
+      password,
+      submissionId,
+    });
+    return {
+      partial: false,
+      steps: [{ label: result.message, progress: 100 }],
+      payload: { submissionId },
     };
   }
 

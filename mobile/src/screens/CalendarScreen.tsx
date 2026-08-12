@@ -6,9 +6,11 @@ import {
   StyleSheet,
   Text,
 } from "react-native";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type {
   AcademicDateSemesterGroup,
+  AcademicTask,
   CalendarEvent,
 } from "@acme/api-contracts";
 import { ApiClientError } from "../auth/api";
@@ -16,8 +18,9 @@ import {
   createCalendarEvent,
   deleteCalendarEvent,
   toggleCalendarEvent,
+  toggleTarefa,
 } from "../api/mutations";
-import { fetchCalendar, fetchDisciplinas } from "../cache/fetchers";
+import { fetchCalendar, fetchDashboard, fetchDisciplinas } from "../cache/fetchers";
 import type { SubjectListItem } from "@acme/api-contracts";
 import type { CreateCalendarEventInput } from "../ui/CreateCalendarEventModal";
 import { useOnSyncComplete } from "../sync/useOnSyncComplete";
@@ -36,6 +39,7 @@ import { LoadingBlock } from "../ui/LoadingBlock";
 import { goldRipple, pressableOpacityStyle } from "../ui/pressableStyles";
 import { Screen } from "../ui/Screen";
 import { SectionHeader } from "../ui/SectionHeader";
+import type { RootStackParamList } from "../navigation/types";
 
 function sortEvents(events: CalendarEvent[]): CalendarEvent[] {
   return [...events].sort((a, b) => a.date.localeCompare(b.date));
@@ -46,7 +50,10 @@ function sortEvents(events: CalendarEvent[]): CalendarEvent[] {
  * filtros → mês + próximos → calendário acadêmico.
  */
 export function CalendarScreen() {
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [tasks, setTasks] = useState<AcademicTask[]>([]);
   const [academicGroups, setAcademicGroups] = useState<
     AcademicDateSemesterGroup[]
   >([]);
@@ -67,13 +74,17 @@ export function CalendarScreen() {
     if (!silent) setLoading(true);
     setError(null);
     try {
-      const [cal, disciplinas] = await Promise.all([
+      const [cal, disciplinas, dash] = await Promise.all([
         fetchCalendar(),
         fetchDisciplinas().catch(() => null),
+        fetchDashboard().catch(() => null),
       ]);
       setEvents(sortEvents(cal.data.events));
       setAcademicGroups(cal.data.academicDateGroups);
       setFromCache(cal.fromCache);
+      if (dash) {
+        setTasks(dash.data.tarefas ?? []);
+      }
       if (disciplinas) {
         setSubjects(disciplinas.data.items ?? []);
       }
@@ -127,6 +138,21 @@ export function CalendarScreen() {
       setBusyDelete(false);
     }
   }
+
+  async function onToggleTask(task: AcademicTask) {
+    try {
+      await toggleTarefa(task.id, !task.done);
+      await load(true);
+    } catch {
+      /* ignore */
+    }
+  }
+
+  function openSubject(code: string) {
+    navigation.navigate("DisciplinaDetail", { code });
+  }
+
+  const aulaCount = events.filter((ev) => ev.type === "aula").length;
 
   return (
     <Screen
@@ -197,6 +223,7 @@ export function CalendarScreen() {
         <FadeInContent ready={!loading || events.length > 0}>
           <CalendarMonthModule
             events={events}
+            tasks={tasks}
             filter={filter}
             busyCreate={busyCreate}
             busyDelete={busyDelete}
@@ -204,7 +231,15 @@ export function CalendarScreen() {
             onToggleDone={(ev) => void onToggle(ev)}
             onDeleteEvent={(ev) => onDelete(ev)}
             onCreateEvent={onCreate}
+            onOpenSubject={openSubject}
+            onToggleTask={(task) => void onToggleTask(task)}
           />
+          {filter === "aula" && aulaCount === 0 ? (
+            <Text style={styles.aulaHint}>
+              Aulas vêm da grade do SIGAA após sincronizar. Use o ícone de sync na
+              barra superior.
+            </Text>
+          ) : null}
           <AcademicCalendarModule groups={academicGroups} />
         </FadeInContent>
       ) : null}
@@ -247,5 +282,14 @@ const styles = StyleSheet.create({
   },
   filterChipTextActive: {
     color: brand.gold200,
+  },
+  aulaHint: {
+    marginTop: 8,
+    marginBottom: 4,
+    fontSize: 12,
+    lineHeight: 18,
+    fontFamily: brand.fontBody,
+    color: brand.textMuted,
+    paddingHorizontal: 4,
   },
 });

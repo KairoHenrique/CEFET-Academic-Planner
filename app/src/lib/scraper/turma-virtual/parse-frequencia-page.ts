@@ -167,7 +167,12 @@ export function hasParsableFrequencia(html: string): boolean {
   if (parseGenericFrequencyTable(html).length > 0) return true;
 
   FREQUENCIA_ROW_PATTERN.lastIndex = 0;
-  return FREQUENCIA_ROW_PATTERN.test(html);
+  if (FREQUENCIA_ROW_PATTERN.test(html)) return true;
+
+  // Página do mapa carregou (mesmo sem linhas parseáveis ainda) — não descartar.
+  return /Mapa\s+de\s+Frequ|FrequenciaAluno|form:mapa|id=["'][^"']*frequenc/i.test(
+    html
+  );
 }
 
 export function parseFrequenciaPageHtml(html: string): TurmaVirtualFalta[] {
