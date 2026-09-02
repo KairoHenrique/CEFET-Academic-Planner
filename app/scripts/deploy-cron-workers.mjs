@@ -79,7 +79,6 @@ const orchestratorConfig = "workers/cron-sync-orchestrator/wrangler.jsonc";
 const appUpdateConfig = "workers/cron-app-update-notify/wrangler.jsonc";
 const notificationRemindersConfig =
   "workers/cron-notification-reminders/wrangler.jsonc";
-const ruSaldoConfig = "workers/cron-ru-saldo/wrangler.jsonc";
 
 putSecret("CRON_SECRET", cronSecret, pingConfig);
 putSecret("PLANNER_HEALTH_URL", appUrl, pingConfig);
@@ -101,8 +100,6 @@ putSecret("CRON_SECRET", cronSecret, notificationRemindersConfig);
 putSecret("PLANNER_APP_URL", appUrl, notificationRemindersConfig);
 deploy(notificationRemindersConfig);
 
-putSecret("CRON_SECRET", cronSecret, ruSaldoConfig);
-putSecret("PLANNER_APP_URL", appUrl, ruSaldoConfig);
-deploy(ruSaldoConfig);
-
+// Worker acme-hub-cron-ru-saldo: endpoint vive no app; o tick 2×/dia
+// é disparado pelo cron-notification-reminders (limite de schedules CF).
 console.log("Cron workers deployados.");
