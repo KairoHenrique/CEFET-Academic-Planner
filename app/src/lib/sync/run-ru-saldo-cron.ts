@@ -81,7 +81,7 @@ export async function runRuSaldoCron(options?: {
       enqueued: 0,
       skipped: 0,
       errors: 0,
-      reason: "Fora da janela 10:00 / 18:30 BRT.",
+      reason: "Fora da janela ~09:30 / 18:00 BRT (1h antes do RU).",
     };
   }
 
