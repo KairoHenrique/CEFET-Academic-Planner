@@ -50,6 +50,20 @@ export function saveAluno(aluno: Omit<AlunoRow, never>): void {
   ).run(aluno);
 }
 
+/** Atualiza só o saldo do RU — não mexe nos demais campos do aluno. */
+export function updateAlunoRuSaldo(
+  refeicoesDisponiveis: number,
+  syncedAt: string
+): void {
+  db.prepare(
+    `
+    UPDATE aluno
+    SET refeicoes_disponiveis = ?,
+        ru_synced_at = ?
+  `
+  ).run(refeicoesDisponiveis, syncedAt);
+}
+
 export function clearAluno(): void {
   db.prepare("DELETE FROM aluno").run();
 }

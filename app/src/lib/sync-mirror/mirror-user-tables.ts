@@ -70,8 +70,11 @@ async function mirrorAluno(
   if (!snapshot.aluno) return;
 
   await client.query(
-    `INSERT INTO aluno (user_id, matricula, nome, curso, email, semestre_entrada, rg, status)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+    `INSERT INTO aluno (
+       user_id, matricula, nome, curso, email, semestre_entrada, rg, status,
+       refeicoes_disponiveis, ru_synced_at
+     )
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
     [
       tenant.userId,
       snapshot.aluno.matricula,
@@ -81,6 +84,8 @@ async function mirrorAluno(
       snapshot.aluno.semestre_entrada,
       snapshot.aluno.rg,
       snapshot.aluno.status,
+      snapshot.aluno.refeicoes_disponiveis ?? null,
+      snapshot.aluno.ru_synced_at ?? null,
     ]
   );
 }

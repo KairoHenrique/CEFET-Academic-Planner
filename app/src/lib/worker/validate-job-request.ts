@@ -29,12 +29,13 @@ export function parseWorkerJobRequest(body: unknown): WorkerJobRequest {
     record.robot === "turmas" ||
     record.robot === "calendario" ||
     record.robot === "turmas-selecionadas" ||
-    record.robot === "submit-tarefa"
+    record.robot === "submit-tarefa" ||
+    record.robot === "ru"
       ? record.robot
       : null;
   if (!robot) {
     throw validationError(
-      'Campo robot deve ser "r1", "turmas", "calendario", "turmas-selecionadas" ou "submit-tarefa".'
+      'Campo robot deve ser "r1", "turmas", "calendario", "turmas-selecionadas", "submit-tarefa" ou "ru".'
     );
   }
 
@@ -68,5 +69,6 @@ export function parseWorkerJobRequest(body: unknown): WorkerJobRequest {
     savePassword: record.savePassword === true,
     execution,
     submissionId,
+    dryRun: record.dryRun === true,
   };
 }

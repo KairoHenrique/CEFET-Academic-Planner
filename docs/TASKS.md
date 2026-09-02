@@ -1,4 +1,4 @@
-﻿# 📝 CEFET Academic Planner — Roadmap e Tasks
+# 📝 CEFET Academic Planner — Roadmap e Tasks
 
 Este documento contém todas as tasks do projeto, organizadas por fase. Cada task tem um status e detalhes suficientes para qualquer desenvolvedor (humano ou IA) entender e implementar.
 
@@ -313,7 +313,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 **Validação live (06/jul):** `npm run sync:mirror` com conta real → Supabase populado: aluno 1 · histórico 31 · semestre_atual 7 · notas 37 · faltas 149 · tarefas 2 · grupo 10 · integralização 5 · config 8 · turmas_ofertadas 99 · calendário 6. Fix extra no scraper: interstitial "Notificações Acadêmicas" do SIGAA (confirmar senha + leitura) e shim `__name` do esbuild/tsx no `page.evaluate`.
 
-> **Ferramenta ops — home-server tray (jul/2026) `[x]`:** app de bandeja nativo (`app/scripts/HomeServerTray.cs` → `ServidorACME.exe`, build em `build-tray-exe.ps1` via `csc`; fallback PowerShell `home-server-tray.ps1`). Ícone = logo do site (`png-to-ico.ps1` gera `.ico` multi-res de `src/app/icon.png`, embutido via `/win32icon`). Menu **Executar/Parar** sobe/derruba `worker:home` (:8787) + `cloudflared` túnel e **atualiza sozinho** o secret `SIGAA_WORKER_URL` (captura a URL `*.trycloudflare.com` do stdout do cloudflared e roda `wrangler secret put`). Elimina o passo manual do secret a cada boot. `.exe`/`.ico` fora do git (`.gitignore`).
+> **Ferramenta ops — home-server tray (jul/2026) `[x]`:** app de bandeja nativo (`app/scripts/HomeServerTray.cs` → `ServidorACME.exe`, build em `build-tray-exe.ps1` via `csc`; fallback PowerShell `home-server-tray.ps1`). Ícone = logo do site (`png-to-ico.ps1` gera `.ico` multi-res de `src/app/icon.png`, embutido via `/win32icon`). Menu **Executar/Parar** sobe/derruba `worker:home` (:8787) + `cloudflared` túnel e **atualiza sozinho** o secret `SIGAA_WORKER_URL` (captura `*.trycloudflare.com` no log **e** consulta `127.0.0.1:20241/quicktunnel` a cada 20s — se o hostname do túnel mudar, roda `wrangler secret put` de novo). Elimina o passo manual do secret a cada boot e o caso do túnel trocar de URL em silêncio. `.exe`/`.ico` fora do git (`.gitignore`).
 
 **Fix jul/2026 (turmas cloud + polish simulador):** `POST /api/sync/turmas` ganhou branch cloud — enfileira o robô `turmas` no worker (`enqueueCloudSyncJob`) em vez de tentar Playwright no Cloudflare; `useTurmasOfertadasSync` resolve credencial via sessão cloud (`resolveSyncStartCredentials`, sem prompt de senha) e faz poll do `jobId` antes de refazer o fetch. UI de Montar Grade: apelidos de disciplina curados (`subject-nickname-overrides.ts`, prioridade sobre código SIGAA), paleta de cores mais divergente (10 matizes) e remoção do botão "Exportar" (JSON). Removido o auto-sync de turmas ao abrir `/simulador` (`MatriculaView` sem `autoRun`) — sincroniza só no clique de "Atualizar SIGAA"/"Buscar turmas" ou no sync geral (refetch via evento `planner:sync-complete`); abrir a página apenas lê o que já está no banco.
 
@@ -342,7 +342,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 > **Ordem de execução:** **#9 → #10 → #8** — ver [ordem oficial](#ordem-oficial-de-execução-v3).  
 > **Decisão (jul/2026):** app nativo **só Android** · **sem** Play/App Store · alternativa = **site mobile** (**F28**).  
 > **Princípio (v1.0 → app):** **paridade de funções** com o site (tudo que o desktop faz), **não** clonar o layout do site mobile (**F28**). No nativo: só herdar **cores / marca / tipografia de produto**; IA e telas podem ser **mais modulares, visíveis e intuitivas** (bottom nav, home por “o que fazer agora”, módulos grandes). Sessão persistente · cache local · push (silencioso se deslogado). Ver detalhe § UX nativa.  
-> **Progresso:** **M1–M15** `[x]`. **M16** `[@]` — download pelo site + v1.0.0. **M17** `[@]` — update in-app, login visual, e-mail suporte, notif push sync. App **nativo** (não WebView) — mesmas APIs/funções do site; visual F28. Aprovado jul/2026.
+> **Progresso:** **M1–M15** `[x]`. **M16** `[@]` — download pelo site + v1.0.0. **M17** `[@]` — update in-app, login visual, e-mail suporte, notif push sync. **M18** `[%]` — Saldo RU. App **nativo** (não WebView) — mesmas APIs/funções do site; visual F28. Aprovado jul/2026.
 
 - [x] **SETUP:** M1 *(projeto Expo TypeScript — `mobile/` · **Android only** · **SDK 54** p/ Expo Go da Play Store)*
 - [x] **SHARED:** M2 *(tipos/contratos compartilhados — `packages/api-contracts` · `@acme/api-contracts`)*
@@ -361,8 +361,9 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 - [x] **TEST:** M15 *(Expo Go Android — QA de paridade + push + sessão)*
 - [@] **OPTIONAL:** M16 *(APK sideload pelo site · /releases + QR desktop + drawer F28 · **sem** Play Store · v1.0.0)*
 - [@] **OPTIONAL:** M17 *(update in-app + push · login visual · e-mail suporte · notif push sync desktop↔app)*
+- [%] **FRONT:** M18 *(Saldo do RU no dash + Grade antes de Integralização)*
 
-**Ordem Bloco 8:** `M1 → M2 → M3 → M4` → `M5 → M6` → `M7–M14` → `M15` → `(M16–M17 opcional)`
+**Ordem Bloco 8:** `M1 → M2 → M3 → M4` → `M5 → M6` → `M7–M14` → `M15` → `(M16–M17 opcional)` → `M18`
 
 ---
 
@@ -780,7 +781,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 > **Pré-mobile (#8):** site **v1.0** (**#6d + #7 + #9 + #10** + **F28**).  
 > **Meta:** mesma função do desktop, UX nativa melhor · sessão que fica · dados no aparelho · push de sync/novidades (só logado).  
-> **Progresso:** **M1–M15** `[x]`. **M16** `[@]` — download site + v1.0.0. **M17** `[@]` — update/login/email/notif push. App nativo (APIs do site). Aprovado jul/2026.
+> **Progresso:** **M1–M15** `[x]`. **M16** `[@]` — download site + v1.0.0. **M17** `[@]` — update/login/email/notif push. **M18** `[%]` — Saldo RU + ordem Grade/Integralização. App nativo (APIs do site). Aprovado jul/2026.
 
 - [x] **SETUP:** M1 *(Expo `mobile/` · Android only · SDK 54)*
 - [x] **SETUP/SHARED:** M2 *(tipos `@acme/api-contracts`)*
@@ -791,8 +792,9 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] **TEST:** M15 *(Expo Go · Android)*
 - [@] **OPTIONAL:** M16 *(APK sideload · /releases + QR/drawer · sem loja · v1.0.0)*
 - [@] **OPTIONAL:** M17 *(update in-app + push · login visual · e-mail suporte · notif push sync)*
+- [%] **FRONT:** M18 *(Saldo do RU no dash + Grade antes de Integralização)*
 
-**Ordem Bloco 8:** `M1–M4` → `M5–M6` → `M7–M14` → `M15` → `(M16–M17 opcional)`
+**Ordem Bloco 8:** `M1–M4` → `M5–M6` → `M7–M14` → `M15` → `(M16–M17 opcional)` → `M18`
 
 ---
 
@@ -1387,11 +1389,24 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | M14 | Front | Perfil + prefs | Prefs notificação · **Tutorial** no menu | [x] |
 | M15 | Test | Expo Go QA | Paridade + push + sessão (**Android**) | [x] |
 | M16 | Optional | APK sideload | Download pelo site (`/releases` + QR desktop + drawer F28) · **sem** Play Store · v1.0.0 | [@] |
-| M17 | Optional | Update + ops | Update in-app · push notif sync · login visual · e-mail suporte cadastro/pagamento | [@] |
+| M17 | Optional | Update + ops | Update in-app · push deeplink · modal detalhe tarefa/evento · **envio tarefa SIGAA** (web+app) · v1.1.3 (versionCode 10) | [@] |
+| M18 | Front | Saldo RU + ordem dash | Chip **Saldo do RU** sob header · **Grade** antes de **Integralização** | [%] |
 
-**Ordem:** `M1 → M2 → M3 → M4` → `M5 → M6` → `M7 → … → M14` → `M15` → `(M16–M17 opcional)`
+**Ordem:** `M1 → M2 → M3 → M4` → `M5 → M6` → `M7 → … → M14` → `M15` → `(M16–M17 opcional)` → `M18`
 
 > Checklist: **#8** no [Checklist mestre](#checklist-mestre-ordem-de-execução).
+
+---
+
+### Saldo do RU (B80 / B81 / F44) — set/2026
+
+| # | Tipo | Task | Resumo | Status |
+|---|------|------|--------|--------|
+| B80 | Back | Scrape + API RU | SIGAA Outros → Saldo do Cartão · `aluno.refeicoes_disponiveis` · `ru` no `GET /api/dashboard` · passo no sync r1 | [%] |
+| B81 | Back | Robô + cron RU | Robot `ru` · cron 10:00 / 18:30 BRT (antes das aberturas 10:30 / 19:00) · `POST /api/cron/ru-saldo` | [%] |
+| F44 | Front | Chip RU desktop | `RuSaldoChip` no `PageHeader` do dashboard | [%] |
+
+**Ordem:** `B80` → `B81` → `F44` + `M18`
 
 ---
 
@@ -1771,6 +1786,8 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] **M15** — QA checklist Expo Go (`mobile/docs/M15-QA.md`)
 - [@] **M16** *(opcional)* — APK sideload · download site (/releases, QR, drawer) · v1.0.0
 - [@] **M17** *(opcional)* — update in-app · notif push sync desktop↔app · login visual · e-mail suporte
+- [%] **M18** — Saldo do RU no dash + Grade antes de Integralização
+- [%] **B80 / B81 / F44** — scrape/cron/API Saldo do RU + chip desktop
 - [x] **Alternativa sem instalar:** site adaptado ao celular (**F28** · aprovado jul/2026)
 - [x] **Site desktop v1.0.1** — patch de bugs (jul/2026); base v1.0.0
 
@@ -2052,7 +2069,7 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 8. **Próximo passo do roadmap:** informe **depois do push** (tasks em `[@]` ou `[x]`). Com commits locais só `[x]`, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v3](#ordem-oficial-de-execução-v3) — **Bloco 2 (sync) antes do Bloco 6 (Supabase)**. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy **após** sync validado; RLS ✅ **6c** (antes do PIX). Marco “site no ar p/ testes gerais” → [final do TASKS.md](#marco--site-no-ar-para-testes-gerais).
-11. **Próximo passo:** **M17** `[@]` (update + notif push + ops — validar no APK). **M16** `[@]` (download/APK R2). **#11 Multi-PPC** `[x]`. Site **v1.0.1**. Bloco 8 **15/17**. **F28** `[x]`.
+11. **Próximo passo:** **B80/B81/F44/M18** `[%]` local — Saldo do RU + swap Grade/Integralização (aguardando push). **M17** `[@]` · **M16** `[@]`. **#11 Multi-PPC** `[x]`. Site **v1.0.1**. **F28** `[x]`.
 12. **Integralização:** CH concluída = `historico` + PPC (`computeChDoneFromDisciplinas`); portal SIGAA só % / total currículo; matérias já passadas = **B30** ✅.
 13. **Gift + painel dev:** **B68–B71** ✅ · **F39–F41** ✅ — painel sem senha SIGAA (`credentialSaved` + `accountRef`).
 14. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial. **Polish em task `[x]`** (ex.: F38, dashboard) também exige nota no TASKS no mesmo ciclo do push.

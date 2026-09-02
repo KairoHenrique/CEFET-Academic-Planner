@@ -1,12 +1,13 @@
 import type { SyncMode } from "@/lib/types/sync-pipeline";
 
-/** r1 = pipeline completo por usuário · turmas/calendario = catálogo global (B72e) · submit-tarefa = envio SIGAA (B79). */
+/** r1 = pipeline completo · turmas/calendario = catálogo · submit-tarefa · ru = saldo restaurante. */
 export type WorkerRobotId =
   | "r1"
   | "turmas"
   | "calendario"
   | "turmas-selecionadas"
-  | "submit-tarefa";
+  | "submit-tarefa"
+  | "ru";
 
 /** sync = responde ao fim do job · async = 202 imediato + status na fila Postgres (B72e). */
 export type WorkerJobExecution = "sync" | "async";
@@ -24,6 +25,8 @@ export interface WorkerJobRequest {
   execution?: WorkerJobExecution;
   /** Envio de tarefa (robot submit-tarefa). */
   submissionId?: string;
+  /** Valida formulário no SIGAA sem clicar em Enviar. */
+  dryRun?: boolean;
 }
 
 export interface WorkerJobAccepted {

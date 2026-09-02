@@ -8,6 +8,7 @@ import { SubjectsGrid } from "@/components/dashboard/SubjectsGrid";
 import { UpcomingTasks } from "@/components/dashboard/UpcomingTasks";
 import { WeeklySchedulePreview } from "@/components/dashboard/WeeklySchedulePreview";
 import { IntegrationProgress } from "@/components/dashboard/IntegrationProgress";
+import { RuSaldoChip } from "@/components/dashboard/RuSaldoChip";
 import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton";
 import { DashboardStateCard } from "@/components/dashboard/DashboardStateCard";
 import { useDashboard } from "@/hooks/useDashboard";
@@ -70,6 +71,11 @@ export function DashboardView() {
         highlight={data.aluno.nome}
         subtitle={`${data.aluno.curso} · CEFET-MG Divinópolis`}
         tutorial="dashboard"
+        trailing={
+          <RuSaldoChip
+            refeicoesDisponiveis={data.ru?.refeicoesDisponiveis ?? null}
+          />
+        }
       />
 
       <div className="col-12">

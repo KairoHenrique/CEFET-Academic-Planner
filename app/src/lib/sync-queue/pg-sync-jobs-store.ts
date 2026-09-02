@@ -14,7 +14,13 @@ import { SYNC_QUEUE_DEFAULT_ETA_SECONDS } from "@/lib/sync-queue/types";
  * Sem credenciais persistidas: a senha selada viaja só no dispatch HTTPS.
  */
 
-export type PgSyncJobRobot = "r1" | "turmas" | "calendario";
+export type PgSyncJobRobot =
+  | "r1"
+  | "turmas"
+  | "calendario"
+  | "turmas-selecionadas"
+  | "submit-tarefa"
+  | "ru";
 
 export interface PgSyncJobRow {
   id: string;

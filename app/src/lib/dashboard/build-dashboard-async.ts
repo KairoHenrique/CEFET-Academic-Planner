@@ -85,6 +85,12 @@ export async function buildDashboardFromQueries(
 
   const tarefasPendentes = tarefas.filter((task) => !task.done).length;
 
+  const refeicoes =
+    aluno.refeicoes_disponiveis != null &&
+    Number.isFinite(Number(aluno.refeicoes_disponiveis))
+      ? Number(aluno.refeicoes_disponiveis)
+      : null;
+
   return {
     aluno: {
       matricula: aluno.matricula,
@@ -109,5 +115,9 @@ export async function buildDashboardFromQueries(
     },
     tarefas,
     disciplinas,
+    ru: {
+      refeicoesDisponiveis: refeicoes,
+      updatedAt: aluno.ru_synced_at ?? null,
+    },
   };
 }

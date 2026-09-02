@@ -7,6 +7,7 @@ import { runSync } from "@/lib/sync/run-sync";
 import { runTurmasOfertadasSync } from "@/lib/sync/run-turmas-ofertadas-sync";
 import { runTurmasSelecionadasSync } from "@/lib/sync/run-turmas-selecionadas-sync";
 import { runSubmitTarefaJob } from "@/lib/task-submissions/run-submit-tarefa";
+import { runRuSaldoJob } from "@/lib/sync/run-ru-saldo-job";
 import { runWithSyncTenantContext } from "@/lib/sync/run-with-sync-tenant-context";
 import type { BrowserJobSlot } from "@/lib/worker/browser-job-slot";
 import type {
@@ -109,11 +110,24 @@ async function runRobotPipeline(
       username: request.username,
       password,
       submissionId,
+      dryRun: request.dryRun === true,
     });
     return {
       partial: false,
       steps: [{ label: result.message, progress: 100 }],
-      payload: { submissionId },
+      payload: { submissionId, dryRun: request.dryRun === true },
+    };
+  }
+
+  if (request.robot === "ru") {
+    const result = await runRuSaldoJob({
+      username: request.username,
+      password,
+    });
+    return {
+      partial: false,
+      steps: [{ label: result.message, progress: 100 }],
+      payload: { refeicoesDisponiveis: result.refeicoesDisponiveis },
     };
   }
 

@@ -9,6 +9,7 @@ import type {
 import { ApiClientError } from "../auth/api";
 import { fetchDashboard, fetchSchedule } from "../cache/fetchers";
 import { IntegrationModule } from "../features/dashboard/IntegrationModule";
+import { RuSaldoChip } from "../features/dashboard/RuSaldoChip";
 import { StatsModule } from "../features/dashboard/StatsModule";
 import { SubjectsModule } from "../features/dashboard/SubjectsModule";
 import { UpcomingTasksModule } from "../features/dashboard/UpcomingTasksModule";
@@ -31,8 +32,7 @@ function greeting(): string {
 }
 
 /**
- * Dashboard F28 — ordem idêntica a `DashboardView`:
- * header → StatsRow → UpcomingTasks → IntegrationProgress → WeeklySchedule → SubjectsGrid
+ * Dashboard F28 — header → Saldo RU → Stats → Tasks → Grade → Integralização → Subjects
  */
 export function DashboardScreen() {
   const navigation =
@@ -145,16 +145,19 @@ export function DashboardScreen() {
       <FadeInContent ready={Boolean(data)}>
         {data ? (
           <>
+            <RuSaldoChip
+              refeicoesDisponiveis={data.ru?.refeicoesDisponiveis ?? null}
+            />
             <StatsModule stats={data.stats} />
             <UpcomingTasksModule
               tasks={data.tarefas}
               onChanged={() => void load(true)}
             />
-            <IntegrationModule integralizacao={data.integralizacao} />
             <WeeklyScheduleGrid
               schedule={schedule ?? emptySchedule}
               onOpenCalendar={() => navigation.navigate("Calendario")}
             />
+            <IntegrationModule integralizacao={data.integralizacao} />
             <SubjectsModule
               disciplinas={data.disciplinas}
               onSeeAll={() => navigation.navigate("Disciplinas")}

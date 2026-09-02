@@ -32,4 +32,9 @@ export interface DashboardResponse {
   integralizacao: DashboardIntegralizacao;
   tarefas: AcademicTask[];
   disciplinas: SubjectSummary[];
+  /** Saldo do cartão do RU (Refeições Disponíveis). */
+  ru?: {
+    refeicoesDisponiveis: number | null;
+    updatedAt: string | null;
+  } | null;
 }

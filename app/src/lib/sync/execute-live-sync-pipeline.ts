@@ -4,15 +4,18 @@ import { ScraperError, mapUnknownScraperError } from "@/lib/scraper/errors";
 import { scrapePortalDiscente } from "@/lib/scraper/portal-discente/scrape-portal-discente";
 import { scrapeTurmaVirtual } from "@/lib/scraper/turma-virtual/scrape-turma-virtual";
 import { scrapeHistorico } from "@/lib/scraper/historico/scrape-historico";
+import { scrapeSaldoRu } from "@/lib/scraper/ru/scrape-saldo-ru";
 import type { PortalDiscenteSnapshot } from "@/lib/scraper/types/portal-discente";
 import { pruneInvalidSyncedTarefas, pruneOrphanSyncedTarefas } from "@/lib/db/queries";
 import { persistPortalSnapshot } from "@/lib/sync/persist-portal-snapshot";
 import { persistTurmaVirtualSnapshot } from "@/lib/sync/persist-turma-virtual-snapshot";
 import { persistHistoricoSnapshot } from "@/lib/sync/persist-historico-snapshot";
+import { persistRuSaldo } from "@/lib/sync/persist-ru-saldo";
 import { shouldRunHistoricoStage } from "@/lib/sync/sync-stage-plan";
 import { isPortalSemesterEmpty } from "@/lib/sync/portal-snapshot-policy";
 import { normalizeSyncMode } from "@/lib/sync-policy/resolve-sync-mode";
 import { recordHistoricoSyncedAt } from "@/lib/sync/sync-preferences";
+import { getActiveSigaaUsername } from "@/lib/db/connection-manager";
 import type { SyncMode, SyncPipelineResult, SyncStageResult } from "@/lib/types/sync-pipeline";
 import type { SyncStep } from "@/lib/types/sync";
 
@@ -193,6 +196,36 @@ async function runTurmaStage(
   }
 }
 
+async function runRuSaldoStage(
+  page: Page,
+  steps: SyncStep[],
+  stages: SyncStageResult[]
+): Promise<void> {
+  steps.push({ label: "Consultando saldo do RU…", progress: 88 });
+
+  try {
+    const snapshot = await scrapeSaldoRu(page, { skipReturnToPortal: true });
+    const username = getActiveSigaaUsername()?.trim() ?? "";
+    if (username) {
+      await persistRuSaldo({
+        username,
+        refeicoesDisponiveis: snapshot.refeicoesDisponiveis,
+      });
+    }
+    pushStage(stages, "ru", "ok");
+    steps.push({
+      label: `Saldo do RU: ${snapshot.refeicoesDisponiveis} refeições`,
+      progress: 92,
+    });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Falha ao ler saldo do RU.";
+    console.warn("[sync] Falha na etapa RU:", message);
+    pushStage(stages, "ru", "warning", message);
+    appendWarningStep(steps, "Saldo do RU indisponível (ignorado)", 92);
+  }
+}
+
 function assertPipelineViable(mode: SyncMode, stages: SyncStageResult[]): void {
   const normalized = normalizeSyncMode(mode);
   const portalOk = stages.some(
@@ -229,6 +262,7 @@ export async function executeLiveSyncPipeline(
     }
 
     await runTurmaStage(page, portalSnapshot, mode, steps, stages);
+    await runRuSaldoStage(page, steps, stages);
     assertPipelineViable(mode, stages);
 
     const partial = stages.some((stage) => stage.outcome === "warning");

@@ -1,5 +1,6 @@
 import { PageTutorialHelpButton } from "@/components/tutorial/PageTutorialHelpButton";
 import type { PageTutorialId } from "@/components/tutorial/page-tutorial-steps";
+import type { ReactNode } from "react";
 
 interface PageHeaderProps {
   eyebrow: string;
@@ -8,6 +9,8 @@ interface PageHeaderProps {
   subtitle?: string;
   tutorial?: PageTutorialId;
   tutorialLabel?: string;
+  /** Conteúdo à direita (ex.: Saldo do RU). */
+  trailing?: ReactNode;
 }
 
 export function PageHeader({
@@ -17,6 +20,7 @@ export function PageHeader({
   subtitle,
   tutorial,
   tutorialLabel,
+  trailing,
 }: PageHeaderProps) {
   return (
     <header className="page-header col-12">
@@ -34,9 +38,15 @@ export function PageHeader({
           </h1>
           {subtitle ? <p className="subtitle">{subtitle}</p> : null}
         </div>
-        {tutorial ? (
-          <PageTutorialHelpButton tutorialId={tutorial} label={tutorialLabel} />
-        ) : null}
+        <div className="page-header-trailing">
+          {trailing}
+          {tutorial ? (
+            <PageTutorialHelpButton
+              tutorialId={tutorial}
+              label={tutorialLabel}
+            />
+          ) : null}
+        </div>
       </div>
     </header>
   );

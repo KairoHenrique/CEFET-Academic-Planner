@@ -6,6 +6,8 @@ export interface AlunoRow {
   semestre_entrada: string | null;
   rg: number | null;
   status: string | null;
+  refeicoes_disponiveis?: number | null;
+  ru_synced_at?: string | null;
 }
 
 export interface DisciplinaRow {

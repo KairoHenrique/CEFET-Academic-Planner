@@ -124,6 +124,10 @@
   --subject-panel-table-rows: 4;
   --subject-panel-table-head: calc(var(--space-3) * 2 + 0.75rem + 1px);
   --subject-panel-table-row: calc(var(--space-3) * 2 + 1.125rem + 1px);
+  --subject-panel-table-max: calc(
+    var(--subject-panel-table-head) +
+      var(--subject-panel-table-rows) * var(--subject-panel-table-row)
+  );
 
   /* Layout */
   --nav-height: 60px;
@@ -2669,6 +2673,58 @@ body.mobile-nav-open {
   min-width: 0;
 }
 
+.page-header-trailing {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  flex-shrink: 0;
+}
+
+.ru-saldo-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  min-width: 7.5rem;
+  padding: 0.55rem 0.85rem;
+  border-radius: var(--radius-md, 10px);
+  border: 1px solid rgba(232, 198, 106, 0.35);
+  background: linear-gradient(
+    160deg,
+    rgba(232, 198, 106, 0.12),
+    rgba(0, 24, 48, 0.55)
+  );
+}
+
+.ru-saldo-chip-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--gold-200, #e8c66a);
+}
+
+.ru-saldo-chip-value {
+  font-size: 1.35rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--text-primary, #f5f7fa);
+}
+
+.ru-saldo-chip-hint {
+  font-size: 0.7rem;
+  color: var(--text-secondary, #9aa7b8);
+}
+
+.ru-saldo-chip--compact {
+  min-width: 0;
+  padding: 0.45rem 0.7rem;
+}
+
+.ru-saldo-chip--compact .ru-saldo-chip-value {
+  font-size: 1.15rem;
+}
+
 .page-help {
   position: relative;
   display: inline-flex;
@@ -3294,7 +3350,7 @@ body.mobile-nav-open {
 
 .absence-panel .attendance-table-wrap {
   flex: 1 1 auto;
-  min-height: 0;
+  min-height: var(--subject-panel-table-max);
   min-width: 0;
   width: 100%;
   max-width: 100%;
@@ -3302,11 +3358,10 @@ body.mobile-nav-open {
   overflow-x: auto;
   overflow-y: auto;
   overscroll-behavior: contain;
-  scrollbar-gutter: stable;
   -webkit-overflow-scrolling: touch;
 }
 
-/* Disciplina — Notas define altura; Frequência usa a mesma altura máxima */
+/* Notas cresce com o conteúdo (sem scroller). Frequência acompanha e rola as datas se precisar. */
 .subject-panels-row {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -3321,10 +3376,18 @@ body.mobile-nav-open {
   flex-direction: column;
 }
 
-.subject-panel-col--grades > .grades-panel {
+.subject-panel-col--grades {
+  min-height: var(--subject-panel-sync-height, auto);
   height: auto;
+  overflow: visible;
+}
+
+.subject-panel-col--grades > .grades-panel {
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 100%;
   max-height: none;
-  flex: 0 0 auto;
+  overflow: visible;
 }
 
 .subject-panel-col--synced {
@@ -3339,12 +3402,13 @@ body.mobile-nav-open {
   min-height: 0;
   height: 100%;
   max-height: 100%;
+  overflow: hidden;
 }
 
 .subject-panels-row .absence-panel .attendance-table-wrap {
   flex: 1 1 auto;
-  min-height: 0;
-  max-height: 100%;
+  min-height: var(--subject-panel-table-max);
+  max-height: none;
   overflow-x: auto;
   overflow-y: auto;
 }
@@ -4028,6 +4092,9 @@ body.mobile-nav-open {
 }
 
 .planner-select--full {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
   width: 100%;
   max-width: none;
 }
@@ -4108,9 +4175,7 @@ body.mobile-nav-open {
   top: calc(100% + var(--space-1));
   left: 0;
   z-index: 81;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+  display: block;
   margin: 0;
   padding: var(--space-1);
   list-style: none;
@@ -4129,12 +4194,24 @@ body.mobile-nav-open {
 .planner-select-menu {
   min-width: 100%;
   width: max-content;
-  max-width: 18rem;
+  max-width: min(22rem, calc(100vw - 48px));
+  max-height: min(20rem, 55vh);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
   border-radius: var(--radius-lg);
 }
 
-.planner-select-menu--full {
+.planner-select-menu--full,
+.planner-select-menu--panel {
+  position: static;
+  display: block;
   width: 100%;
+  max-width: none;
+  margin-top: var(--space-1);
+  max-height: min(22rem, 60vh);
 }
 
 .planner-select-menu-option,
@@ -10192,10 +10269,6 @@ body.mobile-nav-open {
   width: 100%;
 }
 
-.modal-body:has(.planner-select--open) {
-  overflow: visible;
-}
-
 .modal-form-actions {
   display: flex;
   flex-wrap: wrap;
@@ -10452,43 +10525,155 @@ body.mobile-nav-open {
   margin-bottom: var(--space-3);
 }
 
-.task-submit-panel .task-submit-file-input {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-.task-submit-panel .task-submit-file-btn {
-  margin-bottom: var(--space-4);
-}
-
-.task-submit-panel .task-submit-label {
-  display: block;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  margin-bottom: var(--space-2);
-}
-
-.task-submit-panel .task-submit-comment {
+.task-submit-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
   width: 100%;
-  margin-bottom: var(--space-4);
+  min-height: 72px;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-default);
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
 }
 
-.task-submit-panel .task-submit-success {
-  font-size: 0.8125rem;
-  color: var(--success-400, #4ade80);
-  margin-bottom: var(--space-3);
+.task-submit-dropzone:hover:not(:disabled),
+.task-submit-dropzone:focus-visible {
+  border-color: var(--gold-400);
+  outline: none;
 }
 
-.task-submit-panel .task-submit-actions {
-  margin-top: var(--space-2);
+.task-submit-dropzone:focus-visible {
+  box-shadow: 0 0 0 2px rgba(212, 168, 67, 0.28);
+}
+
+.task-submit-dropzone:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.task-submit-dropzone.is-filled {
+  border-color: rgba(212, 168, 67, 0.45);
+  background: rgba(212, 168, 67, 0.08);
+}
+
+.task-submit-dropzone-row {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--gold-200);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.task-submit-dropzone-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.task-submit-panel .modal-form-actions .btn-gold:disabled,
+.task-submit-panel .modal-form-actions .btn-outline:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.task-submit-result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-3);
+  padding: var(--space-4) 0 var(--space-2);
+}
+
+.task-submit-result-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  margin-bottom: var(--space-1);
+}
+
+.task-submit-result.is-ok .task-submit-result-icon {
+  color: var(--success, #3fb950);
+  background: rgba(63, 185, 80, 0.12);
+  border: 1px solid rgba(63, 185, 80, 0.35);
+}
+
+.task-submit-result.is-fail .task-submit-result-icon {
+  color: var(--danger);
+  background: rgba(248, 81, 73, 0.12);
+  border: 1px solid rgba(248, 81, 73, 0.35);
+}
+
+.task-submit-result-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.task-submit-result .modal-hint {
+  max-width: 36ch;
+}
+
+.task-submit-result .modal-form-actions {
+  justify-content: center;
+  width: 100%;
+  margin-top: var(--space-3);
+}
+
+.task-submit-processing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-3);
+  padding: var(--space-4) 0 var(--space-2);
+}
+
+.task-submit-processing-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  color: var(--gold-200, #e6c547);
+  background: rgba(230, 197, 71, 0.1);
+  border: 1px solid rgba(230, 197, 71, 0.35);
+  animation: task-submit-spin 1.1s linear infinite;
+}
+
+@keyframes task-submit-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.task-submit-processing-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.task-submit-processing .modal-hint {
+  max-width: 38ch;
 }
 
 .detail-checklist {
@@ -11151,6 +11336,171 @@ body.mobile-nav-open {
   font-size: 0.875rem;
   outline: none;
   transition: border-color var(--transition-fast);
+}
+
+input[type="date"].form-input,
+input[type="time"].form-input {
+  color-scheme: dark;
+  -webkit-appearance: auto;
+  appearance: auto;
+  min-height: 2.75rem;
+}
+
+.date-picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.date-picker-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  width: 100%;
+  min-height: 2.75rem;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-default);
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.date-picker-trigger:hover,
+.date-picker-trigger:focus-visible,
+.date-picker--open .date-picker-trigger {
+  border-color: var(--gold-400);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(212, 168, 67, 0.2);
+}
+
+.date-picker-trigger:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.date-picker-placeholder {
+  color: var(--text-secondary);
+}
+
+.date-picker-cal {
+  margin-top: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--border-emphasis);
+  border-radius: var(--radius-lg);
+  background: var(--dropdown-menu-bg);
+  box-shadow:
+    0 10px 28px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.date-picker-cal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.date-picker-cal-title {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+
+.date-picker-nav {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.date-picker-nav:hover,
+.date-picker-nav:focus-visible {
+  border-color: var(--gold-400);
+  outline: none;
+}
+
+.date-picker-weekdays,
+.date-picker-days {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.date-picker-weekday {
+  text-align: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  padding: 4px 0;
+}
+
+.date-picker-day {
+  min-height: 2.25rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+
+.date-picker-day.is-empty {
+  pointer-events: none;
+}
+
+.date-picker-day:hover:not(:disabled):not(.is-empty) {
+  background: rgba(212, 168, 67, 0.18);
+}
+
+.date-picker-day.is-today:not(.is-selected) {
+  box-shadow: inset 0 0 0 1px var(--gold-400);
+}
+
+.date-picker-day.is-selected {
+  background: var(--gold-400);
+  color: #1a1408;
+  font-weight: 700;
+}
+
+.date-picker-day:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.date-picker-cal-foot {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.date-picker-foot-btn {
+  border: none;
+  background: transparent;
+  color: var(--gold-200);
+  font-weight: 700;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.date-picker-foot-btn:hover,
+.date-picker-foot-btn:focus-visible {
+  text-decoration: underline;
+  outline: none;
 }
 
 .form-input:focus {
@@ -13814,6 +14164,7 @@ body.mobile-nav-open {
   .subject-panels-row .absence-panel .attendance-table-wrap {
     overflow: visible;
     max-height: none;
+    min-height: 0;
   }
 }
 
