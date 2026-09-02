@@ -3,6 +3,27 @@ export interface CronNotificationRemindersEnv {
   CRON_SECRET: string;
 }
 
+async function postCron(
+  baseUrl: string,
+  secret: string,
+  path: string
+): Promise<void> {
+  const response = await fetch(`${baseUrl}${path}`, {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${secret}`,
+      "content-type": "application/json",
+    },
+  });
+  const body = await response.text();
+  console.log(
+    `[cron] ${path} status=${response.status} body=${body.slice(0, 300)}`
+  );
+  if (!response.ok) {
+    throw new Error(`${path} falhou: HTTP ${response.status}`);
+  }
+}
+
 export default {
   async scheduled(
     _controller: ScheduledController,
@@ -20,26 +41,16 @@ export default {
       return;
     }
 
-    const response = await fetch(
-      `${baseUrl}/api/cron/notification-reminders`,
-      {
-        method: "POST",
-        headers: {
-          authorization: `Bearer ${secret}`,
-          "content-type": "application/json",
-        },
-      }
-    );
+    await postCron(baseUrl, secret, "/api/cron/notification-reminders");
 
-    const body = await response.text();
-
-    console.log(
-      `[cron-notification-reminders] status=${response.status} body=${body.slice(0, 300)}`
-    );
-
-    if (!response.ok) {
-      throw new Error(
-        `Notification reminders cron falhou: HTTP ${response.status}`
+    // B81 — Saldo do RU (janelas 10:00 / 18:30 BRT; no-op fora delas).
+    // Acoplado aqui: conta Free sem slot extra de schedule no CF.
+    try {
+      await postCron(baseUrl, secret, "/api/cron/ru-saldo");
+    } catch (error) {
+      console.warn(
+        "[cron-notification-reminders] RU saldo tick falhou (nao bloqueia):",
+        error instanceof Error ? error.message : error
       );
     }
   },
