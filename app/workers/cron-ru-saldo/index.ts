@@ -5,8 +5,8 @@ export interface CronRuSaldoEnv {
 
 /**
  * Dispara POST /api/cron/ru-saldo.
- * Crons: 13:00 UTC (10:00 BRT) e 21:30 UTC (18:30 BRT) + ticks */10 na hora
- * para processar a fila em lotes.
+ * Crons: 13:00 UTC (10:00 BRT) e 21:30 UTC (18:30 BRT),
+ * mais ticks a cada 10 min nas horas 13 e 21 UTC para processar a fila em lotes.
  */
 export default {
   async scheduled(

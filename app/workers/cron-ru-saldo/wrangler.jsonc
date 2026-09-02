@@ -4,10 +4,6 @@
   "main": "index.ts",
   "compatibility_date": "2024-12-30",
   "triggers": {
-    "crons": [
-      "0 13 * * *",
-      "30 21 * * *",
-      "*/10 13,21 * * *"
-    ]
+    "crons": ["*/10 * * * *"]
   }
 }
