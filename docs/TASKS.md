@@ -1403,7 +1403,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | # | Tipo | Task | Resumo | Status |
 |---|------|------|--------|--------|
 | B80 | Back | Scrape + API RU | SIGAA Outros → Saldo do Cartão · `aluno.refeicoes_disponiveis` · `ru` no `GET /api/dashboard` · passo no sync r1 | [%] |
-| B81 | Back | Robô + cron RU | Robot `ru` · cron 10:00 / 18:30 BRT (antes das aberturas 10:30 / 19:00) · `POST /api/cron/ru-saldo` | [%] |
+| B81 | Back | Robô + cron RU | Robot `ru` · cron ~**09:30 / 18:00** BRT (**1h** antes das aberturas 10:30 / 19:00) · `POST /api/cron/ru-saldo` · também no sync r1 | [%] |
 | F44 | Front | Chip RU desktop | `RuSaldoChip` no `PageHeader` do dashboard | [%] |
 
 **Ordem:** `B80` → `B81` → `F44` + `M18`

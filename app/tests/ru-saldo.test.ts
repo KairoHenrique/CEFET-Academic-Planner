@@ -22,13 +22,13 @@ describe("parseRefeicoesDisponiveisFromHtml", () => {
 });
 
 describe("resolveRuCronSlot", () => {
-  test("10:00 BRT → almoco", () => {
-    const now = brazilWallTimeToUtcDate("2026-09-02", "10:00");
+  test("09:30 BRT → almoco (~1h antes das 10:30)", () => {
+    const now = brazilWallTimeToUtcDate("2026-09-02", "09:30");
     assert.equal(resolveRuCronSlot(now), "almoco");
   });
 
-  test("18:30 BRT → jantar", () => {
-    const now = brazilWallTimeToUtcDate("2026-09-02", "18:30");
+  test("18:00 BRT → jantar (~1h antes das 19:00)", () => {
+    const now = brazilWallTimeToUtcDate("2026-09-02", "18:00");
     assert.equal(resolveRuCronSlot(now), "jantar");
   });
 

@@ -18,13 +18,15 @@ export type RuSaldoCronResult = {
   reason?: string;
 };
 
-/** Janelas de disparo (BRT): ~30 min antes das aberturas 10:30 e 19:00. */
+/** Janelas de disparo (BRT): ~1 h antes das aberturas 10:30 e 19:00. */
 const SLOT_WINDOWS: Record<
   RuCronSlot,
   { startMinutes: number; endMinutes: number }
 > = {
-  almoco: { startMinutes: 9 * 60 + 50, endMinutes: 10 * 60 + 20 }, // 09:50–10:20
-  jantar: { startMinutes: 18 * 60 + 20, endMinutes: 18 * 60 + 50 }, // 18:20–18:50
+  // 09:00–09:45 cobre ticks */30 em 09:00 e 09:30 (1h antes de 10:30)
+  almoco: { startMinutes: 9 * 60, endMinutes: 9 * 60 + 45 },
+  // 17:45–18:20 cobre tick 18:00 (1h antes de 19:00)
+  jantar: { startMinutes: 17 * 60 + 45, endMinutes: 18 * 60 + 20 },
 };
 
 const USERS_PER_TICK = 8;

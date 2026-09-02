@@ -43,7 +43,7 @@ export default {
 
     await postCron(baseUrl, secret, "/api/cron/notification-reminders");
 
-    // B81 — Saldo do RU (janelas 10:00 / 18:30 BRT; no-op fora delas).
+    // B81 — Saldo do RU (~1h antes: 09:30 / 18:00 BRT; no-op fora das janelas).
     // Acoplado aqui: conta Free sem slot extra de schedule no CF.
     try {
       await postCron(baseUrl, secret, "/api/cron/ru-saldo");
