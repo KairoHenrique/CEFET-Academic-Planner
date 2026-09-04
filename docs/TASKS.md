@@ -49,7 +49,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ## Roadmap detalhado — ordem de execução (#0 → #11)
 
-> **🌐 Site desktop = v1.0.1** (jul/2026 · bugfix) — Eng. Computação web madura (**#1–#7 · #9 · #10 · #12**); release GitHub `v1.0.0`. **#8 Mobile** **M1–M15** `[x]` · **M16** `[@]`. **#11 Multi-PPC** `[x]` (Meca + Moda). **F28** `[x]`. **B74/F43** `[x]` · **B73/F42** `[x]`. **#9** `[x]`. Bloco **2f (B72a–e)** `[x]`. **Polish sino (jul/2026):** eventos/datas só em cadastro · D-1 · no dia; painel some 24h após vista.
+> **🌐 Site desktop = v1.0.1** (jul/2026 · bugfix) — Eng. Computação web madura (**#1–#7 · #9 · #10 · #12**); release GitHub `v1.0.0`. **#8 Mobile** **M1–M15** `[x]` · **M18** `[x]` · **M16** `[@]`. **B80/B81/F44** `[x]` Saldo do RU. **#11 Multi-PPC** `[x]` (Meca + Moda). **F28** `[x]`. **B74/F43** `[x]` · **B73/F42** `[x]`. **#9** `[x]`. Bloco **2f (B72a–e)** `[x]`. **Polish sino (jul/2026):** eventos/datas só em cadastro · D-1 · no dia; painel some 24h após vista.
 > **Regra:** siga **#0 → #11** · dentro de cada bloco → **BACK (B) antes de FRONT (F)**. Checklist espelho: [Checklist mestre](#checklist-mestre-ordem-de-execução).
 
 ### #0 — Planejamento `✅`
@@ -336,13 +336,13 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ---
 
-### #8 — Bloco 8 · Mobile Android (Expo Go) `🟢 15/16`
+### #8 — Bloco 8 · Mobile Android (Expo Go) `🟢 16/17`
 
 > **Requer #6d + #6e + #7 + #9 + #10** (site **v1.0** maduro, incl. **F28**). Mesmo backend Supabase / API Next.  
 > **Ordem de execução:** **#9 → #10 → #8** — ver [ordem oficial](#ordem-oficial-de-execução-v3).  
 > **Decisão (jul/2026):** app nativo **só Android** · **sem** Play/App Store · alternativa = **site mobile** (**F28**).  
 > **Princípio (v1.0 → app):** **paridade de funções** com o site (tudo que o desktop faz), **não** clonar o layout do site mobile (**F28**). No nativo: só herdar **cores / marca / tipografia de produto**; IA e telas podem ser **mais modulares, visíveis e intuitivas** (bottom nav, home por “o que fazer agora”, módulos grandes). Sessão persistente · cache local · push (silencioso se deslogado). Ver detalhe § UX nativa.  
-> **Progresso:** **M1–M15** `[x]`. **M16** `[@]` — download pelo site + v1.0.0. **M17** `[@]` — update in-app, login visual, e-mail suporte, notif push sync. **M18** `[%]` — Saldo RU. App **nativo** (não WebView) — mesmas APIs/funções do site; visual F28. Aprovado jul/2026.
+> **Progresso:** **M1–M15** `[x]` · **M18** `[x]` (Saldo RU). **M16** `[@]` — download pelo site + v1.0.0. **M17** `[@]` — update in-app, login visual, e-mail suporte, notif push sync. App **nativo** (não WebView) — mesmas APIs/funções do site; visual F28. Aprovado jul/2026.
 
 - [x] **SETUP:** M1 *(projeto Expo TypeScript — `mobile/` · **Android only** · **SDK 54** p/ Expo Go da Play Store)*
 - [x] **SHARED:** M2 *(tipos/contratos compartilhados — `packages/api-contracts` · `@acme/api-contracts`)*
@@ -361,7 +361,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 - [x] **TEST:** M15 *(Expo Go Android — QA de paridade + push + sessão)*
 - [@] **OPTIONAL:** M16 *(APK sideload pelo site · /releases + QR desktop + drawer F28 · **sem** Play Store · v1.0.0)*
 - [@] **OPTIONAL:** M17 *(update in-app + push · login visual · e-mail suporte · notif push sync desktop↔app)*
-- [%] **FRONT:** M18 *(Saldo do RU no dash + Grade antes de Integralização)*
+- [x] **FRONT:** M18 *(Saldo do RU no dash + Grade antes de Integralização)*
 
 **Ordem Bloco 8:** `M1 → M2 → M3 → M4` → `M5 → M6` → `M7–M14` → `M15` → `(M16–M17 opcional)` → `M18`
 
@@ -448,7 +448,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ### 1.4 API e Integração UI ↔ SQLite
 
-> **Progresso:** Bloco 1 ✅ · **Bloco 2a/2b** ✅ · **Bloco 6a** ✅ **8/8** · **6b** ✅ **8/8** (+ **B73/F42** `[x]` · **B74/F43** `[x]`) · **6c** ✅ **2/2** · **#6d** ✅ **6/6** · **#6e** ✅ **2/2** · **#7** ✅ **15/15** · **#12** B72a–e `[x]` **5/5** · **#9** `[x]` · **#10** F25–F28 `[x]` · URL **`https://acme-hub.khfm.workers.dev`**.
+> **Progresso:** Bloco 1 ✅ · **Bloco 2a/2b** ✅ · **Bloco 6a** ✅ **8/8** · **6b** ✅ **8/8** (+ **B73/F42** `[x]` · **B74/F43** `[x]`) · **6c** ✅ **2/2** · **#6d** ✅ **6/6** · **#6e** ✅ **2/2** · **#7** ✅ **15/15** · **#12** B72a–e `[x]` **5/5** · **#9** `[x]` · **#10** F25–F28 `[x]` · **B80/B81/F44/M18** `[x]` Saldo do RU · URL **`https://acme-hub.khfm.workers.dev`**.
 
 Roadmap detalhado: ver **[Roadmap #0→#11 no topo](#roadmap-detalhado--ordem-de-execução-0--11)** · [Ordem oficial v3](#ordem-oficial-de-execução-v3). **F19** simulador (2a) `[x]` · **B67** `[x]`.
 
@@ -777,11 +777,11 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 ---
 
-### #8 — Bloco 8 · Mobile Android (Expo Go) `🟢 15/16`
+### #8 — Bloco 8 · Mobile Android (Expo Go) `🟢 16/17`
 
 > **Pré-mobile (#8):** site **v1.0** (**#6d + #7 + #9 + #10** + **F28**).  
 > **Meta:** mesma função do desktop, UX nativa melhor · sessão que fica · dados no aparelho · push de sync/novidades (só logado).  
-> **Progresso:** **M1–M15** `[x]`. **M16** `[@]` — download site + v1.0.0. **M17** `[@]` — update/login/email/notif push. **M18** `[%]` — Saldo RU + ordem Grade/Integralização. App nativo (APIs do site). Aprovado jul/2026.
+> **Progresso:** **M1–M15** `[x]` · **M18** `[x]` (Saldo RU + ordem Grade/Integralização). **M16** `[@]` — download site + v1.0.0. **M17** `[@]` — update/login/email/notif push. App nativo (APIs do site). Aprovado jul/2026.
 
 - [x] **SETUP:** M1 *(Expo `mobile/` · Android only · SDK 54)*
 - [x] **SETUP/SHARED:** M2 *(tipos `@acme/api-contracts`)*
@@ -792,7 +792,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] **TEST:** M15 *(Expo Go · Android)*
 - [@] **OPTIONAL:** M16 *(APK sideload · /releases + QR/drawer · sem loja · v1.0.0)*
 - [@] **OPTIONAL:** M17 *(update in-app + push · login visual · e-mail suporte · notif push sync)*
-- [%] **FRONT:** M18 *(Saldo do RU no dash + Grade antes de Integralização)*
+- [x] **FRONT:** M18 *(Saldo do RU no dash + Grade antes de Integralização)*
 
 **Ordem Bloco 8:** `M1–M4` → `M5–M6` → `M7–M14` → `M15` → `(M16–M17 opcional)` → `M18`
 
@@ -828,7 +828,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | **#12** | **2f — Sync real Postgres (B72)** | ✅ B72a–e `[x]` · **ops = PC + cloudflared** | 5 / 5 |
 | #9 | 3 — Inteligência | ✅ **B36/B37** `[x]` (sino) · **F24 descartado** · próximo **#10** | 10 / 10 |
 | #10 | 4 — Polimento + site mobile | **F25–F28** `[x]` | 4 / 4 |
-| #8 | 8 — Mobile Android | 🟢 **M1–M15** `[x]` · **M16** `[@]` · **M17** `[@]` · sem lojas | 15 / 17 |
+| #8 | 8 — Mobile Android | 🟢 **M1–M15** `[x]` · **M18** `[x]` · **M16** `[@]` · **M17** `[@]` · sem lojas | 16 / 17 |
 | #11 | 9 — Multi-PPC | **[x]** seeds Meca/Moda + CH + turmas `curso_id` | 4 / 4 ✅ |
 
 ---
@@ -1390,7 +1390,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | M15 | Test | Expo Go QA | Paridade + push + sessão (**Android**) | [x] |
 | M16 | Optional | APK sideload | Download pelo site (`/releases` + QR desktop + drawer F28) · **sem** Play Store · v1.0.0 | [@] |
 | M17 | Optional | Update + ops | Update in-app · push deeplink · modal detalhe tarefa/evento · **envio tarefa SIGAA** (web+app) · v1.1.3 (versionCode 10) | [@] |
-| M18 | Front | Saldo RU + ordem dash | Chip **Saldo do RU** sob header · **Grade** antes de **Integralização** | [%] |
+| M18 | Front | Saldo RU + ordem dash | Chip **Saldo do RU** sob header · **Grade** antes de **Integralização** | [x] |
 
 **Ordem:** `M1 → M2 → M3 → M4` → `M5 → M6` → `M7 → … → M14` → `M15` → `(M16–M17 opcional)` → `M18`
 
@@ -1402,11 +1402,11 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 | # | Tipo | Task | Resumo | Status |
 |---|------|------|--------|--------|
-| B80 | Back | Scrape + API RU | SIGAA Outros → Saldo do Cartão · `aluno.refeicoes_disponiveis` · `ru` no `GET /api/dashboard` · passo no sync r1 | [%] |
-| B81 | Back | Robô + cron RU | Robot `ru` · cron ~**09:30 / 18:00** BRT (**1h** antes das aberturas 10:30 / 19:00) · `POST /api/cron/ru-saldo` · também no sync r1 | [%] |
-| F44 | Front | Chip RU desktop | `RuSaldoChip` no `PageHeader` do dashboard | [%] |
+| B80 | Back | Scrape + API RU | SIGAA Outros → Saldo do Cartão · `aluno.refeicoes_disponiveis` · `ru` no `GET /api/dashboard` · passo no sync r1 | [x] |
+| B81 | Back | Robô + cron RU | Robot `ru` · cron ~**09:30 / 18:00** BRT (**1h** antes das aberturas 10:30 / 19:00) · `POST /api/cron/ru-saldo` · também no sync r1 | [x] |
+| F44 | Front | Chip RU desktop | `RuSaldoChip` no `PageHeader` do dashboard | [x] |
 
-**Ordem:** `B80` → `B81` → `F44` + `M18`
+**Ordem:** `B80` → `B81` → `F44` + `M18` · **aprovado** set/2026
 
 ---
 
@@ -1592,6 +1592,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 ### 3.2 Dashboard Central
 - [x] Header com saudação, nome do aluno e semestre atual — **via API** (`useDashboard`, TanStack Query)
+- [x] Chip **Saldo do RU** no header (**F44**) — `refeicoes_disponiveis` via sync/cron (**B80/B81**)
 - [/] Card de RG com indicador visual (cor baseada na faixa) — RG numérico em `StatsRow`; **faixa de cores pendente**
 - [x] Barra de integralização com breakdown por tipo de CH — **via API** + tooltips por categoria (F11b)
 - [/] Lista "Próximas Entregas" (5 próximas tarefas/avaliações) — filtros via API (incl. Concluídas) + regra 3 dias após prazo; **limite de 5 pendente**
@@ -1786,8 +1787,8 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] **M15** — QA checklist Expo Go (`mobile/docs/M15-QA.md`)
 - [@] **M16** *(opcional)* — APK sideload · download site (/releases, QR, drawer) · v1.0.0
 - [@] **M17** *(opcional)* — update in-app · notif push sync desktop↔app · login visual · e-mail suporte
-- [%] **M18** — Saldo do RU no dash + Grade antes de Integralização
-- [%] **B80 / B81 / F44** — scrape/cron/API Saldo do RU + chip desktop
+- [x] **M18** — Saldo do RU no dash + Grade antes de Integralização
+- [x] **B80 / B81 / F44** — scrape/cron/API Saldo do RU + chip desktop
 - [x] **Alternativa sem instalar:** site adaptado ao celular (**F28** · aprovado jul/2026)
 - [x] **Site desktop v1.0.1** — patch de bugs (jul/2026); base v1.0.0
 
@@ -2069,7 +2070,7 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 8. **Próximo passo do roadmap:** informe **depois do push** (tasks em `[@]` ou `[x]`). Com commits locais só `[x]`, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v3](#ordem-oficial-de-execução-v3) — **Bloco 2 (sync) antes do Bloco 6 (Supabase)**. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy **após** sync validado; RLS ✅ **6c** (antes do PIX). Marco “site no ar p/ testes gerais” → [final do TASKS.md](#marco--site-no-ar-para-testes-gerais).
-11. **Próximo passo:** **B80/B81/F44/M18** `[%]` local — Saldo do RU + swap Grade/Integralização (aguardando push). **M17** `[@]` · **M16** `[@]`. **#11 Multi-PPC** `[x]`. Site **v1.0.1**. **F28** `[x]`.
+11. **Próximo passo:** **M16** / **M17** `[@]` (opcionais — APK sideload / update in-app). **B80/B81/F44/M18** `[x]` Saldo do RU. **#11 Multi-PPC** `[x]`. Site **v1.0.1**. **F28** `[x]`.
 12. **Integralização:** CH concluída = `historico` + PPC (`computeChDoneFromDisciplinas`); portal SIGAA só % / total currículo; matérias já passadas = **B30** ✅.
 13. **Gift + painel dev:** **B68–B71** ✅ · **F39–F41** ✅ — painel sem senha SIGAA (`credentialSaved` + `accountRef`).
 14. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial. **Polish em task `[x]`** (ex.: F38, dashboard) também exige nota no TASKS no mesmo ciclo do push.
