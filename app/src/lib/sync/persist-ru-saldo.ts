@@ -1,9 +1,21 @@
 import { getAluno, updateAlunoRuSaldo } from "@/lib/db/queries";
-import { getPostgresPool } from "@/lib/db/postgres/pool";
 import { isPostgresBackend } from "@/lib/db/backend/config";
+import { getPostgresPool } from "@/lib/db/postgres/pool";
+import {
+  getMirrorPool,
+  isSyncMirrorEnabled,
+} from "@/lib/sync-mirror/mirror-config";
+import type pg from "pg";
+
+function resolveRuPersistPool(): pg.Pool | null {
+  if (isPostgresBackend()) return getPostgresPool();
+  if (isSyncMirrorEnabled()) return getMirrorPool();
+  return null;
+}
 
 /**
- * Grava saldo do RU no staging SQLite (se houver aluno) e no Postgres do tenant.
+ * Grava saldo do RU no staging SQLite (se houver aluno) e no Postgres
+ * (backend cloud ou mirror do worker PC).
  */
 export async function persistRuSaldo(input: {
   refeicoesDisponiveis: number;
@@ -23,9 +35,9 @@ export async function persistRuSaldo(input: {
     /* SQLite pode estar indisponível no caminho cloud-only */
   }
 
-  if (!isPostgresBackend()) return;
+  const pool = resolveRuPersistPool();
+  if (!pool) return;
 
-  const pool = getPostgresPool();
   const profile = await pool.query<{ user_id: string }>(
     `SELECT user_id FROM app_profiles WHERE cpf = $1 LIMIT 1`,
     [input.username.trim()]

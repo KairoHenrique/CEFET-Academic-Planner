@@ -89,6 +89,7 @@ export async function buildNotificationSnapshotCloud(): Promise<NotificationSnap
           fingerprint: item.fingerprint,
           discoveredAt: now,
           isRead: false,
+          pushed: false,
         });
         changed = true;
         item.discoveredAt = now;

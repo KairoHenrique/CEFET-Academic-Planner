@@ -204,7 +204,8 @@ async function runRuSaldoStage(
   steps.push({ label: "Consultando saldo do RU…", progress: 88 });
 
   try {
-    const snapshot = await scrapeSaldoRu(page, { skipReturnToPortal: true });
+    // Após turma virtual o browser pode estar fora do portal — volta ao menu.
+    const snapshot = await scrapeSaldoRu(page);
     const username = getActiveSigaaUsername()?.trim() ?? "";
     if (username) {
       await persistRuSaldo({

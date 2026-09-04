@@ -89,11 +89,29 @@ export async function pgGetAluno(): Promise<AlunoRow | undefined> {
   }
 
   const result = await getPostgresPool().query(
-    `SELECT matricula, nome, curso, email, semestre_entrada, rg, status
+    `SELECT matricula, nome, curso, email, semestre_entrada, rg, status,
+            refeicoes_disponiveis, ru_synced_at
      FROM aluno WHERE user_id = $1 LIMIT 1`,
     [userId]
   );
-  return (result.rows[0] as AlunoRow | undefined) ?? undefined;
+  const row = result.rows[0] as
+    | (AlunoRow & {
+        refeicoes_disponiveis?: number | string | null;
+        ru_synced_at?: string | Date | null;
+      })
+    | undefined;
+  if (!row) return undefined;
+
+  return {
+    ...row,
+    refeicoes_disponiveis:
+      row.refeicoes_disponiveis != null &&
+      Number.isFinite(Number(row.refeicoes_disponiveis))
+        ? Number(row.refeicoes_disponiveis)
+        : null,
+    ru_synced_at:
+      row.ru_synced_at != null ? String(row.ru_synced_at) : null,
+  };
 }
 
 export async function pgGetDisciplinas(): Promise<DisciplinaRow[]> {

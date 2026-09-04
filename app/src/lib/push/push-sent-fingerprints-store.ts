@@ -1,35 +1,41 @@
 import { getPostgresPool } from "@/lib/db/postgres/pool";
 
 const PUSH_SENT_CONFIG_KEY = "push.sent_fingerprints";
-const MAX_STORED = 400;
+const MAX_STORED = 800;
 
 export interface NotificationHistoryState {
   fingerprint: string;
   discoveredAt: string;
   isRead: boolean;
+  /** Já disparou Expo push (separado do isRead do sino). */
+  pushed: boolean;
 }
 
 function parseHistory(raw: string | null | undefined): Map<string, NotificationHistoryState> {
   const map = new Map<string, NotificationHistoryState>();
   if (!raw?.trim()) return map;
-  
+
   try {
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return map;
-    
+
     for (const item of parsed) {
       if (typeof item === "string") {
-        // Migration from legacy array of strings
+        // Legacy: só fingerprint — assume já visto/enviado (evita flood no deploy).
         map.set(item, {
           fingerprint: item,
           discoveredAt: new Date().toISOString(),
-          isRead: true, // Assume legacy notifications are read so we don't spam unread
+          isRead: true,
+          pushed: true,
         });
       } else if (item && typeof item === "object" && typeof item.fingerprint === "string") {
+        const hasPushedField = typeof item.pushed === "boolean";
         map.set(item.fingerprint, {
           fingerprint: item.fingerprint,
           discoveredAt: item.discoveredAt || new Date().toISOString(),
           isRead: Boolean(item.isRead),
+          // Sem campo `pushed`: legado unificado com o sino — não reenviar.
+          pushed: hasPushedField ? Boolean(item.pushed) : true,
         });
       }
     }
@@ -56,7 +62,13 @@ export async function pgSaveNotificationHistory(
   history: Map<string, NotificationHistoryState>
 ): Promise<void> {
   const next = Array.from(history.values())
-    .sort((a, b) => new Date(a.discoveredAt).getTime() - new Date(b.discoveredAt).getTime())
+    .sort((a, b) => {
+      // Preferir manter os já enviados (slice(-N) fica com o final).
+      if (a.pushed !== b.pushed) return Number(a.pushed) - Number(b.pushed);
+      return (
+        new Date(a.discoveredAt).getTime() - new Date(b.discoveredAt).getTime()
+      );
+    })
     .slice(-MAX_STORED);
 
   await getPostgresPool().query(
@@ -68,11 +80,16 @@ export async function pgSaveNotificationHistory(
   );
 }
 
+/** Fingerprints que já dispararam push (não as apenas descobertas no sino). */
 export async function pgGetPushSentFingerprints(
   userId: string
 ): Promise<Set<string>> {
   const history = await pgGetNotificationHistory(userId);
-  return new Set(history.keys());
+  const sent = new Set<string>();
+  for (const state of history.values()) {
+    if (state.pushed) sent.add(state.fingerprint);
+  }
+  return sent;
 }
 
 export async function pgMarkPushFingerprintsSent(
@@ -88,10 +105,18 @@ export async function pgMarkPushFingerprintsSent(
 
   const history = await pgGetNotificationHistory(userId);
   const now = new Date().toISOString();
-  
+
   for (const fingerprint of cleaned) {
-    if (!history.has(fingerprint)) {
-      history.set(fingerprint, { fingerprint, discoveredAt: now, isRead: false });
+    const existing = history.get(fingerprint);
+    if (existing) {
+      history.set(fingerprint, { ...existing, pushed: true });
+    } else {
+      history.set(fingerprint, {
+        fingerprint,
+        discoveredAt: now,
+        isRead: false,
+        pushed: true,
+      });
     }
   }
 

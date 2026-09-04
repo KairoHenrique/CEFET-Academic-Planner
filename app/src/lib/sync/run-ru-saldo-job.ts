@@ -2,6 +2,7 @@ import { loginSigaaOnPage } from "@/lib/scraper/auth";
 import { scrapeSaldoRu } from "@/lib/scraper/ru/scrape-saldo-ru";
 import { withSyncBrowser } from "@/lib/scraper/session-context";
 import { persistRuSaldo } from "@/lib/sync/persist-ru-saldo";
+import { runMirrorAfterSync } from "@/lib/sync-mirror/run-mirror-after-sync";
 
 export async function runRuSaldoJob(input: {
   username: string;
@@ -21,6 +22,8 @@ export async function runRuSaldoJob(input: {
       refeicoesDisponiveis,
     });
   });
+
+  await runMirrorAfterSync(input.username);
 
   return {
     refeicoesDisponiveis,
