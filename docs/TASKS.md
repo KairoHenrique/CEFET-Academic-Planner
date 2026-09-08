@@ -13,7 +13,7 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
 >
 > **📌 Prioridade (jul/2026):** **worker sync = este PC** (Chrome + Playwright + mirror → Supabase) exposto via **cloudflared**; Cloudflare só despacha. Código B72a–e `[x]`. Ops: `npm run worker:home` + `npm run worker:tunnel` + secrets CF — ver [`app/worker/README.md`](../app/worker/README.md) · [Bloco 2f · B72](#12--bloco-2f--sync-real-postgres-b72).
 >
-> **📌 Sync híbrido (set/2026):** PC preferido; se offline → fallback **web + mobile** → Supabase. **B82/B83/F45/M19** `[@]`. **F46** app gratuito `[@]`. **F47** sem indicação no cadastro `[%]`. Detalhe: [`SCOPE-CLOUD.md` §6.1.1](./SCOPE-CLOUD.md#611-sync-híbrido--pc--aparelho--decisão-set2026).
+> **📌 Sync híbrido (set/2026):** PC preferido; se offline → fallback **web + mobile** → Supabase. **B82/B83/F45/M19** `[@]`. **F46** app gratuito `[@]`. **F47** sem indicação no cadastro `[@]`. Detalhe: [`SCOPE-CLOUD.md` §6.1.1](./SCOPE-CLOUD.md#611-sync-híbrido--pc--aparelho--decisão-set2026).
 
 **Navegação rápida:** [Roadmap detalhado (#0→#11)](#roadmap-detalhado--ordem-de-execução-0--11) · [Sequência #0→#11](#sequência-completa--o-que-fazer-e-em-qual-ordem) · [Ordem oficial v3](#ordem-oficial-de-execução-v3) · [Checklist BACK→FRONT](#checklist-mestre-ordem-de-execução) · [Detalhe por bloco](#detalhe-dos-blocos) · [#6d orquestração sync](#6d--orquestração-sync--catálogo-global-pré-mobile) · [#6e painel dev](#6e--painel-dev--policy-pré-pix) · [Escopo cloud](./SCOPE-CLOUD.md) · [Marco testes gerais](#marco--site-no-ar-para-testes-gerais) · [Apêndice escopo futuro](#apêndice--escopo-futuro-fora-da-ordem-011) · [Apêndice B65 dev](#apêndice--b65-sync-automático-dev-remover-antes-de-produção) · [Apêndice gift + painel dev](#apêndice--chaves-gift-e-painel-dev-jun2026)
 
@@ -1585,7 +1585,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Modulação de layout **somente no dashboard** (demais telas layout fixo)
 - [x] Menu perfil no avatar — modal, tutorial, /planos, **editar e-mail/celular** (**F37** ✅ · `PATCH /api/perfil`)
 - [x] Sino de notificações in-app — tarefas/notas novas + lembretes 24h/1h (**F38**); polish `04887c9` (baseline pré-sync, nota obtida/máxima no painel)
-- [x] Cadastro produção: e-mail, telefone, CPF, **curso (Comp/Meca/Moda)**, senha — **F29** ✅ · indicação no cadastro removida (**F47** `[%]`; legado **F43**/B74)
+- [x] Cadastro produção: e-mail, telefone, CPF, **curso (Comp/Meca/Moda)**, senha — **F29** ✅ · indicação no cadastro removida (**F47** `[@]`; legado **F43**/B74)
 - [x] Login produção: **apenas CPF + senha** — **F29** ✅ (`POST /api/auth/login` · Bearer + `X-Planner-Sigaa-User`)
 - [x] `/planos` checkout PIX + gift key + renovação (**F31–F33**, **F40**) · `/planos/pix` QR + polling (**F32**) · perfil histórico (**F34**)
 - [x] Termos + Privacidade LGPD — **L1** (`/termos` · `/privacidade` · consent no cadastro · links login/planos)
@@ -1817,7 +1817,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | # | Tipo | Task | Resumo | Status |
 |---|------|------|--------|--------|
 | F46 | Front+Back | App 100% free | Gate off · sem paywall/PIX/preços · `/planos` → `/` · legal + SCOPE | [@] |
-| F47 | Front | Sem indicação no cadastro | Remove “Matrícula do amigo” web+mobile · backend B74 dormante | [%] |
+| F47 | Front | Sem indicação no cadastro | Remove “Matrícula do amigo” web+mobile · backend B74 dormante | [@] |
 
 | # | Tipo | Task | Resumo | Status |
 |---|------|------|--------|--------|
@@ -1941,7 +1941,7 @@ Rota **`/dev`** — invisível ao aluno.
 
 #### B74/F43 — indicação por matrícula do amigo (jul/2026) `[x]`
 
-> Histórico: no criar conta havia **Matrícula do amigo** (no lugar da chave gift). **F47** (`[%]`): UI removida do cadastro web/mobile; backend B74 permanece dormante. Chave gift / `/planos` = legado free (**F46**).
+> Histórico: no criar conta havia **Matrícula do amigo** (no lugar da chave gift). **F47** (`[@]`): UI removida do cadastro web/mobile; backend B74 permanece dormante. Chave gift / `/planos` = legado free (**F46**).
 
 | # | Entrega | Arquivos-chave |
 |---|---|---|
@@ -1953,7 +1953,7 @@ Rota **`/dev`** — invisível ao aluno.
 
 **Status:** `[x]` push + aprovado jul/2026 · UI aluno supersedida por **F47**.
 
-#### F47 — remove indicação do cadastro (set/2026) `[%]`
+#### F47 — remove indicação do cadastro (set/2026) `[@]`
 
 > Com app gratuito (**F46**), o bônus de indicação não faz sentido na UI.
 
@@ -1963,7 +1963,7 @@ Rota **`/dev`** — invisível ao aluno.
 | 2 | **Mobile** — idem + limpa `auth-fields` | `RegisterForm.tsx`, `auth-fields.ts` |
 | 3 | **Docs** — SCOPE-CLOUD §3.6/§3.7 | |
 
-**Status:** `[%]` commit local — aguardando push/aprovação.
+**Status:** `[@]` push feito — aguardando aprovação 100%.
 
 ### Painel robôs — ops manual (escopo fechado p/ **B70** + **F41**)
 
@@ -2103,7 +2103,7 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 8. **Próximo passo do roadmap:** informe **depois do push** (tasks em `[@]` ou `[x]`). Com commits locais só `[x]`, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v3](#ordem-oficial-de-execução-v3) — **Bloco 2 (sync) antes do Bloco 6 (Supabase)**. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy **após** sync validado; RLS ✅ **6c** (antes do PIX). Marco “site no ar p/ testes gerais” → [final do TASKS.md](#marco--site-no-ar-para-testes-gerais).
-11. **Próximo passo:** validar sync híbrido + app free em produção (`[@]`). **M16** / **M17** `[@]` (opcionais). **B80/B81/F44/M18** `[x]`. **B82/B83/F45/M19/F46** `[@]`. **#11 Multi-PPC** `[x]`. Site **v1.0.1**. **F28** `[x]`.
+11. **Próximo passo:** validar sync híbrido + app free em produção (`[@]`). **F47** cadastro sem indicação `[@]`. **M16** / **M17** `[@]` (opcionais). **B80/B81/F44/M18** `[x]`. **B82/B83/F45/M19/F46** `[@]`. **#11 Multi-PPC** `[x]`. Site **v1.0.1**. **F28** `[x]`.
 12. **Integralização:** CH concluída = `historico` + PPC (`computeChDoneFromDisciplinas`); portal SIGAA só % / total currículo; matérias já passadas = **B30** ✅.
 13. **Gift + painel dev:** **B68–B71** ✅ · **F39–F41** ✅ — painel sem senha SIGAA (`credentialSaved` + `accountRef`).
 14. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial. **Polish em task `[x]`** (ex.: F38, dashboard) também exige nota no TASKS no mesmo ciclo do push.
