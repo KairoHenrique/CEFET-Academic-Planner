@@ -13,7 +13,7 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
 >
 > **📌 Prioridade (jul/2026):** **worker sync = este PC** (Chrome + Playwright + mirror → Supabase) exposto via **cloudflared**; Cloudflare só despacha. Código B72a–e `[x]`. Ops: `npm run worker:home` + `npm run worker:tunnel` + secrets CF — ver [`app/worker/README.md`](../app/worker/README.md) · [Bloco 2f · B72](#12--bloco-2f--sync-real-postgres-b72).
 >
-> **📌 Sync híbrido (set/2026):** PC preferido; se offline → fallback **web + mobile** → Supabase. **B82/B83/F45/M19** `[%]`. Detalhe: [`SCOPE-CLOUD.md` §6.1.1](./SCOPE-CLOUD.md#611-sync-híbrido--pc--aparelho--decisão-set2026).
+> **📌 Sync híbrido (set/2026):** PC preferido; se offline → fallback **web + mobile** → Supabase. **B82/B83/F45/M19** `[@]`. **F46** app gratuito `[@]`. Detalhe: [`SCOPE-CLOUD.md` §6.1.1](./SCOPE-CLOUD.md#611-sync-híbrido--pc--aparelho--decisão-set2026).
 
 **Navegação rápida:** [Roadmap detalhado (#0→#11)](#roadmap-detalhado--ordem-de-execução-0--11) · [Sequência #0→#11](#sequência-completa--o-que-fazer-e-em-qual-ordem) · [Ordem oficial v3](#ordem-oficial-de-execução-v3) · [Checklist BACK→FRONT](#checklist-mestre-ordem-de-execução) · [Detalhe por bloco](#detalhe-dos-blocos) · [#6d orquestração sync](#6d--orquestração-sync--catálogo-global-pré-mobile) · [#6e painel dev](#6e--painel-dev--policy-pré-pix) · [Escopo cloud](./SCOPE-CLOUD.md) · [Marco testes gerais](#marco--site-no-ar-para-testes-gerais) · [Apêndice escopo futuro](#apêndice--escopo-futuro-fora-da-ordem-011) · [Apêndice B65 dev](#apêndice--b65-sync-automático-dev-remover-antes-de-produção) · [Apêndice gift + painel dev](#apêndice--chaves-gift-e-painel-dev-jun2026)
 
@@ -1807,16 +1807,16 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 | # | Tipo | Task | Resumo | Status |
 |---|------|------|--------|--------|
-| B82 | Back | Ingest + health | `POST /api/sync/ingest` · `ingest-html` · `device-run` · `GET /api/sync/worker-health` · mirror portal-lite · rate limit | [%] |
-| B83 | Back | Adapter HTTP R1 | Login/portal HTTP · relay CORS · build snapshot portal | [%] |
-| F45 | Front | Fallback sync web | `runQueuedSyncClient` flip PC→aparelho/edge | [%] |
-| M19 | Front | Fallback sync mobile | `startManualLiteSync` flip + `device-run` | [%] |
+| B82 | Back | Ingest + health | `POST /api/sync/ingest` · `ingest-html` · `device-run` · `GET /api/sync/worker-health` · mirror portal-lite · rate limit | [@] |
+| B83 | Back | Adapter HTTP R1 | Login/portal HTTP · relay CORS · build snapshot portal | [@] |
+| F45 | Front | Fallback sync web | `runQueuedSyncClient` flip PC→aparelho/edge | [@] |
+| M19 | Front | Fallback sync mobile | `startManualLiteSync` flip + `device-run` | [@] |
 
 ### Produto gratuito (set/2026)
 
 | # | Tipo | Task | Resumo | Status |
 |---|------|------|--------|--------|
-| F46 | Front+Back | App 100% free | Gate off · sem paywall/PIX/preços · `/planos` → `/` · legal + SCOPE | [%] |
+| F46 | Front+Back | App 100% free | Gate off · sem paywall/PIX/preços · `/planos` → `/` · legal + SCOPE | [@] |
 
 | # | Tipo | Task | Resumo | Status |
 |---|------|------|--------|--------|
@@ -2090,7 +2090,7 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 8. **Próximo passo do roadmap:** informe **depois do push** (tasks em `[@]` ou `[x]`). Com commits locais só `[x]`, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v3](#ordem-oficial-de-execução-v3) — **Bloco 2 (sync) antes do Bloco 6 (Supabase)**. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy **após** sync validado; RLS ✅ **6c** (antes do PIX). Marco “site no ar p/ testes gerais” → [final do TASKS.md](#marco--site-no-ar-para-testes-gerais).
-11. **Próximo passo:** **M16** / **M17** `[@]` (opcionais — APK sideload / update in-app). **B80/B81/F44/M18** `[x]` Saldo do RU. **Sync híbrido B82/B83/F45/M19** `[%]`. **F46 app gratuito** `[%]`. **#11 Multi-PPC** `[x]`. Site **v1.0.1**. **F28** `[x]`.
+11. **Próximo passo:** validar sync híbrido + app free em produção (`[@]`). **M16** / **M17** `[@]` (opcionais). **B80/B81/F44/M18** `[x]`. **B82/B83/F45/M19/F46** `[@]`. **#11 Multi-PPC** `[x]`. Site **v1.0.1**. **F28** `[x]`.
 12. **Integralização:** CH concluída = `historico` + PPC (`computeChDoneFromDisciplinas`); portal SIGAA só % / total currículo; matérias já passadas = **B30** ✅.
 13. **Gift + painel dev:** **B68–B71** ✅ · **F39–F41** ✅ — painel sem senha SIGAA (`credentialSaved` + `accountRef`).
 14. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial. **Polish em task `[x]`** (ex.: F38, dashboard) também exige nota no TASKS no mesmo ciclo do push.

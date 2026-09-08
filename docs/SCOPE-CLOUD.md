@@ -677,8 +677,9 @@ Durante beta/testes com URL pública:
 - [x] Gateway PIX v1 — **Mercado Pago** + mock dev (`docs/plan/b48-pix-gateway.md`, **B48**)
 
 - [x] **Orquestração sync + catálogo global** — policy **§6.6**; **B68d–f** + worker **B54–B56** + painel **B70/F41** (código fechado)
-- [x] **Onde roda o sync (set/2026):** PC home + Playwright **preferido**; fallback **web + mobile** com ingest Supabase — **[§6.1.1](#611-sync-híbrido--pc--aparelho--decisão-set2026)** · **B82–M19** `[%]`
-- [x] **Implementar sync híbrido §6.1.1** — B82 ingest/health · B83 adapter HTTP · F45 web · M19 mobile (`[%]` aguardando push)
+- [x] **Onde roda o sync (set/2026):** PC home + Playwright **preferido**; fallback **web + mobile** com ingest Supabase — **[§6.1.1](#611-sync-híbrido--pc--aparelho--decisão-set2026)** · **B82–M19** `[@]`
+- [x] **Implementar sync híbrido §6.1.1** — B82 ingest/health · B83 adapter HTTP · F45 web · M19 mobile (`[@]` no remoto)
+- [x] **App 100% gratuito (F46)** — `BILLING_ENFORCED=false` · sem paywall/PIX na UI
 - [x] Política de fila: 1 job global, auto 3h/usuário, manual fim da fila + cooldown 5 min, prioridade 1º login (§6.3)
 - [x] Mobile: API Next.js (mesmo backend do site) + SecureStore; push via Expo Notifications
 - [ ] Detalhe de payload push (categorias alinhadas ao sino web)
@@ -697,7 +698,8 @@ Durante beta/testes com URL pública:
 - [x] **Simulação de mapa:** overlay local; não altera histórico sync (`SCOPE.md` §6.1.1)
 - [x] **Painel dev:** `/dev` + login **email+senha** (pares env manuais); chavinhas robôs R1/R2/R3; **fase testes** exibe senhas SIGAA ao operador; **B71** endurece antes da produção
 - [x] **Hosting Web:** Cloudflare Pages (Frontend) + Supabase (Backend/Auth) + Ping script/cron (Anti-inatividade do DB free)
-- [x] **Sync híbrido (set/2026):** PC preferido · fallback web+mobile · resultado no Supabase — §6.1.1 · **B82–M19** `[%]`
+- [x] **Sync híbrido (set/2026):** PC preferido · fallback web+mobile · resultado no Supabase — §6.1.1 · **B82–M19** `[@]`
+- [x] **Produto gratuito (F46):** sem cobrança/paywall para o aluno (`BILLING_ENFORCED=false`)
 
 ---
 
