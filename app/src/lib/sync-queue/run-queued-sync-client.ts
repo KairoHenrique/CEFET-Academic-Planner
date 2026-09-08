@@ -8,7 +8,6 @@ import { getSession } from "@/lib/auth/session";
 import { capturePreSyncNotificationBaseline } from "@/lib/notifications/notification-pre-sync-baseline";
 import { resolveQueueLane } from "@/lib/sync-queue/format-sync-queue-ui";
 import { pollSyncJobUntilDone } from "@/lib/sync-queue/poll-sync-job-client";
-import { runDeviceFallbackSyncClient } from "@/lib/sync-queue/run-device-fallback-sync-client";
 import { runServerDeviceRunClient } from "@/lib/sync-queue/run-server-device-run-client";
 import { queueJobToUiStep } from "@/lib/sync-queue/sync-queue-ui-progress";
 import type { SyncMode, SyncRequest, SyncStep } from "@/lib/types/sync";
@@ -160,12 +159,11 @@ async function runHybridOfflineFallback(options: {
   onUiStep: (step: SyncStep) => void;
   signal?: AbortSignal;
 }): Promise<void> {
-  if (options.creds.password?.trim()) {
-    await runDeviceFallbackSyncClient(options);
-    return;
-  }
-
+  // No browser usamos só o edge (`device-run`) — evita puxar parsers/Node no bundle client.
+  void options.mode;
+  void options.trigger;
   await runServerDeviceRunClient({
+    password: options.creds.password || undefined,
     onUiStep: options.onUiStep,
     signal: options.signal,
   });
