@@ -96,12 +96,50 @@ async function pollJobUntilDone(
   );
 }
 
+async function isWorkerOnline(): Promise<boolean> {
+  try {
+    const health = await requestJson<{
+      ok: true;
+      online: boolean;
+    }>("/api/sync/worker-health");
+    return Boolean(health.online);
+  } catch {
+    return false;
+  }
+}
+
+/** Fallback §6.1.1 — PC offline: edge HTTP + vault + ingest. */
+async function runDeviceRunFallback(): Promise<void> {
+  setState({
+    progress: 20,
+    stepLabel: "PC offline — sincronizando pelo aparelho…",
+  });
+
+  const result = await requestJson<{
+    ok: true;
+    steps?: SyncStep[];
+  }>("/api/sync/device-run", {
+    method: "POST",
+    body: "{}",
+  });
+
+  const last = result.steps?.[result.steps.length - 1];
+  setState({
+    syncing: false,
+    progress: 100,
+    stepLabel: last?.label ?? "Sincronização concluída (aparelho).",
+    error: null,
+    job: null,
+  });
+  DeviceEventEmitter.emit(SYNC_COMPLETE_EVENT);
+}
+
 /**
  * Paridade com `SyncButton` do site:
  * - modo sempre `lite`
  * - trigger `manual`
  * - cloud: sem senha (vault no servidor)
- * - trava `syncingLock` (sem double-start)
+ * - se worker PC offline → `device-run` (híbrido §6.1.1)
  */
 export async function startManualLiteSync(): Promise<boolean> {
   if (syncingLock || state.syncing) return false;
@@ -122,6 +160,11 @@ export async function startManualLiteSync(): Promise<boolean> {
   });
 
   try {
+    if (!(await isWorkerOnline())) {
+      await runDeviceRunFallback();
+      return true;
+    }
+
     const enqueue = await requestJson<SyncQueueEnqueueResponse>(
       "/api/sync/queue",
       {
@@ -160,6 +203,29 @@ export async function startManualLiteSync(): Promise<boolean> {
     DeviceEventEmitter.emit(SYNC_COMPLETE_EVENT);
     return true;
   } catch (error) {
+    // Túnel caiu após health OK → tenta device-run.
+    if (
+      error instanceof ApiClientError &&
+      (error.status === 503 || error.code === "SIGAA_OFFLINE")
+    ) {
+      try {
+        await runDeviceRunFallback();
+        return true;
+      } catch (fallbackError) {
+        const message =
+          fallbackError instanceof ApiClientError
+            ? fallbackError.message
+            : "Falha na sincronização. Tente novamente.";
+        setState({
+          syncing: false,
+          error: message,
+          stepLabel: "",
+          progress: 0,
+        });
+        return false;
+      }
+    }
+
     const message =
       error instanceof ApiClientError
         ? error.message

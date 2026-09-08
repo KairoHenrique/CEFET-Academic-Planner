@@ -11,7 +11,9 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
 > - **Modo testes:** deploy global após sync validado; RLS na fase 6c (antes do PIX)
 > **Pré-mobile (#8):** **#6d** ✅ + **#6e** ✅ + **#7** + **#9 + #10** (site maduro + **F28**) · policy **§6.6** · **B68a–f** ✅
 >
-> **📌 Prioridade (jul/2026):** **worker sync = este PC** (Chrome + Playwright + mirror → Supabase) exposto via **cloudflared**; Cloudflare só despacha. Código B72a–e `[x]`. Ops: `npm run worker:home` + `npm run worker:tunnel` + secrets CF — ver [`app/worker/README.md`](../app/worker/README.md) · [Bloco 2f · B72](#12--bloco-2f--sync-real-postgres-b72). Site local (#9/#10) continua em paralelo.
+> **📌 Prioridade (jul/2026):** **worker sync = este PC** (Chrome + Playwright + mirror → Supabase) exposto via **cloudflared**; Cloudflare só despacha. Código B72a–e `[x]`. Ops: `npm run worker:home` + `npm run worker:tunnel` + secrets CF — ver [`app/worker/README.md`](../app/worker/README.md) · [Bloco 2f · B72](#12--bloco-2f--sync-real-postgres-b72).
+>
+> **📌 Sync híbrido (set/2026):** PC preferido; se offline → fallback **web + mobile** → Supabase. **B82/B83/F45/M19** `[%]`. Detalhe: [`SCOPE-CLOUD.md` §6.1.1](./SCOPE-CLOUD.md#611-sync-híbrido--pc--aparelho--decisão-set2026).
 
 **Navegação rápida:** [Roadmap detalhado (#0→#11)](#roadmap-detalhado--ordem-de-execução-0--11) · [Sequência #0→#11](#sequência-completa--o-que-fazer-e-em-qual-ordem) · [Ordem oficial v3](#ordem-oficial-de-execução-v3) · [Checklist BACK→FRONT](#checklist-mestre-ordem-de-execução) · [Detalhe por bloco](#detalhe-dos-blocos) · [#6d orquestração sync](#6d--orquestração-sync--catálogo-global-pré-mobile) · [#6e painel dev](#6e--painel-dev--policy-pré-pix) · [Escopo cloud](./SCOPE-CLOUD.md) · [Marco testes gerais](#marco--site-no-ar-para-testes-gerais) · [Apêndice escopo futuro](#apêndice--escopo-futuro-fora-da-ordem-011) · [Apêndice B65 dev](#apêndice--b65-sync-automático-dev-remover-antes-de-produção) · [Apêndice gift + painel dev](#apêndice--chaves-gift-e-painel-dev-jun2026)
 
@@ -301,7 +303,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 
 ### #12 — Bloco 2f · Sync real Postgres (B72) `✅ 5/5 [x]`
 
-> **Código fechado; ops = PC home server (jul/2026).** Gap de escrita resolvido com **mirror SQLite→Postgres**. **Worker oficial:** este PC (`SIGAA_BROWSER_CHANNEL=chrome`, `npm run worker:home`) + **cloudflared** (`npm run worker:tunnel`) → secrets no Cloudflare. Fly/Docker = fallback só se o PC não estiver online. Ver `app/worker/README.md`.
+> **Código fechado; ops = PC home server (jul/2026).** Gap de escrita resolvido com **mirror SQLite→Postgres**. **Worker oficial:** este PC (`SIGAA_BROWSER_CHANNEL=chrome`, `npm run worker:home`) + **cloudflared** (`npm run worker:tunnel`) → secrets no Cloudflare. **Fallback planejado (set/2026):** sync no aparelho (web+mobile) → ingest Supabase quando o PC estiver offline — [`SCOPE-CLOUD` §6.1.1](./SCOPE-CLOUD.md#611-sync-híbrido--pc--aparelho--decisão-set2026) *(ainda sem tasks de implementação)*. Ver `app/worker/README.md`.
 >
 > **Padrão:** SQLite = staging do scraper · Postgres = serving DB · Mirror = replicação idempotente com proteção `manual`/`override` na fronteira (CQRS: worker no PC escreve, cloud lê). Decisão de arquitetura: duplicar 20+ funções de escrita com regras de merge num adapter PG criaria drift de regra de negócio; o mirror reutiliza as regras (`user-data-priority.ts`) verbatim.
 
@@ -309,7 +311,7 @@ Use **`[@]`** quando o código já foi **enviado ao remoto** (`git push`), mas a
 - [x] **BACK:** B72b *(mirror Postgres — `lib/sync-mirror/`: snapshot readonly do SQLite do usuário → UPSERT/replace idempotente em `aluno`, `historico`, `semestre_atual`, `notas`, `faltas`, `tarefas`, `grupo_membros`, `integralizacao`, `configuracoes` (whitelist, sem credenciais) + catálogo global `disciplinas`, `requisitos`, `turmas_ofertadas`, `calendario_academico`; linhas `manual=1`/`*_override=1` no PG preservadas)*
 - [x] **BACK:** B72c *(tenant CPF→`app_profiles` (`user_id` + `curso_id`) + hook `runMirrorAfterSync` nos 3 runners (`runSync`, turmas, calendário) — qualquer caminho (rota, fila, worker, script) espelha automaticamente; falha de mirror não derruba sync)*
 - [x] **BACK:** B72d *(desstub `/api/sync*` em modo postgres local — `runWithScraperSqlite` (override ALS do guard, nunca vale em `isCloudDeployment()`); fila SQLite + readiness + turmas + calendário funcionam em dev postgres; no deploy Cloudflare o stub só permanece **sem** `SIGAA_WORKER_URL` configurado (dispatch B72e) · script `npm run sync:mirror` (SIGAA_CPF/SIGAA_PASSWORD) roda sync completo + verificação de linhas no PG)*
-- [x] **OPS:** B72e *(dispatch cloud→worker pronto: fila Postgres `sync_jobs` · worker async 202 + robôs turmas/calendario · cloud despacha via `SIGAA_WORKER_URL`+Bearer · **path oficial = PC + cloudflared** (`worker:home` / `worker:tunnel`, `SIGAA_BROWSER_CHANNEL=chrome`) · secrets CF · `smoke:cloud-sync` · Fly/Docker = fallback)*
+- [x] **OPS:** B72e *(dispatch cloud→worker pronto: fila Postgres `sync_jobs` · worker async 202 + robôs turmas/calendario · cloud despacha via `SIGAA_WORKER_URL`+Bearer · **path oficial = PC + cloudflared** (`worker:home` / `worker:tunnel`, `SIGAA_BROWSER_CHANNEL=chrome`) · secrets CF · `smoke:cloud-sync` · fallback aparelho = §6.1.1 escopo set/2026)*
 
 **Validação live (06/jul):** `npm run sync:mirror` com conta real → Supabase populado: aluno 1 · histórico 31 · semestre_atual 7 · notas 37 · faltas 149 · tarefas 2 · grupo 10 · integralização 5 · config 8 · turmas_ofertadas 99 · calendário 6. Fix extra no scraper: interstitial "Notificações Acadêmicas" do SIGAA (confirmar senha + leitura) e shim `__name` do esbuild/tsx no `page.evaluate`.
 
@@ -740,7 +742,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 ### #12 — Bloco 2f · Sync real Postgres (B72) `✅ 5/5 [x]`
 
-> ✅ **Mirror + dispatch cloud→worker validados E2E** (push jul/2026). **Ops = PC home server + cloudflared** (`worker:home` / `worker:tunnel` / secrets CF). Ver [detalhe](#12--bloco-2f--sync-real-postgres-b72) · `app/worker/README.md`.
+> ✅ **Mirror + dispatch cloud→worker validados E2E** (push jul/2026). **Ops = PC home server + cloudflared** (`worker:home` / `worker:tunnel` / secrets CF). **Fallback aparelho** = [`SCOPE-CLOUD` §6.1.1](./SCOPE-CLOUD.md#611-sync-híbrido--pc--aparelho--decisão-set2026) (escopo set/2026, código TBD). Ver [detalhe](#12--bloco-2f--sync-real-postgres-b72) · `app/worker/README.md`.
 
 - [x] **BACK:** B72a — Write Port + adapter SQLite (staging)
 - [x] **BACK:** B72b — mirror Postgres (`lib/sync-mirror/` — UPSERT idempotente + proteção manual/override)
@@ -1798,6 +1800,18 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 > **Download automático de materiais SIGAA (B57 · B29 · F35):** **cancelado** jun/2026 — não será implementado neste produto. O aluno continua baixando materiais manualmente no SIGAA. **Histórico escolar PDF (B30)** permanece no escopo (Ensino → Emitir Histórico).
 
+### Sync híbrido PC + aparelho (set/2026) — em implementação
+
+> **Escopo fechado:** [`SCOPE-CLOUD.md` §6.1.1](./SCOPE-CLOUD.md#611-sync-híbrido--pc--aparelho--decisão-set2026).  
+> **Ordem:** `B82` → `B83` → `F45` → `M19`
+
+| # | Tipo | Task | Resumo | Status |
+|---|------|------|--------|--------|
+| B82 | Back | Ingest + health | `POST /api/sync/ingest` · `ingest-html` · `device-run` · `GET /api/sync/worker-health` · mirror portal-lite · rate limit | [%] |
+| B83 | Back | Adapter HTTP R1 | Login/portal HTTP · relay CORS · build snapshot portal | [%] |
+| F45 | Front | Fallback sync web | `runQueuedSyncClient` flip PC→aparelho/edge | [%] |
+| M19 | Front | Fallback sync mobile | `startManualLiteSync` flip + `device-run` | [%] |
+
 | # | Tipo | Task | Resumo | Status |
 |---|------|------|--------|--------|
 | B57 | Back | OAuth nuvem pessoal | Google Drive / Dropbox / OneDrive | ❌ cancelado |
@@ -2057,7 +2071,7 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 1. **Leia `docs/SCOPE-CLOUD.md`** para arquitetura (cloud, PIX, mobile). **`docs/SCOPE.md`** mantém regras acadêmicas.
 2. **`README.md`** — visão geral e como rodar em dev; arquitetura de produto em `SCOPE-CLOUD.md`.
 3. **O mapa mental do curso** (grade curricular com pré/co-requisitos) foi fornecido como imagem e deve ser convertido em dados estruturados.
-4. **O SIGAA é uma aplicação JSF (Java Server Faces).** Os formulários usam `javax.faces.ViewState` e IDs dinâmicos. O scraper deve usar Playwright (não requests simples) por causa do JavaScript.
+4. **O SIGAA é uma aplicação JSF (Java Server Faces).** Os formulários usam `javax.faces.ViewState` e IDs dinâmicos. O path **preferido** usa Playwright no PC. O **fallback no aparelho** (§6.1.1) usará adapter HTTP/parse (sem Playwright) — validar ViewState/JS na implementação.
 5. **URLs do SIGAA mudam de sessão para sessão.** Sempre navegue pelo menu, não por URLs hardcoded.
 6. **O design deve ser PREMIUM.** Cores do Cruzeiro (Azul #0060B1 + Dourado #D4A843), glassmorphism, micro-animações. Nada genérico.
 7. **Atualize o `docs/TASKS.md` sempre que trabalhar em uma task** — leia o arquivo inteiro (ou `grep` por ID + etapa) e sincronize **todas** as seções listadas em `.cursor/rules/tasks-workflow.mdc` → **Sincronizar TASKS.md**:
@@ -2070,22 +2084,22 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 8. **Próximo passo do roadmap:** informe **depois do push** (tasks em `[@]` ou `[x]`). Com commits locais só `[x]`, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v3](#ordem-oficial-de-execução-v3) — **Bloco 2 (sync) antes do Bloco 6 (Supabase)**. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy **após** sync validado; RLS ✅ **6c** (antes do PIX). Marco “site no ar p/ testes gerais” → [final do TASKS.md](#marco--site-no-ar-para-testes-gerais).
-11. **Próximo passo:** **M16** / **M17** `[@]` (opcionais — APK sideload / update in-app). **B80/B81/F44/M18** `[x]` Saldo do RU. **#11 Multi-PPC** `[x]`. Site **v1.0.1**. **F28** `[x]`.
+11. **Próximo passo:** **M16** / **M17** `[@]` (opcionais — APK sideload / update in-app). **B80/B81/F44/M18** `[x]` Saldo do RU. **Sync híbrido B82/B83/F45/M19** `[%]` local. **#11 Multi-PPC** `[x]`. Site **v1.0.1**. **F28** `[x]`.
 12. **Integralização:** CH concluída = `historico` + PPC (`computeChDoneFromDisciplinas`); portal SIGAA só % / total currículo; matérias já passadas = **B30** ✅.
 13. **Gift + painel dev:** **B68–B71** ✅ · **F39–F41** ✅ — painel sem senha SIGAA (`credentialSaved` + `accountRef`).
 14. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial. **Polish em task `[x]`** (ex.: F38, dashboard) também exige nota no TASKS no mesmo ciclo do push.
-15. **Credenciais SIGAA:** sync **sem** o aluno no site exige senha **cifrada no servidor** (dev: B25 opcional + `useAutoSync` no client; produção: **B45** + worker **B56**). Ver `SCOPE.md` §2 · `SCOPE-CLOUD.md` §4–§6.
+15. **Credenciais SIGAA:** sync **sem** o aluno no site exige senha **cifrada no servidor** (dev: B25 opcional + `useAutoSync` no client; produção: **B45** + worker **B56**). Fallback híbrido (§6.1.1): senha em memória no client **ou** `POST /api/sync/device-run` com vault; ingest sobe **snapshot**, não a senha. Ver `SCOPE-CLOUD.md` §6.1.1.
 16. **Código frontend** está em `app/src/` (não na raiz `src/`). Mock data em `app/src/config/mock/`.
 
 ---
 
 ## Marco — site no ar para testes gerais
 
-> **🌐 Mínimo funcional beta (jul/2026):** **6b** ✅ · **6c** ✅ — cadastro, login CPF, trial, gate, RLS/isolamento por conta. Sync SIGAA → Postgres = **[B72a–e](#12--bloco-2f--sync-real-postgres-b72)** `[x]` — **worker = este PC** + cloudflared (ver `app/worker/README.md`). Enquanto o túnel/worker estiver offline, sync na URL pública fica stub.
+> **🌐 Mínimo funcional beta (jul/2026):** **6b** ✅ · **6c** ✅ — cadastro, login CPF, trial, gate, RLS/isolamento por conta. Sync SIGAA → Postgres = **[B72a–e](#12--bloco-2f--sync-real-postgres-b72)** `[x]` — **worker = este PC** + cloudflared (ver `app/worker/README.md`). Enquanto o túnel/worker estiver offline, sync na URL pública fica stub **até** o fallback aparelho (§6.1.1) ser implementado.
 
-> **🌐 Beta aberto:** URL pública com **cadastro + login CPF + trial + gate** (**F29** ✅). Com worker+túnel no ar, sync cloud → Chrome neste PC → mirror Supabase. Sem PC online: usar `npm run sync:mirror` (dev) ou stub na URL.
+> **🌐 Beta aberto:** URL pública com **cadastro + login CPF + trial + gate** (**F29** ✅). Com worker+túnel no ar, sync cloud → Chrome neste PC → mirror Supabase. Sem PC online: hoje stub / `sync:mirror` em dev; **plano** = sync no aparelho → Supabase ([§6.1.1](./SCOPE-CLOUD.md#611-sync-híbrido--pc--aparelho--decisão-set2026)).
 
-> **🌐 O que isso NÃO significa:** o botão Sincronizar **na URL** exige PC com `worker:home` + `worker:tunnel` + secrets CF. Localmente o sync Playwright também roda in-process. **Dados isolados por conta** ✅ **6c**. **PIX / planos pagos** ✅ **#7**.
+> **🌐 O que isso NÃO significa:** o botão Sincronizar **na URL** hoje exige PC com `worker:home` + `worker:tunnel` + secrets CF *(fallback aparelho ainda só no escopo)*. Localmente o sync Playwright também roda in-process. **Dados isolados por conta** ✅ **6c**. **PIX / planos pagos** ✅ **#7**.
 
 ### Fases até o go-live comercial
 

@@ -7,9 +7,11 @@
 
 ## 1. Direção do produto
 
-SaaS para alunos do CEFET-MG: app web hospedado, dados no **Supabase** (Postgres + Auth + Storage), sync SIGAA via **worker Playwright** no servidor, **assinatura por período via PIX**, app **mobile Android (Expo Go)** e **site mobile (F28)** consumindo o mesmo backend — **sem** publicação em lojas oficiais.
+SaaS para alunos do CEFET-MG: app web hospedado, dados no **Supabase** (Postgres + Auth + Storage), sync SIGAA via **worker Playwright no PC (preferido) + fallback no aparelho (web/mobile)** quando o PC estiver offline, **assinatura por período via PIX** *(monetização independente da infra de sync)*, app **mobile Android (Expo Go)** e **site mobile (F28)** consumindo o mesmo backend — **sem** publicação em lojas oficiais.
 
 **Dev local:** SQLite em `app/.data/` para iterar o Bloco 1; produção migra para Supabase (Bloco 6).
+
+> **Decisão de ops (set/2026):** sync **sem VPS pago** e **sem PC 24h** — ver **[§6.1](#61-onde-roda)** / **[§6.1.1](#611-sync-híbrido--pc--aparelho--decisão-set2026)**.
 
 ---
 
@@ -40,8 +42,9 @@ SaaS para alunos do CEFET-MG: app web hospedado, dados no **Supabase** (Postgres
                              │
                              ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│              Worker de Sync SIGAA (Playwright)                   │
-│  Fila / job assíncrono · credenciais SIGAA cifradas · logs       │
+│  Sync SIGAA (híbrido)                                            │
+│  1º PC home + Playwright + cloudflared (preferido)               │
+│  2º Fallback no aparelho (web + mobile) → ingest → Supabase      │
 └─────────────────────────────────────────────────────────────────┘
                              │
                              ▼
@@ -54,10 +57,11 @@ SaaS para alunos do CEFET-MG: app web hospedado, dados no **Supabase** (Postgres
 | **Backend / API** | Next.js API Routes + Supabase client | Dev local ainda usa SQLite; prod usa Postgres |
 | **Banco** | Supabase PostgreSQL | RLS: cada aluno vê só seus dados |
 | **Auth do app** | Supabase Auth | E-mail/senha ou magic link (definir) |
-| **Auth SIGAA** | Credenciais do portal | Armazenadas cifradas, usadas só no worker |
+| **Auth SIGAA** | Credenciais do portal | Cifradas no servidor (worker PC); no fallback, usadas **só em memória no aparelho** do aluno |
 | **Pagamentos** | PIX (gateway TBD) | Mercado Pago, Asaas, AbacatePay, etc. |
 | **Mobile** | Expo (React Native) + Expo Go | **Android only** · dev/testes · **sem** Play/App Store · alternativa = site mobile (**F28**) |
-| **Scraper** | Playwright em worker dedicado | Não roda no browser nem no celular |
+| **Scraper (preferido)** | Playwright no PC home | Path oficial **B54/B72e** + túnel |
+| **Scraper (fallback)** | Adapter no aparelho (web + mobile) | Sem Playwright; resultado **sobe pro Supabase** — §6.1.1 |
 
 ---
 
@@ -289,19 +293,72 @@ Recuperação de acesso: por **e-mail** ou **telefone** cadastrados (não usa e-
 
 ---
 
-## 6. Scraper SIGAA (servidor)
+## 6. Scraper SIGAA (servidor + fallback no aparelho)
 
 ### 6.1 Onde roda
 
-- **Worker dedicado** — path oficial: **PC home server** com Playwright/Chrome + **Cloudflare Tunnel** (`cloudflared`) expondo `localhost:8787`. Implementação **B54/B72e:** `app/worker/` · `npm run worker:home` · ver `app/worker/README.md`. Fly/Docker ficam como fallback se o PC não estiver online.
-- Supabase Edge Functions **não** são ideais para Playwright completo — o browser **nunca** roda na Cloudflare.
+- **Preferido — Worker no PC:** **PC home server** com Playwright/Chrome + **Cloudflare Tunnel** (`cloudflared`) expondo `localhost:8787`. Implementação **B54/B72e:** `app/worker/` · `npm run worker:home` · ver `app/worker/README.md`.
+- **Fallback — aparelho do aluno (web + mobile):** se o worker/túnel estiver **offline**, o sync roda **no cliente** e o resultado **é ingerido no Supabase** (mesmo destino de dados do mirror). Ver **[§6.1.1](#611-sync-híbrido--pc--aparelho--decisão-set2026)**.
+- **Fora de escopo de custo:** VPS pago / Fly / Railway como path oficial — não são necessários para o desenho híbrido.
+- Supabase Edge Functions / Cloudflare **não** rodam Playwright completo — o browser do worker continua só no PC.
 
-### 6.2 Fluxo
+### 6.1.1 Sync híbrido — PC + aparelho (decisão set/2026)
+
+> **Status:** decisão de produto/ops **fechada** · **implementação ainda não iniciada** (só escopo).  
+> **Objetivo:** produto usable com **$0 de servidor Playwright** e **PC desligável**, sem perder sync na nuvem.
+
+#### Decisões fechadas (stakeholder)
+
+| # | Decisão |
+|---|--------|
+| 1 | Fallback nos **dois** clientes: **web** e **mobile** |
+| 2 | Resultado do fallback **sempre sobe para o Supabase** (não fica só em cache local) |
+| 3 | PC home permanece o caminho **preferido** enquanto estiver no ar |
+
+#### Fluxo
+
+```
+Usuário pede sync (web ou mobile)
+    │
+    ├─1─ Health/enqueue do worker PC (túnel) OK?
+    │       SIM → Playwright no PC → mirror → Supabase  (path atual B72e)
+    │
+    └─2─ PC offline / timeout / 503 SIGAA_OFFLINE
+            → Adapter de sync no aparelho (sem Playwright)
+            → POST ingest autenticado (JWT app) → Postgres/Supabase
+            → UI: mesmo progresso / lastSyncAt
+```
+
+#### Contratos técnicos (plano)
+
+| Peça | Papel |
+|------|--------|
+| **Detecção** | `GET` health do worker (ou falha no enqueue cloud) → flip automático; usuário **não** escolhe o path |
+| **Adapter no aparelho** | Pacote compartilhado (TS) — login/navegação SIGAA via **HTTP + parse HTML/JSF** (não Playwright). Mobile: roda no Expo. Web: roda no browser; se CORS bloquear `sig.cefetmg.br`, usar **relay HTTP autenticado** na API Cloudflare **só** como hop de rede (sem browser headless, sem PC) |
+| **Ingest** | `POST /api/sync/ingest` (nome TBD) — body = snapshot já raspado; servidor valida sessão app + RLS/`user_id` e persiste com as **mesmas regras** do mirror (`user-data-priority`, overrides manuais) |
+| **Credenciais** | Fallback: senha SIGAA só em memória no aparelho durante o job; **não** logar PII; não reenviar senha ao ingest (só o snapshot) |
+| **Robôs no MVP do fallback** | Prioridade **R1** (portal / notas / faltas / tarefas). **R2/R3** (calendário/turmas global): ler cache global se fresco; re-raspar no aparelho só se TTL expirou e PC offline |
+| **Fora do MVP fallback** | `submit-tarefa`, robô **RU** — continuam dependentes do PC até fase seguinte |
+| **UX** | Mesma UX de sync; opcional badge discreto “via aparelho” em caso de fallback (ops/debug) |
+| **Segurança** | Rate limit no ingest · payload tipado (Zod) · tamanho máximo · rejeitar snapshot de outro `user_id` |
+
+#### Por que não “só cache local” no fallback
+
+Com PC offline, cache-only deixaria a nuvem e o outro device desatualizados. A decisão **2** exige ingest → Supabase para web e mobile continuarem coerentes.
+
+#### Não-objetivos deste desenho
+
+- Substituir o Playwright do PC quando ele estiver online (PC continua preferido: 1 IP estável, scraper maduro).
+- Rodar Chrome/Playwright dentro do Expo ou do browser.
+- Contratar VPS só para cobrir PC desligado.
+
+### 6.2 Fluxo (path preferido — PC)
 
 1. Usuário clica "Sincronizar" (ou sync automático pós-login).
-2. API enfileira job `{ user_id, encrypted_sigaa_credentials, mode, priority }`.
-3. Worker executa **um** Playwright por vez, grava no Postgres.
-4. Front recebe status via polling ou Realtime (posição na fila, ETA opcional).
+2. API tenta o worker PC; se offline → **§6.1.1** (fallback aparelho).
+3. Se PC online: enfileira job `{ user_id, encrypted_sigaa_credentials, mode, priority }`.
+4. Worker executa **um** Playwright por vez, grava no Postgres (mirror).
+5. Front recebe status via polling ou Realtime (posição na fila, ETA opcional).
 
 ### 6.3 Fila de sync — decisão fechada (MVP worker)
 
@@ -534,8 +591,9 @@ UI (**F41**): seção **Orquestração sync** — formulário da tabela acima + 
 
 | Inclui | Não inclui |
 |---|---|
-| Sessão persistente + logout limpa cache/push | Sync SIGAA **no** device (continua no worker/cloud) |
-| Tokens em **SecureStore** + `POST /api/auth/refresh` (**M3**) | Senha no device (só no formulário de login) |
+| Sessão persistente + logout limpa cache/push | Playwright / Chrome embutido no app |
+| **Fallback de sync no device** quando o PC worker estiver offline (§6.1.1) → ingest Supabase | Senha SIGAA persistida em claro no device (só memória no job / formulário de login) |
+| Tokens em **SecureStore** + `POST /api/auth/refresh` (**M3**) | — |
 | Cache local do snapshot acadêmico | **iOS** · **Play Store** · **App Store** |
 | Push OS (sync, notas/tarefas, calendário D-1/dia) | Download automático de PDFs na nuvem pessoal |
 | Dashboard, disciplinas, calendário, mapa, integralização | — |
@@ -697,8 +755,9 @@ Durante beta/testes com URL pública:
 - [x] **Preços base v1:** R$ 30 (1m) · R$ 50 (3m) · R$ 85 (6m) · R$ 150 (12m) · R$ 700 (5a) — override via `BILLING_PRICE_*` env
 - [x] Gateway PIX v1 — **Mercado Pago** + mock dev (`docs/plan/b48-pix-gateway.md`, **B48**)
 
-- [ ] **Orquestração sync + catálogo global** — policy **§6.6** (jul/2026); implementar **B68d–f** + worker **B54–B56**; painel policy **B70/F41**
-- [ ] Onde hospedar worker Playwright (Railway / Fly.io / VPS — ver §6.3 fila 1×)
+- [x] **Orquestração sync + catálogo global** — policy **§6.6**; **B68d–f** + worker **B54–B56** + painel **B70/F41** (código fechado)
+- [x] **Onde roda o sync (set/2026):** PC home + Playwright **preferido**; fallback **web + mobile** com ingest Supabase — **[§6.1.1](#611-sync-híbrido--pc--aparelho--decisão-set2026)** · **B82–M19** `[%]`
+- [x] **Implementar sync híbrido §6.1.1** — B82 ingest/health · B83 adapter HTTP · F45 web · M19 mobile (`[%]` aguardando push)
 - [x] Política de fila: 1 job global, auto 3h/usuário, manual fim da fila + cooldown 5 min, prioridade 1º login (§6.3)
 - [x] Mobile: API Next.js (mesmo backend do site) + SecureStore; push via Expo Notifications
 - [ ] Detalhe de payload push (categorias alinhadas ao sino web)
@@ -717,6 +776,7 @@ Durante beta/testes com URL pública:
 - [x] **Simulação de mapa:** overlay local; não altera histórico sync (`SCOPE.md` §6.1.1)
 - [x] **Painel dev:** `/dev` + login **email+senha** (pares env manuais); chavinhas robôs R1/R2/R3; **fase testes** exibe senhas SIGAA ao operador; **B71** endurece antes da produção
 - [x] **Hosting Web:** Cloudflare Pages (Frontend) + Supabase (Backend/Auth) + Ping script/cron (Anti-inatividade do DB free)
+- [x] **Sync híbrido (set/2026):** PC preferido · fallback web+mobile · resultado no Supabase — §6.1.1 · **B82–M19** `[%]`
 
 ---
 
