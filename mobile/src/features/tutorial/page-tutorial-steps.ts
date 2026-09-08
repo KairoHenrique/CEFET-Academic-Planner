@@ -31,7 +31,7 @@ export const PAGE_TUTORIALS_NATIVE: Record<PageTutorialId, PageTutorialStep[]> =
     {
       id: "nav",
       title: "Menu",
-      body: "Toque no ☰ no canto superior para abrir Calendário, Disciplinas, Mapa, Integralização, Montar Grade, Planos e este Tutorial.",
+      body: "Toque no ☰ no canto superior para abrir Calendário, Disciplinas, Mapa, Integralização, Montar Grade e este Tutorial.",
     },
     {
       id: "subjects",
@@ -51,7 +51,7 @@ export const PAGE_TUTORIALS_NATIVE: Record<PageTutorialId, PageTutorialStep[]> =
     {
       id: "profile",
       title: "Perfil",
-      body: "Toque no avatar (iniciais) para contato, plano, preferências de notificação e último sync.",
+      body: "Toque no avatar (iniciais) para contato, preferências de notificação e último sync.",
     },
   ],
   disciplinas: [
@@ -184,18 +184,8 @@ export const PAGE_TUTORIALS_NATIVE: Record<PageTutorialId, PageTutorialStep[]> =
   planos: [
     {
       id: "overview",
-      title: "Planos",
-      body: "Escolha o período (trimestre, semestre, anual…). O trial de 7 dias vem no cadastro; depois você renova ou assina via PIX.",
-    },
-    {
-      id: "checkout",
-      title: "Pagar com PIX",
-      body: "Selecione o plano e confirme — o ACME gera o QR / copia-e-cola. Após o pagamento, o acesso libera automaticamente.",
-    },
-    {
-      id: "gift",
-      title: "Chave gift",
-      body: "Se você recebeu um código de presente, resgate nesta tela para ativar o plano sem PIX.",
+      title: "Acesso gratuito",
+      body: "O ACME HUB é gratuito — não há planos pagos nem PIX. Após o cadastro você já usa o app.",
     },
   ],
   perfil: [
@@ -211,8 +201,8 @@ export const PAGE_TUTORIALS_NATIVE: Record<PageTutorialId, PageTutorialStep[]> =
     },
     {
       id: "plan",
-      title: "Assinatura",
-      body: "Veja seu plano atual. Para renovar ou mudar, use Planos no menu.",
+      title: "Acesso",
+      body: "O app é gratuito — todas as funções acadêmicas ficam liberadas na sua conta.",
     },
   ],
   notificacoes: [

@@ -25,8 +25,6 @@ import { IntegralizacaoScreen } from "../screens/IntegralizacaoScreen";
 import { MapaScreen } from "../screens/MapaScreen";
 import { NotificationsScreen } from "../screens/NotificationsScreen";
 import { PerfilScreen } from "../screens/PerfilScreen";
-import { PlanosScreen } from "../screens/PlanosScreen";
-import { PlanosPixScreen } from "../screens/PlanosPixScreen";
 import { SimuladorScreen } from "../screens/SimuladorScreen";
 import { F28Navbar } from "./F28Navbar";
 import { fetchNotifications } from "../cache/fetchers";
@@ -166,19 +164,14 @@ function TutorialHost() {
 
 /** Stack F28 — mesmas rotas do site; casca navbar+drawer. */
 export function AppShell() {
-  const pending = consumePostAuthNavigation();
-  const initialRouteName =
-    pending?.name === "Planos" ? "Planos" : "Dashboard";
-  const planosInitialParams =
-    pending?.name === "Planos"
-      ? (pending.params as RootStackParamList["Planos"])
-      : undefined;
+  // Consome navegação pós-auth (hoje sempre null — app gratuito).
+  consumePostAuthNavigation();
 
   return (
     <TutorialProvider>
       <AppUpdateProvider>
         <Stack.Navigator
-          initialRouteName={initialRouteName}
+          initialRouteName="Dashboard"
           screenOptions={{
             headerShown: false,
             contentStyle: { backgroundColor: brand.bg },
@@ -204,16 +197,6 @@ export function AppShell() {
             component={withShell(IntegralizacaoScreen)}
           />
           <Stack.Screen name="Simulador" component={withShell(SimuladorScreen)} />
-          <Stack.Screen
-            name="Planos"
-            component={withShell(PlanosScreen)}
-            initialParams={planosInitialParams}
-          />
-          <Stack.Screen
-            name="PlanosPix"
-            component={withShell(PlanosPixScreen)}
-            options={{ animation: "slide_from_right" }}
-          />
           <Stack.Screen
             name="Notificacoes"
             component={withShell(NotificationsScreen)}

@@ -1,26 +1,10 @@
-import type { Metadata } from "next";
-import { Suspense } from "react";
-import { PlanosPageClient } from "@/components/planos/PlanosPageClient";
-import { PlanosPageShell } from "@/components/planos/PlanosPageShell";
+import { redirect } from "next/navigation";
 
-export const metadata: Metadata = {
+export const metadata = {
   title: "Planos",
 };
 
-function PlanosPageFallback() {
-  return (
-    <PlanosPageShell>
-      <p className="planos-loading" role="status">
-        Carregando planos…
-      </p>
-    </PlanosPageShell>
-  );
-}
-
+/** Cobrança desativada — app gratuito. */
 export default function PlanosPage() {
-  return (
-    <Suspense fallback={<PlanosPageFallback />}>
-      <PlanosPageClient />
-    </Suspense>
-  );
+  redirect("/");
 }

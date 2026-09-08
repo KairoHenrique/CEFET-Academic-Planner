@@ -23,16 +23,15 @@ export const TERMS_SECTIONS: LegalSection[] = [
     title: "2. Elegibilidade e conta",
     paragraphs: [
       "O serviço destina-se a alunos regularmente vinculados ao CEFET-MG. O login utiliza CPF e a mesma senha do portal SIGAA, validada durante a sincronização acadêmica.",
-      "Cada CPF pode receber um período de trial gratuito de 7 dias, uma única vez, conforme regras anti-abuso descritas na Política de Privacidade.",
+      "O ACME HUB é gratuito: após o cadastro, o acesso às funções acadêmicas permanece liberado sem cobrança.",
     ],
   },
   {
     id: "assinatura",
-    title: "3. Assinatura e pagamento",
+    title: "3. Acesso gratuito",
     paragraphs: [
-      "Após o trial, o acesso contínuo depende de assinatura paga via PIX ou resgate de chave de plano emitida por operador autorizado.",
-      "Valores, duração dos planos e renovação são exibidos em /planos antes da confirmação do pagamento. Pagamentos processados por gateway terceiro (Mercado Pago) estão sujeitos também às regras desse provedor.",
-      "Renovações podem acumular período remanescente conforme indicado na interface. Após expiração, pode haver janela de tolerância (grace period) antes do bloqueio total do acesso.",
+      "Não há planos pagos, PIX nem renovação obrigatória neste produto. O uso do planejador acadêmico é gratuito.",
+      "Eventuais ferramentas internas de operador (painel /dev) não alteram o caráter gratuito do app para o aluno.",
     ],
   },
   {
@@ -40,7 +39,7 @@ export const TERMS_SECTIONS: LegalSection[] = [
     title: "4. Uso aceitável",
     bullets: [
       "Não compartilhar credenciais SIGAA com terceiros nem usar o serviço para acessar dados de outras pessoas.",
-      "Não tentar burlar limites de trial, assinatura ou sincronização automatizada.",
+      "Não tentar burlar limites de sincronização automatizada ou abusar da infraestrutura.",
       "Não realizar engenharia reversa, scraping abusivo ou interferência nos workers de sincronização.",
       "Respeitar a propriedade intelectual do CEFET-MG, do SIGAA e de terceiros cujos dados são exibidos.",
     ],
@@ -51,14 +50,14 @@ export const TERMS_SECTIONS: LegalSection[] = [
     title: "5. Relação com o SIGAA",
     paragraphs: [
       "O ACME HUB não é oficial do CEFET-MG nem substitui o SIGAA. Dados exibidos são obtidos por sincronização automatizada e podem estar desatualizados se o portal estiver indisponível.",
-      "Edições feitas pelo aluno no ACME HUB têm prioridade sobre dados sincronizados, conforme regras de produto documentadas.",
+      "Edições feitas pelo aluno no ACME HUB têm prioridade sobre dados sincronizados, garantindo total controle sobre a sua própria organização acadêmica.",
     ],
   },
   {
     id: "comunicacoes",
     title: "6. Comunicações",
     paragraphs: [
-      "Podemos enviar e-mails transacionais (cadastro, fim de trial, aviso de plano próximo do fim ou encerrado) e comunicações promocionais relacionadas ao ACME HUB, conforme Política de Privacidade.",
+      "Podemos enviar e-mails transacionais relacionados à conta (cadastro e avisos operacionais), conforme Política de Privacidade.",
       "Alertas acadêmicos (notas, tarefas) são entregues no aplicativo (sino de notificações), não por e-mail.",
     ],
   },

@@ -29,7 +29,6 @@ import {
 import { hasApiBaseUrl } from "./src/config/env";
 import { navigationRef } from "./src/navigation/navigation-ref";
 import { AppShell } from "./src/navigation/AppShell";
-import { PaywallStack } from "./src/navigation/PaywallStack";
 import { registerPushForCurrentSession, setupPushNotifications } from "./src/push/register";
 import { setupNotificationNavigationListeners } from "./src/push/notification-navigation";
 import { hydrateAvatarInitials } from "./src/perfil/avatar-store";
@@ -132,20 +131,6 @@ export default function App() {
     return (
       <SafeAreaProvider>
         <LoginScreen apiConfigured={apiOk} />
-        <MaintenanceOverlay />
-        <StatusBar style="light" />
-      </SafeAreaProvider>
-    );
-  }
-
-  const destination = resolveAppDestination(session.subscription.status);
-
-  if (destination === "paywall") {
-    return (
-      <SafeAreaProvider>
-        <NavigationContainer ref={navigationRef} theme={navTheme}>
-          <PaywallStack session={session} />
-        </NavigationContainer>
         <MaintenanceOverlay />
         <StatusBar style="light" />
       </SafeAreaProvider>

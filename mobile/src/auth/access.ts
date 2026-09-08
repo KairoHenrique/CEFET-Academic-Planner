@@ -1,10 +1,10 @@
 import type { PerfilSubscriptionStatus } from "@acme/api-contracts";
 
-/** Espelha `subscription-access-rules.ts` do site (M4). */
+/** App gratuito — nunca bloqueia por assinatura. */
 export function isSubscriptionAccessAllowed(
-  status: PerfilSubscriptionStatus
+  _status: PerfilSubscriptionStatus
 ): boolean {
-  return status === "trial_active" || status === "active";
+  return true;
 }
 
 export function isSubscriptionBlocked(
@@ -15,14 +15,11 @@ export function isSubscriptionBlocked(
 
 export type AppDestination = "home" | "paywall";
 
-/**
- * Destino pós-auth no app (paridade com resolvePostAuthRedirect do web).
- * Trial ativo e pago ativo → home; demais → paywall (planos).
- */
+/** Sempre home — paywall desativado. */
 export function resolveAppDestination(
-  status: PerfilSubscriptionStatus
+  _status: PerfilSubscriptionStatus
 ): AppDestination {
-  return isSubscriptionAccessAllowed(status) ? "home" : "paywall";
+  return "home";
 }
 
 export function subscriptionStatusLabel(
@@ -30,18 +27,14 @@ export function subscriptionStatusLabel(
 ): string {
   switch (status) {
     case "trial_active":
-      return "Trial ativo";
     case "active":
-      return "Assinatura ativa";
+      return "Acesso gratuito";
     case "trial_expired":
-      return "Trial expirado";
     case "pending_payment":
-      return "Pagamento pendente";
     case "expired":
-      return "Assinatura expirada";
     case "cancelled":
-      return "Assinatura cancelada";
+      return "Acesso gratuito";
     default:
-      return status;
+      return "Acesso gratuito";
   }
 }

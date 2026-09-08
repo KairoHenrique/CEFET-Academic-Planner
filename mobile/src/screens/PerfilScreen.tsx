@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import {
-  ActivityIndicator,
+  Alert,
   Linking,
   Pressable,
   RefreshControl,
@@ -69,7 +69,8 @@ export function PerfilScreen() {
     return () => clearTimeout(timer);
   }, [message]);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
     setError(null);
     try {
       const result = await getPerfil();
@@ -95,13 +96,12 @@ export function PerfilScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      setLoading(true);
-      void load();
+      void load(true);
     }, [load])
   );
 
   useOnSyncComplete(() => {
-    void load();
+    void load(true);
   });
 
   async function togglePref(key: PrefKey, value: boolean) {
@@ -165,6 +165,30 @@ export function PerfilScreen() {
     } finally {
       setLogoutBusy(false);
     }
+  }
+
+  function confirmDeleteAccount() {
+    Alert.alert(
+      "Deletar Conta",
+      "Ao deletar sua conta, você está abdicando permanentemente do seu plano ativo e perdendo todos os seus dados. Essa ação é irreversível. Deseja continuar?",
+      [
+        { text: "Cancelar", style: "cancel" },
+        { 
+          text: "Sim, Deletar", 
+          style: "destructive",
+          onPress: async () => {
+            setLogoutBusy(true);
+            try {
+              await requestJson("/api/perfil/delete", { method: "DELETE" });
+              await logoutLocal();
+            } catch (err) {
+              setLogoutBusy(false);
+              Alert.alert("Erro", "Não foi possível deletar a conta.");
+            }
+          }
+        }
+      ]
+    );
   }
 
   const profile = perfil?.profile;
@@ -257,15 +281,10 @@ export function PerfilScreen() {
 
           {sub ? (
             <View style={cardStyles.card}>
-              <Text style={cardStyles.cardTitle}>Assinatura</Text>
+              <Text style={cardStyles.cardTitle}>Acesso</Text>
               <Text style={cardStyles.cardMeta}>
-                {sub.planLabel} · {subscriptionStatusLabel(sub.status)}
+                ACME HUB gratuito — todas as funções liberadas.
               </Text>
-              {sub.daysRemaining > 0 ? (
-                <Text style={cardStyles.cardMeta}>
-                  {sub.daysRemaining} dias restantes
-                </Text>
-              ) : null}
             </View>
           ) : null}
 
@@ -322,8 +341,16 @@ export function PerfilScreen() {
             {logoutBusy ? (
               <ActivityIndicator color={brand.text} />
             ) : (
-              <Text style={styles.logoutText}>Sair da conta</Text>
+            <Text style={styles.logoutText}>Sair da conta</Text>
             )}
+          </Pressable>
+
+          <Pressable
+            style={[styles.deleteBtn, logoutBusy && styles.disabled]}
+            onPress={confirmDeleteAccount}
+            disabled={logoutBusy}
+          >
+            <Text style={styles.deleteText}>Deletar Minha Conta</Text>
           </Pressable>
         </>
         </FadeInContent>
@@ -406,6 +433,23 @@ const styles = StyleSheet.create({
   disabled: { opacity: 0.55 },
   logoutText: {
     color: brand.text,
+    fontWeight: "700",
+    fontSize: 15,
+  },
+  deleteBtn: {
+    marginTop: 12,
+    marginBottom: 40,
+    backgroundColor: "transparent",
+    borderWidth: 1,
+    borderColor: brand.danger,
+    borderRadius: 10,
+    paddingVertical: 14,
+    alignItems: "center",
+    minHeight: 48,
+    justifyContent: "center",
+  },
+  deleteText: {
+    color: brand.danger,
     fontWeight: "700",
     fontSize: 15,
   },

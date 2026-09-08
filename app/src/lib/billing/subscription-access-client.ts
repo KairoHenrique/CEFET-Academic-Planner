@@ -1,5 +1,4 @@
 import type { PerfilSubscriptionStatus } from "@/lib/types/perfil-api";
-import { isSubscriptionBlocked } from "@/lib/billing/access/subscription-access-rules";
 import { isPublicAppPath } from "@/lib/routing/public-paths";
 
 export type PlanosFlow = "welcome" | "renew" | "pending" | "exists";
@@ -38,11 +37,10 @@ export function shouldGuardSubscriptionAccess(
   status: PerfilSubscriptionStatus,
   pathname: string
 ): boolean {
-  if (!isSubscriptionBlocked(status)) {
-    return false;
-  }
-
-  return !isSubscriptionExemptPath(pathname);
+  // App gratuito — nunca redireciona para /planos.
+  void status;
+  void pathname;
+  return false;
 }
 
 export function resolveSubscriptionGuardHref(

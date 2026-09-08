@@ -7,7 +7,9 @@
 
 ## 1. Direção do produto
 
-SaaS para alunos do CEFET-MG: app web hospedado, dados no **Supabase** (Postgres + Auth + Storage), sync SIGAA via **worker Playwright no PC (preferido) + fallback no aparelho (web/mobile)** quando o PC estiver offline, **assinatura por período via PIX** *(monetização independente da infra de sync)*, app **mobile Android (Expo Go)** e **site mobile (F28)** consumindo o mesmo backend — **sem** publicação em lojas oficiais.
+SaaS para alunos do CEFET-MG: app web hospedado, dados no **Supabase** (Postgres + Auth + Storage), sync SIGAA via **worker Playwright no PC (preferido) + fallback no aparelho (web/mobile)** quando o PC estiver offline, app **mobile Android (Expo Go)** e **site mobile (F28)** consumindo o mesmo backend — **sem** publicação em lojas oficiais.
+
+> **💰 Modelo (set/2026):** o produto é **100% gratuito** para o aluno — sem PIX, planos pagos nem bloqueio por assinatura (`BILLING_ENFORCED=false`). Código de billing permanece legado/dormante.
 
 **Dev local:** SQLite em `app/.data/` para iterar o Bloco 1; produção migra para Supabase (Bloco 6).
 
@@ -58,135 +60,58 @@ SaaS para alunos do CEFET-MG: app web hospedado, dados no **Supabase** (Postgres
 | **Banco** | Supabase PostgreSQL | RLS: cada aluno vê só seus dados |
 | **Auth do app** | Supabase Auth | E-mail/senha ou magic link (definir) |
 | **Auth SIGAA** | Credenciais do portal | Cifradas no servidor (worker PC); no fallback, usadas **só em memória no aparelho** do aluno |
-| **Pagamentos** | PIX (gateway TBD) | Mercado Pago, Asaas, AbacatePay, etc. |
+| **Pagamentos** | — (app gratuito) | Billing legado dormante (`BILLING_ENFORCED=false`) |
 | **Mobile** | Expo (React Native) + Expo Go | **Android only** · dev/testes · **sem** Play/App Store · alternativa = site mobile (**F28**) |
 | **Scraper (preferido)** | Playwright no PC home | Path oficial **B54/B72e** + túnel |
 | **Scraper (fallback)** | Adapter no aparelho (web + mobile) | Sem Playwright; resultado **sobe pro Supabase** — §6.1.1 |
 
 ---
 
-## 3. Modelo de assinatura (PIX por período)
+## 3. Modelo de acesso (gratuito)
 
-> **Preços:** a definir. Este escopo descreve o **fluxo** e as **regras**, não valores.
+> **Decisão set/2026:** o ACME HUB é **totalmente gratuito**. Não há cobrança PIX, catálogo de preços nem paywall.  
+> O Bloco 7 (billing) permanece no repositório como **legado dormante** (`BILLING_ENFORCED=false` em `lib/billing/free-mode.ts`).
 
-### 3.1 Planos
+### 3.1 O que o aluno vê
 
-Assinatura **por período de acesso** (v1):
+| Antes | Agora |
+|---|---|
+| Trial 7 dias → PIX / planos | Cadastro → acesso liberado |
+| Gate `trial_expired` / `expired` | Gate sempre permite |
+| `/planos` e paywall mobile | Redirecionam para home / removidos da navegação |
 
-| Plano | Duração | Observação |
-|---|---|---|
-| **Trial** | **7 dias** | **Uma vez por CPF** (login SIGAA); ver `SCOPE.md` §2.1 |
-| **Mensal** | **30 dias** | **R$ 30** (v1) |
-| **Trimestre** | **3 meses** | **R$ 50** — desconto vs. 3 mensais |
-| **Semestre** | **6 meses** | **R$ 85** — desconto vs. 2 trimestres |
-| **Ano** | **12 meses** | **R$ 150** — desconto vs. 2 semestres |
-| **5 anos** | **60 meses** | **R$ 700** — desconto vs. 5 anuais |
+### 3.2 Planos e PIX (legado)
 
-### 3.2 Fluxo de cadastro + trial + pagamento
+A seção histórica de preços/PIX abaixo ficou **fora de vigor** para o produto. APIs `/api/billing/*` podem existir, mas a UI e o gate não as exigem.
 
-```
-1. Usuário acessa site → "Criar conta"
-2. Preenche: e-mail + telefone + CPF + senha SIGAA + curso (Eng. Comp. / Mecatrônica / Moda)
-3. Sistema valida CPF, curso e se o CPF já consumiu trial
-4. Se CPF elegível → trial 7 dias (`trial_active`); conta já vinculada ao `curso_id` / PPC
-5. Login posterior: **somente CPF + senha SIGAA** (e-mail/telefone não autenticam)
-6. Após trial ou CPF já usou trial → PIX → `active`
-7. Sync valida senha no SIGAA; mapa/integralização usam PPC do curso escolhido
-```
+<details>
+<summary>Referência histórica (não vigente)</summary>
 
-**Estados da conta:**
+Assinatura **por período** (v1 legado): trial 7 dias; mensal/trimestre/semestre/ano/5 anos via PIX (Mercado Pago). Ver commits do Bloco 7.
 
-| Status | Acesso ao app | Sync SIGAA |
-|---|---|---|
-| `trial_active` | Liberado (até fim dos 7 dias) | ✅ |
-| `trial_expired` | Bloqueado → pagar | ❌ |
-| `pending_payment` | Bloqueado (aguardando PIX) | ❌ |
-| `active` | Liberado | ✅ |
-| `expired` | Bloqueado (renovar) | ❌ |
-| `cancelled` | Bloqueado | ❌ |
-
-**Anti-abuso trial:** tabela/registro **`trial_por_cpf`** (ou equivalente): CPF → `trial_started_at` / `trial_used_at`. Mesmo CPF com e-mail diferente **não** ganha segundo trial.
+</details>
 
 ### 3.3 Renovação
 
-- Ao expirar, usuário vê tela de **renovação** com novo PIX.
-- **Grace period e Exclusão de Dados:** O aluno tem um período de tolerância de **7 dias**. Se não renovar/pagar nesse prazo, todos os **dados acadêmicos são apagados** do banco (para economizar espaço no Supabase Free).
-- O **CPF do usuário nunca é apagado** da tabela `trial_por_cpf`, garantindo que ele não possa usufruir do trial novamente caso crie outra conta.
+Não aplicável — acesso contínuo sem renovação paga.
 
-### 3.4 Gateway PIX (a escolher)
+### 3.4 Gateway PIX
 
-Critérios para escolha (fase de implementação):
+Legado. Não usado no fluxo do aluno enquanto `BILLING_ENFORCED=false`.
 
-- Webhook confiável de confirmação
-- Taxa baixa / plano gratuito para MVP
-- Conformidade LGPD (dados mínimos)
-- Suporte a PIX estático ou dinâmico
+### 3.5 O que **não** entra no produto gratuito
 
-**Candidatos (não decidido):** Mercado Pago, Asaas, AbacatePay, Stripe (PIX BR).
+- Cobrança por cartão, boleto ou PIX obrigatório
+- Paywall pós-login
+- Exibição de preços ao aluno
 
-**Decisão v1 (B48):** **Mercado Pago** — ver [`docs/plan/b48-pix-gateway.md`](./plan/b48-pix-gateway.md). Adapter `app/src/lib/billing/gateway/` · `GET /api/billing/gateway/status`. Asaas reservado (stub).
+### 3.6 Chaves gift / indicação
 
-### 3.5 O que **não** entra na v1 de billing
+Funcionalidades de gift/indicação do Bloco 7 ficam **dormantes** na UI do aluno (código pode permanecer no repositório).
 
-- Cartão de crédito
-- Boleto
-- Cupons públicos / códigos de afiliado em massa (diferente de **chaves gift** operador — §3.6 e de **indicação por matrícula** 1:1 — §3.7)
-- Plano família / institucional
-- Nota fiscal automática (pode ser manual no início)
+### 3.7 Indicação por matrícula (legado)
 
-### 3.6 Chaves de plano (gift card)
-
-Complementa PIX e trial (`SCOPE.md` §2.1.1). Implementação cloud:
-
-**Tabela `plan_gift_keys` (exemplo):**
-
-| Campo | Tipo | Descrição |
-|---|---|---|
-| `code` | `char(8)` UNIQUE | Código normalizado uppercase |
-| `plan_type` | enum | `semester` \| `year` \| `custom_days` |
-| `duration_days` | int | Dias de acesso após resgate |
-| `status` | enum | `available` \| `redeemed` \| `revoked` \| `expired` |
-| `expires_at` | timestamptz nullable | Validade da **chave** (não do plano) |
-| `redeemed_by_cpf` | text nullable | CPF que resgatou |
-| `redeemed_at` | timestamptz nullable | |
-| `created_by` | text | Operador (dev panel) |
-| `internal_label` | text nullable | Ex.: “Beta testers jun/26” |
-
-**Regras:**
-
-- Geração: `crypto.randomBytes` → charset `A-Z0-9` → 8 chars; colisão → regerar.
-- Resgate atômico: transação `UPDATE … WHERE status = 'available' AND code = ?` — falha se já usada.
-- Após resgate: upsert em `subscriptions` com `source = 'gift_key'` e `expires_at = now() + duration_days`.
-- **Não** reinicia trial por CPF; chave **adiciona** ou **substitui** período pago conforme regra de negócio (v1: estende a partir de `now()` se expirado, ou soma se ainda `active` — definir na implementação **B69**).
-
-**API aluno:**
-
-- `POST /api/billing/redeem-key` — body `{ code }` + sessão CPF autenticado.
-- Rate limit por IP/CPF (anti brute-force de 8 chars).
-
-**Promoções:** flag global `promotions_enabled` (config operador) controla banners em `/planos`; independente das chaves gift.
-
-### 3.7 Indicação por matrícula (amigo) — B74 / F43
-
-Complementa trial e PIX (`SCOPE.md` §2.1.2). No cadastro o aluno pode informar a **matrícula SIGAA** de um amigo que já sincronizou.
-
-**Tabela `account_referrals`:**
-
-| Campo | Descrição |
-|---|---|
-| `referred_user_id` | Conta nova (única — 1 indicação) |
-| `referrer_user_id` / `referrer_matricula` | Amigo encontrado via `aluno.matricula` |
-| `status` | `pending` → `rewarded` (ou `void`) |
-| `*_days_granted` | Dias efetivamente creditados (respeitam cap 30) |
-
-**Regras:**
-
-- Bônus **+3 dias** para cada lado **somente** quando o indicado tem assinatura ativada por pagamento (webhook PIX / `confirmBillingPayment`).
-- Cap **30 dias** acumulados de bônus de indicação por `user_id`.
-- Trial 7 dias (`trial_por_cpf`) **independente** — não é encurtado nem cancelado.
-- Empilhamento: estende assinatura `active` existente; se só trial, cria `subscriptions` com `source = 'referral'` a partir do fim do trial.
-
-**Cadastro:** `POST /api/auth/register` aceita `friendMatricula` opcional. UI: campo no criar conta (substitui chave gift nessa tela). Resgate de chave gift permanece em `/planos`.
+Fluxo B74/F43 permanece no código; bônus por pagamento **não** se aplica enquanto o app for gratuito.
 
 ---
 
@@ -197,38 +122,34 @@ Complementa trial e PIX (`SCOPE.md` §2.1.2). No cadastro o aluno pode informar 
 | Aspecto | Regra |
 |---|---|
 | **Login** | **CPF + senha SIGAA** — e-mail e telefone **não** autenticam |
-| **E-mail** | Cadastro obrigatório; contato + envios §4.4 (promo + ciclo conta) |
+| **E-mail** | Cadastro obrigatório; contato + envios §4.4 |
 | **Telefone** | Cadastro obrigatório; contato (suporte / canais futuros) |
 | **Curso** | Cadastro obrigatório: Eng. Computação, Mecatrônica ou Moda → `curso_id` + PPC |
 | **Senha do app** | **Não existe** separada — mesma senha do SIGAA |
-| **Validação de senha** | **SIGAA** no sync (Playwright) |
-| **Validação no app** | CPF + gate trial/assinatura + `curso_id` válido |
-| **Armazenamento** | CPF, e-mail, telefone, `curso_id`, senha SIGAA **cifrada** *(meta produção — **B71**)* |
-| **Identidade Auth** | **CPF** como identificador principal (não e-mail) — ver B44 |
+| **Validação de senha** | **SIGAA** no sync (Playwright / fallback aparelho) |
+| **Validação no app** | CPF + `curso_id` válido · **sem** bloqueio por assinatura (`BILLING_ENFORCED=false`) |
+| **Armazenamento** | CPF, e-mail, telefone, `curso_id`, senha SIGAA **cifrada** |
+| **Identidade Auth** | **CPF** como identificador principal |
 
 Recuperação de acesso: por **e-mail** ou **telefone** cadastrados (não usa e-mail como login).
 
 ### 4.2 Credenciais SIGAA (sync)
 
 - CPF + senha gravados no cadastro.
-- **Fase beta (atual):** SQLite dev pode guardar senha recuperável para painel `/dev` (testadores consentientes); **B25** cifra opcional “lembrar senha” mas operador pode ver plaintext no painel.
-- **Produção (B71):** senha **sempre** cifrada; worker Playwright descriptografa só em memória no worker; **nunca** log em texto claro.
-- Opção “lembrar senha” no device = perfil no servidor, não plaintext no browser *(pós-B71)*.
+- **Produção (B71):** senha **sempre** cifrada; worker descriptografa só em memória; **nunca** log em texto claro.
+- Fallback aparelho: senha só em memória no client **ou** vault no `device-run`.
 
 ### 4.3 Fluxo pós-login
 
-1. Login (CPF + senha) + middleware verifica `trial_active` ou `active`.
-2. Se bloqueado → tela PIX / renovação.
-3. Sync dispara job assíncrono; **SIGAA** confirma ou rejeita senha.
-4. Dashboard carrega dados do Postgres.
+1. Login (CPF + senha) → entra no app (`/`).
+2. Sync dispara (PC worker ou fallback aparelho).
+3. Dashboard carrega dados do Postgres.
 
 ### 4.4 E-mail (promoções e ciclo de conta)
 
-- **Sem e-mail acadêmico** — tarefas, notas e prazos = **somente in-app** (sino **F38**); ver `SCOPE.md` §2.5.
-- **Promoções:** **sempre enviadas** ao e-mail de contato cadastrado — **sem opt-out** do aluno (**B62**).
-- **Ciclo de conta (sempre envia):** cadastro/boas-vindas · fim do trial · plano perto de acabar · plano encerrado.
-- **Contato (e-mail/tel):** editar no modal perfil (**F37** ✅ · `PATCH /api/perfil`); na cloud **B61** persiste em `app_profiles` — **sem** opt-out de promoções.
-- Implementação de fila/provedor = **B62**; regra de negócio em `SCOPE.md` §2.5.
+- **Sem e-mail acadêmico** — tarefas, notas e prazos = **somente in-app** (sino **F38**).
+- Comunicações de conta: cadastro/boas-vindas e avisos operacionais (sem cobrança PIX).
+- Contato (e-mail/tel): editar no modal perfil.
 
 ---
 

@@ -1,15 +1,10 @@
-import type { Metadata } from "next";
-import { Suspense } from "react";
-import { PlanosPixScreen } from "@/components/planos/pix/PlanosPixScreen";
+import { redirect } from "next/navigation";
 
-export const metadata: Metadata = {
-  title: "Pagamento PIX",
+export const metadata = {
+  title: "PIX",
 };
 
+/** Cobrança desativada — app gratuito. */
 export default function PlanosPixPage() {
-  return (
-    <Suspense fallback={null}>
-      <PlanosPixScreen />
-    </Suspense>
-  );
+  redirect("/");
 }

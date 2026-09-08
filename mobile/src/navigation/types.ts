@@ -6,8 +6,6 @@ export type RootStackParamList = {
   Mapa: undefined;
   Integralizacao: undefined;
   Simulador: undefined;
-  Planos: { flow?: string; paywall?: boolean } | undefined;
-  PlanosPix: { paymentId: string; paywall?: boolean };
   Notificacoes: undefined;
   Sync: undefined;
   Perfil: undefined;

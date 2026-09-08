@@ -34,8 +34,8 @@ export function resolveNotificationHref(href: string): {
   if (path === "/simulador") {
     return { route: "Simulador" };
   }
-  if (path === "/planos") {
-    return { route: "Planos" };
+  if (path === "/planos" || path.startsWith("/planos/")) {
+    return { route: "Dashboard" };
   }
   if (path === "/perfil") {
     return { route: "Perfil" };

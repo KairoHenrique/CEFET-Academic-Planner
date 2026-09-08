@@ -2,9 +2,9 @@
 
 Este documento contém todas as tasks do projeto, organizadas por fase. Cada task tem um status e detalhes suficientes para qualquer desenvolvedor (humano ou IA) entender e implementar.
 
-> ## Direção atual — Sync SIGAA → Cloud → PIX → Site maduro (#9+#10) → Mobile
+> ## Direção atual — Sync SIGAA → Cloud → Site maduro → Mobile · **app 100% gratuito**
 >
-> **Prioridade:** terminar Bloco 1 (SQLite) → **Scraper/sync real (Bloco 2) enquanto o semestre está ativo** → depois Supabase/deploy. ~~Download automático de materiais SIGAA~~ **fora de escopo** (cancelado jun/2026). Ver também [`docs/SCOPE-CLOUD.md`](./SCOPE-CLOUD.md).
+> **Prioridade:** sync híbrido + experiência acadêmica. ~~PIX / planos pagos~~ **desativados set/2026** (`BILLING_ENFORCED=false`). Ver [`SCOPE-CLOUD.md` §3](./SCOPE-CLOUD.md).
 >
 > - **Regras acadêmicas:** [`docs/SCOPE.md`](./SCOPE.md)
 > - **Ordem de execução:** [§ Ordem oficial](#ordem-oficial-de-execução-v3)
@@ -1812,6 +1812,12 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | F45 | Front | Fallback sync web | `runQueuedSyncClient` flip PC→aparelho/edge | [%] |
 | M19 | Front | Fallback sync mobile | `startManualLiteSync` flip + `device-run` | [%] |
 
+### Produto gratuito (set/2026)
+
+| # | Tipo | Task | Resumo | Status |
+|---|------|------|--------|--------|
+| F46 | Front+Back | App 100% free | Gate off · sem paywall/PIX/preços · `/planos` → `/` · legal + SCOPE | [%] |
+
 | # | Tipo | Task | Resumo | Status |
 |---|------|------|--------|--------|
 | B57 | Back | OAuth nuvem pessoal | Google Drive / Dropbox / OneDrive | ❌ cancelado |
@@ -2084,7 +2090,7 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 8. **Próximo passo do roadmap:** informe **depois do push** (tasks em `[@]` ou `[x]`). Com commits locais só `[x]`, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v3](#ordem-oficial-de-execução-v3) — **Bloco 2 (sync) antes do Bloco 6 (Supabase)**. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy **após** sync validado; RLS ✅ **6c** (antes do PIX). Marco “site no ar p/ testes gerais” → [final do TASKS.md](#marco--site-no-ar-para-testes-gerais).
-11. **Próximo passo:** **M16** / **M17** `[@]` (opcionais — APK sideload / update in-app). **B80/B81/F44/M18** `[x]` Saldo do RU. **Sync híbrido B82/B83/F45/M19** `[%]` local. **#11 Multi-PPC** `[x]`. Site **v1.0.1**. **F28** `[x]`.
+11. **Próximo passo:** **M16** / **M17** `[@]` (opcionais — APK sideload / update in-app). **B80/B81/F44/M18** `[x]` Saldo do RU. **Sync híbrido B82/B83/F45/M19** `[%]`. **F46 app gratuito** `[%]`. **#11 Multi-PPC** `[x]`. Site **v1.0.1**. **F28** `[x]`.
 12. **Integralização:** CH concluída = `historico` + PPC (`computeChDoneFromDisciplinas`); portal SIGAA só % / total currículo; matérias já passadas = **B30** ✅.
 13. **Gift + painel dev:** **B68–B71** ✅ · **F39–F41** ✅ — painel sem senha SIGAA (`credentialSaved` + `accountRef`).
 14. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial. **Polish em task `[x]`** (ex.: F38, dashboard) também exige nota no TASKS no mesmo ciclo do push.

@@ -16,23 +16,22 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
     id: "dados",
     title: "2. Dados coletados",
     bullets: [
-      "CPF — login, controle anti-abuso de trial e identificação da conta.",
-      "E-mail e telefone — contato, comunicações transacionais e promocionais.",
+      "CPF — login e identificação da conta.",
+      "E-mail e telefone — contato e comunicações transacionais.",
       "Senha do SIGAA — armazenada cifrada (AES-GCM) para sincronização acadêmica; nunca exibida em texto claro na interface do aluno.",
       "Dados acadêmicos do SIGAA — notas, faltas, tarefas, grade, histórico, calendário e metadados de disciplinas.",
-      "Dados de assinatura — plano, status, pagamentos PIX (referência, valor, status; sem armazenar dados completos de cartão).",
     ],
     paragraphs: [
-      "Coletamos apenas o necessário para operar o serviço (minimização de dados).",
+      "Coletamos apenas o necessário para operar o serviço (minimização de dados). O produto é gratuito; não processamos pagamento do aluno.",
     ],
   },
   {
     id: "finalidades",
     title: "3. Finalidades e bases legais",
     bullets: [
-      "Execução de contrato — criar conta, sincronizar SIGAA, exibir dashboard e processar assinatura.",
+      "Execução de contrato — criar conta, sincronizar SIGAA e exibir o planejador acadêmico.",
       "Consentimento — aceite desta política e dos Termos de Uso no cadastro.",
-      "Legítimo interesse — prevenção de fraude (trial único por CPF), segurança e melhoria do serviço.",
+      "Legítimo interesse — segurança, prevenção de abuso e melhoria do serviço.",
       "Cumprimento de obrigação legal — quando exigido por autoridade competente.",
     ],
     paragraphs: [],
@@ -42,10 +41,9 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
     title: "4. Compartilhamento com terceiros",
     bullets: [
       "Supabase — autenticação e banco de dados (hospedagem com RLS por usuário).",
-      "Cloudflare — hospedagem da aplicação web e workers de cron.",
-      "Mercado Pago — processamento de pagamentos PIX (e-mail e CPF do pagador conforme exigência do gateway).",
-      "Provedor de e-mail transacional — envio de mensagens de ciclo de vida da conta.",
-      "Worker de sincronização — execução do scraper SIGAA com credenciais cifradas.",
+      "Cloudflare — hospedagem da aplicação web.",
+      "Provedor de e-mail transacional — envio de comunicações importantes sobre sua conta.",
+      "Worker de sincronização — sistema isolado e seguro para comunicação com o SIGAA.",
     ],
     paragraphs: [
       "Não vendemos dados pessoais. Compartilhamentos ocorrem apenas para operar o serviço ou cumprir a lei.",
@@ -55,9 +53,8 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
     id: "retencao",
     title: "5. Retenção e exclusão",
     paragraphs: [
-      "Dados acadêmicos sincronizados são apagados automaticamente 7 dias após a expiração do trial ou da assinatura sem renovação, para economia de armazenamento.",
-      "O CPF permanece registrado para impedir novo trial gratuito (controle anti-abuso), conforme decisão de produto documentada.",
-      "Você pode solicitar exclusão antecipada ou correção de dados pelo canal de contato. Pedidos serão atendidos nos prazos legais.",
+      "Você pode excluir sua conta e apagar seus dados a qualquer momento pelo aplicativo ou versão web (Menu > Perfil > Deletar Conta). A exclusão remove de forma definitiva dados acadêmicos e credenciais sincronizadas.",
+      "Você também pode solicitar exclusão ou correção pelo canal de contato.",
     ],
   },
   {
@@ -76,8 +73,8 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
     id: "seguranca",
     title: "7. Segurança",
     paragraphs: [
-      "Credenciais SIGAA são cifradas em repouso. Tráfego utiliza HTTPS. Acesso ao banco é isolado por usuário (RLS).",
-      "Logs de produção não devem conter senhas, CPF completo ou e-mail em texto claro. Operadores do painel /dev possuem acesso restrito e auditado.",
+      "As credenciais do SIGAA são estritamente protegidas com criptografia avançada. O tráfego de dados utiliza conexão segura HTTPS. O acesso ao banco de dados é restrito, garantindo que suas informações sejam acessíveis apenas por você.",
+      "Nossa infraestrutura é monitorada continuamente para prevenir acessos não autorizados e garantir a integridade dos seus dados.",
     ],
   },
   {

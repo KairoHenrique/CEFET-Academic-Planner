@@ -223,20 +223,8 @@ export const PAGE_TUTORIALS_DESKTOP: Record<PageTutorialId, PageTutorialStep[]> 
     {
       id: "overview",
       targetId: null,
-      title: "Planos de assinatura",
-      body: "Escolha o período (trimestre, semestre, anual…). O trial de 7 dias vem no cadastro; depois você renova ou assina via PIX.",
-    },
-    {
-      id: "checkout",
-      targetId: "tutorial-planos-checkout",
-      title: "Pagar com PIX",
-      body: "Selecione o plano e confirme — o ACME gera o QR / copia-e-cola. Após o pagamento, o acesso libera automaticamente.",
-    },
-    {
-      id: "gift",
-      targetId: "tutorial-planos-gift",
-      title: "Chave gift",
-      body: "Se você recebeu um código de presente, resgate no rodapé desta página para ativar o plano sem PIX.",
+      title: "Acesso gratuito",
+      body: "O ACME HUB é gratuito — não há planos pagos nem PIX. Após o cadastro você já usa todas as funções acadêmicas.",
     },
   ],
 };
@@ -438,20 +426,8 @@ export const PAGE_TUTORIALS_MOBILE: Record<PageTutorialId, PageTutorialStep[]> =
     {
       id: "overview",
       targetId: null,
-      title: "Planos no celular",
-      body: "Escolha o período na tela; o trial já veio no cadastro. Assinatura e renovação são via PIX.",
-    },
-    {
-      id: "checkout",
-      targetId: "tutorial-planos-checkout",
-      title: "PIX",
-      body: "Confirme o plano → tela do QR / copia-e-cola. Depois do pagamento o acesso libera sozinho.",
-    },
-    {
-      id: "gift",
-      targetId: "tutorial-planos-gift",
-      title: "Chave gift",
-      body: "Código de presente? Resgate no final da página — funciona igual no celular.",
+      title: "Acesso gratuito",
+      body: "O ACME HUB é gratuito no celular também — sem PIX nem renovação. Após o cadastro o app já está liberado.",
     },
   ],
 };
