@@ -63,7 +63,7 @@ Alternativa ao PIX para liberar acesso: **chave de resgate** gerada **somente pe
 | **Uso único** | Cada chave **funciona uma vez**. Após resgate → status `resgatada`; não pode ser reutilizada nem transferida. |
 | **Benefício** | Cada chave carrega um **pacote configurável** na criação: tipo de plano (ex.: semestre, ano), **duração em dias** ou data fim fixa, rótulo interno (ex.: “promo lançamento”). |
 | **Quem cria** | **Somente o operador** via painel dev (§10). Alunos **não** geram chaves. |
-| **Onde resgatar** | `/planos` (e painel operador). **Não** no criar conta (lá fica **matrícula do amigo** — §2.1.2). |
+| **Onde resgatar** | Legado `/planos` (redireciona no produto free) e painel operador. **Não** no criar conta. |
 | **Efeito** | Estende ou ativa assinatura (`active`) pelo período da chave — **sem PIX** naquele resgate. |
 | **Anti-abuso** | Chave inválida, expirada (se tiver validade) ou já usada → mensagem genérica; log interno no painel dev. |
 
@@ -76,21 +76,17 @@ Alternativa ao PIX para liberar acesso: **chave de resgate** gerada **somente pe
 
 > Detalhes de schema, promoções globais e segurança do painel: `SCOPE-CLOUD.md` §3.6 e §8.
 
-### 2.1.2 Indicação por matrícula do amigo *(decisão de produto — jul/2026)*
+### 2.1.2 Indicação por matrícula do amigo *(legado — UI removida F47)*
 
-No **criar conta**, em vez de chave gift: campo opcional **Matrícula do amigo** (matrícula SIGAA de quem já usa o app e sincronizou ao menos uma vez).
+Histórico (jul/2026): no **criar conta** havia campo opcional **Matrícula do amigo**. **F47 (set/2026):** campo **removido** do cadastro web/mobile. Backend B74 pode aceitar `friendMatricula` se enviado; bônus **não** se aplica com app gratuito (**F46**).
 
-| Regra | Detalhe |
+| Regra (legado) | Detalhe |
 |---|---|
-| **Quando ganha** | Só quando o **indicado paga** algum plano (PIX aprovado / assinatura ativada). Cadastro + trial **não** disparam bônus. |
-| **Bônus** | **+3 dias** de acesso para o **indicador** e **+3 dias** para o **indicado**. |
-| **Teto** | No máximo **30 dias** acumulados de bônus de indicação por usuário (soma como indicador e/ou indicado). |
-| **Trial** | Os **7 dias** de trial por CPF **continuam** valendo por completo — indicação e pagamento **não** consomem nem cancelam o trial. |
-| **Limite** | Uma indicação por conta nova (um amigo); não dá para indicar a si mesmo. |
+| **Quando ganhava** | Só quando o **indicado pagava** algum plano (PIX aprovado). |
+| **Bônus** | **+3 dias** para indicador e indicado · teto **30 dias**. |
+| **Trial** | Os **7 dias** de trial por CPF não eram consumidos pela indicação. |
 
-**Fluxo:** cadastro grava `account_referrals` `pending` → 1º pagamento aprovado do indicado → `rewarded` + extensão de assinatura (ou bônus empilhado após o trial).
-
-> Schema/API: `SCOPE-CLOUD.md` §3.7 · tasks **B74** / **F43**.
+> Schema/API: `SCOPE-CLOUD.md` §3.7 · tasks **B74** / **F43** / **F47**.
 
 ### 2.2 Login e persistência de credenciais
 

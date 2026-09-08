@@ -13,7 +13,7 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
 >
 > **📌 Prioridade (jul/2026):** **worker sync = este PC** (Chrome + Playwright + mirror → Supabase) exposto via **cloudflared**; Cloudflare só despacha. Código B72a–e `[x]`. Ops: `npm run worker:home` + `npm run worker:tunnel` + secrets CF — ver [`app/worker/README.md`](../app/worker/README.md) · [Bloco 2f · B72](#12--bloco-2f--sync-real-postgres-b72).
 >
-> **📌 Sync híbrido (set/2026):** PC preferido; se offline → fallback **web + mobile** → Supabase. **B82/B83/F45/M19** `[@]`. **F46** app gratuito `[@]`. Detalhe: [`SCOPE-CLOUD.md` §6.1.1](./SCOPE-CLOUD.md#611-sync-híbrido--pc--aparelho--decisão-set2026).
+> **📌 Sync híbrido (set/2026):** PC preferido; se offline → fallback **web + mobile** → Supabase. **B82/B83/F45/M19** `[@]`. **F46** app gratuito `[@]`. **F47** sem indicação no cadastro `[%]`. Detalhe: [`SCOPE-CLOUD.md` §6.1.1](./SCOPE-CLOUD.md#611-sync-híbrido--pc--aparelho--decisão-set2026).
 
 **Navegação rápida:** [Roadmap detalhado (#0→#11)](#roadmap-detalhado--ordem-de-execução-0--11) · [Sequência #0→#11](#sequência-completa--o-que-fazer-e-em-qual-ordem) · [Ordem oficial v3](#ordem-oficial-de-execução-v3) · [Checklist BACK→FRONT](#checklist-mestre-ordem-de-execução) · [Detalhe por bloco](#detalhe-dos-blocos) · [#6d orquestração sync](#6d--orquestração-sync--catálogo-global-pré-mobile) · [#6e painel dev](#6e--painel-dev--policy-pré-pix) · [Escopo cloud](./SCOPE-CLOUD.md) · [Marco testes gerais](#marco--site-no-ar-para-testes-gerais) · [Apêndice escopo futuro](#apêndice--escopo-futuro-fora-da-ordem-011) · [Apêndice B65 dev](#apêndice--b65-sync-automático-dev-remover-antes-de-produção) · [Apêndice gift + painel dev](#apêndice--chaves-gift-e-painel-dev-jun2026)
 
@@ -1189,7 +1189,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 #### 6b — Auth (#5)
 
 > **Escopo (regras):** `SCOPE.md` §2.0–§2.2, §2.5 · `SCOPE-CLOUD.md` §3–§4.  
-> **Resumo:** cadastro = **e-mail + telefone + CPF + senha SIGAA + curso (PPC)** (+ opcional **matrícula do amigo** **B74/F43**); **login só CPF + senha**; trial **7 dias / 1× por CPF**; **e-mail** = promo + ciclo conta (§2.5) — acadêmico só in-app (**F38**).
+> **Resumo:** cadastro = **e-mail + telefone + CPF + senha SIGAA + curso (PPC)** (**F47:** sem matrícula do amigo na UI); **login só CPF + senha**; produto gratuito (**F46**) — trial/PIX legado dormante; **e-mail** = promo + ciclo conta (§2.5) — acadêmico só in-app (**F38**).
 
 | # | Tipo | Task | Resumo | Status |
 |---|------|------|--------|--------|
@@ -1267,7 +1267,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | F32 | Front | Tela PIX | `/planos/pix` — QR base64 · copia-e-cola · polling status · redirect pós-aprovado | [x] |
 | F33 | Front | Renovação | `PlanosStatusAlert` — grace 3d · copy acumula período | [x] |
 | F34 | Front | Minha assinatura | Modal perfil — plano · validade · histórico PIX | [x] |
-| F40 | Front | Resgate chave plano | 8 chars — `/planos` (cadastro usa **matrícula do amigo** **F43**) · feedback uso único | [x] |
+| F40 | Front | Resgate chave plano | 8 chars — `/planos` (cadastro: indicação **F43**, depois removida **F47**) · feedback uso único | [x] |
 | L1 | Legal | Termos + LGPD | `/termos` · `/privacidade` · consent cadastro · `GET /api/legal/meta` | [x] |
 
 **Ordem #7:** `B47 → B48` → `B49 → B50 → B51 → B52 → B53` → `B69` → `F31 → F32 → F33 → F34` → `F40` → `L1` → **`B71`** *(última — imediatamente antes do go-live público)*
@@ -1585,7 +1585,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 - [x] Modulação de layout **somente no dashboard** (demais telas layout fixo)
 - [x] Menu perfil no avatar — modal, tutorial, /planos, **editar e-mail/celular** (**F37** ✅ · `PATCH /api/perfil`)
 - [x] Sino de notificações in-app — tarefas/notas novas + lembretes 24h/1h (**F38**); polish `04887c9` (baseline pré-sync, nota obtida/máxima no painel)
-- [x] Cadastro produção: e-mail, telefone, CPF, **curso (Comp/Meca/Moda)**, senha — **F29** ✅ · opcional **matrícula do amigo** (**F43** `[x]`)
+- [x] Cadastro produção: e-mail, telefone, CPF, **curso (Comp/Meca/Moda)**, senha — **F29** ✅ · indicação no cadastro removida (**F47** `[%]`; legado **F43**/B74)
 - [x] Login produção: **apenas CPF + senha** — **F29** ✅ (`POST /api/auth/login` · Bearer + `X-Planner-Sigaa-User`)
 - [x] `/planos` checkout PIX + gift key + renovação (**F31–F33**, **F40**) · `/planos/pix` QR + polling (**F32**) · perfil histórico (**F34**)
 - [x] Termos + Privacidade LGPD — **L1** (`/termos` · `/privacidade` · consent no cadastro · links login/planos)
@@ -1817,6 +1817,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | # | Tipo | Task | Resumo | Status |
 |---|------|------|--------|--------|
 | F46 | Front+Back | App 100% free | Gate off · sem paywall/PIX/preços · `/planos` → `/` · legal + SCOPE | [@] |
+| F47 | Front | Sem indicação no cadastro | Remove “Matrícula do amigo” web+mobile · backend B74 dormante | [%] |
 
 | # | Tipo | Task | Resumo | Status |
 |---|------|------|--------|--------|
@@ -1841,7 +1842,7 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 | Uso | **Uma vez** por chave; vincula CPF + período de acesso |
 | Pacote | Definido na criação (dias, tipo semestre/ano, validade opcional da chave) |
 | Emissão | **Somente operador** — painel `/dev` |
-| Resgate | Aluno em `/planos` (**F40**). Cadastro usa **matrícula do amigo** (**F43** / **B74**). |
+| Resgate | Legado **F40** (`/planos` redireciona). Cadastro **sem** matrícula do amigo (**F47**; API B74 opcional dormante). |
 
 **Tasks:** **B69** (back) · **F40** (front resgate) · parte de **B70/F41** (criar/listar chaves)
 
@@ -1940,17 +1941,29 @@ Rota **`/dev`** — invisível ao aluno.
 
 #### B74/F43 — indicação por matrícula do amigo (jul/2026) `[x]`
 
-> No criar conta: **Matrícula do amigo** (no lugar da chave gift). Chave gift permanece só em `/planos` / painel.
+> Histórico: no criar conta havia **Matrícula do amigo** (no lugar da chave gift). **F47** (`[%]`): UI removida do cadastro web/mobile; backend B74 permanece dormante. Chave gift / `/planos` = legado free (**F46**).
 
 | # | Entrega | Arquivos-chave |
 |---|---|---|
 | 1 | **Schema** — `account_referrals` + `source=referral` em subscriptions | `20260717120000_b74_*.sql` |
 | 2 | **Register** — `friendMatricula` opcional → pending | `create-pending-referral.ts`, `parse-account-request.ts` |
 | 3 | **Reward** — +3d cada no 1º PIX aprovado · cap 30d · trial intacto | `apply-referral-rewards.ts`, `confirm-billing-payment.ts` |
-| 4 | **UI** — campo no `RegisterForm` · remove gift no cadastro | `FriendMatriculaField.tsx`, `CloudAuthScreen.tsx` |
+| 4 | **UI** — campo no `RegisterForm` · remove gift no cadastro | legado; removido em **F47** |
 | 5 | **Docs** — `SCOPE.md` §2.1.2 · `SCOPE-CLOUD` §3.7 · `test:b74` | |
 
-**Status:** `[x]` push + aprovado jul/2026.
+**Status:** `[x]` push + aprovado jul/2026 · UI aluno supersedida por **F47**.
+
+#### F47 — remove indicação do cadastro (set/2026) `[%]`
+
+> Com app gratuito (**F46**), o bônus de indicação não faz sentido na UI.
+
+| # | Entrega | Arquivos-chave |
+|---|---|---|
+| 1 | **Web** — sem `FriendMatriculaField` / `friendMatricula` no register | `RegisterForm.tsx` |
+| 2 | **Mobile** — idem + limpa `auth-fields` | `RegisterForm.tsx`, `auth-fields.ts` |
+| 3 | **Docs** — SCOPE-CLOUD §3.6/§3.7 | |
+
+**Status:** `[%]` commit local — aguardando push/aprovação.
 
 ### Painel robôs — ops manual (escopo fechado p/ **B70** + **F41**)
 

@@ -31,10 +31,6 @@ export function formatPhoneInput(raw: string): string {
   return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
 }
 
-export function normalizeFriendMatricula(raw: string): string {
-  return raw.trim().replace(/\s+/g, "").slice(0, 20);
-}
-
 export const LEGAL_TERMS_VERSION = "2026-07-01";
 export const LEGAL_PRIVACY_VERSION = "2026-07-01";
 

@@ -107,11 +107,11 @@ Legado. Não usado no fluxo do aluno enquanto `BILLING_ENFORCED=false`.
 
 ### 3.6 Chaves gift / indicação
 
-Funcionalidades de gift/indicação do Bloco 7 ficam **dormantes** na UI do aluno (código pode permanecer no repositório).
+Funcionalidades de gift/indicação do Bloco 7 ficam **dormantes** (código pode permanecer no repositório). A UI do aluno **não** expõe resgate de chave nem indicação no cadastro.
 
 ### 3.7 Indicação por matrícula (legado)
 
-Fluxo B74/F43 permanece no código; bônus por pagamento **não** se aplica enquanto o app for gratuito.
+Fluxo B74 permanece só no backend (opcional se alguém enviar `friendMatricula`). **F47:** campo removido do cadastro web/mobile. Bônus por pagamento **não** se aplica enquanto o app for gratuito.
 
 ---
 

@@ -16,7 +16,6 @@ import {
   normalizeTelefone,
 } from "./auth-fields";
 import { CursoPicker } from "./CursoPicker";
-import { FriendMatriculaField } from "./FriendMatriculaField";
 import {
   LegalConsentField,
 } from "./LegalConsentField";
@@ -43,7 +42,6 @@ export function RegisterForm({
   const [cpf, setCpf] = useState("");
   const [cursoId, setCursoId] = useState<AppCursoId>(defaultCursoId);
   const [password, setPassword] = useState("");
-  const [friendMatricula, setFriendMatricula] = useState("");
   const [legalAccepted, setLegalAccepted] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -96,7 +94,6 @@ export function RegisterForm({
         cpf: normalizedCpf,
         cursoId,
         password,
-        friendMatricula: friendMatricula.trim() || undefined,
         acceptedLegal: buildLegalConsentPayload(true),
       });
       setPassword("");
@@ -160,12 +157,6 @@ export function RegisterForm({
         editable={!locked}
         autoComplete="password"
         hint="Usada para sincronizar seus dados acadêmicos com segurança."
-      />
-
-      <FriendMatriculaField
-        value={friendMatricula}
-        disabled={locked}
-        onChange={setFriendMatricula}
       />
 
       <AuthTrialBanner />
