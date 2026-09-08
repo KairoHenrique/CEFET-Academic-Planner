@@ -4,15 +4,40 @@ import {
   notifySyncComplete,
   postSyncQueue,
 } from "@/lib/api/client";
+import { getSession } from "@/lib/auth/session";
 import { capturePreSyncNotificationBaseline } from "@/lib/notifications/notification-pre-sync-baseline";
 import { resolveQueueLane } from "@/lib/sync-queue/format-sync-queue-ui";
 import { pollSyncJobUntilDone } from "@/lib/sync-queue/poll-sync-job-client";
+import { runDeviceFallbackSyncClient } from "@/lib/sync-queue/run-device-fallback-sync-client";
+import { runServerDeviceRunClient } from "@/lib/sync-queue/run-server-device-run-client";
 import { queueJobToUiStep } from "@/lib/sync-queue/sync-queue-ui-progress";
 import type { SyncMode, SyncRequest, SyncStep } from "@/lib/types/sync";
 import type {
   SyncJobTrigger,
   SyncQueueJobView,
 } from "@/lib/types/sync-queue-api";
+
+interface WorkerHealthClientResponse {
+  ok: true;
+  online: boolean;
+  configured: boolean;
+}
+
+async function isSigaaWorkerOnlineClient(): Promise<boolean> {
+  try {
+    const session = getSession();
+    const headers: HeadersInit = {};
+    if (session?.mode === "cloud" && session.accessToken) {
+      headers.Authorization = `Bearer ${session.accessToken}`;
+    }
+    const response = await fetch("/api/sync/worker-health", { headers });
+    if (!response.ok) return false;
+    const payload = (await response.json()) as WorkerHealthClientResponse;
+    return Boolean(payload.online);
+  } catch {
+    return false;
+  }
+}
 
 const STEP_DELAY_MS = 280;
 
@@ -58,38 +83,92 @@ export async function runQueuedSyncClient(
 ): Promise<void> {
   const { creds, mode, trigger, onJobUpdate, onUiStep, signal } = options;
 
-  await captureNotificationBaselineBeforeSync();
+  const session = getSession();
+  const cloudSession = session?.mode === "cloud" && Boolean(session.accessToken);
 
-  const enqueue = await postSyncQueue({
-    username: creds.username,
-    password: creds.password || undefined,
-    mode,
-    lane: resolveQueueLane(trigger),
-    trigger,
-    savePassword: creds.savePassword,
-  });
-
-  onJobUpdate(enqueue.job);
-  // O progresso é sempre exibido (inclusive em background); `background` só
-  // silencia erros — nunca esconde o indicador de sincronização.
-  onUiStep(queueJobToUiStep(enqueue.job));
-
-  const finished = await pollSyncJobUntilDone(enqueue.job.jobId, {
-    onUpdate: (job) => {
-      onJobUpdate(job);
-      onUiStep(queueJobToUiStep(job));
-    },
-    signal,
-    sigaaUsername: creds.username,
-  });
-
-  onJobUpdate(finished);
-
-  if (finished.result?.steps?.length) {
-    await playSyncSteps(finished.result.steps, onUiStep);
+  // Sync híbrido §6.1.1: se o worker do PC estiver offline, fallback aparelho/edge.
+  if (cloudSession && !(await isSigaaWorkerOnlineClient())) {
+    onJobUpdate(null);
+    await runHybridOfflineFallback({
+      creds,
+      mode,
+      trigger,
+      onUiStep,
+      signal,
+    });
+    return;
   }
 
-  notifySyncComplete();
+  await captureNotificationBaselineBeforeSync();
+
+  try {
+    const enqueue = await postSyncQueue({
+      username: creds.username,
+      password: creds.password || undefined,
+      mode,
+      lane: resolveQueueLane(trigger),
+      trigger,
+      savePassword: creds.savePassword,
+    });
+
+    onJobUpdate(enqueue.job);
+    // O progresso é sempre exibido (inclusive em background); `background` só
+    // silencia erros — nunca esconde o indicador de sincronização.
+    onUiStep(queueJobToUiStep(enqueue.job));
+
+    const finished = await pollSyncJobUntilDone(enqueue.job.jobId, {
+      onUpdate: (job) => {
+        onJobUpdate(job);
+        onUiStep(queueJobToUiStep(job));
+      },
+      signal,
+      sigaaUsername: creds.username,
+    });
+
+    onJobUpdate(finished);
+
+    if (finished.result?.steps?.length) {
+      await playSyncSteps(finished.result.steps, onUiStep);
+    }
+
+    notifySyncComplete();
+  } catch (error) {
+    // Race: health OK mas enqueue caiu (túnel caiu no meio) → tenta aparelho.
+    if (
+      cloudSession &&
+      error instanceof ApiClientError &&
+      (error.code === "SIGAA_OFFLINE" || error.status === 503)
+    ) {
+      onJobUpdate(null);
+      await runHybridOfflineFallback({
+        creds,
+        mode,
+        trigger,
+        onUiStep,
+        signal,
+      });
+      return;
+    }
+    throw error;
+  }
+}
+
+async function runHybridOfflineFallback(options: {
+  creds: SyncRequest;
+  mode: SyncMode;
+  trigger: SyncJobTrigger;
+  onUiStep: (step: SyncStep) => void;
+  signal?: AbortSignal;
+}): Promise<void> {
+  if (options.creds.password?.trim()) {
+    await runDeviceFallbackSyncClient(options);
+    return;
+  }
+
+  await runServerDeviceRunClient({
+    onUiStep: options.onUiStep,
+    signal: options.signal,
+  });
 }
 
 export function mapQueuedSyncError(error: unknown): string {

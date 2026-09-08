@@ -83,6 +83,7 @@ export type ClientErrorCode =
   | "SIGAA_OFFLINE"
   | "SIGAA_TIMEOUT"
   | "SIGAA_AUTH_FAILED"
+  | "SIGAA_SCRAPE_FAILED"
   | "RATE_LIMITED"
   | "NOT_FOUND"
   | "INTERNAL_ERROR"
