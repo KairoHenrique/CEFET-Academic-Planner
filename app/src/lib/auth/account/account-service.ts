@@ -32,6 +32,7 @@ import {
   resolveSubscriptionAccessForCpf,
   type ResolvedSubscriptionAccess,
 } from "@/lib/billing/access/resolve-subscription-access";
+import { applyReferralRewardOnRegister } from "@/lib/billing/referrals/apply-referral-rewards";
 import { createPendingReferralForRegister } from "@/lib/billing/referrals/create-pending-referral";
 import { persistServerSigaaCredentials, sealServerSigaaPassword } from "@/lib/crypto/server-sigaa-credential-store";
 import { ensurePostgresReady } from "@/lib/db/bootstrap-postgres";
@@ -203,6 +204,12 @@ export async function registerAccount(
     }
 
     await ensureTrialRecordForCpf(input.cpf);
+    if (input.friendMatricula) {
+      await applyReferralRewardOnRegister({
+        referredUserId: userId,
+        referredCpf: input.cpf,
+      });
+    }
     await enqueueWelcomeAccountEmail(profile).catch(() => undefined);
     await enqueueSupportRegisterNotifyEmail(profile).catch(() => undefined);
     const sessionResult = await signInWithInternalEmail(

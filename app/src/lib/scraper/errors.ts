@@ -48,7 +48,7 @@ export class ScraperError extends Error {
   }
 
   static timeout(
-    message = "Tempo esgotado ao conectar ao SIGAA. Tente novamente."
+    message = "O SIGAA demorou para responder. Aguarde um minuto e tente de novo."
   ): ScraperError {
     return new ScraperError("SIGAA_TIMEOUT", message);
   }
@@ -77,6 +77,11 @@ export function mapUnknownScraperError(error: unknown): ScraperError {
     normalized.includes("timed out") ||
     normalized.includes("timeouterror")
   ) {
+    if (normalized.includes("excedeu o timeout")) {
+      return ScraperError.timeout(
+        "O envio demorou demais. Aguarde um pouco e tente de novo."
+      );
+    }
     return ScraperError.timeout();
   }
 

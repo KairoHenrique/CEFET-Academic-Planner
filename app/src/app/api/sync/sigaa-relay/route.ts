@@ -6,7 +6,7 @@ import { resolveProfileFromAuthorization } from "@/lib/auth/account/resolve-prof
 import { enforceSubscriptionAccessGate } from "@/lib/auth/access/access-gate";
 import { isPostgresBackend } from "@/lib/db/backend/config";
 import { ensurePostgresReady } from "@/lib/db/bootstrap-postgres";
-import { SIGAA_BASE_URL } from "@/lib/scraper/constants";
+import { SIGAA_BASE_URL } from "@/lib/scraper/sigaa-urls";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -35,7 +35,8 @@ function assertAllowedSigaaUrl(urlRaw: string): URL {
 
 /**
  * Relay HTTP autenticado para o sync no browser (CORS).
- * O client orquestra login/parse; o hop de rede passa por aqui.
+ * Nota: `fetch()` do Workers falha TLS no SIGAA (526). Não importar `node:tls`
+ * neste Worker OpenNext — estoura cold start (Error 1102). Proxy TLS separado TBD.
  */
 export const POST = async (request: Request) => {
   try {

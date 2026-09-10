@@ -7,6 +7,10 @@ import type {
 } from "@acme/api-contracts";
 import { ApiClientError, requestJson } from "../auth/api";
 import { getSession } from "../auth/session";
+import {
+  DeviceSyncError,
+  runOnDeviceFallbackSync,
+} from "../device-sync/run-on-device-fallback";
 import { queueJobToUiStep } from "./queue-job-ui";
 
 export const SYNC_COMPLETE_EVENT = "planner:sync-complete";
@@ -108,38 +112,36 @@ async function isWorkerOnline(): Promise<boolean> {
   }
 }
 
-/** Fallback §6.1.1 — PC offline: edge HTTP + vault + ingest. */
-async function runDeviceRunFallback(): Promise<void> {
-  setState({
-    progress: 20,
-    stepLabel: "PC offline — sincronizando pelo aparelho…",
+/** Fallback §6.1.1 — raspa no aparelho + ingest (sem Cloudflare→SIGAA). */
+async function runDeviceFallback(): Promise<void> {
+  await runOnDeviceFallbackSync((label, progress) => {
+    setState({ progress, stepLabel: label });
   });
-
-  const result = await requestJson<{
-    ok: true;
-    steps?: SyncStep[];
-  }>("/api/sync/device-run", {
-    method: "POST",
-    body: "{}",
-  });
-
-  const last = result.steps?.[result.steps.length - 1];
   setState({
     syncing: false,
     progress: 100,
-    stepLabel: last?.label ?? "Sincronização concluída (aparelho).",
+    stepLabel: "Sincronização concluída.",
     error: null,
     job: null,
   });
   DeviceEventEmitter.emit(SYNC_COMPLETE_EVENT);
 }
 
+function mapFallbackError(error: unknown): string {
+  if (error instanceof DeviceSyncError) return error.message;
+  if (error instanceof ApiClientError) {
+    if (/526|relay|device-run/i.test(error.message)) {
+      return "Não foi possível sincronizar agora. Tente novamente em alguns minutos.";
+    }
+    return error.message;
+  }
+  return "Falha na sincronização. Tente novamente.";
+}
+
 /**
- * Paridade com `SyncButton` do site:
- * - modo sempre `lite`
- * - trigger `manual`
- * - cloud: sem senha (vault no servidor)
- * - se worker PC offline → `device-run` (híbrido §6.1.1)
+ * Sync manual lite:
+ * - PC worker online → fila cloud
+ * - offline → HTTP no aparelho + ingest-html
  */
 export async function startManualLiteSync(): Promise<boolean> {
   if (syncingLock || state.syncing) return false;
@@ -161,7 +163,7 @@ export async function startManualLiteSync(): Promise<boolean> {
 
   try {
     if (!(await isWorkerOnline())) {
-      await runDeviceRunFallback();
+      await runDeviceFallback();
       return true;
     }
 
@@ -203,22 +205,17 @@ export async function startManualLiteSync(): Promise<boolean> {
     DeviceEventEmitter.emit(SYNC_COMPLETE_EVENT);
     return true;
   } catch (error) {
-    // Túnel caiu após health OK → tenta device-run.
     if (
       error instanceof ApiClientError &&
       (error.status === 503 || error.code === "SIGAA_OFFLINE")
     ) {
       try {
-        await runDeviceRunFallback();
+        await runDeviceFallback();
         return true;
       } catch (fallbackError) {
-        const message =
-          fallbackError instanceof ApiClientError
-            ? fallbackError.message
-            : "Falha na sincronização. Tente novamente.";
         setState({
           syncing: false,
-          error: message,
+          error: mapFallbackError(fallbackError),
           stepLabel: "",
           progress: 0,
         });
@@ -226,13 +223,9 @@ export async function startManualLiteSync(): Promise<boolean> {
       }
     }
 
-    const message =
-      error instanceof ApiClientError
-        ? error.message
-        : "Falha na sincronização. Tente novamente.";
     setState({
       syncing: false,
-      error: message,
+      error: mapFallbackError(error),
       stepLabel: "",
       progress: 0,
     });

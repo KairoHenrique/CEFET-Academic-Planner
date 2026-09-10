@@ -11,6 +11,8 @@ import type { WorkerJobResult, WorkerStatusResponse } from "@/lib/worker/job-typ
 import { parseWorkerEmailSendRequest } from "@/lib/worker/parse-email-send-request";
 import {
   assertAsyncExecutionAvailable,
+  assertSubmitTarefaAsyncAvailable,
+  startSubmitTarefaAsyncJob,
   startWorkerAsyncJob,
 } from "@/lib/worker/run-async-job";
 import { runWorkerSyncJob } from "@/lib/worker/run-sync-job";
@@ -179,10 +181,20 @@ export function createWorkerServer(options?: {
 
         const jobRequest = parseWorkerJobRequest(body);
 
-        // B72e — dispatch cloud: 202 imediato, status vai para a fila Postgres.
+        // B72e — dispatch cloud: 202 imediato; sync_jobs ou task_submissions.
         if (jobRequest.execution === "async") {
-          assertAsyncExecutionAvailable();
-          startWorkerAsyncJob(jobRequest, slot, runtime, config.jobTimeoutMs);
+          if (jobRequest.robot === "submit-tarefa") {
+            assertSubmitTarefaAsyncAvailable();
+            startSubmitTarefaAsyncJob(
+              jobRequest,
+              slot,
+              runtime,
+              config.jobTimeoutMs
+            );
+          } else {
+            assertAsyncExecutionAvailable();
+            startWorkerAsyncJob(jobRequest, slot, runtime, config.jobTimeoutMs);
+          }
           sendJson(response, 202, {
             ok: true,
             jobId: jobRequest.jobId,

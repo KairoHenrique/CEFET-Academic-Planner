@@ -21,8 +21,40 @@ export async function toggleTarefa(
 export async function submitTarefaToSigaa(
   id: number,
   form: FormData
-): Promise<{ submissionId: string; status: string; message: string }> {
+): Promise<{
+  submissionId: string;
+  status: string;
+  message: string;
+  deviceRequired?: boolean;
+  sigaaLinkId?: string;
+  tarefaTitulo?: string;
+}> {
   return requestForm(`/api/tarefas/${id}/submit`, form, { method: "POST" });
+}
+
+export async function completeDeviceTaskSubmission(
+  id: number,
+  body: { submissionId: string; ok: boolean; errorMessage?: string }
+): Promise<{ submissionId: string; status: string }> {
+  return requestJson(`/api/tarefas/${id}/submit/device-complete`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function getTaskSubmissionStatus(
+  id: number,
+  submissionId: string
+): Promise<{
+  submissionId: string;
+  status: "queued" | "running" | "completed" | "failed";
+  errorMessage: string | null;
+  tarefaId: number;
+}> {
+  const query = new URLSearchParams({ submissionId });
+  return requestJson(`/api/tarefas/${id}/submit?${query.toString()}`, {
+    method: "GET",
+  });
 }
 
 export async function deleteTarefa(id: number): Promise<unknown> {

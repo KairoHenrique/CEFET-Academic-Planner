@@ -34,6 +34,39 @@ $global:WorkerPid = $null
 $global:TunnelProc = $null
 $global:TunnelUrl = $null
 $global:Running = $false
+$global:UpdatingSecret = $false
+
+function Normalize-TunnelUrl([string]$raw) {
+  if (-not $raw) { return $null }
+  $u = $raw.Trim().TrimEnd('/')
+  if ($u -match '^https?://') { return $u.ToLowerInvariant() }
+  return ('https://' + $u).ToLowerInvariant()
+}
+
+function Read-LiveTunnelUrl {
+  try {
+    $r = Invoke-WebRequest -Uri 'http://127.0.0.1:20241/quicktunnel' -UseBasicParsing -TimeoutSec 3
+    if ($r.Content -match '"hostname"\s*:\s*"([^"]+)"') {
+      return (Normalize-TunnelUrl $Matches[1])
+    }
+  } catch {}
+  return $null
+}
+
+function Apply-TunnelUrl([string]$raw, [string]$reason) {
+  $u = Normalize-TunnelUrl $raw
+  if (-not $u) { return }
+  if ($u -eq $global:TunnelUrl) { return }
+  $global:TunnelUrl = $u
+  Write-Log "Tunnel URL ($reason): $u"
+  Update-WorkerUrlSecret $u
+}
+
+function Poll-LiveTunnel {
+  if (-not $global:Running) { return }
+  $live = Read-LiveTunnelUrl
+  if ($live) { Apply-TunnelUrl $live 'poll' }
+}
 
 function Write-Log([string]$msg) {
   try {
@@ -102,7 +135,7 @@ function Start-Servers {
   try {
     $psi = New-Object System.Diagnostics.ProcessStartInfo
     $psi.FileName = $global:Cloudflared
-    $psi.Arguments = 'tunnel --url http://127.0.0.1:8787'
+    $psi.Arguments = 'tunnel --url http://127.0.0.1:8787 --metrics 127.0.0.1:20241'
     $psi.WorkingDirectory = $global:AppDir
     $psi.UseShellExecute = $false
     $psi.RedirectStandardOutput = $true
@@ -117,9 +150,7 @@ function Start-Servers {
       if ($e.Data -and ($e.Data -match 'https://[a-z0-9-]+\.trycloudflare\.com')) {
         $u = $matches[0]
         if ($u -ne $global:TunnelUrl) {
-          $global:TunnelUrl = $u
-          Write-Log "Tunnel URL detectada: $u"
-          Update-WorkerUrlSecret $u
+          Apply-TunnelUrl $u 'log'
         }
       }
     }
@@ -137,6 +168,7 @@ function Start-Servers {
   $miStop.Enabled = $true
   Set-Status 'No ar (conectando tunel...)'
   $notify.ShowBalloonTip(3000, 'CEFET Planner', 'Servidor iniciado. Conectando tunel...', [System.Windows.Forms.ToolTipIcon]::Info)
+  $global:PollTimer.Start()
 }
 
 function Stop-Servers {
@@ -151,6 +183,7 @@ function Stop-Servers {
   }
   # limpeza de sobras
   Get-Process cloudflared -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+  try { $global:PollTimer.Stop() } catch {}
   $global:Running = $false
   $global:TunnelUrl = $null
   $miStart.Enabled = $true
@@ -176,6 +209,10 @@ $miExit.add_Click({
     $notify.Dispose()
     [System.Windows.Forms.Application]::Exit()
   })
+
+$global:PollTimer = New-Object System.Windows.Forms.Timer
+$global:PollTimer.Interval = 20000
+$global:PollTimer.add_Tick({ Poll-LiveTunnel })
 
 Write-Log "Tray iniciado. AppDir=$global:AppDir"
 $notify.ShowBalloonTip(2500, 'CEFET Planner', 'Pronto. Clique no icone e em "Executar".', [System.Windows.Forms.ToolTipIcon]::Info)

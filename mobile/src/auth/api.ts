@@ -301,6 +301,10 @@ export async function loginAndPersist(
 ): Promise<MobileAuthSession> {
   const auth = await postAuthLogin(body);
   const session = await persistFromAuthResponse(auth);
+  const { saveSigaaPassword } = await import(
+    "../device-sync/sigaa-password-store"
+  );
+  await saveSigaaPassword(body.password);
   queuePostAuthNavigation(session.subscription.status);
   return session;
 }
@@ -310,6 +314,10 @@ export async function registerAndPersist(
 ): Promise<MobileAuthSession> {
   const auth = await postAuthRegister(body);
   const session = await persistFromAuthResponse(auth);
+  const { saveSigaaPassword } = await import(
+    "../device-sync/sigaa-password-store"
+  );
+  await saveSigaaPassword(body.password);
   queuePostAuthNavigation(session.subscription.status);
   return session;
 }

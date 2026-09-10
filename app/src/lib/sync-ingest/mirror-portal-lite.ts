@@ -159,4 +159,111 @@ export async function mirrorPortalLiteUserTables(
       [tenant.userId, entry.chave, entry.valor]
     );
   }
+
+  // B86: se o aparelho enviou notas/faltas raspadas, espelha (respeitando overrides).
+  if (snapshot.notasSynced.length > 0) {
+    const protectedNotas = await client.query(
+      `SELECT disciplina_id, avaliacao_nome FROM notas
+       WHERE user_id = $1 AND curso_id = $2
+         AND (COALESCE(manual, 0) = 1 OR COALESCE(nota_override, 0) = 1)`,
+      [tenant.userId, tenant.cursoId]
+    );
+    const protectedNotaKeys = new Set(
+      protectedNotas.rows.map(
+        (row) =>
+          `${String(row.disciplina_id).toLowerCase()}\0${String(row.avaliacao_nome).toLowerCase()}`
+      )
+    );
+    await client.query(
+      `DELETE FROM notas
+       WHERE user_id = $1 AND curso_id = $2
+         AND COALESCE(manual, 0) = 0 AND COALESCE(nota_override, 0) = 0`,
+      [tenant.userId, tenant.cursoId]
+    );
+    await batchInsert(
+      client,
+      "notas",
+      [
+        "user_id",
+        "curso_id",
+        "disciplina_id",
+        "avaliacao_nome",
+        "nota_maxima",
+        "nota_obtida",
+        "manual",
+        "nota_override",
+        "nota_extra",
+      ],
+      snapshot.notasSynced
+        .filter(
+          (nota) =>
+            !protectedNotaKeys.has(
+              `${nota.disciplina_id.toLowerCase()}\0${nota.avaliacao_nome.toLowerCase()}`
+            )
+        )
+        .map((nota) => [
+          tenant.userId,
+          tenant.cursoId,
+          nota.disciplina_id,
+          nota.avaliacao_nome,
+          nota.nota_maxima,
+          nota.nota_obtida,
+          0,
+          0,
+          nota.nota_extra ?? 0,
+        ])
+    );
+  }
+
+  if (snapshot.faltasSynced.length > 0) {
+    const protectedFaltas = await client.query(
+      `SELECT disciplina_id, data FROM faltas
+       WHERE user_id = $1 AND curso_id = $2
+         AND (COALESCE(manual, 0) = 1 OR COALESCE(status_override, 0) = 1)`,
+      [tenant.userId, tenant.cursoId]
+    );
+    const protectedFaltaKeys = new Set(
+      protectedFaltas.rows.map(
+        (row) =>
+          `${String(row.disciplina_id).toLowerCase()}\0${String(row.data)}`
+      )
+    );
+    await client.query(
+      `DELETE FROM faltas
+       WHERE user_id = $1 AND curso_id = $2
+         AND COALESCE(manual, 0) = 0 AND COALESCE(status_override, 0) = 0`,
+      [tenant.userId, tenant.cursoId]
+    );
+    await batchInsert(
+      client,
+      "faltas",
+      [
+        "user_id",
+        "curso_id",
+        "disciplina_id",
+        "data",
+        "status",
+        "manual",
+        "status_override",
+        "quantidade",
+      ],
+      snapshot.faltasSynced
+        .filter(
+          (falta) =>
+            !protectedFaltaKeys.has(
+              `${falta.disciplina_id.toLowerCase()}\0${falta.data}`
+            )
+        )
+        .map((falta) => [
+          tenant.userId,
+          tenant.cursoId,
+          falta.disciplina_id,
+          falta.data,
+          falta.status,
+          0,
+          0,
+          falta.quantidade ?? 0,
+        ])
+    );
+  }
 }

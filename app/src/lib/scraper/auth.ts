@@ -159,7 +159,9 @@ export async function loginSigaaOnPage(
       timeout: SIGAA_LOGIN_TIMEOUT_MS,
     });
   } catch (error) {
-    throw mapUnknownScraperError(error);
+    throw ScraperError.timeout(
+      "O SIGAA demorou para abrir a tela de login. Aguarde um minuto e tente de novo."
+    );
   }
 
   try {

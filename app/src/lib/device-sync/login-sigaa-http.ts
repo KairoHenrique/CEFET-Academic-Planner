@@ -1,7 +1,7 @@
 import {
   SIGAA_LOGIN_URL,
   SIGAA_PORTAL_DISCENTE_URL,
-} from "@/lib/scraper/constants";
+} from "@/lib/scraper/sigaa-urls";
 import { ScraperError } from "@/lib/scraper/errors";
 import type { DeviceHttpSession } from "@/lib/device-sync/http-session";
 

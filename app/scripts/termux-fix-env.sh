@@ -1,75 +1,79 @@
 #!/data/data/com.termux/files/usr/bin/bash
+# Aplica paridade de env do PC no Termux.
+# Preferência: .env.termux.local (gerado no PC por termux-export-env-from-pc.mjs).
+# Senão: patchia o .env.local atual com overrides Termux (não apaga secrets).
 
-# Este script recria o arquivo .env.local com todas as variáveis limpas e corretas para o servidor no Termux.
+set -euo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." >/dev/null 2>&1 && pwd)"
 cd "$DIR" || exit 1
 
-echo "[*] Recriando o arquivo app/.env.local no Termux..."
+CHROMIUM_BIN="/data/data/com.termux/files/usr/bin/chromium-browser"
 
-cat << 'EOF' > .env.local
-# Gerado localmente — não commitar (.gitignore)
+upsert_env() {
+  local key="$1"
+  local value="$2"
+  local file="$3"
+  touch "$file"
+  if grep -qE "^${key}=" "$file"; then
+    # sed portátil: reescreve a linha
+    local tmp
+    tmp="$(mktemp)"
+    awk -v k="$key" -v v="$value" '
+      BEGIN { done=0 }
+      $0 ~ "^"k"=" { print k"="v; done=1; next }
+      { print }
+      END { if (!done) print k"="v }
+    ' "$file" > "$tmp"
+    mv "$tmp" "$file"
+  else
+    printf '\n%s=%s\n' "$key" "$value" >> "$file"
+  fi
+}
 
-# Cifra senha SIGAA salva no SQLite (mín. 16 caracteres)
-CREDENTIALS_ENCRYPTION_KEY=***REMOVED***=
+if [ -f .env.termux.local ]; then
+  echo "[*] Aplicando .env.termux.local → .env.local (export do PC)..."
+  cp .env.termux.local .env.local
+  echo "[+] .env.local atualizado a partir do export do PC."
+else
+  echo "[*] .env.termux.local ausente — aplicando só overrides Termux no .env.local existente."
+  if [ ! -f .env.local ]; then
+    echo "[-] Não existe .env.local nem .env.termux.local."
+    echo "    No PC: cd app && node scripts/termux-export-env-from-pc.mjs"
+    echo "    Copie app/.env.termux.local para o tablet (pasta app/) e rode este script de novo."
+    exit 1
+  fi
+fi
 
-# Login real no SIGAA via Playwright (true/1 = mock offline, sem navegador)
-SIGAA_SCRAPER_MOCK=false
+echo "[*] Forçando overrides Termux (Chromium + home-worker)..."
+upsert_env "SIGAA_BROWSER_CHANNEL" "" ".env.local"
+upsert_env "SIGAA_BROWSER_EXECUTABLE_PATH" "$CHROMIUM_BIN" ".env.local"
+upsert_env "SIGAA_HEADLESS" "true" ".env.local"
+upsert_env "WORKER_PORT" "8787" ".env.local"
+upsert_env "SYNC_MIRROR_POSTGRES" "true" ".env.local"
+upsert_env "PLANNER_DATABASE" "postgres" ".env.local"
+upsert_env "ACCOUNT_EMAIL_VIA_HOME_WORKER" "true" ".env.local"
+upsert_env "PLANNER_HEALTH_URL" "https://acme-hub.khfm.workers.dev" ".env.local"
+upsert_env "PLANNER_APP_URL" "https://acme-hub.khfm.workers.dev" ".env.local"
 
-# Salva HTML capturado em app/.data/scrape-debug/ (prioridade sobre shell)
-SIGAA_SCRAPER_DEBUG=true
+# Remove URL de túnel do PC — o servidor Termux regenera.
+if grep -qE '^SIGAA_WORKER_URL=' .env.local; then
+  tmp="$(mktemp)"
+  grep -vE '^SIGAA_WORKER_URL=' .env.local > "$tmp" || true
+  mv "$tmp" .env.local
+fi
 
-# Timeouts do scraper (ms)
-SIGAA_LOGIN_TIMEOUT_MS=30000
-SIGAA_NAVIGATION_TIMEOUT_MS=20000
-SIGAA_TURMA_SCRAPE_DELAY_MS=400
+MISSING=0
+for key in CREDENTIALS_ENCRYPTION_KEY WORKER_SHARED_SECRET DATABASE_URL CLOUDFLARE_API_TOKEN CRON_SECRET; do
+  if ! grep -qE "^${key}=.+" .env.local; then
+    echo "[-] Falta $key no .env.local"
+    MISSING=1
+  fi
+done
+if [ "$MISSING" = "1" ]; then
+  echo "    Gere no PC: node scripts/termux-export-env-from-pc.mjs"
+  exit 1
+fi
 
-# false = abre janela do Chromium (útil para debug de login)
-SIGAA_HEADLESS=true
-
-# --- Supabase Acme-Hub-dev ---
-NEXT_PUBLIC_SUPABASE_URL=https://xxtdifoltfipaerexosq.supabase.co
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=***REMOVED***
-SUPABASE_SERVICE_ROLE_KEY=***REMOVED***
-DATABASE_URL=postgresql://postgres.xxtdifoltfipaerexosq:***REMOVED***@aws-1-sa-east-1.pooler.supabase.com:5432/postgres
-PLANNER_DATABASE=postgres
-
-# Cron (mesmo valor no app Cloudflare + workers cron-ping / cron-account-emails)
-CRON_SECRET=***REMOVED***
-PLANNER_HEALTH_URL=https://acme-hub.khfm.workers.dev
-PLANNER_APP_URL=https://acme-hub.khfm.workers.dev
-
-# --- Painel /dev — operadores ---
-EMAIL_DEV=dev@example.com
-PASSWORD_DEV=***REMOVED***
-
-# --- Billing / planos (B47) ---
-BILLING_PRICE_MONTH_CENTS=3000
-BILLING_PRICE_QUARTER_CENTS=5000
-BILLING_PRICE_SEMESTER_CENTS=8500
-BILLING_PRICE_YEAR_CENTS=15000
-BILLING_PRICE_FIVE_YEAR_CENTS=70000
-
-# --- Gateway PIX Mercado Pago (B48) ---
-PIX_GATEWAY=mercadopago
-MERCADOPAGO_ACCESS_TOKEN=***REMOVED***
-
-# --- Sync Mirror Local / Worker ---
-SYNC_MIRROR_POSTGRES=true
-WORKER_SHARED_SECRET=***REMOVED***=
-SIGAA_CPF=00000000000
-SIGAA_PASSWORD=***REMOVED***
-SIGAA_BROWSER_CHANNEL=chrome
-WORKER_PORT=8787
-
-# Home-gmail SMTP (não commitar)
-GMAIL_SMTP_USER=dev@example.com
-GMAIL_SMTP_APP_PASSWORD=***REMOVED***
-EMAIL_FROM=ACME HUB <dev@example.com>
-
-# Cloudflare Wrangler Token (Tablet Automations)
-CLOUDFLARE_API_TOKEN="***REMOVED***"
-EOF
-
-echo "[+] Sucesso! O arquivo .env.local foi salvo e corrigido."
-echo "Agora você pode iniciar o servidor ACME normalmente."
+echo "[+] Env Termux alinhado ao PC (mirror, secrets, e-mail via home-worker, Chromium)."
+echo "    Próximo: bash scripts/termux-servidor-acme.sh"

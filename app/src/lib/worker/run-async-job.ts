@@ -27,6 +27,43 @@ export function assertAsyncExecutionAvailable(): void {
   }
 }
 
+/** Envio SIGAA usa `task_submissions`, não a fila `sync_jobs`. */
+export function assertSubmitTarefaAsyncAvailable(): void {
+  if (!process.env.DATABASE_URL?.trim()) {
+    throw new ApiError(
+      "VALIDATION_ERROR",
+      "Envio async exige DATABASE_URL no worker (Servidor ACME).",
+      400
+    );
+  }
+}
+
+export function startSubmitTarefaAsyncJob(
+  request: WorkerJobRequest,
+  slot: BrowserJobSlot,
+  runtime: WorkerRuntimeState,
+  jobTimeoutMs: number
+): void {
+  void runWorkerSyncJob(request, slot, runtime, jobTimeoutMs)
+    .then((result) => {
+      if (result.status === "completed") {
+        console.info(
+          `[worker] submit-tarefa ${request.jobId} concluído em ${Math.round(result.durationMs / 1000)}s.`
+        );
+        return;
+      }
+      console.warn(
+        `[worker] submit-tarefa ${request.jobId} falhou: ${result.error?.message ?? result.error?.code ?? "erro desconhecido"}.`
+      );
+    })
+    .catch((error) => {
+      console.error(
+        `[worker] submit-tarefa ${request.jobId} erro fora do pipeline:`,
+        error instanceof Error ? error.message : error
+      );
+    });
+}
+
 export function startWorkerAsyncJob(
   request: WorkerJobRequest,
   slot: BrowserJobSlot,

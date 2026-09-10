@@ -23,16 +23,18 @@ function normalizeTime(raw: string | null | undefined): string {
   return `${match[1].padStart(2, "0")}:${match[2]}`;
 }
 
+/** Horários acadêmicos são sempre Brasília (igual ao backend / SIGAA). */
 function getDueDateTime(dateIso: string, time: string): Date {
-  return new Date(`${dateIso.trim()}T${normalizeTime(time)}:00`);
+  return new Date(`${dateIso.trim()}T${normalizeTime(time)}:00-03:00`);
 }
 
 function toIsoDate(date: Date): string {
-  return [
-    date.getFullYear(),
-    String(date.getMonth() + 1).padStart(2, "0"),
-    String(date.getDate()).padStart(2, "0"),
-  ].join("-");
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Sao_Paulo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(date);
 }
 
 function daysBetweenIso(fromIso: string, toIso: string): number {

@@ -159,11 +159,12 @@ async function runHybridOfflineFallback(options: {
   onUiStep: (step: SyncStep) => void;
   signal?: AbortSignal;
 }): Promise<void> {
-  // No browser usamos só o edge (`device-run`) — evita puxar parsers/Node no bundle client.
-  void options.mode;
-  void options.trigger;
+  options.onUiStep({ label: "Conectando…", progress: 15 });
   await runServerDeviceRunClient({
+    username: options.creds.username,
     password: options.creds.password || undefined,
+    mode: options.mode,
+    trigger: options.trigger,
     onUiStep: options.onUiStep,
     signal: options.signal,
   });

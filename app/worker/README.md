@@ -102,6 +102,47 @@ SIGAA_CPF=... SIGAA_PASSWORD=... npm run smoke:cloud-sync
 
 Esperado: enqueue 202 → job `queued→running→completed` → linhas no Supabase.
 
+## Termux (tablet Android) — mesma função do PC
+
+O Termux roda o **mesmo** `npm run worker:home` (Playwright + mirror Postgres +
+`POST /jobs` + `POST /email/send`) e publica o túnel em `SIGAA_WORKER_URL`.
+
+### No PC (exportar env)
+
+```bash
+cd app
+npm run termux:export-env
+# gera app/.env.termux.local (gitignored) a partir do .env.local do PC
+```
+
+Copie `app/.env.termux.local` para o tablet (`app/.env.termux.local`).
+
+### No Termux
+
+```bash
+cd ~/CEFET-Academic-Planner/app   # ou o path do clone
+git pull origin main
+bash scripts/termux-fix-env.sh      # aplica .env.termux.local + overrides Chromium
+bash scripts/termux-servidor-acme.sh
+```
+
+Overrides Termux (iguais ao PC em função, diferentes só no browser):
+
+| Var | PC | Termux |
+|-----|----|--------|
+| `SIGAA_BROWSER_CHANNEL` | `chrome` | *(vazio)* |
+| `SIGAA_BROWSER_EXECUTABLE_PATH` | Chrome.exe | `…/chromium-browser` |
+| `SYNC_MIRROR_POSTGRES` | `true` | `true` |
+| `ACCOUNT_EMAIL_VIA_HOME_WORKER` | `true` | `true` |
+| `WORKER_SHARED_SECRET` / `CREDENTIALS_ENCRYPTION_KEY` | iguais | iguais |
+
+O script Termux: sobe worker + cloudflared (metrics), espera `/health` local e
+público, atualiza `SIGAA_WORKER_URL`, re-aplica se a URL do quick tunnel mudar,
+e dispara crons locais (reminders / account-emails / orchestrator).
+
+> Se o PC e o Termux estiverem os dois no ar, o **último** `secret put` ganha.
+> Deixe só um home-server ativo.
+
 ## Ligação local (só este PC, sem Cloudflare)
 
 ```bash

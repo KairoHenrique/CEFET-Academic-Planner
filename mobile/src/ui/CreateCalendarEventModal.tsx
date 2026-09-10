@@ -1,16 +1,21 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
+  FlatList,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
+  useWindowDimensions,
   View,
 } from "react-native";
 import type { SubjectListItem } from "@acme/api-contracts";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { MiniMonthCalendar } from "./MiniMonthCalendar";
 import { brand } from "../theme/brand";
 
 export const CREATE_EVENT_TYPES = [
@@ -128,6 +133,7 @@ export function CreateCalendarEventModal({
   onClose,
   onSubmit,
 }: Props) {
+  const { height: windowHeight } = useWindowDimensions();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [type, setType] = useState<CreateEventType>("tarefa");
@@ -152,12 +158,20 @@ export function CreateCalendarEventModal({
     return resolveDefaultColor(type, activeSubject?.color);
   }, [activeSubject?.color, color, colorTouched, type]);
 
+  const subjectPickerItems = useMemo(
+    () => [
+      { code: UNLINKED_SUBJECT, name: "Não associado à matéria" },
+      ...subjects.map((item) => ({ code: item.code, name: item.name })),
+    ],
+    [subjects]
+  );
+
   useEffect(() => {
     if (!visible || !defaultDate) return;
     setTitle("");
     setDescription("");
     setType("tarefa");
-    setSubjectCode(subjects[0]?.code ?? UNLINKED_SUBJECT);
+    setSubjectCode(UNLINKED_SUBJECT);
     setColorTouched(false);
     setColor(TYPE_COLORS.tarefa);
     setStartDate(defaultDate);
@@ -183,31 +197,26 @@ export function CreateCalendarEventModal({
     );
   }
 
-  const onPickerChange = (event: any, selectedDate?: Date) => {
-    const current = activePicker;
-    setActivePicker(null);
-    if (event.type === "dismissed" || !selectedDate || !current) return;
-
-    if (current === "startDate" || current === "endDate") {
-      const y = selectedDate.getFullYear();
-      const m = String(selectedDate.getMonth() + 1).padStart(2, "0");
-      const d = String(selectedDate.getDate()).padStart(2, "0");
-      const str = `${y}-${m}-${d}`;
-      if (current === "startDate") setStartDate(str);
-      else setEndDate(str);
-    } else {
-      const h = String(selectedDate.getHours()).padStart(2, "0");
-      const m = String(selectedDate.getMinutes()).padStart(2, "0");
-      const str = `${h}:${m}`;
-      if (current === "startTime") setStartTime(str);
-      else setEndTime(str);
+  const onPickerChange = (event: { type?: string }, selectedDate?: Date) => {
+    if (Platform.OS === "android") {
+      setActivePicker(null);
     }
+    if (event.type === "dismissed" || !selectedDate) {
+      if (Platform.OS === "ios") setActivePicker(null);
+      return;
+    }
+
+    const current = activePicker;
+    if (current !== "startTime" && current !== "endTime") return;
+
+    const h = String(selectedDate.getHours()).padStart(2, "0");
+    const min = String(selectedDate.getMinutes()).padStart(2, "0");
+    const str = `${h}:${min}`;
+    if (current === "startTime") setStartTime(str);
+    else setEndTime(str);
   };
 
   function getPickerValue() {
-    if (!activePicker) return new Date();
-    if (activePicker === "startDate" && startDate) return new Date(startDate + "T12:00:00");
-    if (activePicker === "endDate" && endDate) return new Date(endDate + "T12:00:00");
     if (activePicker === "startTime" && startTime) {
       const d = new Date();
       const [h, m] = startTime.split(":");
@@ -230,7 +239,7 @@ export function CreateCalendarEventModal({
       return;
     }
     if (!isIsoDate(startDate)) {
-      setError("Data de início inválida (use AAAA-MM-DD).");
+      setError("Informe a data de início.");
       return;
     }
     if (!isHm(startTime) || !isHm(endTime)) {
@@ -238,7 +247,7 @@ export function CreateCalendarEventModal({
       return;
     }
     if (endDate && !isIsoDate(endDate)) {
-      setError("Data de fim inválida (use AAAA-MM-DD).");
+      setError("Data de fim inválida.");
       return;
     }
     if (hasWeekly && !endDate) {
@@ -268,8 +277,22 @@ export function CreateCalendarEventModal({
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <Pressable style={styles.backdrop} onPress={onClose}>
-        <View style={styles.sheet} onStartShouldSetResponder={() => true}>
+      <View style={styles.backdrop}>
+        <Pressable
+          style={StyleSheet.absoluteFill}
+          onPress={onClose}
+          accessibilityLabel="Fechar"
+        />
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          style={styles.sheetWrap}
+        >
+          <View
+            style={[
+              styles.sheet,
+              subjectMenuOpen && { height: Math.round(windowHeight * 0.88) },
+            ]}
+          >
           <View style={styles.head}>
             <Text style={styles.title}>Novo evento</Text>
             <Pressable onPress={onClose} hitSlop={8} accessibilityLabel="Fechar">
@@ -281,6 +304,9 @@ export function CreateCalendarEventModal({
             style={styles.scroll}
             contentContainerStyle={styles.scrollContent}
             keyboardShouldPersistTaps="handled"
+            nestedScrollEnabled
+            keyboardDismissMode="on-drag"
+            scrollEnabled={!subjectMenuOpen}
           >
             <Text style={styles.label}>Título</Text>
             <TextInput
@@ -294,7 +320,7 @@ export function CreateCalendarEventModal({
             <Text style={styles.label}>Disciplina</Text>
             <Pressable
               style={styles.select}
-              onPress={() => setSubjectMenuOpen((open) => !open)}
+              onPress={() => setSubjectMenuOpen(true)}
             >
               <Text style={styles.selectText} numberOfLines={1}>
                 {isUnlinked
@@ -302,33 +328,6 @@ export function CreateCalendarEventModal({
                   : activeSubject?.name ?? subjectCode}
               </Text>
             </Pressable>
-            {subjectMenuOpen ? (
-              <View style={styles.menu}>
-                  <Pressable
-                  style={styles.menuItem}
-                  onPress={() => {
-                    setSubjectCode(UNLINKED_SUBJECT);
-                    setSubjectMenuOpen(false);
-                  }}
-                >
-                  <Text style={styles.menuText}>Não associado à matéria</Text>
-                </Pressable>
-                {subjects.map((item) => (
-                  <Pressable
-                    key={item.code}
-                    style={styles.menuItem}
-                    onPress={() => {
-                      setSubjectCode(item.code);
-                      setSubjectMenuOpen(false);
-                    }}
-                  >
-                    <Text style={styles.menuText} numberOfLines={1}>
-                      {item.name}
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
-            ) : null}
 
             <Text style={styles.label}>Tipo</Text>
             <View style={styles.chipRow}>
@@ -380,7 +379,11 @@ export function CreateCalendarEventModal({
                 <Text style={styles.subLabel}>Data de início</Text>
                 <Pressable
                   style={[styles.input, { justifyContent: "center" }]}
-                  onPress={() => setActivePicker("startDate")}
+                  onPress={() =>
+                    setActivePicker((current) =>
+                      current === "startDate" ? null : "startDate"
+                    )
+                  }
                 >
                   <Text style={{ color: startDate ? brand.text : brand.textMuted, fontFamily: brand.fontBody, fontSize: 14 }}>
                     {formatIsoToBR(startDate) || "DD/MM/AAAA"}
@@ -391,7 +394,11 @@ export function CreateCalendarEventModal({
                 <Text style={styles.subLabel}>Hora de início</Text>
                 <Pressable
                   style={[styles.input, { justifyContent: "center" }]}
-                  onPress={() => setActivePicker("startTime")}
+                  onPress={() =>
+                    setActivePicker((current) =>
+                      current === "startTime" ? null : "startTime"
+                    )
+                  }
                 >
                   <Text style={{ color: startTime ? brand.text : brand.textMuted, fontFamily: brand.fontBody, fontSize: 14 }}>
                     {startTime || "HH:MM"}
@@ -399,6 +406,15 @@ export function CreateCalendarEventModal({
                 </Pressable>
               </View>
             </View>
+            {activePicker === "startDate" ? (
+              <MiniMonthCalendar
+                value={startDate}
+                onSelect={(iso) => {
+                  setStartDate(iso);
+                  setActivePicker(null);
+                }}
+              />
+            ) : null}
 
             <Text style={styles.label}>
               Fim {hasWeekly ? "(obrigatório p/ repetir)" : "(opcional)"}
@@ -408,7 +424,11 @@ export function CreateCalendarEventModal({
                 <Text style={styles.subLabel}>Data de fim</Text>
                 <Pressable
                   style={[styles.input, { justifyContent: "center" }]}
-                  onPress={() => setActivePicker("endDate")}
+                  onPress={() =>
+                    setActivePicker((current) =>
+                      current === "endDate" ? null : "endDate"
+                    )
+                  }
                 >
                   <Text style={{ color: endDate ? brand.text : brand.textMuted, fontFamily: brand.fontBody, fontSize: 14 }}>
                     {formatIsoToBR(endDate) || "DD/MM/AAAA"}
@@ -419,7 +439,11 @@ export function CreateCalendarEventModal({
                 <Text style={styles.subLabel}>Hora de fim</Text>
                 <Pressable
                   style={[styles.input, { justifyContent: "center" }]}
-                  onPress={() => setActivePicker("endTime")}
+                  onPress={() =>
+                    setActivePicker((current) =>
+                      current === "endTime" ? null : "endTime"
+                    )
+                  }
                 >
                   <Text style={{ color: endTime ? brand.text : brand.textMuted, fontFamily: brand.fontBody, fontSize: 14 }}>
                     {endTime || "HH:MM"}
@@ -427,6 +451,17 @@ export function CreateCalendarEventModal({
                 </Pressable>
               </View>
             </View>
+            {activePicker === "endDate" ? (
+              <MiniMonthCalendar
+                value={endDate}
+                min={startDate || undefined}
+                allowClear={!hasWeekly}
+                onSelect={(iso) => {
+                  setEndDate(iso);
+                  setActivePicker(null);
+                }}
+              />
+            ) : null}
             <Text style={styles.hint}>
               {hasWeekly
                 ? "Repete toda semana nos dias marcados, até a data de fim."
@@ -490,16 +525,61 @@ export function CreateCalendarEventModal({
               <Text style={styles.cancelText}>Cancelar</Text>
             </Pressable>
           </ScrollView>
-          {activePicker && (
+          {subjectMenuOpen ? (
+            <View style={styles.subjectOverlay}>
+              <View style={styles.subjectOverlayInner}>
+                <View style={styles.subjectOverlayHead}>
+                  <Text style={styles.subjectOverlayTitle}>Disciplina</Text>
+                  <Pressable
+                    onPress={() => setSubjectMenuOpen(false)}
+                    hitSlop={8}
+                    accessibilityLabel="Fechar lista de disciplinas"
+                  >
+                    <Text style={styles.closeX}>✕</Text>
+                  </Pressable>
+                </View>
+                <FlatList
+                  data={subjectPickerItems}
+                  keyExtractor={(item) => item.code}
+                  keyboardShouldPersistTaps="handled"
+                  style={styles.subjectList}
+                  contentContainerStyle={styles.menuContent}
+                  renderItem={({ item }) => (
+                    <Pressable
+                      style={styles.menuItem}
+                      onPress={() => {
+                        setSubjectCode(item.code);
+                        setSubjectMenuOpen(false);
+                      }}
+                    >
+                      <Text
+                        style={[
+                          styles.menuText,
+                          item.code === subjectCode && styles.menuTextActive,
+                        ]}
+                        numberOfLines={2}
+                      >
+                        {item.name}
+                      </Text>
+                    </Pressable>
+                  )}
+                />
+              </View>
+            </View>
+          ) : null}
+          {activePicker === "startTime" || activePicker === "endTime" ? (
             <DateTimePicker
               value={getPickerValue()}
-              mode={activePicker.includes("Time") ? "time" : "date"}
-              display="default"
+              mode="time"
+              display={Platform.OS === "android" ? "default" : "spinner"}
+              locale="pt-BR"
+              is24Hour
               onChange={onPickerChange}
             />
-          )}
-        </View>
-      </Pressable>
+          ) : null}
+          </View>
+        </KeyboardAvoidingView>
+      </View>
     </Modal>
   );
 }
@@ -511,6 +591,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     padding: 16,
   },
+  sheetWrap: {
+    width: "100%",
+    maxHeight: "92%",
+  },
   sheet: {
     maxHeight: "92%",
     borderRadius: brand.radiusMd,
@@ -518,6 +602,33 @@ const styles = StyleSheet.create({
     borderColor: brand.border,
     backgroundColor: brand.bgElevated,
     overflow: "hidden",
+  },
+  subjectOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: brand.bgElevated,
+    zIndex: 30,
+  },
+  subjectOverlayInner: {
+    flex: 1,
+    paddingHorizontal: 8,
+    paddingBottom: 12,
+  },
+  subjectOverlayHead: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 8,
+    paddingTop: 14,
+    paddingBottom: 8,
+  },
+  subjectOverlayTitle: {
+    fontSize: 18,
+    fontFamily: brand.fontDisplay,
+    fontWeight: "700",
+    color: brand.text,
+  },
+  subjectList: {
+    flex: 1,
   },
   head: {
     flexDirection: "row",
@@ -592,13 +703,8 @@ const styles = StyleSheet.create({
     fontFamily: brand.fontBody,
     fontSize: 14,
   },
-  menu: {
-    borderRadius: brand.radiusSm,
-    borderWidth: 1,
-    borderColor: brand.border,
-    backgroundColor: brand.bg,
-    maxHeight: 180,
-    overflow: "hidden",
+  menuContent: {
+    paddingVertical: 4,
   },
   menuItem: {
     paddingHorizontal: 12,
@@ -610,6 +716,10 @@ const styles = StyleSheet.create({
     color: brand.text,
     fontFamily: brand.fontBody,
     fontSize: 13,
+  },
+  menuTextActive: {
+    color: brand.gold200,
+    fontWeight: "700",
   },
   chipRow: {
     flexDirection: "row",

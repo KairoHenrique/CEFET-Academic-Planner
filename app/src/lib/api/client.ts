@@ -193,6 +193,16 @@ export interface SubmitTarefaResponse {
   submissionId: string;
   status: string;
   message: string;
+  deviceRequired?: boolean;
+  sigaaLinkId?: string;
+  tarefaTitulo?: string;
+}
+
+export interface TaskSubmissionStatusResponse {
+  submissionId: string;
+  status: "queued" | "running" | "completed" | "failed";
+  errorMessage: string | null;
+  tarefaId: number;
 }
 
 /** Multipart — não envia Content-Type (boundary automático). */
@@ -226,6 +236,17 @@ export async function submitTarefaToSigaa(
     );
   }
   return body;
+}
+
+export async function getTaskSubmissionStatus(
+  id: number,
+  submissionId: string
+): Promise<TaskSubmissionStatusResponse> {
+  const query = new URLSearchParams({ submissionId });
+  return requestJson<TaskSubmissionStatusResponse>(
+    `/api/tarefas/${id}/submit?${query.toString()}`,
+    { method: "GET" }
+  );
 }
 
 export async function getAuthConfig(

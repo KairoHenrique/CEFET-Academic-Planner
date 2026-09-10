@@ -30,7 +30,7 @@ export interface RunDeviceFallbackSyncOptions {
 }
 
 /**
- * Fallback §6.1.1: raspa no browser (via relay) e faz ingest no Supabase.
+ * Fallback §6.1.1 no web: raspa no browser via relay TLS + ingest.
  */
 export async function runDeviceFallbackSyncClient(
   options: RunDeviceFallbackSyncOptions
@@ -38,7 +38,7 @@ export async function runDeviceFallbackSyncClient(
   const password = options.creds.password?.trim();
   if (!password) {
     throw new ApiClientError(
-      "Senha do SIGAA necessária para sincronizar pelo aparelho (servidor offline).",
+      "Faça login novamente para sincronizar.",
       "INVALID_CREDENTIALS",
       401
     );
@@ -105,6 +105,6 @@ export async function runDeviceFallbackSyncClient(
     throw new ApiClientError(message, code, response.status);
   }
 
-  options.onUiStep({ label: "Sincronização concluída (aparelho)", progress: 100 });
+  options.onUiStep({ label: "Sincronização concluída.", progress: 100 });
   notifySyncComplete();
 }

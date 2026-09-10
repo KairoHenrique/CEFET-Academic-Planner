@@ -3,6 +3,7 @@ import { ensurePostgresReady } from "@/lib/db/bootstrap-postgres";
 import { isPostgresBackend } from "@/lib/db/backend/config";
 import { runWithUserDb } from "@/lib/db/connection-manager";
 import { runWithQueryCursoId } from "@/lib/auth/account/query-curso-context";
+import { withCloudPostgresClient } from "@/lib/db/postgres/cloud-request-client";
 import { runWithTenantUserId } from "@/lib/db/postgres/tenant-context";
 import { resolveProfileFromAuthorization } from "@/lib/auth/account/resolve-profile-from-request";
 import {
@@ -46,25 +47,27 @@ export function withDb<TContext = unknown>(
     };
 
     if (isPostgresBackend()) {
-      const profile = await resolveProfileFromAuthorization(
-        request.headers.get("Authorization")
-      );
+      return withCloudPostgresClient(async () => {
+        const profile = await resolveProfileFromAuthorization(
+          request.headers.get("Authorization")
+        );
 
-      if (shouldEnforceAccessGate(request)) {
-        try {
-          await enforceSubscriptionAccessGate(profile);
-        } catch (error) {
-          return apiErrorResponse(error);
+        if (shouldEnforceAccessGate(request)) {
+          try {
+            await enforceSubscriptionAccessGate(profile);
+          } catch (error) {
+            return apiErrorResponse(error);
+          }
         }
-      }
 
-      const scopedUsername = profile?.cpf ?? username;
+        const scopedUsername = profile?.cpf ?? username;
 
-      return runWithQueryCursoId(profile?.cursoId, () =>
-        runWithTenantUserId(profile?.userId, () =>
-          runWithUserDb(scopedUsername, runHandler)
-        )
-      );
+        return runWithQueryCursoId(profile?.cursoId, () =>
+          runWithTenantUserId(profile?.userId, () =>
+            runWithUserDb(scopedUsername, runHandler)
+          )
+        );
+      });
     }
 
     return runWithUserDb(username, async () => {

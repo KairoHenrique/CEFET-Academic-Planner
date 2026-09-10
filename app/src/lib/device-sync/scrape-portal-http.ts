@@ -1,6 +1,6 @@
-import { SIGAA_PORTAL_DISCENTE_URL } from "@/lib/scraper/constants";
+import { SIGAA_PORTAL_DISCENTE_URL } from "@/lib/scraper/sigaa-urls";
 import { ScraperError } from "@/lib/scraper/errors";
-import { extractPortalRawFromHtml } from "@/lib/scraper/portal-discente/extract-portal-raw";
+import { extractPortalRawFromHtml } from "@/lib/scraper/portal-discente/extract-portal-raw-html";
 import {
   assertPortalSnapshot,
   parsePortalPageData,

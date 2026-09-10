@@ -5,7 +5,7 @@ import {
 } from "@/lib/device-sync/http-session";
 import { loginSigaaHttp } from "@/lib/device-sync/login-sigaa-http";
 import { scrapePortalDiscenteHttp } from "@/lib/device-sync/scrape-portal-http";
-import type { UserSqliteSnapshot } from "@/lib/sync-mirror/read-sqlite-snapshot";
+import type { UserSqliteSnapshot } from "@/lib/sync-mirror/snapshot-types";
 import type { SyncStep } from "@/lib/types/sync";
 
 export interface RunDeviceR1SyncInput {
@@ -41,18 +41,18 @@ export async function runDeviceR1Sync(
   const steps: SyncStep[] = [];
   const session = new DeviceHttpSession({ fetchImpl: input.fetchImpl });
 
-  emit(steps, input.onStep, "Conectando ao SIGAA (aparelho)…", 10);
+  emit(steps, input.onStep, "Conectando…", 10);
   await loginSigaaHttp(session, {
     username: input.username,
     password: input.password,
   });
 
-  emit(steps, input.onStep, "Lendo portal do discente…", 45);
+  emit(steps, input.onStep, "Atualizando dados…", 45);
   const portal = await scrapePortalDiscenteHttp(session, input.cursoId);
 
-  emit(steps, input.onStep, "Montando snapshot…", 75);
+  emit(steps, input.onStep, "Organizando…", 75);
   const snapshot = buildIngestSnapshotFromPortal(portal);
 
-  emit(steps, input.onStep, "Pronto para enviar à nuvem…", 90);
+  emit(steps, input.onStep, "Salvando…", 90);
   return { snapshot, steps };
 }

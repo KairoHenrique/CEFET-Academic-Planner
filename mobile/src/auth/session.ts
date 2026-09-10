@@ -117,6 +117,14 @@ export async function setSession(session: MobileAuthSession): Promise<void> {
 export async function clearSession(): Promise<void> {
   memorySession = null;
   await writeStore(null);
+  try {
+    const { clearSigaaPassword } = await import(
+      "../device-sync/sigaa-password-store"
+    );
+    await clearSigaaPassword();
+  } catch {
+    /* ignore */
+  }
   notify();
 }
 

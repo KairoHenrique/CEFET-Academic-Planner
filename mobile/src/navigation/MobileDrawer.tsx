@@ -143,15 +143,6 @@ export function MobileDrawer({
           <Pressable
             style={({ pressed }) => pressableOpacityStyle(pressed, styles.link)}
             android_ripple={goldRipple}
-            onPress={() => linkPress("Planos")}
-          >
-            <Icon name="star" size={18} color={brand.textSecondary} />
-            <Text style={styles.linkLabel}>Planos</Text>
-          </Pressable>
-
-          <Pressable
-            style={({ pressed }) => pressableOpacityStyle(pressed, styles.link)}
-            android_ripple={goldRipple}
             onPress={() => {
               onClose();
               onStartTutorial();

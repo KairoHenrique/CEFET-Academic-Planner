@@ -3,10 +3,20 @@ import {
   SUBJECT_DISPLAY_GRADE_MAX,
   SUBJECT_DISPLAY_PASSING_GRADE,
 } from "@/lib/disciplinas/grade-display";
-import { resolveDisciplinaCodigoForPortal } from "@/lib/scraper/portal-discente/resolve-disciplina-codigo";
 import type { PortalDiscenteSnapshot } from "@/lib/scraper/types/portal-discente";
-import type { UserSqliteSnapshot } from "@/lib/sync-mirror/read-sqlite-snapshot";
+import type { UserSqliteSnapshot } from "@/lib/sync-mirror/snapshot-types";
 import { isAtividadePrazoVencido } from "@/lib/tasks/dates";
+
+/** Resolve código sem tocar SQLite (bundle do browser). */
+function resolveCodigoPortal(
+  codigoHorario: string | null | undefined,
+  nome: string
+): string {
+  const codigo = codigoHorario?.trim() ?? "";
+  if (/^\d{2}\/\d+$/.test(codigo)) return codigo;
+  if (codigo) return codigo.toUpperCase();
+  return nome.trim().slice(0, 24).replace(/\s+/g, "-").toUpperCase() || "DISC";
+}
 
 /**
  * Converte snapshot do portal (HTTP) no shape de ingest/mirror.
@@ -18,10 +28,7 @@ export function buildIngestSnapshotFromPortal(
 ): UserSqliteSnapshot {
   const syncedAt = new Date().toISOString();
   const disciplinas = portal.semestreAtual.map((disciplina) => {
-    const codigo = resolveDisciplinaCodigoForPortal(
-      disciplina.codigo,
-      disciplina.nome
-    );
+    const codigo = resolveCodigoPortal(disciplina.codigo, disciplina.nome);
     return {
       codigo,
       nome: disciplina.nome,
@@ -33,10 +40,7 @@ export function buildIngestSnapshotFromPortal(
   });
 
   const semestreAtual = portal.semestreAtual.map((disciplina, index) => {
-    const codigo = resolveDisciplinaCodigoForPortal(
-      disciplina.codigo,
-      disciplina.nome
-    );
+    const codigo = resolveCodigoPortal(disciplina.codigo, disciplina.nome);
     return {
       disciplina_id: codigo,
       local: disciplina.local,
@@ -62,7 +66,7 @@ export function buildIngestSnapshotFromPortal(
   });
 
   const tarefasSynced = portal.atividades.map((atividade) => {
-    const disciplinaId = resolveDisciplinaCodigoForPortal(
+    const disciplinaId = resolveCodigoPortal(
       atividade.disciplinaCodigo,
       atividade.disciplinaCodigo
     );

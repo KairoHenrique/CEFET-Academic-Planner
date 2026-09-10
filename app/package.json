@@ -52,6 +52,7 @@
     "worker:home": "node scripts/start-home-worker.mjs",
     "worker:tunnel": "cloudflared tunnel --url http://127.0.0.1:8787",
     "worker:temp": "node scripts/start-temp-worker.mjs",
+    "termux:export-env": "node scripts/termux-export-env-from-pc.mjs",
     "sync:mirror": "tsx --env-file=.env.local scripts/sync-and-mirror.ts",
     "smoke:cloud-sync": "node scripts/smoke-cloud-sync.mjs",
     "test:scraper:live": "tsx --test tests/scraper-live.test.ts"

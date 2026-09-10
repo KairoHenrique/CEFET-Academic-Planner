@@ -1,141 +1,300 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { submitTarefaToSigaa } from "@/lib/api/client";
-import { ApiClientError } from "@/lib/api/client";
+import { useId, useRef, useState } from "react";
+import {
+  submitTarefaToSigaa,
+  getTaskSubmissionStatus,
+  ApiClientError,
+} from "@/lib/api/client";
+import { pollTaskSubmissionUntilDone } from "@/lib/task-submissions/poll-submission-status";
 import type { AcademicTask } from "@/lib/types/task";
 import { Icon } from "@/components/ui/Icon";
+import { SubmitTaskResult } from "./SubmitTaskResult";
 
 const MAX_BYTES = 10 * 1024 * 1024;
 
 type Props = {
   task: AcademicTask;
   onSubmitted?: () => void;
+  onCancel?: () => void;
 };
 
-export function SubmitTaskPanel({ task, onSubmitted }: Props) {
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+export function SubmitTaskPanel({ task, onSubmitted, onCancel }: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
-  const [fileName, setFileName] = useState<string | null>(null);
+  const commentId = useId();
+  const fileId = useId();
+  const [file, setFile] = useState<File | null>(null);
   const [comment, setComment] = useState("");
   const [busy, setBusy] = useState(false);
+  const [processing, setProcessing] = useState(false);
+  const [dragging, setDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  const [outcome, setOutcome] = useState<{
+    ok: boolean;
+    title: string;
+    message: string;
+  } | null>(null);
 
-  if (!task.submittable || task.done) return null;
+  if (task.done) {
+    return (
+      <p className="modal-hint">Esta tarefa já está marcada como concluída.</p>
+    );
+  }
 
-  function onPickFile(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    if (!file) {
-      setFileName(null);
+  if (task.manual) {
+    return (
+      <p className="modal-hint">
+        Tarefas criadas manualmente não são enviadas ao SIGAA.
+      </p>
+    );
+  }
+
+  if (!task.submittable) {
+    return (
+      <p className="modal-hint">
+        Esta tarefa ainda não tem vínculo com o portal. Sincronize e abra de
+        novo para enviar o arquivo no SIGAA.
+      </p>
+    );
+  }
+
+  function acceptFile(next: File | null) {
+    if (!next) {
+      setFile(null);
       return;
     }
-    if (file.size > MAX_BYTES) {
+    if (next.size > MAX_BYTES) {
       setError("Arquivo excede 10 MB (limite do SIGAA).");
-      event.target.value = "";
-      setFileName(null);
+      setFile(null);
+      if (fileRef.current) fileRef.current.value = "";
       return;
     }
     setError(null);
-    setSuccess(null);
-    setFileName(file.name);
+    setFile(next);
   }
 
-  async function onSubmit() {
-    const file = fileRef.current?.files?.[0];
+  function onPickFile(event: React.ChangeEvent<HTMLInputElement>) {
+    acceptFile(event.target.files?.[0] ?? null);
+  }
+
+  function onDragOver(event: React.DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    if (busy) return;
+    setDragging(true);
+  }
+
+  function onDragLeave(event: React.DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    setDragging(false);
+  }
+
+  function onDrop(event: React.DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    setDragging(false);
+    if (busy) return;
+    acceptFile(event.dataTransfer.files?.[0] ?? null);
+  }
+
+  async function onSubmit(event: React.FormEvent) {
+    event.preventDefault();
     if (!file) {
-      setError("Selecione o arquivo da entrega.");
+      setError("Selecione ou arraste o arquivo da entrega.");
       return;
     }
 
     setBusy(true);
+    setProcessing(true);
     setError(null);
-    setSuccess(null);
 
     try {
       const form = new FormData();
       form.append("file", file);
-      if (comment.trim()) {
-        form.append("comment", comment.trim());
-      }
+      if (comment.trim()) form.append("comment", comment.trim());
       const result = await submitTarefaToSigaa(task.id, form);
-      setSuccess(result.message);
+
+      if (result.deviceRequired || result.status === "device_required") {
+        setOutcome({
+          ok: false,
+          title: "Não foi possível enviar",
+          message:
+            "Não foi possível enviar agora. Tente novamente em alguns minutos.",
+        });
+        return;
+      }
+
+      const poll = await pollTaskSubmissionUntilDone(
+        () => getTaskSubmissionStatus(task.id, result.submissionId),
+        { dryRun: false }
+      );
+
       setComment("");
-      setFileName(null);
+      setFile(null);
       if (fileRef.current) fileRef.current.value = "";
-      onSubmitted?.();
+
+      if (poll.kind === "completed") {
+        setOutcome({
+          ok: true,
+          title: "Tarefa enviada",
+          message: poll.message,
+        });
+        onSubmitted?.();
+        return;
+      }
+
+      setOutcome({
+        ok: false,
+        title: "Não foi possível enviar",
+        message: poll.message,
+      });
     } catch (err) {
-      setError(
+      const message =
         err instanceof ApiClientError
           ? err.message
-          : "Não foi possível enviar a tarefa."
-      );
+          : "Não foi possível enviar a tarefa.";
+      setError(message);
+      setOutcome({ ok: false, title: "Não foi possível enviar", message });
     } finally {
       setBusy(false);
+      setProcessing(false);
     }
   }
 
+  if (outcome) {
+    return (
+      <SubmitTaskResult
+        ok={outcome.ok}
+        title={outcome.title}
+        message={outcome.message}
+        onDismiss={() => {
+          setOutcome(null);
+          onCancel?.();
+        }}
+        onRetry={
+          outcome.ok
+            ? undefined
+            : () => {
+                setOutcome(null);
+                setError(null);
+              }
+        }
+      />
+    );
+  }
+
+  if (processing) {
+    return (
+      <div className="task-submit-processing" role="status" aria-live="polite">
+        <span className="task-submit-processing-icon" aria-hidden>
+          <Icon name="sync" size={22} />
+        </span>
+        <h3 className="task-submit-processing-title">Enviando no SIGAA…</h3>
+        <p className="modal-hint">
+          Estamos enviando sua tarefa. Isso pode levar alguns segundos — só
+          confirmamos quando o SIGAA receber.
+        </p>
+      </div>
+    );
+  }
+
   return (
-    <div className="detail-block task-submit-panel">
-      <h4 className="detail-block-title">Enviar no SIGAA</h4>
-      <p className="detail-description">
-        Escolha o arquivo e, se quiser, deixe um comentário para o professor —
-        igual à tela &quot;Responder tarefa&quot; do portal.
+    <form className="modal-form-stack task-submit-panel" onSubmit={onSubmit}>
+      <p className="modal-hint">
+        Arraste o arquivo ou clique para escolher. Se quiser, deixe um
+        comentário para o professor.
       </p>
 
-      <input
-        ref={fileRef}
-        type="file"
-        className="task-submit-file-input"
-        onChange={onPickFile}
-        aria-label="Arquivo da entrega"
-      />
+      <div className="form-field">
+        <span className="form-label" id={`${fileId}-label`}>
+          Arquivo da entrega
+        </span>
+        <input
+          ref={fileRef}
+          id={fileId}
+          type="file"
+          className="sr-only"
+          onChange={onPickFile}
+          disabled={busy}
+          aria-labelledby={`${fileId}-label`}
+        />
+        <button
+          type="button"
+          className={`task-submit-dropzone${file ? " is-filled" : ""}${
+            dragging ? " is-dragging" : ""
+          }`}
+          onClick={() => fileRef.current?.click()}
+          onDragEnter={onDragOver}
+          onDragOver={onDragOver}
+          onDragLeave={onDragLeave}
+          onDrop={onDrop}
+          disabled={busy}
+          aria-describedby={`${fileId}-hint`}
+        >
+          <span className="task-submit-dropzone-row">
+            <Icon name="plus" size={14} />
+            <span className="task-submit-dropzone-name">
+              {file
+                ? file.name
+                : dragging
+                  ? "Solte o arquivo aqui"
+                  : "Arraste ou escolha o arquivo"}
+            </span>
+          </span>
+          <span id={`${fileId}-hint`} className="form-hint">
+            {file
+              ? formatFileSize(file.size)
+              : "PDF, código ou documento · até 10 MB"}
+          </span>
+        </button>
+      </div>
 
-      <button
-        type="button"
-        className="btn-outline task-submit-file-btn"
-        onClick={() => fileRef.current?.click()}
-        disabled={busy}
-      >
-        <Icon name="plus" size={14} />
-        {fileName ? fileName : "Escolher arquivo"}
-      </button>
-
-      <label className="task-submit-label" htmlFor={`task-comment-${task.id}`}>
-        Comentários visíveis ao professor
+      <label className="form-field" htmlFor={commentId}>
+        <span className="form-label">
+          Comentário ao professor
+          <span className="form-label-optional"> opcional</span>
+        </span>
+        <textarea
+          id={commentId}
+          className="form-input form-textarea"
+          rows={4}
+          placeholder="Visível no SIGAA"
+          value={comment}
+          onChange={(event) => setComment(event.target.value)}
+          disabled={busy}
+          maxLength={8000}
+        />
       </label>
-      <textarea
-        id={`task-comment-${task.id}`}
-        className="form-textarea task-submit-comment"
-        rows={4}
-        placeholder="Opcional"
-        value={comment}
-        onChange={(event) => setComment(event.target.value)}
-        disabled={busy}
-        maxLength={8000}
-      />
 
       {error ? (
         <p className="form-error" role="alert">
           {error}
         </p>
       ) : null}
-      {success ? (
-        <p className="task-submit-success" role="status">
-          {success}
-        </p>
-      ) : null}
 
-      <div className="detail-actions task-submit-actions">
-        <button
-          type="button"
-          className="btn-gold"
-          onClick={() => void onSubmit()}
-          disabled={busy}
-        >
+      <div className="modal-form-actions">
+        {onCancel ? (
+          <button
+            type="button"
+            className="btn-outline"
+            onClick={onCancel}
+            disabled={busy}
+          >
+            Cancelar
+          </button>
+        ) : null}
+        <button type="submit" className="btn-gold" disabled={busy || !file}>
           <Icon name="check" size={14} />
           {busy ? "Enviando…" : "Enviar tarefa"}
         </button>
       </div>
-    </div>
+    </form>
   );
 }

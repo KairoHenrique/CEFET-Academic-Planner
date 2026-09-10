@@ -9,6 +9,7 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { MiniMonthCalendar } from "../../../ui/MiniMonthCalendar";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { AcademicTask } from "@acme/api-contracts";
@@ -77,6 +78,7 @@ export function SubjectTarefasTab({ code, tasks, onChanged }: Props) {
   const [showForm, setShowForm] = useState(false);
   const [titulo, setTitulo] = useState("");
   const [dataFim, setDataFim] = useState("");
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<DueFilter>("todas");
@@ -142,7 +144,7 @@ export function SubjectTarefasTab({ code, tasks, onChanged }: Props) {
 
   async function onCreate() {
     if (!titulo.trim() || !/^\d{4}-\d{2}-\d{2}$/.test(dataFim.trim())) {
-      setError("Título e data AAAA-MM-DD são obrigatórios.");
+      setError("Título e data de entrega são obrigatórios.");
       return;
     }
     setCreating(true);
@@ -260,14 +262,30 @@ export function SubjectTarefasTab({ code, tasks, onChanged }: Props) {
             value={titulo}
             onChangeText={setTitulo}
           />
-          <TextInput
-            style={styles.input}
-            placeholder="Data (AAAA-MM-DD)"
-            placeholderTextColor={brand.textMuted}
-            value={dataFim}
-            onChangeText={setDataFim}
-            autoCapitalize="none"
-          />
+          <Pressable
+            style={[styles.input, styles.dateBtn]}
+            onPress={() => setShowDatePicker((open) => !open)}
+          >
+            <Text
+              style={{
+                color: dataFim ? brand.text : brand.textMuted,
+                fontFamily: brand.fontBody,
+                fontSize: 14,
+              }}
+            >
+              {dataFim ? `${dataFim.slice(8, 10)}/${dataFim.slice(5, 7)}/${dataFim.slice(0, 4)}` : "Data de entrega (DD/MM/AAAA)"}
+            </Text>
+          </Pressable>
+          {showDatePicker ? (
+            <MiniMonthCalendar
+              value={dataFim}
+              allowClear
+              onSelect={(iso) => {
+                setDataFim(iso);
+                setShowDatePicker(false);
+              }}
+            />
+          ) : null}
           <Pressable
             style={[styles.saveBtn, creating && styles.disabled]}
             onPress={() => void onCreate()}
@@ -429,6 +447,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     marginBottom: 8,
+  },
+  dateBtn: {
+    minHeight: 44,
+    justifyContent: "center",
   },
   saveBtn: {
     backgroundColor: brand.blue,

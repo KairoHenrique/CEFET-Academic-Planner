@@ -18,6 +18,11 @@ function sanitizeFileName(name: string): string {
   return base.replace(/[^\w.\-() áàâãéêíóôõúçÁÀÂÃÉÊÍÓÔÕÚÇ-]/g, "_").slice(0, 180);
 }
 
+function isBlobLike(value: unknown): value is Blob {
+  if (!value || typeof value !== "object") return false;
+  return "arrayBuffer" in value && "size" in value;
+}
+
 export const POST = withDb(async (request, context: RouteContext) => {
   const profile = await resolveProfileFromAuthorization(
     request.headers.get("Authorization")
@@ -35,7 +40,7 @@ export const POST = withDb(async (request, context: RouteContext) => {
   const comment =
     typeof commentRaw === "string" ? commentRaw.slice(0, 8000) : null;
 
-  if (!(file instanceof File)) {
+  if (!isBlobLike(file)) {
     throw new ApiError("VALIDATION_ERROR", "Arquivo é obrigatório.", 400);
   }
   if (file.size <= 0) {
@@ -50,15 +55,31 @@ export const POST = withDb(async (request, context: RouteContext) => {
   }
 
   const bytes = Buffer.from(await file.arrayBuffer());
+  const rawFileName =
+    file instanceof File
+      ? file.name
+      : typeof (file as { name?: unknown }).name === "string"
+        ? (file as { name: string }).name
+        : "arquivo";
+  const rawFileType =
+    typeof (file as { type?: unknown }).type === "string"
+      ? (file as { type: string }).type
+      : null;
+  const dryRunRaw = form.get("dryRun");
+  const dryRun =
+    dryRunRaw === "1" ||
+    dryRunRaw === "true" ||
+    dryRunRaw === "on";
   const result = await submitTarefaToSigaa({
     userId: profile.userId,
     cursoId: profile.cursoId ?? "eng-computacao",
     username: profile.cpf,
     tarefaId,
-    fileName: sanitizeFileName(file.name || "arquivo"),
-    fileMime: file.type || null,
+    fileName: sanitizeFileName(rawFileName || "arquivo"),
+    fileMime: rawFileType || null,
     fileBytes: bytes,
     comment,
+    dryRun,
   });
 
   return apiSuccess(result, 202);

@@ -1,31 +1,56 @@
 import { useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
+  Modal,
+  Platform,
   Pressable,
-  StyleSheet,
+  ScrollView,
   Text,
-  TextInput,
   View,
 } from "react-native";
 import type { AcademicTask } from "@acme/api-contracts";
-import { submitTarefaToSigaa } from "../../api/mutations";
+import { getTaskSubmissionStatus, submitTarefaToSigaa, completeDeviceTaskSubmission } from "../../api/mutations";
 import { ApiClientError } from "../../auth/api";
+import { submitTarefaOnDevice } from "../../device-sync/submit-tarefa-http";
+import { DeviceSyncError } from "../../device-sync/login-sigaa-http";
 import { brand } from "../../theme/brand";
+import { Icon } from "../../ui/Icon";
+import { SubmitTaskForm } from "./SubmitTaskForm";
+import { SubmitTaskResult } from "./SubmitTaskResult";
+import { pollTaskSubmissionUntilDone } from "./poll-submission-status";
+import { submitTaskStyles as styles } from "./submit-task-panel.styles";
 
 type Props = {
   task: AcademicTask;
   onSubmitted?: () => void;
 };
 
+/** Botão + modal — paridade visual com o envio do site. */
 export function SubmitTaskPanel({ task, onSubmitted }: Props) {
+  const [open, setOpen] = useState(false);
   const [comment, setComment] = useState("");
   const [fileName, setFileName] = useState<string | null>(null);
   const [fileUri, setFileUri] = useState<string | null>(null);
   const [fileMime, setFileMime] = useState<string | null>(null);
+  const [fileSize, setFileSize] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
+  const [processing, setProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [outcome, setOutcome] = useState<{
+    ok: boolean;
+    title: string;
+    message: string;
+  } | null>(null);
 
-  if (!task.submittable || task.done) return null;
+  if (task.done || task.manual) return null;
+
+  function close() {
+    if (busy) return;
+    setOpen(false);
+    setError(null);
+    setOutcome(null);
+    setProcessing(false);
+  }
 
   async function pickFile() {
     try {
@@ -36,157 +61,211 @@ export function SubmitTaskPanel({ task, onSubmitted }: Props) {
       });
       if (result.canceled || !result.assets?.[0]) return;
       const asset = result.assets[0];
+      if (asset.size && asset.size > 10 * 1024 * 1024) {
+        setError("Arquivo excede 10 MB (limite do SIGAA).");
+        return;
+      }
       setFileUri(asset.uri);
       setFileName(asset.name ?? "arquivo");
       setFileMime(asset.mimeType ?? null);
+      setFileSize(asset.size ?? null);
+      setError(null);
     } catch {
-      Alert.alert("Arquivo", "Não foi possível selecionar o arquivo.");
+      setError("Não foi possível selecionar o arquivo.");
     }
   }
 
   async function onSubmit() {
     if (!fileUri || !fileName) {
-      Alert.alert("Arquivo obrigatório", "Escolha o arquivo da entrega.");
+      setError("Selecione o arquivo da entrega.");
       return;
     }
     setBusy(true);
+    setProcessing(true);
+    setError(null);
     try {
       const form = new FormData();
-      form.append("comment", comment);
+      if (comment.trim()) form.append("comment", comment.trim());
+      const normalizedUri =
+        Platform.OS === "android" && !fileUri.startsWith("file://")
+          ? `file://${fileUri}`
+          : fileUri;
       form.append("file", {
-        uri: fileUri,
+        uri: normalizedUri,
         name: fileName,
         type: fileMime ?? "application/octet-stream",
       } as unknown as Blob);
-      await submitTarefaToSigaa(task.id, form);
-      Alert.alert(
-        "Envio iniciado",
-        "O robô está enviando sua tarefa no SIGAA. Aguarde alguns instantes e sincronize."
+      const submitResult = await submitTarefaToSigaa(task.id, form);
+
+      if (submitResult.deviceRequired || submitResult.status === "device_required") {
+        try {
+          await submitTarefaOnDevice({
+            tarefaTitulo: submitResult.tarefaTitulo || task.title,
+            sigaaLinkId: submitResult.sigaaLinkId,
+            fileUri,
+            fileName,
+            fileMime,
+            comment,
+          });
+          await completeDeviceTaskSubmission(task.id, {
+            submissionId: submitResult.submissionId,
+            ok: true,
+          });
+          setComment("");
+          setFileUri(null);
+          setFileName(null);
+          setOutcome({
+            ok: true,
+            title: "Tarefa enviada",
+            message: "Envio confirmado no SIGAA.",
+          });
+          onSubmitted?.();
+          return;
+        } catch (deviceErr) {
+          const message =
+            deviceErr instanceof DeviceSyncError ||
+            deviceErr instanceof ApiClientError
+              ? deviceErr.message
+              : "Não foi possível enviar a tarefa.";
+          await completeDeviceTaskSubmission(task.id, {
+            submissionId: submitResult.submissionId,
+            ok: false,
+            errorMessage: message,
+          }).catch(() => undefined);
+          setOutcome({
+            ok: false,
+            title: "Não foi possível enviar",
+            message,
+          });
+          return;
+        }
+      }
+
+      const poll = await pollTaskSubmissionUntilDone(
+        () => getTaskSubmissionStatus(task.id, submitResult.submissionId),
+        { dryRun: false }
       );
-      onSubmitted?.();
+
+      setComment("");
+      setFileUri(null);
+      setFileName(null);
+
+      if (poll.kind === "completed") {
+        setOutcome({
+          ok: true,
+          title: "Tarefa enviada",
+          message: poll.message,
+        });
+        onSubmitted?.();
+        return;
+      }
+
+      setOutcome({
+        ok: false,
+        title: "Não foi possível enviar",
+        message: poll.message,
+      });
     } catch (err) {
-      Alert.alert(
-        "Falha no envio",
-        err instanceof ApiClientError
-          ? err.message
-          : "Não foi possível enviar a tarefa."
-      );
+      setOutcome({
+        ok: false,
+        title: "Não foi possível enviar",
+        message:
+          err instanceof ApiClientError
+            ? err.message
+            : "Não foi possível enviar a tarefa.",
+      });
     } finally {
       setBusy(false);
+      setProcessing(false);
     }
   }
 
   return (
-    <View style={styles.box}>
-      <Text style={styles.title}>Enviar no SIGAA</Text>
-      <Text style={styles.hint}>
-        Escolha o arquivo e opcionalmente comente (como na tela do SIGAA).
-      </Text>
-
-      <Pressable style={styles.outlineBtn} onPress={() => void pickFile()}>
-        <Text style={styles.outlineBtnText}>
-          {fileName ? `Arquivo: ${fileName}` : "Escolher arquivo"}
-        </Text>
+    <>
+      <Pressable style={styles.btnGold} onPress={() => setOpen(true)}>
+        <Icon name="clipboard" size={14} color={brand.bg} />
+        <Text style={styles.btnGoldText}>Enviar tarefa</Text>
       </Pressable>
 
-      <Text style={styles.label}>Comentários para o professor</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Opcional — visível no SIGAA"
-        placeholderTextColor={brand.textMuted}
-        value={comment}
-        onChangeText={setComment}
-        multiline
-        textAlignVertical="top"
-      />
-
-      <Pressable
-        style={[styles.submitBtn, busy && styles.disabled]}
-        disabled={busy}
-        onPress={() => void onSubmit()}
+      <Modal
+        visible={open}
+        transparent
+        animationType="fade"
+        onRequestClose={close}
       >
-        {busy ? (
-          <ActivityIndicator color={brand.bg} />
-        ) : (
-          <Text style={styles.submitText}>Enviar tarefa</Text>
-        )}
-      </Pressable>
-    </View>
+        <Pressable style={styles.backdrop} onPress={close}>
+          <View style={styles.sheet} onStartShouldSetResponder={() => true}>
+            <View style={styles.head}>
+              <View style={styles.headText}>
+                <Text style={styles.title}>Enviar no SIGAA</Text>
+                <Text style={styles.aside} numberOfLines={1}>
+                  {task.title}
+                </Text>
+              </View>
+              <Pressable
+                onPress={close}
+                hitSlop={8}
+                accessibilityLabel="Fechar"
+                style={styles.closeBtn}
+              >
+                <Icon name="close" size={16} color={brand.textSecondary} />
+              </Pressable>
+            </View>
+
+            <ScrollView
+              style={styles.scroll}
+              contentContainerStyle={styles.body}
+              keyboardShouldPersistTaps="handled"
+            >
+              {!task.submittable ? (
+                <Text style={styles.hint}>
+                  Esta tarefa ainda não tem vínculo com o portal. Sincronize e
+                  abra de novo.
+                </Text>
+              ) : outcome ? (
+                <SubmitTaskResult
+                  ok={outcome.ok}
+                  title={outcome.title}
+                  message={outcome.message}
+                  onDismiss={() => {
+                    setOutcome(null);
+                    close();
+                  }}
+                  onRetry={
+                    outcome.ok
+                      ? undefined
+                      : () => {
+                          setOutcome(null);
+                          setError(null);
+                        }
+                  }
+                />
+              ) : processing ? (
+                <View style={styles.processing} accessibilityRole="text">
+                  <ActivityIndicator size="large" color={brand.gold} />
+                  <Text style={styles.processingTitle}>Enviando no SIGAA…</Text>
+                  <Text style={styles.hint}>
+                    Estamos enviando sua tarefa. Isso pode levar alguns
+                    segundos — só confirmamos quando o SIGAA receber.
+                  </Text>
+                </View>
+              ) : (
+                <SubmitTaskForm
+                  comment={comment}
+                  fileName={fileName}
+                  fileSize={fileSize}
+                  busy={busy}
+                  error={error}
+                  onCommentChange={setComment}
+                  onPickFile={() => void pickFile()}
+                  onCancel={close}
+                  onSubmit={() => void onSubmit()}
+                />
+              )}
+            </ScrollView>
+          </View>
+        </Pressable>
+      </Modal>
+    </>
   );
 }
-
-const styles = StyleSheet.create({
-  box: {
-    marginTop: 20,
-    padding: 14,
-    borderRadius: brand.radiusMd,
-    borderWidth: 1,
-    borderColor: brand.borderGold,
-    backgroundColor: "rgba(232,198,106,0.08)",
-    gap: 10,
-  },
-  title: {
-    fontSize: 13,
-    fontFamily: brand.fontBodyBold,
-    fontWeight: "700",
-    color: brand.gold200,
-    textTransform: "uppercase",
-    letterSpacing: 0.4,
-  },
-  hint: {
-    fontSize: 12,
-    lineHeight: 18,
-    color: brand.textSecondary,
-    fontFamily: brand.fontBody,
-  },
-  label: {
-    fontSize: 12,
-    fontFamily: brand.fontBodySemi,
-    fontWeight: "600",
-    color: brand.textMuted,
-    marginTop: 4,
-  },
-  input: {
-    minHeight: 88,
-    backgroundColor: "rgba(0,0,0,0.25)",
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: brand.border,
-    color: brand.text,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontFamily: brand.fontBody,
-    fontSize: 14,
-  },
-  outlineBtn: {
-    minHeight: 44,
-    borderRadius: brand.radiusMd,
-    borderWidth: 1,
-    borderColor: brand.borderEmphasis,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(0,0,0,0.2)",
-    paddingHorizontal: 12,
-  },
-  outlineBtnText: {
-    color: brand.gold200,
-    fontFamily: brand.fontBodySemi,
-    fontWeight: "600",
-    fontSize: 13,
-    textAlign: "center",
-  },
-  submitBtn: {
-    minHeight: 46,
-    borderRadius: brand.radiusMd,
-    backgroundColor: brand.gold,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  submitText: {
-    color: brand.bg,
-    fontFamily: brand.fontBodyBold,
-    fontWeight: "700",
-    fontSize: 14,
-  },
-  disabled: { opacity: 0.6 },
-});

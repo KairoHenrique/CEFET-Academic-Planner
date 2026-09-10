@@ -13,7 +13,7 @@ Este documento contém todas as tasks do projeto, organizadas por fase. Cada tas
 >
 > **📌 Prioridade (jul/2026):** **worker sync = este PC** (Chrome + Playwright + mirror → Supabase) exposto via **cloudflared**; Cloudflare só despacha. Código B72a–e `[x]`. Ops: `npm run worker:home` + `npm run worker:tunnel` + secrets CF — ver [`app/worker/README.md`](../app/worker/README.md) · [Bloco 2f · B72](#12--bloco-2f--sync-real-postgres-b72).
 >
-> **📌 Sync híbrido (set/2026):** PC preferido; se offline → fallback **web + mobile** → Supabase. **B82/B83/F45/M19** `[@]`. **F46** app gratuito `[@]`. **F47** sem indicação no cadastro `[@]`. Detalhe: [`SCOPE-CLOUD.md` §6.1.1](./SCOPE-CLOUD.md#611-sync-híbrido--pc--aparelho--decisão-set2026).
+> **📌 Sync híbrido (set/2026):** PC Playwright preferido; offline → **mobile** (HTTP no aparelho). Web edge com `node:tls` causou **Error 1102** — rollback; sync web offline = Servidor ACME ou app. **B82–B87/M19** · **F46**/**F47** `[@]`. Detalhe: [`SCOPE-CLOUD.md` §6.1.1](./SCOPE-CLOUD.md#611-sync-híbrido--pc--aparelho--decisão-set2026).
 
 **Navegação rápida:** [Roadmap detalhado (#0→#11)](#roadmap-detalhado--ordem-de-execução-0--11) · [Sequência #0→#11](#sequência-completa--o-que-fazer-e-em-qual-ordem) · [Ordem oficial v3](#ordem-oficial-de-execução-v3) · [Checklist BACK→FRONT](#checklist-mestre-ordem-de-execução) · [Detalhe por bloco](#detalhe-dos-blocos) · [#6d orquestração sync](#6d--orquestração-sync--catálogo-global-pré-mobile) · [#6e painel dev](#6e--painel-dev--policy-pré-pix) · [Escopo cloud](./SCOPE-CLOUD.md) · [Marco testes gerais](#marco--site-no-ar-para-testes-gerais) · [Apêndice escopo futuro](#apêndice--escopo-futuro-fora-da-ordem-011) · [Apêndice B65 dev](#apêndice--b65-sync-automático-dev-remover-antes-de-produção) · [Apêndice gift + painel dev](#apêndice--chaves-gift-e-painel-dev-jun2026)
 
@@ -1800,17 +1800,21 @@ Legenda: `[x]` aprovada 100% · `[@]` push sem aprovação total · `[%]` commit
 
 > **Download automático de materiais SIGAA (B57 · B29 · F35):** **cancelado** jun/2026 — não será implementado neste produto. O aluno continua baixando materiais manualmente no SIGAA. **Histórico escolar PDF (B30)** permanece no escopo (Ensino → Emitir Histórico).
 
-### Sync híbrido PC + aparelho (set/2026) — em implementação
+### Sync híbrido PC + aparelho (set/2026)
 
-> **Escopo fechado:** [`SCOPE-CLOUD.md` §6.1.1](./SCOPE-CLOUD.md#611-sync-híbrido--pc--aparelho--decisão-set2026).  
-> **Ordem:** `B82` → `B83` → `F45` → `M19`
+> **Escopo:** [`SCOPE-CLOUD.md` §6.1.1](./SCOPE-CLOUD.md#611-sync-híbrido--pc--aparelho--decisão-set2026).  
+> **Arquitetura:** PC Playwright preferido · aparelho HTTP quando offline · **CF não raspa SIGAA** (526). UX silenciosa.
 
 | # | Tipo | Task | Resumo | Status |
 |---|------|------|--------|--------|
-| B82 | Back | Ingest + health | `POST /api/sync/ingest` · `ingest-html` · `device-run` · `GET /api/sync/worker-health` · mirror portal-lite · rate limit | [@] |
-| B83 | Back | Adapter HTTP R1 | Login/portal HTTP · relay CORS · build snapshot portal | [@] |
-| F45 | Front | Fallback sync web | `runQueuedSyncClient` flip PC→aparelho/edge | [@] |
-| M19 | Front | Fallback sync mobile | `startManualLiteSync` flip + `device-run` | [@] |
+| B82 | Back | Ingest + health | `ingest` · `ingest-html` · `worker-health` · mirror portal-lite · rate limit · device-run deprecated | [@] |
+| B83 | Back | Adapter HTTP R1 | Login/portal HTTP no aparelho · build snapshot | [@] |
+| F45 | Front | Fallback sync web | Flip PC→mensagem genérica (sem CF→SIGAA) | [@] |
+| M19 | Front | Fallback sync mobile | HTTP nativo + `ingest-html` · SecureStore senha · UX silenciosa | [@] |
+| B84 | Back+Mobile | RU no aparelho | Saldo RU via HTTP no app + persist ingest | [@] |
+| B85 | Back+Mobile | Submit no aparelho | `device_required` + multipart no app + `device-complete` | [@] |
+| B86 | Back+Mobile | R1 deep aparelho | Turma HTML → notas/faltas/tarefas no ingest | [@] |
+| B87 | Back+Mobile | Calendário aparelho | HTML calendário se cache global frio | [@] |
 
 ### Produto gratuito (set/2026)
 
@@ -2103,7 +2107,7 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 8. **Próximo passo do roadmap:** informe **depois do push** (tasks em `[@]` ou `[x]`). Com commits locais só `[x]`, **não** avance o roadmap na resposta.
 9. **Ordem de execução:** seguir [Ordem oficial v3](#ordem-oficial-de-execução-v3) — **Bloco 2 (sync) antes do Bloco 6 (Supabase)**. Dentro de cada fatia: `B` antes de `F`.
 10. **Modo testes global (6a):** deploy **após** sync validado; RLS ✅ **6c** (antes do PIX). Marco “site no ar p/ testes gerais” → [final do TASKS.md](#marco--site-no-ar-para-testes-gerais).
-11. **Próximo passo:** validar sync híbrido + app free em produção (`[@]`). **F47** cadastro sem indicação `[@]`. **M16** / **M17** `[@]` (opcionais). **B80/B81/F44/M18** `[x]`. **B82/B83/F45/M19/F46** `[@]`. **#11 Multi-PPC** `[x]`. Site **v1.0.1**. **F28** `[x]`.
+11. **Próximo passo:** validar sync híbrido no **app** com PC fechado · RU/envio no aparelho. **B82–B87/M19** `[@]`. **F46**/**F47** `[@]`. **M16**/**M17** `[@]`. Ops: Servidor ACME (PC) = path preferido; Termux paridade pronta. **B80/B81/F44/M18** `[x]`.
 12. **Integralização:** CH concluída = `historico` + PPC (`computeChDoneFromDisciplinas`); portal SIGAA só % / total currículo; matérias já passadas = **B30** ✅.
 13. **Gift + painel dev:** **B68–B71** ✅ · **F39–F41** ✅ — painel sem senha SIGAA (`credentialSaved` + `accountRef`).
 14. **Sincronização TASKS (regra inviolável):** `docs/TASKS.md` **sempre 100% atualizado** — ver `.cursor/rules/tasks-workflow.mdc` → **Regra inviolável** + **Sincronizar (10 pontos)** + **Verificação final**. Nunca commitar ou encerrar turno com sync parcial. **Polish em task `[x]`** (ex.: F38, dashboard) também exige nota no TASKS no mesmo ciclo do push.
@@ -2116,7 +2120,7 @@ Se você é um agente de IA continuando este projeto, aqui estão informações 
 
 > **🌐 Mínimo funcional beta (jul/2026):** **6b** ✅ · **6c** ✅ — cadastro, login CPF, trial, gate, RLS/isolamento por conta. Sync SIGAA → Postgres = **[B72a–e](#12--bloco-2f--sync-real-postgres-b72)** `[x]` — **worker = este PC** + cloudflared (ver `app/worker/README.md`). Enquanto o túnel/worker estiver offline, sync na URL pública fica stub **até** o fallback aparelho (§6.1.1) ser implementado.
 
-> **🌐 Beta aberto:** URL pública com **cadastro + login CPF + trial + gate** (**F29** ✅). Com worker+túnel no ar, sync cloud → Chrome neste PC → mirror Supabase. Sem PC online: hoje stub / `sync:mirror` em dev; **plano** = sync no aparelho → Supabase ([§6.1.1](./SCOPE-CLOUD.md#611-sync-híbrido--pc--aparelho--decisão-set2026)).
+> **🌐 Beta aberto:** URL pública com **cadastro + login CPF + trial/gate free** (**F29**/**F46**). Com worker+túnel no ar, sync cloud → Chrome neste PC → mirror Supabase. Sem PC online: fallback **mobile** HTTP → ingest ([§6.1.1](./SCOPE-CLOUD.md#611-sync-híbrido--pc--aparelho--decisão-set2026)); web offline depende do Servidor ACME.
 
 > **🌐 O que isso NÃO significa:** o botão Sincronizar **na URL** hoje exige PC com `worker:home` + `worker:tunnel` + secrets CF *(fallback aparelho ainda só no escopo)*. Localmente o sync Playwright também roda in-process. **Dados isolados por conta** ✅ **6c**. **PIX / planos pagos** ✅ **#7**.
 

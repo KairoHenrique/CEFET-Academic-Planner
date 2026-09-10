@@ -1,4 +1,5 @@
 import type { AcademicTask } from "@/lib/types/task";
+import { brazilWallTimeToUtcDate } from "@/lib/time/brazil";
 
 export function parseBrDateToIso(date: string): string {
   const [day, month, year] = date.split("/").map(Number);
@@ -14,16 +15,19 @@ export function normalizeTime(value: string | null | undefined): string {
   if (!value?.trim()) return "23:59";
   const trimmed = value.trim();
   if (/^\d{2}:\d{2}$/.test(trimmed)) return trimmed;
+  const match = trimmed.match(/^(\d{1,2}):(\d{2})/);
+  if (match) {
+    return `${match[1].padStart(2, "0")}:${match[2]}`;
+  }
   return "23:59";
 }
 
+/** Interpreta prazo/horário acadêmico sempre em America/Sao_Paulo (não UTC do Worker). */
 export function getTaskDueDateTime(
   dueDateIso: string,
   dueTime = "23:59"
 ): Date {
-  const [year, month, day] = dueDateIso.split("-").map(Number);
-  const [hours, minutes] = normalizeTime(dueTime).split(":").map(Number);
-  return new Date(year, month - 1, day, hours, minutes, 0, 0);
+  return brazilWallTimeToUtcDate(dueDateIso.trim(), normalizeTime(dueTime));
 }
 
 export function formatTaskDueLabel(dateBr: string, dueTime?: string): string {

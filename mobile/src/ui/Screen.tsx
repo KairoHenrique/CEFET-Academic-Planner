@@ -1,5 +1,7 @@
 import type { ReactNode, RefObject } from "react";
 import {
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StyleSheet,
   View,
@@ -84,6 +86,10 @@ export function Screen({
         pointerEvents="none"
       />
       {scroll ? (
+        <KeyboardAvoidingView
+          style={styles.flex}
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+        >
         <ScrollView
           ref={scrollRef}
           style={styles.flex}
@@ -93,10 +99,12 @@ export function Screen({
             contentContainerStyle,
           ]}
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
           {...scrollProps}
         >
           {body}
         </ScrollView>
+        </KeyboardAvoidingView>
       ) : (
         <View
           style={[

@@ -225,16 +225,18 @@ Recuperação de acesso: por **e-mail** ou **telefone** cadastrados (não usa e-
 
 ### 6.1.1 Sync híbrido — PC + aparelho (decisão set/2026)
 
-> **Status:** decisão de produto/ops **fechada** · **implementação ainda não iniciada** (só escopo).  
+> **Status:** **implementado** (B82–M19 + expansão B84–B87) · PC preferido · aparelho quando offline.  
 > **Objetivo:** produto usable com **$0 de servidor Playwright** e **PC desligável**, sem perder sync na nuvem.
 
 #### Decisões fechadas (stakeholder)
 
 | # | Decisão |
 |---|--------|
-| 1 | Fallback nos **dois** clientes: **web** e **mobile** |
+| 1 | Fallback nos **dois** clientes: **web (PC/browser)** e **mobile** |
 | 2 | Resultado do fallback **sempre sobe para o Supabase** (não fica só em cache local) |
 | 3 | PC home permanece o caminho **preferido** enquanto estiver no ar |
+| 4 | Mobile fala com o SIGAA no IP do aluno; **web** sem Playwright no edge (OpenNext + `node:tls` → Error 1102). Offline web = Servidor ACME no ar |
+| 5 | UX **silenciosa** — sem avisar “via aparelho” / PC / túnel |
 
 #### Fluxo
 
@@ -245,33 +247,33 @@ Usuário pede sync (web ou mobile)
     │       SIM → Playwright no PC → mirror → Supabase  (path atual B72e)
     │
     └─2─ PC offline / timeout / 503 SIGAA_OFFLINE
-            → Adapter de sync no aparelho (sem Playwright)
-            → POST ingest autenticado (JWT app) → Postgres/Supabase
-            → UI: mesmo progresso / lastSyncAt
+            → Mobile: HTTP nativo no aparelho → POST /api/sync/ingest-html
+            → Web: precisa do Servidor ACME (PC) no ar — sem scrape TLS no OpenNext (1102)
+            → UI: progresso genérico (“Conectando…”, “Atualizando…”)
 ```
 
-#### Contratos técnicos (plano)
+#### Contratos técnicos
 
 | Peça | Papel |
 |------|--------|
-| **Detecção** | `GET` health do worker (ou falha no enqueue cloud) → flip automático; usuário **não** escolhe o path |
-| **Adapter no aparelho** | Pacote compartilhado (TS) — login/navegação SIGAA via **HTTP + parse HTML/JSF** (não Playwright). Mobile: roda no Expo. Web: roda no browser; se CORS bloquear `sig.cefetmg.br`, usar **relay HTTP autenticado** na API Cloudflare **só** como hop de rede (sem browser headless, sem PC) |
-| **Ingest** | `POST /api/sync/ingest` (nome TBD) — body = snapshot já raspado; servidor valida sessão app + RLS/`user_id` e persiste com as **mesmas regras** do mirror (`user-data-priority`, overrides manuais) |
-| **Credenciais** | Fallback: senha SIGAA só em memória no aparelho durante o job; **não** logar PII; não reenviar senha ao ingest (só o snapshot) |
-| **Robôs no MVP do fallback** | Prioridade **R1** (portal / notas / faltas / tarefas). **R2/R3** (calendário/turmas global): ler cache global se fresco; re-raspar no aparelho só se TTL expirou e PC offline |
-| **Fora do MVP fallback** | `submit-tarefa`, robô **RU** — continuam dependentes do PC até fase seguinte |
-| **UX** | Mesma UX de sync; opcional badge discreto “via aparelho” em caso de fallback (ops/debug) |
-| **Segurança** | Rate limit no ingest · payload tipado (Zod) · tamanho máximo · rejeitar snapshot de outro `user_id` |
+| **Detecção** | `GET /api/sync/worker-health` → flip automático; usuário **não** escolhe o path |
+| **Adapter no aparelho** | Login/navegação SIGAA via **HTTP + parse HTML/JSF** no **mobile** (Expo) ou **web** (relay). Senha: SecureStore (app) ou prompt/memória (web). |
+| **Ingest** | `POST /api/sync/ingest-html` (portal + opcional RU / calendário / turmas) · `POST /api/sync/ingest` (snapshot) |
+| **Credenciais** | Senha no aparelho (SecureStore) / prompt web / vault no PC worker; hops SIGAA no mobile = IP do aluno; no web = relay TLS no edge |
+| **Robôs no fallback** | R1 portal + melhor esforço TV/notas/faltas · RU · calendário se cache frio · **envio de tarefa** no app |
+| **UX** | Textos genéricos; **proibido** badge “via aparelho” |
+| **Segurança** | Rate limit no ingest · rejeitar snapshot de outro `user_id` · sem PII em logs |
 
 #### Por que não “só cache local” no fallback
 
-Com PC offline, cache-only deixaria a nuvem e o outro device desatualizados. A decisão **2** exige ingest → Supabase para web e mobile continuarem coerentes.
+Com PC offline, cache-only deixaria a nuvem e o outro device desatualizados. A decisão **2** exige ingest → Supabase.
 
 #### Não-objetivos deste desenho
 
-- Substituir o Playwright do PC quando ele estiver online (PC continua preferido: 1 IP estável, scraper maduro).
+- Substituir o Playwright do PC quando ele estiver online (PC continua preferido).
 - Rodar Chrome/Playwright dentro do Expo ou do browser.
 - Contratar VPS só para cobrir PC desligado.
+- `fetch()` Workers → SIGAA sem CA custom (ainda 526); o relay usa `node:tls` + bundle RNP.
 
 ### 6.2 Fluxo (path preferido — PC)
 
@@ -677,8 +679,8 @@ Durante beta/testes com URL pública:
 - [x] Gateway PIX v1 — **Mercado Pago** + mock dev (`docs/plan/b48-pix-gateway.md`, **B48**)
 
 - [x] **Orquestração sync + catálogo global** — policy **§6.6**; **B68d–f** + worker **B54–B56** + painel **B70/F41** (código fechado)
-- [x] **Onde roda o sync (set/2026):** PC home + Playwright **preferido**; fallback **web + mobile** com ingest Supabase — **[§6.1.1](#611-sync-híbrido--pc--aparelho--decisão-set2026)** · **B82–M19** `[@]`
-- [x] **Implementar sync híbrido §6.1.1** — B82 ingest/health · B83 adapter HTTP · F45 web · M19 mobile (`[@]` no remoto)
+- [x] **Onde roda o sync (set/2026):** PC home + Playwright **preferido**; fallback **aparelho** (HTTP + ingest; CF sem SIGAA) — **[§6.1.1](#611-sync-híbrido--pc--aparelho--decisão-set2026)** · **B82–B87**
+- [x] **Implementar sync híbrido §6.1.1** — ingest-html · mobile on-device · RU/submit/R1/calendário no aparelho
 - [x] **App 100% gratuito (F46)** — `BILLING_ENFORCED=false` · sem paywall/PIX na UI
 - [x] Política de fila: 1 job global, auto 3h/usuário, manual fim da fila + cooldown 5 min, prioridade 1º login (§6.3)
 - [x] Mobile: API Next.js (mesmo backend do site) + SecureStore; push via Expo Notifications

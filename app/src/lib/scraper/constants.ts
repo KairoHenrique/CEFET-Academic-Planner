@@ -1,14 +1,12 @@
 import fs from "node:fs";
 import path from "node:path";
 
-export const SIGAA_BASE_URL = "https://sig.cefetmg.br/sigaa/";
-
-export const SIGAA_LOGIN_URL = `${SIGAA_BASE_URL}verTelaLogin.do`;
-
-export const SIGAA_PORTAL_DISCENTE_URL =
-  `${SIGAA_BASE_URL}portais/discente/discente.jsf`;
-
-export const SIGAA_TURMA_VIRTUAL_URL = `${SIGAA_BASE_URL}ava/index.jsf`;
+export {
+  SIGAA_BASE_URL,
+  SIGAA_LOGIN_URL,
+  SIGAA_PORTAL_DISCENTE_URL,
+  SIGAA_TURMA_VIRTUAL_URL,
+} from "@/lib/scraper/sigaa-urls";
 
 export const SIGAA_TURMA_SCRAPE_DELAY_MS = Number(
   process.env.SIGAA_TURMA_SCRAPE_DELAY_MS ?? 250

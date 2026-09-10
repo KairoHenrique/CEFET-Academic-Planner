@@ -1,177 +1,168 @@
 #!/data/data/com.termux/files/usr/bin/bash
-# ServidorACME via Termux - Script de Inicialização
-# Este script sobe o worker local (npm run worker:home),
-# abre o túnel cloudflared, captura a URL e atualiza o secret SIGAA_WORKER_URL no Cloudflare.
+# ServidorACME no Termux — paridade com PC (worker:temp / ServidorACME tray):
+#   worker:home (:8787) + cloudflared + health local/público + SIGAA_WORKER_URL
+#   + ACCOUNT_EMAIL_VIA_HOME_WORKER (Gmail no worker) + crons locais.
+#
+# Pré-req: bash scripts/termux-fix-env.sh  (depois de copiar .env.termux.local do PC)
 
-echo "Iniciando ServidorACME no Termux..."
+set -u
 
-# Limpa instâncias antigas para garantir que o código novo rode limpo
+echo "Iniciando ServidorACME no Termux (paridade PC)..."
+
 echo "[*] Encerrando processos antigos do worker e cloudflared..."
 pkill -f "npm run worker:home" 2>/dev/null || true
 pkill -f "scripts/start-home-worker" 2>/dev/null || true
 pkill -f "tsx.*worker/main" 2>/dev/null || true
 pkill -f "cloudflared" 2>/dev/null || true
-# NÃO use pkill -f node — mata tudo (incluindo o próprio setup) e deixa o túnel órfão.
 
-# Resolve o diretório do app baseado na localização do script
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." >/dev/null 2>&1 && pwd)"
 cd "$DIR" || exit 1
 
-# Auto-instalação de dependências do Termux
-if command -v pkg &> /dev/null; then
-    echo "[*] Verificando dependências do sistema..."
-    
-    MISSING_PKGS=""
-    if ! command -v git &> /dev/null; then MISSING_PKGS="$MISSING_PKGS git"; fi
-    if ! command -v node &> /dev/null; then MISSING_PKGS="$MISSING_PKGS nodejs"; fi
-    if ! command -v python &> /dev/null; then MISSING_PKGS="$MISSING_PKGS python"; fi
-    if ! command -v make &> /dev/null; then MISSING_PKGS="$MISSING_PKGS make"; fi
-    if ! command -v clang &> /dev/null; then MISSING_PKGS="$MISSING_PKGS clang"; fi
-    if ! command -v cloudflared &> /dev/null; then MISSING_PKGS="$MISSING_PKGS cloudflared"; fi
-    
-    if [ ! -z "$MISSING_PKGS" ]; then
-        echo "[!] Instalando pacotes básicos faltantes:$MISSING_PKGS"
-        pkg install -y $MISSING_PKGS
-    fi
-    
-    if ! command -v chromium-browser &> /dev/null; then
-        echo "[!] Instalando Chromium (isso pode demorar alguns minutos)..."
-        pkg install -y x11-repo
-        pkg install -y chromium
-    fi
-else
-    echo "[-] Aviso: gerenciador 'pkg' não encontrado. Instale as dependências manualmente."
+CHROMIUM_BIN="/data/data/com.termux/files/usr/bin/chromium-browser"
+WORKER_PORT=8787
+METRICS_ADDR="127.0.0.1:20241"
+APP_URL="https://acme-hub.khfm.workers.dev"
+
+# --- deps sistema ---
+if command -v pkg >/dev/null 2>&1; then
+  echo "[*] Verificando dependências do sistema..."
+  MISSING_PKGS=""
+  command -v git >/dev/null 2>&1 || MISSING_PKGS="$MISSING_PKGS git"
+  command -v node >/dev/null 2>&1 || MISSING_PKGS="$MISSING_PKGS nodejs"
+  command -v python >/dev/null 2>&1 || MISSING_PKGS="$MISSING_PKGS python"
+  command -v make >/dev/null 2>&1 || MISSING_PKGS="$MISSING_PKGS make"
+  command -v clang >/dev/null 2>&1 || MISSING_PKGS="$MISSING_PKGS clang"
+  command -v cloudflared >/dev/null 2>&1 || MISSING_PKGS="$MISSING_PKGS cloudflared"
+  command -v curl >/dev/null 2>&1 || MISSING_PKGS="$MISSING_PKGS curl"
+  if [ -n "$MISSING_PKGS" ]; then
+    echo "[!] Instalando:$MISSING_PKGS"
+    pkg install -y $MISSING_PKGS
+  fi
+  if ! command -v chromium-browser >/dev/null 2>&1; then
+    echo "[!] Instalando Chromium..."
+    pkg install -y x11-repo
+    pkg install -y chromium
+  fi
 fi
 
-# Auto-update: Busca o código mais recente no repositório
+# --- env ---
+if [ ! -f .env.local ]; then
+  echo "[-] .env.local ausente. Rode: bash scripts/termux-fix-env.sh"
+  exit 1
+fi
+# Reaplica overrides (idempotente)
+if [ -x scripts/termux-fix-env.sh ] || [ -f scripts/termux-fix-env.sh ]; then
+  bash scripts/termux-fix-env.sh || exit 1
+fi
+
+read_env() {
+  local key="$1"
+  grep -E "^${key}=" .env.local 2>/dev/null | tail -n 1 | cut -d '=' -f 2- | tr -d '"' | tr -d "'" | tr -d '\r'
+}
+
+CF_TOKEN="$(read_env CLOUDFLARE_API_TOKEN)"
+CRON_SECRET="$(read_env CRON_SECRET)"
+WORKER_PORT_ENV="$(read_env WORKER_PORT)"
+if [ -n "$WORKER_PORT_ENV" ]; then
+  WORKER_PORT="$WORKER_PORT_ENV"
+fi
+
+if [ -z "$CF_TOKEN" ]; then
+  echo "[-] CLOUDFLARE_API_TOKEN ausente em .env.local — secret put vai falhar."
+  exit 1
+fi
+export CLOUDFLARE_API_TOKEN="$CF_TOKEN"
+
+# --- git pull ---
 echo "[*] Buscando atualizações no GitHub..."
-if command -v git &> /dev/null; then
-    git pull origin main || echo "[-] Falha ao puxar código. Continuando com a versão local."
+if command -v git >/dev/null 2>&1; then
+  git pull origin main || echo "[-] git pull falhou — seguindo com versão local."
 fi
 
-# Instala as dependências, se houver pacotes novos
-echo "[*] Verificando/instalando dependências do projeto (npm)..."
-if command -v npm &> /dev/null; then
-    # Ignora scripts para não dar crash no workerd (que não roda no Android)
-    npm install --no-fund --no-audit --ignore-scripts
-    # Reconstrói apenas o better-sqlite3 manualmente
-    if [ -d "node_modules/better-sqlite3" ]; then
-        if [ ! -f "node_modules/.better-sqlite3-termux-compiled" ]; then
-            echo "[*] Recompilando better-sqlite3 nativo do Termux (from source)..."
-            export GYP_DEFINES="android_ndk_path=''"
-            export npm_config_build_from_source=true
-            npm rebuild better-sqlite3 --build-from-source && touch "node_modules/.better-sqlite3-termux-compiled"
-        else
-            echo "[*] better-sqlite3 já foi compilado, pulando etapa."
-        fi
+# --- npm ---
+echo "[*] Verificando npm deps..."
+if command -v npm >/dev/null 2>&1; then
+  npm install --no-fund --no-audit --ignore-scripts
+  if [ -d "node_modules/better-sqlite3" ]; then
+    if [ ! -f "node_modules/.better-sqlite3-termux-compiled" ]; then
+      echo "[*] Recompilando better-sqlite3..."
+      export GYP_DEFINES="android_ndk_path=''"
+      export npm_config_build_from_source=true
+      npm rebuild better-sqlite3 --build-from-source && touch "node_modules/.better-sqlite3-termux-compiled"
+    else
+      echo "[*] better-sqlite3 já compilado."
     fi
+  fi
 fi
 
-# 1. Inicia o worker em background
-echo "[*] Iniciando worker:home..."
+# --- worker ---
+echo "[*] Iniciando worker:home (porta $WORKER_PORT)..."
 export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 export SIGAA_BROWSER_CHANNEL=""
-export SIGAA_BROWSER_EXECUTABLE_PATH="/data/data/com.termux/files/usr/bin/chromium-browser"
+export SIGAA_BROWSER_EXECUTABLE_PATH="$CHROMIUM_BIN"
+export SYNC_MIRROR_POSTGRES=true
+export ACCOUNT_EMAIL_VIA_HOME_WORKER=true
+export WORKER_PORT="$WORKER_PORT"
 npm run worker:home > termux-worker.log 2>&1 &
 WORKER_PID=$!
 echo "Worker PID: $WORKER_PID"
 
-# 2. Inicia o tunnel
-echo "[*] Iniciando cloudflared tunnel..."
+# --- tunnel (igual PC: metrics quicktunnel) ---
+echo "[*] Iniciando cloudflared tunnel + metrics $METRICS_ADDR..."
 > termux-cloudflared.log
-cloudflared tunnel --url http://127.0.0.1:8787 > termux-cloudflared.log 2>&1 &
+cloudflared tunnel --url "http://127.0.0.1:${WORKER_PORT}" --metrics "$METRICS_ADDR" \
+  > termux-cloudflared.log 2>&1 &
 TUNNEL_PID=$!
 echo "Tunnel PID: $TUNNEL_PID"
 
-echo "[*] Aguardando URL do trycloudflare.com..."
+normalize_url() {
+  printf '%s' "$1" | tr -d '\r\n' | sed 's:/*$::' | tr '[:upper:]' '[:lower:]'
+}
 
-URL=""
-while true; do
-    # Verifica se o processo worker caiu
-    if ! kill -0 $WORKER_PID 2>/dev/null; then
-        echo "[-] Erro: Worker parou inesperadamente. Verifique termux-worker.log"
-        kill $TUNNEL_PID 2>/dev/null
-        exit 1
+detect_tunnel_url() {
+  local url=""
+  # 1) metrics API (igual worker:temp no PC)
+  if command -v curl >/dev/null 2>&1; then
+    url=$(curl -fsS --max-time 3 "http://${METRICS_ADDR}/quicktunnel" 2>/dev/null \
+      | grep -oE 'https://[a-zA-Z0-9.-]+\.trycloudflare\.com' | head -n 1 || true)
+    if [ -z "$url" ]; then
+      # hostname sem scheme
+      local host
+      host=$(curl -fsS --max-time 3 "http://${METRICS_ADDR}/quicktunnel" 2>/dev/null \
+        | grep -oE '"hostname"[[:space:]]*:[[:space:]]*"[^"]+"' | head -n 1 \
+        | sed 's/.*"hostname"[[:space:]]*:[[:space:]]*"//;s/"$//' || true)
+      if [ -n "$host" ]; then
+        url="https://${host}"
+      fi
     fi
-    
-    # Verifica se o tunnel caiu
-    if ! kill -0 $TUNNEL_PID 2>/dev/null; then
-        echo "[-] Erro: Cloudflared parou inesperadamente. Verifique termux-cloudflared.log"
-        kill $WORKER_PID 2>/dev/null
-        exit 1
-    fi
+  fi
+  # 2) fallback log
+  if [ -z "$url" ] && [ -f termux-cloudflared.log ]; then
+    url=$(grep -oE 'https://[a-zA-Z0-9-]+\.trycloudflare\.com' termux-cloudflared.log | head -n 1 || true)
+  fi
+  normalize_url "$url"
+}
 
-    # Procura a URL
-    if [ -f termux-cloudflared.log ]; then
-        URL=$(grep -oE 'https://[a-zA-Z0-9-]+\.trycloudflare\.com' termux-cloudflared.log | head -n 1)
-        if [ ! -z "$URL" ]; then
-            break
-        fi
-    fi
-    sleep 1
-done
+write_env_worker_url() {
+  local tunnel_url="$1"
+  if grep -qE '^SIGAA_WORKER_URL=' .env.local; then
+    local tmp
+    tmp="$(mktemp)"
+    awk -v u="$tunnel_url" '
+      BEGIN { done=0 }
+      /^SIGAA_WORKER_URL=/ { print "SIGAA_WORKER_URL="u; done=1; next }
+      { print }
+      END { if (!done) print "SIGAA_WORKER_URL="u }
+    ' .env.local > "$tmp"
+    mv "$tmp" .env.local
+  else
+    printf '\nSIGAA_WORKER_URL=%s\n' "$tunnel_url" >> .env.local
+  fi
+}
 
-echo "[+] Tunnel URL detectada: $URL"
-
-# Aguarda worker local responder antes de publicar o secret (evita 530/1016).
-echo "[*] Aguardando health local em http://127.0.0.1:8787/health ..."
-HEALTH_OK=0
-for i in $(seq 1 60); do
-    if curl -fsS --max-time 3 "http://127.0.0.1:8787/health" >/dev/null 2>&1; then
-        HEALTH_OK=1
-        break
-    fi
-    if ! kill -0 $WORKER_PID 2>/dev/null; then
-        echo "[-] Erro: Worker morreu enquanto aguardava health. Veja termux-worker.log"
-        kill $TUNNEL_PID 2>/dev/null
-        exit 1
-    fi
-    sleep 1
-done
-if [ "$HEALTH_OK" != "1" ]; then
-    echo "[-] Timeout: worker local não respondeu /health. Abortando secret put."
-    echo "    tail -n 40 termux-worker.log"
-    kill $TUNNEL_PID 2>/dev/null
-    kill $WORKER_PID 2>/dev/null
-    exit 1
-fi
-
-echo "[*] Testando health PÚBLICO do túnel ($URL/health)..."
-PUBLIC_OK=0
-for i in $(seq 1 30); do
-    if curl -fsS --max-time 8 "$URL/health" 2>/dev/null | grep -q '"ok"'; then
-        PUBLIC_OK=1
-        break
-    fi
-    sleep 2
-done
-if [ "$PUBLIC_OK" != "1" ]; then
-    echo "[-] Túnel público NÃO responde /health. NÃO vou atualizar o secret (evita 1016)."
-    echo "    Verifique: termux-cloudflared.log e se o Wi-Fi bloqueia cloudflared."
-    kill $TUNNEL_PID 2>/dev/null
-    kill $WORKER_PID 2>/dev/null
-    exit 1
-fi
-echo "[+] Túnel público OK."
-
-# 3. Atualiza o secret (precisa do token — wrangler NÃO lê .env.local sozinho)
-echo "[*] Atualizando SIGAA_WORKER_URL no Cloudflare via wrangler..."
-
-# Carrega CLOUDFLARE_API_TOKEN do .env.local (obrigatório no Termux)
-if [ -f .env.local ]; then
-    CF_TOKEN=$(grep -E '^CLOUDFLARE_API_TOKEN=' .env.local | tail -n 1 | cut -d '=' -f 2- | tr -d '"' | tr -d "'" | tr -d '\r')
-    if [ -n "$CF_TOKEN" ]; then
-        export CLOUDFLARE_API_TOKEN="$CF_TOKEN"
-        echo "[*] CLOUDFLARE_API_TOKEN carregado do .env.local"
-    else
-        echo "[-] CLOUDFLARE_API_TOKEN ausente em .env.local — secret put pode falhar/atualizar conta errada."
-    fi
-fi
-
-# Hack Termux: O Wrangler no Node importa o workerd, que trava ao ler process.platform === 'android'.
-# Como 'secret put' não usa o binário do workerd, nós podemos silenciar o erro injetando variáveis dummy usando Node.
-if [ -f "node_modules/workerd/lib/main.js" ]; then
-node << 'EOF'
+patch_workerd_termux() {
+  if [ -f "node_modules/workerd/lib/main.js" ]; then
+    node << 'EOF'
 const fs = require('fs');
 const file = 'node_modules/workerd/lib/main.js';
 let code = fs.readFileSync(file, 'utf8');
@@ -181,154 +172,222 @@ code = code.replace(/throw new Error/g, 'console.warn');
 code = code.replace(/throw e;/g, 'return { binPath: __filename };');
 fs.writeFileSync(file, code);
 EOF
-fi
-
-# Garante URL limpa (sem CRLF/espaço) no secret
-URL_CLEAN=$(printf '%s' "$URL" | tr -d '\r\n' | sed 's/[[:space:]]*$//')
-printf '%s' "$URL_CLEAN" | npx wrangler secret put SIGAA_WORKER_URL --name acme-hub
-
-if [ $? -eq 0 ]; then
-    echo "[+] Secret SIGAA_WORKER_URL atualizado para: $URL_CLEAN"
-    echo "[+] Servidor no ar! Deixe ESTA sessão aberta (não feche o Termux)."
-    echo "    Teste agora no app. Se der 1016 de novo, o túnel caiu — rode o script outra vez."
-else
-    echo "[-] FALHA ao atualizar o secret no Cloudflare."
-    echo "    Cole esta URL no notebook e rode:"
-    echo "    printf '%s' '$URL_CLEAN' | npx wrangler secret put SIGAA_WORKER_URL --name acme-hub"
-fi
-
-# 4. Inicia cron loop local (background)
-echo "[*] Iniciando loop de cron local em background..."
-# O CRON_SECRET é lido do app/.env.local (ou você pode setá-lo no Termux)
-# Vamos extraí-lo do .env.local para fazer as chamadas locais autenticadas
-CRON_SECRET=$(grep -oE '^CRON_SECRET=.*' .env.local 2>/dev/null | cut -d '=' -f 2- | tr -d '"' | tr -d "'" || echo "")
-
-if [ -z "$CRON_SECRET" ]; then
-    echo "[-] Aviso: CRON_SECRET não encontrado em .env.local. Crons locais vão falhar por falta de autorização."
-fi
-
-# Função loop do cron
-run_crons() {
-    echo "[cron] Loop de crons iniciado (PID $$)"
-    while true; do
-        # Aguarda 5 minutos
-        sleep 300
-        
-        echo "[cron] Disparando /api/cron/notification-reminders..."
-        curl -s -X POST "https://acme-hub.khfm.workers.dev/api/cron/notification-reminders" \
-             -H "Authorization: Bearer $CRON_SECRET" \
-             -H "Content-Type: application/json" -o /dev/null
-             
-        # Para evitar enfileirar tudo junto, aguarda mais 10 minutos (total 15 min do ciclo anterior) para o orchestrator
-        # Obs: como é um loop simples, vamos disparar o orchestrator a cada 3x que o de notificação rodar
-        # ou apenas criar dois loops
-    done
+  fi
 }
 
-# Criamos um subshell pra cada cron pra ficar mais fácil
+put_sigaa_worker_url() {
+  local tunnel_url="$1"
+  patch_workerd_termux
+  printf '%s' "$tunnel_url" | npx wrangler secret put SIGAA_WORKER_URL --name acme-hub
+}
+
+wait_local_health() {
+  echo "[*] Aguardando health local http://127.0.0.1:${WORKER_PORT}/health ..."
+  local i
+  for i in $(seq 1 90); do
+    if curl -fsS --max-time 3 "http://127.0.0.1:${WORKER_PORT}/health" 2>/dev/null | grep -q '"ok"'; then
+      echo "[+] Health local OK"
+      return 0
+    fi
+    if ! kill -0 "$WORKER_PID" 2>/dev/null; then
+      echo "[-] Worker morreu. Veja termux-worker.log"
+      return 1
+    fi
+    sleep 1
+  done
+  echo "[-] Timeout health local"
+  return 1
+}
+
+wait_public_health() {
+  local tunnel_url="$1"
+  echo "[*] Testando health público ${tunnel_url}/health ..."
+  local i
+  for i in $(seq 1 40); do
+    if curl -fsS --max-time 8 "${tunnel_url}/health" 2>/dev/null | grep -q '"ok"'; then
+      echo "[+] Túnel público OK"
+      return 0
+    fi
+    sleep 2
+  done
+  echo "[-] Túnel público NÃO responde /health"
+  return 1
+}
+
+apply_tunnel() {
+  local tunnel_url="$1"
+  local reason="$2"
+  if [ -z "$tunnel_url" ]; then
+    return 1
+  fi
+  if [ "$tunnel_url" = "${CURRENT_TUNNEL_URL:-}" ]; then
+    return 0
+  fi
+  echo "[*] Nova URL do túnel ($reason): $tunnel_url"
+  if ! wait_local_health; then
+    return 1
+  fi
+  if ! wait_public_health "$tunnel_url"; then
+    echo "    Secret NÃO atualizado (evita 1016)."
+    return 1
+  fi
+  write_env_worker_url "$tunnel_url"
+  echo "[*] Atualizando SIGAA_WORKER_URL no Cloudflare..."
+  if put_sigaa_worker_url "$tunnel_url"; then
+    CURRENT_TUNNEL_URL="$tunnel_url"
+    echo "[+] Secret SIGAA_WORKER_URL=$tunnel_url"
+    echo "[+] Servidor no ar (mesmas props do PC: mirror, jobs, /email/send, health)."
+    return 0
+  fi
+  echo "[-] wrangler secret put falhou"
+  echo "    printf '%s' '$tunnel_url' | npx wrangler secret put SIGAA_WORKER_URL --name acme-hub"
+  return 1
+}
+
+echo "[*] Aguardando URL do trycloudflare.com..."
+CURRENT_TUNNEL_URL=""
+URL=""
+for i in $(seq 1 90); do
+  if ! kill -0 "$WORKER_PID" 2>/dev/null; then
+    echo "[-] Worker parou. Veja termux-worker.log"
+    kill "$TUNNEL_PID" 2>/dev/null || true
+    exit 1
+  fi
+  if ! kill -0 "$TUNNEL_PID" 2>/dev/null; then
+    echo "[-] Cloudflared parou. Veja termux-cloudflared.log"
+    kill "$WORKER_PID" 2>/dev/null || true
+    exit 1
+  fi
+  URL="$(detect_tunnel_url)"
+  if [ -n "$URL" ]; then
+    break
+  fi
+  sleep 1
+done
+
+if [ -z "$URL" ]; then
+  echo "[-] Não detectei URL do túnel."
+  kill "$TUNNEL_PID" 2>/dev/null || true
+  kill "$WORKER_PID" 2>/dev/null || true
+  exit 1
+fi
+
+if ! apply_tunnel "$URL" "inicial"; then
+  kill "$TUNNEL_PID" 2>/dev/null || true
+  kill "$WORKER_PID" 2>/dev/null || true
+  exit 1
+fi
+
+# --- crons locais (igual intenção do tray/PC: reminders + orchestrator + account-emails) ---
+echo "[*] Iniciando crons locais (reminders 5m · orchestrator 15m · account-emails 5m)..."
 (
-    while true; do
-        sleep 300 # 5 min
-        echo "[cron] $(date '+%H:%M:%S') Disparando notification-reminders..."
-        curl -s -X POST "https://acme-hub.khfm.workers.dev/api/cron/notification-reminders" \
-             -H "Authorization: Bearer $CRON_SECRET" \
-             -H "Content-Type: application/json" -o /dev/null &
-    done
+  while true; do
+    sleep 300
+    echo "[cron] $(date '+%H:%M:%S') notification-reminders"
+    curl -s -X POST "$APP_URL/api/cron/notification-reminders" \
+      -H "Authorization: Bearer $CRON_SECRET" \
+      -H "Content-Type: application/json" -o /dev/null &
+  done
 ) &
 CRON_NOTIF_PID=$!
 
 (
-    while true; do
-        sleep 900 # 15 min
-        echo "[cron] $(date '+%H:%M:%S') Disparando sync-orchestrator..."
-        curl -s -X POST "https://acme-hub.khfm.workers.dev/api/cron/sync-orchestrator" \
-             -H "Authorization: Bearer $CRON_SECRET" \
-             -H "Content-Type: application/json" -o /dev/null &
-    done
+  while true; do
+    sleep 300
+    echo "[cron] $(date '+%H:%M:%S') account-emails"
+    curl -s -X POST "$APP_URL/api/cron/account-emails" \
+      -H "Authorization: Bearer $CRON_SECRET" \
+      -H "Content-Type: application/json" -o /dev/null &
+  done
+) &
+CRON_EMAIL_PID=$!
+
+(
+  while true; do
+    sleep 900
+    echo "[cron] $(date '+%H:%M:%S') sync-orchestrator"
+    curl -s -X POST "$APP_URL/api/cron/sync-orchestrator" \
+      -H "Authorization: Bearer $CRON_SECRET" \
+      -H "Content-Type: application/json" -o /dev/null &
+  done
 ) &
 CRON_SYNC_PID=$!
 
-echo "[+] Crons locais ativos: Reminders(5m) e SyncOrchestrator(15m)."
-
-# Função de limpeza
 cleanup() {
-    echo ""
-    echo "[*] Parando servidores..."
-    kill $TUNNEL_PID 2>/dev/null
-    kill $WORKER_PID 2>/dev/null
-    kill $CRON_NOTIF_PID 2>/dev/null
-    kill $CRON_SYNC_PID 2>/dev/null
-    echo "[+] Tudo pronto! O servidor está rodando e conectado à nuvem."
+  echo ""
+  echo "[*] Parando servidores..."
+  kill "$TUNNEL_PID" 2>/dev/null || true
+  kill "$WORKER_PID" 2>/dev/null || true
+  kill "$CRON_NOTIF_PID" 2>/dev/null || true
+  kill "$CRON_EMAIL_PID" 2>/dev/null || true
+  kill "$CRON_SYNC_PID" 2>/dev/null || true
 }
-
 trap cleanup SIGINT SIGTERM
 
 echo "--------------------------------------------------------"
-echo " Pressione uma tecla para executar um comando:"
-echo " [r] - Verificar GitHub (Atualizar e Reiniciar)"
-echo " [c] - Ver consumo de CPU/RAM (Para testar limites dos robôs)"
-echo " [q] - Sair e desligar o servidor"
+echo " ServidorACME Termux = paridade PC"
+echo " [r] atualizar git + reiniciar · [c] CPU/RAM · [q] sair"
 echo "--------------------------------------------------------"
 
 while true; do
-    if read -t 300 -n 1 -s key; then
-        case $key in
-            r|R)
-                echo -e "\n[*] Buscando atualizações no GitHub..."
-                git fetch
-                LOCAL=$(git rev-parse HEAD)
-                REMOTE=$(git rev-parse @{u})
-                
-                if [ "$LOCAL" = "$REMOTE" ]; then
-                    echo "[+] Você já está na versão mais recente!"
-                else
-                    echo "[!] Atualização encontrada! Reiniciando o servidor para aplicar..."
-                    git pull origin main
-                    pkill -P $$ 2>/dev/null
-                    kill $WORKER_PID 2>/dev/null
-                    kill $TUNNEL_PID 2>/dev/null
-                    exec "$0" # Roda o script do zero
-                fi
-                echo "Pressione [r], [c] ou [q]"
-                ;;
-            c|C)
-                echo -e "\n--- MONITOR DE RECURSOS ---"
-                echo "Memória do Sistema:"
-                free -h 2>/dev/null || echo "(Comando free indisponível)"
-                echo "Processos mais pesados:"
-                top -n 1 -b 2>/dev/null | head -n 15 || echo "(Comando top indisponível)"
-                echo "---------------------------"
-                echo "Pressione [r], [c] ou [q]"
-                ;;
-            q|Q)
-                echo -e "\n[*] Desligando servidor e túnel..."
-                kill $WORKER_PID 2>/dev/null
-                kill $TUNNEL_PID 2>/dev/null
-                pkill -P $$ 2>/dev/null
-                exit 0
-                ;;
-        esac
-    else
-        # Tempo esgotado (5 minutos) - Checagem automática silenciosa
-        git fetch >/dev/null 2>&1
+  # Reaplica secret se a URL do quick tunnel mudar (igual worker:temp)
+  NEW_URL="$(detect_tunnel_url)"
+  if [ -n "$NEW_URL" ] && [ "$NEW_URL" != "$CURRENT_TUNNEL_URL" ]; then
+    apply_tunnel "$NEW_URL" "rotação" || true
+  fi
+
+  if read -t 20 -n 1 -s key; then
+    case $key in
+      r|R)
+        echo -e "\n[*] git fetch..."
+        git fetch
         LOCAL=$(git rev-parse HEAD)
-        REMOTE=$(git rev-parse @{u})
-        
-        if [ "$LOCAL" != "$REMOTE" ]; then
-            echo -e "\n[!] Atualização automática encontrada no GitHub!"
-            
-            # Verifica se há algum robô do SIGAA (chromium) rodando
-            while pgrep -f "chromium" > /dev/null; do
-                echo "[!] Alguém está sincronizando agora (robô ativo). Aguardando 15 segundos..."
-                sleep 15
-            done
-            
-            echo "[*] Caminho livre! Nenhum robô rodando. Aplicando atualização e reiniciando..."
-            git pull origin main
-            pkill -P $$ 2>/dev/null
-            kill $WORKER_PID 2>/dev/null
-            kill $TUNNEL_PID 2>/dev/null
-            exec "$0" # Roda o script do zero
+        REMOTE=$(git rev-parse @{u} 2>/dev/null || git rev-parse origin/main)
+        if [ "$LOCAL" = "$REMOTE" ]; then
+          echo "[+] Já atualizado."
+        else
+          echo "[!] Atualização encontrada — reiniciando..."
+          git pull origin main
+          cleanup
+          exec "$0"
         fi
+        ;;
+      c|C)
+        echo -e "\n--- MONITOR ---"
+        free -h 2>/dev/null || true
+        top -n 1 -b 2>/dev/null | head -n 15 || true
+        echo "Worker health:"
+        curl -fsS --max-time 3 "http://127.0.0.1:${WORKER_PORT}/health" || true
+        echo ""
+        echo "Tunnel: ${CURRENT_TUNNEL_URL:-?}"
+        echo "----------------"
+        ;;
+      q|Q)
+        echo -e "\n[*] Desligando..."
+        cleanup
+        exit 0
+        ;;
+    esac
+  fi
+
+  # Auto-update silencioso a cada ~5 min (15 * 20s)
+  # contador simples via epoch
+  NOW=$(date +%s)
+  if [ -z "${LAST_FETCH:-}" ]; then LAST_FETCH=$NOW; fi
+  if [ $((NOW - LAST_FETCH)) -ge 300 ]; then
+    LAST_FETCH=$NOW
+    git fetch >/dev/null 2>&1 || true
+    LOCAL=$(git rev-parse HEAD 2>/dev/null || echo "")
+    REMOTE=$(git rev-parse origin/main 2>/dev/null || echo "")
+    if [ -n "$LOCAL" ] && [ -n "$REMOTE" ] && [ "$LOCAL" != "$REMOTE" ]; then
+      if pgrep -f "chromium" >/dev/null 2>&1; then
+        echo "[!] Update no GitHub, mas Chromium ocupado — adiando."
+      else
+        echo "[!] Update automático — reiniciando..."
+        git pull origin main
+        cleanup
+        exec "$0"
+      fi
     fi
+  fi
 done

@@ -160,9 +160,7 @@ type TaskDetailProps = {
 
 export const TaskDetailContent = memo(function TaskDetailContent({
   task,
-  onClose,
   onToggleDone,
-  onOpenSubject,
   onSubmitted,
 }: TaskDetailProps) {
   return (
@@ -222,21 +220,8 @@ export const TaskDetailContent = memo(function TaskDetailContent({
         </Text>
       ) : null}
 
-      <SubmitTaskPanel task={task} onSubmitted={onSubmitted} />
-
       <View style={styles.actions}>
-        {onOpenSubject ? (
-          <Pressable
-            style={styles.btnGold}
-            onPress={() => {
-              onOpenSubject(task.subjectCode);
-              onClose();
-            }}
-          >
-            <Icon name="books" size={14} color={brand.bg} />
-            <Text style={styles.btnGoldText}>Ver disciplina</Text>
-          </Pressable>
-        ) : null}
+        <SubmitTaskPanel task={task} onSubmitted={onSubmitted} />
         {onToggleDone ? (
           <Pressable style={styles.btnOutline} onPress={onToggleDone}>
             <Icon name="check" size={14} color={brand.gold} />

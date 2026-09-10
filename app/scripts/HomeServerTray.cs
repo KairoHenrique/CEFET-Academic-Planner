@@ -1,13 +1,17 @@
 // ServidorACME - Servidor de casa (tray app nativo).
 // Sobe o worker Playwright (:8787) + tunnel cloudflared e atualiza
 // automaticamente o secret SIGAA_WORKER_URL no Cloudflare.
+// Poll a cada 20s em 127.0.0.1:20241/quicktunnel — se o hostname
+// do túnel mudar, o secret é atualizado de novo.
 // Compilar: ver app/scripts/build-tray-exe.ps1
 using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using System.Net;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace HomeServerTray
@@ -20,11 +24,18 @@ namespace HomeServerTray
         static Process tunnelProc;
         static string tunnelUrl;
         static bool running;
+        static bool updatingSecret;
+        static readonly object secretLock = new object();
         static string appDir;
         static string cloudflared;
         static string logFile;
+        static System.Windows.Forms.Timer pollTimer;
+        const string MetricsUrl = "http://127.0.0.1:20241/quicktunnel";
+        const int PollMs = 20000;
         static readonly Regex UrlRe =
             new Regex(@"https://[a-z0-9-]+\.trycloudflare\.com", RegexOptions.IgnoreCase);
+        static readonly Regex HostnameRe =
+            new Regex(@"""hostname""\s*:\s*""([^""]+)""", RegexOptions.IgnoreCase);
 
         [STAThread]
         static void Main()
@@ -63,6 +74,13 @@ namespace HomeServerTray
             };
             notify.ShowBalloonTip(2500, "ServidorACME",
                 "Pronto. Clique no icone e em \"Executar\".", ToolTipIcon.Info);
+
+            pollTimer = new System.Windows.Forms.Timer();
+            pollTimer.Interval = PollMs;
+            pollTimer.Tick += delegate
+            {
+                ThreadPool.QueueUserWorkItem(delegate { PollLiveTunnel(); });
+            };
 
             Log("Tray iniciado. AppDir=" + appDir);
             Application.Run();
@@ -169,7 +187,8 @@ namespace HomeServerTray
 
             try
             {
-                var tpsi = new ProcessStartInfo(cloudflared, "tunnel --url http://127.0.0.1:8787");
+                var tpsi = new ProcessStartInfo(cloudflared,
+                    "tunnel --url http://127.0.0.1:8787 --metrics 127.0.0.1:20241");
                 tpsi.WorkingDirectory = appDir;
                 tpsi.UseShellExecute = false;
                 tpsi.CreateNoWindow = true;
@@ -192,6 +211,12 @@ namespace HomeServerTray
             SetStatus("No ar (conectando tunel...)");
             notify.ShowBalloonTip(3000, "ServidorACME",
                 "Servidor iniciado. Conectando tunel...", ToolTipIcon.Info);
+            pollTimer.Start();
+            ThreadPool.QueueUserWorkItem(delegate
+            {
+                Thread.Sleep(5000);
+                PollLiveTunnel();
+            });
         }
 
         static void OnTunnelData(object sender, DataReceivedEventArgs e)
@@ -199,15 +224,68 @@ namespace HomeServerTray
             if (string.IsNullOrEmpty(e.Data)) return;
             Match m = UrlRe.Match(e.Data);
             if (!m.Success) return;
-            string u = m.Value;
-            if (u == tunnelUrl) return;
-            tunnelUrl = u;
-            Log("Tunnel URL detectada: " + u);
+            ApplyTunnelUrl(m.Value, "log");
+        }
+
+        static void PollLiveTunnel()
+        {
+            if (!running) return;
+            string live = ReadLiveTunnelUrl();
+            if (string.IsNullOrEmpty(live)) return;
+            ApplyTunnelUrl(live, "poll");
+        }
+
+        static string ReadLiveTunnelUrl()
+        {
+            try
+            {
+                HttpWebRequest req = (HttpWebRequest)WebRequest.Create(MetricsUrl);
+                req.Timeout = 3000;
+                req.ReadWriteTimeout = 3000;
+                req.Proxy = null;
+                using (HttpWebResponse res = (HttpWebResponse)req.GetResponse())
+                using (StreamReader sr = new StreamReader(res.GetResponseStream()))
+                {
+                    Match m = HostnameRe.Match(sr.ReadToEnd());
+                    if (!m.Success) return null;
+                    return NormalizeTunnelUrl(m.Groups[1].Value);
+                }
+            }
+            catch (Exception ex)
+            {
+                Log("poll tunel: " + ex.Message);
+                return null;
+            }
+        }
+
+        static string NormalizeTunnelUrl(string raw)
+        {
+            if (string.IsNullOrEmpty(raw)) return null;
+            string u = raw.Trim().TrimEnd('/');
+            if (u.StartsWith("https://", StringComparison.OrdinalIgnoreCase) ||
+                u.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
+            {
+                return u.ToLowerInvariant();
+            }
+            return ("https://" + u).ToLowerInvariant();
+        }
+
+        static void ApplyTunnelUrl(string raw, string reason)
+        {
+            string u = NormalizeTunnelUrl(raw);
+            if (string.IsNullOrEmpty(u)) return;
+            if (string.Equals(u, tunnelUrl, StringComparison.OrdinalIgnoreCase)) return;
+            Log("Tunnel URL (" + reason + "): " + u);
             UpdateSecret(u);
         }
 
         static void UpdateSecret(string url)
         {
+            lock (secretLock)
+            {
+                if (updatingSecret) return;
+                updatingSecret = true;
+            }
             try
             {
                 Log("Atualizando SIGAA_WORKER_URL=" + url);
@@ -234,6 +312,8 @@ namespace HomeServerTray
                 Log("wrangler secret put exit=" + p.ExitCode);
                 if (p.ExitCode == 0)
                 {
+                    tunnelUrl = url;
+                    WriteEnvLocalWorkerUrl(url);
                     SetStatus("No ar (OK)");
                     notify.ShowBalloonTip(4000, "ServidorACME",
                         "Servidor no ar! Tunel conectado e URL atualizada no Cloudflare.",
@@ -248,6 +328,35 @@ namespace HomeServerTray
                 }
             }
             catch (Exception ex) { Log("erro UpdateSecret: " + ex.Message); }
+            finally
+            {
+                lock (secretLock) { updatingSecret = false; }
+            }
+        }
+
+        static void WriteEnvLocalWorkerUrl(string url)
+        {
+            try
+            {
+                string path = Path.Combine(appDir, ".env.local");
+                if (!File.Exists(path)) return;
+                string text = File.ReadAllText(path);
+                if (Regex.IsMatch(text, @"^SIGAA_WORKER_URL=", RegexOptions.Multiline))
+                {
+                    text = Regex.Replace(
+                        text,
+                        @"^SIGAA_WORKER_URL=.*$",
+                        "SIGAA_WORKER_URL=" + url,
+                        RegexOptions.Multiline);
+                }
+                else
+                {
+                    text = text.TrimEnd() + Environment.NewLine +
+                        "SIGAA_WORKER_URL=" + url + Environment.NewLine;
+                }
+                File.WriteAllText(path, text);
+            }
+            catch (Exception ex) { Log("erro WriteEnvLocal: " + ex.Message); }
         }
 
         static string ReadEnvLocalValue(string key)
@@ -278,6 +387,7 @@ namespace HomeServerTray
         static void StopServers()
         {
             Log("--- Parando servidor ---");
+            try { pollTimer.Stop(); } catch { }
             KillTree(tunnelProc); tunnelProc = null;
             KillTree(workerProc); workerProc = null;
             try
