@@ -1,6 +1,16 @@
 /**
- * Produto 100% gratuito (set/2026).
- * Billing/PIX permanece no código como legado dormante — não cobra nem bloqueia.
+ * Produto 100% gratuito (decisão de produto, set/2026).
+ *
+ * Motivo: remover paywall/PIX da experiência do aluno CEFET-MG.
+ * O código de billing (planos, checkout, gift keys) permanece no repo como
+ * legado dormante — facilita reativar cobrança no futuro sem reescrever tudo.
+ *
+ * Efeitos:
+ * - BILLING_ENFORCED=false → gate de API/UI nunca bloqueia por assinatura
+ * - APP_IS_FREE=true → checkout PIX recusado; e-mails de “fim de trial” não enfileiram
+ * - resolveSubscriptionAccessForCpf devolve snapshot “active / gratuito”
+ *
+ * @see README.md §3 (Decisões de desenho)
  */
 export const APP_IS_FREE = true;
 

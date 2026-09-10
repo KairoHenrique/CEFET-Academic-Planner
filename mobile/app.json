@@ -2,7 +2,7 @@
   "expo": {
     "name": "ACME HUB",
     "slug": "acme-hub",
-    "version": "1.14",
+    "version": "1.15",
     "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -18,7 +18,7 @@
     },
     "android": {
       "package": "br.cefethub.acme",
-      "versionCode": 14,
+      "versionCode": 15,
       "softwareKeyboardLayoutMode": "resize",
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {

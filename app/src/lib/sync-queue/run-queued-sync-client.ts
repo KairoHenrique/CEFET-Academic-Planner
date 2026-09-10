@@ -85,7 +85,10 @@ export async function runQueuedSyncClient(
   const session = getSession();
   const cloudSession = session?.mode === "cloud" && Boolean(session.accessToken);
 
-  // Sync híbrido §6.1.1: se o worker do PC estiver offline, fallback aparelho/edge.
+  // Sync híbrido: Servidor ACME (PC/Termux via túnel) é o caminho preferido.
+  // Se o health do worker falhar, não enfileiramos job “cego” — caímos no
+  // fallback Android (HTTP nativo) ou aviso na web. Motivo: Cloudflare Workers
+  // não hospeda Playwright/Chromium de forma confiável para o SIGAA.
   if (cloudSession && !(await isSigaaWorkerOnlineClient())) {
     onJobUpdate(null);
     await runHybridOfflineFallback({

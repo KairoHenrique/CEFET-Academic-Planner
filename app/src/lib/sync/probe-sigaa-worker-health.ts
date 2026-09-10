@@ -10,8 +10,11 @@ export interface SigaaWorkerHealthResult {
 const DEFAULT_TIMEOUT_MS = 4_000;
 
 /**
- * Sonda o worker Playwright do PC (`GET /health`).
- * Usado pelo flip híbrido §6.1.1 — se offline, o client cai no sync no aparelho.
+ * Sonda o worker Playwright do Servidor ACME (`GET {SIGAA_WORKER_URL}/health`).
+ *
+ * Usado pelo sync híbrido: online → cloud despacha job Playwright;
+ * offline → client tenta sync no aparelho (Android) em vez de falhar cedo.
+ * Timeout curto de propósito — não pode travar a UI de sync.
  */
 export async function probeSigaaWorkerHealth(
   timeoutMs = DEFAULT_TIMEOUT_MS
