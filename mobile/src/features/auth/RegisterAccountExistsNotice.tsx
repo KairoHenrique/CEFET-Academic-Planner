@@ -8,8 +8,7 @@ export function RegisterAccountExistsNotice({ onGoToLogin }: Props) {
     <View style={styles.wrap} accessibilityRole="alert">
       <Text style={styles.title}>Este CPF já possui conta</Text>
       <Text style={styles.body}>
-        O trial gratuito é válido uma vez por CPF. Entre com sua senha do SIGAA
-        para escolher ou renovar um plano.
+        Entre com sua senha do SIGAA na aba Entrar para acessar o ACME HUB.
       </Text>
       <Pressable style={styles.btn} onPress={onGoToLogin}>
         <Text style={styles.btnText}>Ir para login</Text>

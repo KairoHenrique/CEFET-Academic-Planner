@@ -1,5 +1,6 @@
 import { Icon } from "@/components/ui/Icon";
 
+/** App gratuito — sem trial/assinatura. */
 export function AuthTrialBanner() {
   return (
     <div className="auth-trial-banner" role="note">
@@ -7,8 +8,10 @@ export function AuthTrialBanner() {
         <Icon name="star" size={15} />
       </span>
       <div className="auth-trial-banner-copy">
-        <span className="auth-trial-banner-eyebrow">Trial gratuito</span>
-        <span className="auth-trial-banner-title">7 dias de acesso</span>
+        <span className="auth-trial-banner-eyebrow">100% gratuito</span>
+        <span className="auth-trial-banner-title">
+          Sem assinatura — acesso completo ao criar a conta
+        </span>
       </div>
     </div>
   );

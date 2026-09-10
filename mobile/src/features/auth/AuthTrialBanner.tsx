@@ -2,6 +2,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { brand } from "../../theme/brand";
 import { Icon } from "../../ui/Icon";
 
+/** App gratuito — sem trial/assinatura. */
 export function AuthTrialBanner() {
   return (
     <View style={styles.wrap}>
@@ -9,8 +10,10 @@ export function AuthTrialBanner() {
         <Icon name="star" size={15} color={brand.gold} />
       </View>
       <View style={styles.copy}>
-        <Text style={styles.eyebrow}>Trial gratuito</Text>
-        <Text style={styles.title}>7 dias de acesso</Text>
+        <Text style={styles.eyebrow}>100% gratuito</Text>
+        <Text style={styles.title}>
+          Sem assinatura — acesso completo ao criar a conta
+        </Text>
       </View>
     </View>
   );
