@@ -13,14 +13,14 @@ describe("B59 — gate de acesso", () => {
     assert.equal(isAppAccessAllowed("active"), true);
   });
 
-  it("bloqueia estados expirados ou pendentes", () => {
+  it("em modo gratuito libera estados que antes bloqueavam", () => {
     for (const status of [
       "trial_expired",
       "pending_payment",
       "expired",
       "cancelled",
     ] as const) {
-      assert.equal(isAppAccessAllowed(status), false);
+      assert.equal(isAppAccessAllowed(status), true);
     }
   });
 

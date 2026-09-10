@@ -4,7 +4,7 @@
  * Fonte para o app Expo (`mobile/`). Espelham as respostas JSON das rotas
  * em `app/src/app/api/` / `app/src/lib/types/*`, sem dependências do Next.js.
  *
- * Bloco 8 · M2 — ver docs/TASKS.md e docs/SCOPE-CLOUD.md §7.
+ * Shared types between cloud API and Expo mobile.
  */
 
 export type AppCursoId =

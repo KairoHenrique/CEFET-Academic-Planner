@@ -76,7 +76,7 @@ export function SubscriptionAccessGuard({
   }
 
   if (!ready) {
-    return <AppRouteLoading message="Verificando assinatura…" />;
+    return <AppRouteLoading message="Carregando sua conta…" />;
   }
 
   return <>{children}</>;

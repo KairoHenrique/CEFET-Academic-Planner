@@ -54,3 +54,17 @@ data/
 *.db-shm
 *.db-wal
 
+
+# dependencies / build artifacts
+**/node_modules/
+**/.next/
+**/.open-next/
+**/.expo/
+**/tsconfig.tsbuildinfo
+
+# dependencies / build artifacts
+**/node_modules/
+**/.next/
+**/.open-next/
+**/.expo/
+**/tsconfig.tsbuildinfo

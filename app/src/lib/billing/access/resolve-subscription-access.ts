@@ -1,5 +1,6 @@
 import { BILLING_RENEW_HREF } from "@/lib/auth/trial/constants";
 import { resolveTrialSubscriptionForCpf } from "@/lib/auth/trial/trial-service";
+import { BILLING_ENFORCED } from "@/lib/billing/free-mode";
 import { resolvePlanLabel } from "@/lib/billing/plan-catalog";
 import {
   expireSubscriptionsPastGraceForCpf,
@@ -18,6 +19,19 @@ export interface ResolvedSubscriptionAccess {
   daysRemaining: number;
   renewHref: string;
   inGracePeriod: boolean;
+}
+
+/** Snapshot estável no produto gratuito — evita UI/legado tratar trial_expired como paywall. */
+function freeAccessSnapshot(): ResolvedSubscriptionAccess {
+  return {
+    planId: "free",
+    planLabel: "ACME HUB gratuito",
+    status: "active",
+    expiresAt: null,
+    daysRemaining: 0,
+    renewHref: "/",
+    inGracePeriod: false,
+  };
 }
 
 function fromPaidSubscription(
@@ -45,6 +59,10 @@ export async function resolveSubscriptionAccessForCpf(
   cpf: string,
   now = new Date()
 ): Promise<ResolvedSubscriptionAccess> {
+  if (!BILLING_ENFORCED) {
+    return freeAccessSnapshot();
+  }
+
   await expireSubscriptionsPastGraceForCpf(cpf, now);
 
   const active = await findActiveSubscriptionByCpf(cpf, now);
@@ -53,6 +71,21 @@ export async function resolveSubscriptionAccessForCpf(
       { plan_id: active.plan_id, status: "active", expires_at: active.expires_at },
       now
     );
+  }
+
+  // Trial ativo tem precedência sobre PIX pendente (checkout abandonado não
+  // pode bloquear quem ainda tem dias gratuitos). Ver análise do gate.
+  const trial = await resolveTrialSubscriptionForCpf(cpf);
+  if (trial?.status === "trial_active") {
+    return {
+      planId: trial.planId,
+      planLabel: trial.planLabel,
+      status: "trial_active",
+      expiresAt: trial.expiresAt,
+      daysRemaining: trial.daysRemaining,
+      renewHref: trial.renewHref,
+      inGracePeriod: false,
+    };
   }
 
   const pending = await findPendingPaymentSubscriptionByCpf(cpf);
@@ -65,19 +98,6 @@ export async function resolveSubscriptionAccessForCpf(
       },
       now
     );
-  }
-
-  const trial = await resolveTrialSubscriptionForCpf(cpf);
-  if (trial?.status === "trial_active") {
-    return {
-      planId: trial.planId,
-      planLabel: trial.planLabel,
-      status: "trial_active",
-      expiresAt: trial.expiresAt,
-      daysRemaining: trial.daysRemaining,
-      renewHref: trial.renewHref,
-      inGracePeriod: false,
-    };
   }
 
   const expiredPaid = await findLatestExpiredPaidSubscriptionByCpf(cpf, now);

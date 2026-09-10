@@ -1,4 +1,5 @@
 import { buildTrialSubscriptionSnapshot } from "@/lib/auth/trial/trial-status";
+import { APP_IS_FREE } from "@/lib/billing/free-mode";
 import { resolvePlanLabel } from "@/lib/billing/plan-catalog";
 import { getPostgresPool } from "@/lib/db/postgres/pool";
 import {
@@ -36,6 +37,10 @@ interface PaidLifecycleRow {
 export async function scheduleTrialLifecycleEmails(
   now = new Date()
 ): Promise<number> {
+  if (APP_IS_FREE) {
+    return 0;
+  }
+
   const pool = getPostgresPool();
   const result = await pool.query<TrialLifecycleRow>(
     `SELECT t.cpf, t.trial_started_at, p.user_id, p.email, a.nome AS aluno_nome
@@ -181,6 +186,10 @@ async function schedulePlanEndedEmails(now: Date): Promise<number> {
 export async function schedulePaidPlanLifecycleEmails(
   now = new Date()
 ): Promise<number> {
+  if (APP_IS_FREE) {
+    return 0;
+  }
+
   const expiring = await scheduleExpiringSoonEmails(now);
   const ended = await schedulePlanEndedEmails(now);
   return expiring + ended;

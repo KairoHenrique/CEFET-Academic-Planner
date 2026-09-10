@@ -5,6 +5,7 @@ import {
   authUnavailableError,
   sqliteDisabledError,
   unauthorizedError,
+  validationError,
 } from "@/lib/api/errors";
 import { assertCloudAccountAuthAvailable } from "@/lib/auth/account/cloud-auth-guard";
 import { resolveProfileFromAuthorization } from "@/lib/auth/account/resolve-profile-from-request";
@@ -16,6 +17,7 @@ import {
   parseBillingCheckoutRequest,
   readIdempotencyKeyFromHeaders,
 } from "@/lib/billing/checkout/parse-billing-checkout-request";
+import { APP_IS_FREE } from "@/lib/billing/free-mode";
 import { isPostgresBackend } from "@/lib/db/backend/config";
 import { ensurePostgresReady } from "@/lib/db/bootstrap-postgres";
 
@@ -23,6 +25,12 @@ export const runtime = "nodejs";
 
 export const POST = async (request: Request) => {
   try {
+    if (APP_IS_FREE) {
+      throw validationError(
+        "O ACME HUB é gratuito. Checkout PIX está desativado."
+      );
+    }
+
     if (!isPostgresBackend()) {
       throw sqliteDisabledError(
         "Checkout PIX disponível apenas no modo cloud (Postgres)."
