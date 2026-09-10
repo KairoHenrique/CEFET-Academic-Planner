@@ -3,9 +3,9 @@ import { describe, it } from "node:test";
 import { isDeliverablePromotionEmail } from "../src/lib/dev-panel/is-deliverable-promotion-email";
 
 describe("isDeliverablePromotionEmail", () => {
-  it("aceita Gmail real", () => {
-    assert.equal(isDeliverablePromotionEmail("dev@example.com"), true);
-    assert.equal(isDeliverablePromotionEmail("dev@example.com"), true);
+  it("aceita Gmail genérico", () => {
+    assert.equal(isDeliverablePromotionEmail("user@gmail.com"), true);
+    assert.equal(isDeliverablePromotionEmail("aluno@gmail.com"), true);
   });
 
   it("rejeita smoke e example", () => {

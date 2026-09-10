@@ -13,7 +13,7 @@ const fixturePdf = path.join(
   "..",
   "docs",
   "referencias",
-  "historico_00000000000.pdf"
+  "historico-fixture.pdf"
 );
 
 process.env.DB_PATH = path.join(tmpDir, "test.db");

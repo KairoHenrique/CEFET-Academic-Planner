@@ -3,16 +3,47 @@
 /ServidorCEFET.exe
 /app/scripts/servidor-acme.ico
 
-# .env files
+# .env files / secrets
+.env
+.env.*
+!.env.example
+!.env*.example
 .env*.local
+**/.env.termux.local
 
-# Local data and secrets
+# Local data, scrape dumps, debug captures
+.data/
 app/.data/
-*.apk
+**/.data/
+**/scrape-debug/
+app/before_extract.*
+app/indices_debug.html
+app/minhas_notas.png
 *.sqlite*
 .wrangler/
 
+# Firebase (copie de google-services.json.example; não versionar a real)
+mobile/google-services.json
+
+# Ad-hoc local probes / scratch
+/test-*.js
+/test-before*.js
+/test-bypass.js
+/test-header.js
+/test-tables*.js
+app/test-kairo.ts
+app/test-parse.ts
+app/test-parser.js
+app/test-sync.ts
+old_parse.ts
+
 # APK sideload (M16)
+*.apk
 app/public/releases/*.apk
 mobile/*.apk
 tmp.json
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.log

@@ -5,7 +5,7 @@
  *   npx tsx scripts/backfill-historico-from-pdf.ts CPF caminho/para/historico.pdf
  *
  * Ou com variável de ambiente:
- *   $env:SIGAA_HISTORICO_PDF_PATH="..\docs\referencias\historico_00000000000.pdf"
+ *   $env:SIGAA_HISTORICO_PDF_PATH="C:\path\to\historico.pdf"
  *   npx tsx scripts/backfill-historico-from-pdf.ts 00000000000
  */
 import fs from "node:fs";
@@ -20,13 +20,14 @@ import { recordHistoricoSyncedAt } from "../src/lib/sync/sync-preferences";
 async function main(): Promise<void> {
   const username = process.argv[2];
   const pdfArg = process.argv[3];
-  const pdfPath =
-    pdfArg ??
-    process.env.SIGAA_HISTORICO_PDF_PATH ??
-    "../docs/referencias/historico_00000000000.pdf";
+  const pdfPath = pdfArg ?? process.env.SIGAA_HISTORICO_PDF_PATH;
 
   if (!username?.trim()) {
     console.error("Informe o CPF/login: npx tsx scripts/backfill-historico-from-pdf.ts CPF [pdf]");
+    process.exit(1);
+  }
+  if (!pdfPath?.trim()) {
+    console.error("Informe o PDF: argumento ou SIGAA_HISTORICO_PDF_PATH");
     process.exit(1);
   }
 

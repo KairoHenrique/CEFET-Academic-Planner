@@ -4,9 +4,11 @@ import { buildMapa } from "../src/lib/mapa/build-mapa";
 import { runWithUserDb } from "../src/lib/db/connection-manager";
 import { ensureDbReady } from "../src/lib/db/bootstrap";
 
-const users = process.argv.slice(2).length
-  ? process.argv.slice(2)
-  : ["00000000000"];
+const users = process.argv.slice(2);
+if (users.length === 0) {
+  console.error("Uso: npx tsx scripts/inspect-mapa-db.ts <cpf> [cpf...]");
+  process.exit(1);
+}
 
 for (const username of users) {
   const dbPath = path.join(".data", "users", username, "planner.db");
