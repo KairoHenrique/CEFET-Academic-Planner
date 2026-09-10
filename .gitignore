@@ -47,3 +47,10 @@ tmp.json
 .DS_Store
 Thumbs.db
 *.log
+
+# Legacy local SQLite dumps
+data/
+*.db
+*.db-shm
+*.db-wal
+
