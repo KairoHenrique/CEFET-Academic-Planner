@@ -19,6 +19,11 @@ const TERMUX_OVERRIDES = {
   SIGAA_BROWSER_EXECUTABLE_PATH:
     "/data/data/com.termux/files/usr/bin/chromium-browser",
   SIGAA_HEADLESS: "true",
+  // Margens maiores — Chromium ARM/Termux é mais lento que PC.
+  SIGAA_LOGIN_TIMEOUT_MS: "90000",
+  SIGAA_NAVIGATION_TIMEOUT_MS: "60000",
+  SIGAA_WORKER_JOB_TIMEOUT_MS: "900000",
+  SIGAA_WORKER_SHUTDOWN_MS: "1080000",
   WORKER_PORT: "8787",
   SYNC_MIRROR_POSTGRES: "true",
   PLANNER_DATABASE: "postgres",

@@ -10,7 +10,8 @@ export type SubmissionPollOutcome =
   | { kind: "failed"; message: string }
   | { kind: "timeout"; message: string };
 
-export const SUBMISSION_POLL_ATTEMPTS = 90;
+/** ~15 min (450 × 2s) — alinhado ao timeout do job no worker Termux. */
+export const SUBMISSION_POLL_ATTEMPTS = 450;
 export const SUBMISSION_POLL_INTERVAL_MS = 2000;
 
 async function sleep(ms: number): Promise<void> {

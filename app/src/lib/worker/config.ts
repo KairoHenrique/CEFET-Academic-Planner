@@ -1,7 +1,8 @@
 const DEFAULT_PORT = 8787;
 const DEFAULT_MAX_CONCURRENT = 1;
-const DEFAULT_JOB_TIMEOUT_MS = 8 * 60 * 1000;
-const DEFAULT_SHUTDOWN_MS = 10 * 60 * 1000;
+/** Sync completo no Termux pode passar de 8 min — default 15 min. */
+const DEFAULT_JOB_TIMEOUT_MS = 15 * 60 * 1000;
+const DEFAULT_SHUTDOWN_MS = 18 * 60 * 1000;
 
 function parsePositiveInt(raw: string | undefined, fallback: number): number {
   if (!raw?.trim()) return fallback;

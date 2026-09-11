@@ -61,7 +61,7 @@ export async function runQueuedSync(
 
   const job = await waitForSyncJob(
     enqueueResult.job.jobId,
-    input.waitTimeoutMs ?? 360_000
+    input.waitTimeoutMs ?? 900_000
   );
 
   return {

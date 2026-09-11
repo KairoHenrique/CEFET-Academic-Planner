@@ -12,12 +12,14 @@ export const SIGAA_TURMA_SCRAPE_DELAY_MS = Number(
   process.env.SIGAA_TURMA_SCRAPE_DELAY_MS ?? 250
 );
 
+/** Margem maior (Termux/ARM): login lento no Chromium do pkg. */
 export const SIGAA_LOGIN_TIMEOUT_MS = Number(
-  process.env.SIGAA_LOGIN_TIMEOUT_MS ?? 30_000
+  process.env.SIGAA_LOGIN_TIMEOUT_MS ?? 90_000
 );
 
+/** Margem maior para navegação SIGAA em tablet/home-worker lento. */
 export const SIGAA_NAVIGATION_TIMEOUT_MS = Number(
-  process.env.SIGAA_NAVIGATION_TIMEOUT_MS ?? 20_000
+  process.env.SIGAA_NAVIGATION_TIMEOUT_MS ?? 60_000
 );
 
 /** Lê flag do `.env.local` — tem prioridade sobre variável herdada do shell (ex.: npm test). */

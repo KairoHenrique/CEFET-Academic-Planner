@@ -28,7 +28,7 @@ async function fillLoginForm(
     .or(page.locator('input[type="password"]'))
     .first();
 
-  await usernameField.waitFor({ state: "visible", timeout: 10_000 });
+  await usernameField.waitFor({ state: "visible", timeout: 30_000 });
   await usernameField.fill(credentials.username);
   await passwordField.fill(credentials.password);
 }

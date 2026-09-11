@@ -6,7 +6,7 @@ const POLL_INTERVAL_MS = 400;
 
 export async function waitForSyncJob(
   jobId: string,
-  timeoutMs = 360_000
+  timeoutMs = 900_000
 ): Promise<SyncQueueJobView> {
   const deadline = Date.now() + timeoutMs;
 

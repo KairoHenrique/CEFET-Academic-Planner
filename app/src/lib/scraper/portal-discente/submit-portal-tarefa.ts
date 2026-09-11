@@ -11,7 +11,7 @@ import {
 import { sleep } from "@/lib/scraper/turma-virtual/html-utils";
 
 /** Envio costuma precisar de mais folga que o scrape leve. */
-const SUBMIT_NAV_TIMEOUT_MS = Math.max(SIGAA_NAVIGATION_TIMEOUT_MS, 45_000);
+const SUBMIT_NAV_TIMEOUT_MS = Math.max(SIGAA_NAVIGATION_TIMEOUT_MS, 90_000);
 
 const SUCCESS_PATTERN =
   /tarefa\s+enviada|envio\s+realizado|resposta\s+registrada|check\.png/i;

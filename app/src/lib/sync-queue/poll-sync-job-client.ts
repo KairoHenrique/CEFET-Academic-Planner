@@ -2,7 +2,8 @@ import { ApiClientError, getSyncQueueJob } from "@/lib/api/client";
 import type { SyncQueueJobView } from "@/lib/types/sync-queue-api";
 
 const POLL_INTERVAL_MS = 800;
-const DEFAULT_TIMEOUT_MS = 360_000;
+/** Alinhado ao job timeout do worker (15 min) — evita UI desistir cedo. */
+const DEFAULT_TIMEOUT_MS = 900_000;
 
 export interface PollSyncJobOptions {
   timeoutMs?: number;
