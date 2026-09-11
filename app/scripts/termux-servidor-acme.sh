@@ -7,7 +7,7 @@
 #   1) worker:home em :8787 (Playwright + Chromium do pkg)
 #   2) cloudflared quick tunnel (metrics 127.0.0.1:20241)
 #   3) health local + publico; so entao wrangler secret put SIGAA_WORKER_URL
-#   4) crons locais (reminders / account-emails / sync-orchestrator)
+#   4) crons locais (reminders 30m / account-emails 60m / sync-orchestrator 15m)
 #   5) loop infinito (rotacao de URL do tunel) — sem auto-git a cada 5 min
 #
 # Git: so sob demanda com a tecla [r] (fetch + reset --hard origin/main).
@@ -360,11 +360,12 @@ if ! apply_tunnel "$URL" "inicial"; then
   fi
 fi
 
-# --- crons locais (igual intenção do tray/PC: reminders + orchestrator + account-emails) ---
-echo "[*] Iniciando crons locais (reminders 5m · orchestrator 15m · account-emails 5m)..."
+# --- crons locais (alinhados aos Workers CF; evita spam de push) ---
+# CF: notification-reminders */30 · account-emails hourly · orchestrator madrugada
+echo "[*] Iniciando crons locais (reminders 30m · account-emails 60m · orchestrator 15m)..."
 (
   while true; do
-    sleep 300
+    sleep 1800
     echo "[cron] $(date '+%H:%M:%S') notification-reminders"
     curl -s -X POST "$APP_URL/api/cron/notification-reminders" \
       -H "Authorization: Bearer $CRON_SECRET" \
@@ -375,7 +376,7 @@ CRON_NOTIF_PID=$!
 
 (
   while true; do
-    sleep 300
+    sleep 3600
     echo "[cron] $(date '+%H:%M:%S') account-emails"
     curl -s -X POST "$APP_URL/api/cron/account-emails" \
       -H "Authorization: Bearer $CRON_SECRET" \

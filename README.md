@@ -319,7 +319,7 @@ O que o script faz:
 4. Sobe `worker:home` em `:8787`  
 5. Sobe `cloudflared` (metrics `127.0.0.1:20241`)  
 6. Espera health **local** e **público**; só então `wrangler secret put SIGAA_WORKER_URL`  
-7. Loops de cron locais (reminders 5m, account-emails 5m, orchestrator 15m)  
+7. Loops de cron locais (reminders **30m**, account-emails **60m**, orchestrator 15m) — alinhados aos Workers CF (antes era 5m e spamava push)  
 8. Loop infinito: monitora rotação do quick tunnel  
 
 Teclas com o servidor aberto:
