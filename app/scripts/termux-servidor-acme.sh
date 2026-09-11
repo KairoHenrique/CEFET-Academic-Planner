@@ -3,7 +3,7 @@
 #   worker:home (:8787) + cloudflared + health local/público + SIGAA_WORKER_URL
 #   + ACCOUNT_EMAIL_VIA_HOME_WORKER (Gmail no worker) + crons locais.
 #
-# Pré-req: bash scripts/termux-fix-env.sh  (depois de copiar .env.termux.local do PC)
+# Pré-req: bash scripts/termux-form-env.sh  (depois de copiar .env.termux.local do PC)
 
 set -u
 
@@ -47,12 +47,12 @@ fi
 
 # --- env ---
 if [ ! -f .env.local ]; then
-  echo "[-] .env.local ausente. Rode: bash scripts/termux-fix-env.sh"
+  echo "[-] .env.local ausente. Rode: bash scripts/termux-form-env.sh"
   exit 1
 fi
 # Reaplica overrides (idempotente)
-if [ -x scripts/termux-fix-env.sh ] || [ -f scripts/termux-fix-env.sh ]; then
-  bash scripts/termux-fix-env.sh || exit 1
+if [ -x scripts/termux-form-env.sh ] || [ -f scripts/termux-form-env.sh ]; then
+  bash scripts/termux-form-env.sh || exit 1
 fi
 
 read_env() {
@@ -73,11 +73,42 @@ if [ -z "$CF_TOKEN" ]; then
 fi
 export CLOUDFLARE_API_TOKEN="$CF_TOKEN"
 
-# --- git pull ---
-echo "[*] Buscando atualizações no GitHub..."
-if command -v git >/dev/null 2>&1; then
-  git pull origin main || echo "[-] git pull falhou — seguindo com versão local."
-fi
+# --- git sync (Termux = espelho do remoto; evita "divergent branches") ---
+# Define GIT_UPDATED=1 quando HEAD mudou. Retorna 0 ok / 1 falha.
+sync_git_to_origin() {
+  GIT_UPDATED=0
+  if ! command -v git >/dev/null 2>&1; then
+    return 0
+  fi
+  echo "[*] Sincronizando com origin/main..."
+  # .env.local é gitignored — reset não apaga secrets locais
+  if ! git fetch origin main; then
+    echo "[-] git fetch falhou — seguindo com versão local."
+    return 1
+  fi
+  local remote
+  remote="$(git rev-parse origin/main 2>/dev/null || true)"
+  if [ -z "$remote" ]; then
+    echo "[-] origin/main ausente — seguindo com versão local."
+    return 1
+  fi
+  local local_head
+  local_head="$(git rev-parse HEAD 2>/dev/null || echo "")"
+  if [ "$local_head" = "$remote" ]; then
+    echo "[+] Já em sync com origin/main (${remote:0:7})."
+    return 0
+  fi
+  echo "[!] Local ${local_head:0:7} ≠ remoto ${remote:0:7} — reset --hard origin/main"
+  git checkout -B main origin/main >/dev/null 2>&1 || true
+  if git reset --hard origin/main; then
+    echo "[+] Código alinhado a origin/main (${remote:0:7})."
+    GIT_UPDATED=1
+    return 0
+  fi
+  echo "[-] git reset falhou — seguindo com versão local."
+  return 1
+}
+# Git só sob demanda ([r]) — na subida sobe direto, igual ServidorACME do PC.
 
 # --- npm ---
 echo "[*] Verificando npm deps..."
@@ -201,16 +232,49 @@ wait_local_health() {
 
 wait_public_health() {
   local tunnel_url="$1"
-  echo "[*] Testando health público ${tunnel_url}/health ..."
-  local i
-  for i in $(seq 1 40); do
-    if curl -fsS --max-time 8 "${tunnel_url}/health" 2>/dev/null | grep -q '"ok"'; then
+  # trycloudflare demora a propagar; Termux às vezes falha em IPv6 → força -4
+  echo "[*] Testando health público ${tunnel_url}/health (até ~3 min)..."
+  local i code body
+  for i in $(seq 1 60); do
+    body="$(curl -4 -sS --max-time 12 "${tunnel_url}/health" 2>/dev/null || true)"
+    code="$(curl -4 -sS -o /dev/null -w '%{http_code}' --max-time 12 "${tunnel_url}/health" 2>/dev/null || echo 000)"
+    if [ "$code" = "200" ] && printf '%s' "$body" | grep -q '"ok"'; then
       echo "[+] Túnel público OK"
       return 0
     fi
-    sleep 2
+    if [ $((i % 10)) -eq 0 ]; then
+      echo "    ainda aguardando... (${i}/60, http=${code})"
+    fi
+    sleep 3
   done
   echo "[-] Túnel público NÃO responde /health"
+  return 1
+}
+
+restart_cloudflared() {
+  echo "[*] Reiniciando cloudflared..." >&2
+  kill "$TUNNEL_PID" 2>/dev/null || true
+  pkill -f "cloudflared" 2>/dev/null || true
+  sleep 2
+  > termux-cloudflared.log
+  cloudflared tunnel --url "http://127.0.0.1:${WORKER_PORT}" --metrics "$METRICS_ADDR" \
+    > termux-cloudflared.log 2>&1 &
+  TUNNEL_PID=$!
+  echo "Tunnel PID: $TUNNEL_PID" >&2
+  local i url=""
+  for i in $(seq 1 90); do
+    if ! kill -0 "$TUNNEL_PID" 2>/dev/null; then
+      echo "[-] Cloudflared morreu no restart. Veja termux-cloudflared.log" >&2
+      return 1
+    fi
+    url="$(detect_tunnel_url)"
+    if [ -n "$url" ]; then
+      printf '%s' "$url"
+      return 0
+    fi
+    sleep 1
+  done
+  echo "[-] Restart sem URL do túnel." >&2
   return 1
 }
 
@@ -273,9 +337,15 @@ if [ -z "$URL" ]; then
 fi
 
 if ! apply_tunnel "$URL" "inicial"; then
-  kill "$TUNNEL_PID" 2>/dev/null || true
-  kill "$WORKER_PID" 2>/dev/null || true
-  exit 1
+  echo "[!] Health público falhou — tentando 1× restart do túnel..."
+  RETRY_URL="$(restart_cloudflared || true)"
+  if [ -n "${RETRY_URL:-}" ] && apply_tunnel "$RETRY_URL" "retry"; then
+    URL="$RETRY_URL"
+  else
+    kill "$TUNNEL_PID" 2>/dev/null || true
+    kill "$WORKER_PID" 2>/dev/null || true
+    exit 1
+  fi
 fi
 
 # --- crons locais (igual intenção do tray/PC: reminders + orchestrator + account-emails) ---
@@ -325,12 +395,12 @@ cleanup() {
 trap cleanup SIGINT SIGTERM
 
 echo "--------------------------------------------------------"
-echo " ServidorACME Termux = paridade PC"
-echo " [r] atualizar git + reiniciar · [c] CPU/RAM · [q] sair"
+echo " ServidorACME Termux = paridade PC (fica rodando)"
+echo " [r] git update + reiniciar · [c] CPU/RAM · [q] sair"
 echo "--------------------------------------------------------"
 
 while true; do
-  # Reaplica secret se a URL do quick tunnel mudar (igual worker:temp)
+  # Reaplica secret se a URL do quick tunnel mudar (igual tray PC)
   NEW_URL="$(detect_tunnel_url)"
   if [ -n "$NEW_URL" ] && [ "$NEW_URL" != "$CURRENT_TUNNEL_URL" ]; then
     apply_tunnel "$NEW_URL" "rotação" || true
@@ -339,17 +409,17 @@ while true; do
   if read -t 20 -n 1 -s key; then
     case $key in
       r|R)
-        echo -e "\n[*] git fetch..."
-        git fetch
-        LOCAL=$(git rev-parse HEAD)
-        REMOTE=$(git rev-parse @{u} 2>/dev/null || git rev-parse origin/main)
-        if [ "$LOCAL" = "$REMOTE" ]; then
-          echo "[+] Já atualizado."
-        else
-          echo "[!] Atualização encontrada — reiniciando..."
-          git pull origin main
+        echo -e "\n[*] Atualizando do GitHub..."
+        sync_git_to_origin || true
+        if [ "${GIT_UPDATED:-0}" = "1" ]; then
+          if [ -f scripts/termux-form-env.sh ]; then
+            bash scripts/termux-form-env.sh || true
+          fi
+          echo "[!] Código novo — reiniciando..."
           cleanup
           exec "$0"
+        else
+          echo "[+] Sem mudanças para reiniciar."
         fi
         ;;
       c|C)
@@ -368,26 +438,5 @@ while true; do
         exit 0
         ;;
     esac
-  fi
-
-  # Auto-update silencioso a cada ~5 min (15 * 20s)
-  # contador simples via epoch
-  NOW=$(date +%s)
-  if [ -z "${LAST_FETCH:-}" ]; then LAST_FETCH=$NOW; fi
-  if [ $((NOW - LAST_FETCH)) -ge 300 ]; then
-    LAST_FETCH=$NOW
-    git fetch >/dev/null 2>&1 || true
-    LOCAL=$(git rev-parse HEAD 2>/dev/null || echo "")
-    REMOTE=$(git rev-parse origin/main 2>/dev/null || echo "")
-    if [ -n "$LOCAL" ] && [ -n "$REMOTE" ] && [ "$LOCAL" != "$REMOTE" ]; then
-      if pgrep -f "chromium" >/dev/null 2>&1; then
-        echo "[!] Update no GitHub, mas Chromium ocupado — adiando."
-      else
-        echo "[!] Update automático — reiniciando..."
-        git pull origin main
-        cleanup
-        exec "$0"
-      fi
-    fi
   fi
 done
