@@ -10,7 +10,7 @@
  * - APP_IS_FREE=true → checkout PIX recusado; e-mails de “fim de trial” não enfileiram
  * - resolveSubscriptionAccessForCpf devolve snapshot “active / gratuito”
  *
- * @see README.md §3 (Decisões de desenho)
+ * @see README.md §3 D1 (Decisões de desenho)
  */
 export const APP_IS_FREE = true;
 

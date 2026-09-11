@@ -1,5 +1,15 @@
 import http from "node:http";
 import type { IncomingMessage, ServerResponse } from "node:http";
+/**
+ * HTTP do Servidor ACME (home-worker).
+ *
+ * Por que existe: a Cloudflare não roda Chromium/SIGAA de forma confiável.
+ * Este processo (PC tray ou Termux) expõe /health, /jobs e /email/send;
+ * a cloud chama via SIGAA_WORKER_URL (túnel trycloudflare).
+ *
+ * Auth: Authorization Bearer = WORKER_SHARED_SECRET (mesma chave na cloud).
+ * @see README.md §9 e §11
+ */
 import { ApiError } from "@/lib/api/errors";
 import {
   resolveGmailSmtpConfig,

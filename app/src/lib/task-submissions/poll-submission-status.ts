@@ -10,7 +10,11 @@ export type SubmissionPollOutcome =
   | { kind: "failed"; message: string }
   | { kind: "timeout"; message: string };
 
-/** ~15 min (450 × 2s) — alinhado ao timeout do job no worker Termux. */
+/**
+ * Poll do envio de tarefa no cliente.
+ * 450 × 2s ≈ 15 min — alinhado ao job timeout do worker (Termux-first).
+ * Mensagem de timeout pede para conferir no SIGAA (pode ter enviado tarde).
+ */
 export const SUBMISSION_POLL_ATTEMPTS = 450;
 export const SUBMISSION_POLL_INTERVAL_MS = 2000;
 

@@ -1,7 +1,15 @@
 const DEFAULT_PORT = 8787;
 const DEFAULT_MAX_CONCURRENT = 1;
-/** Sync completo no Termux pode passar de 8 min — default 15 min. */
+/**
+ * Timeout do job Playwright inteiro.
+ *
+ * Decisão (Termux-first, set/2026): Chromium ARM no tablet demora mais que Chrome no PC.
+ * Default antigo = 8 min → UI/worker matavam sync ainda em andamento.
+ * Default atual = 15 min (alinhado aos polls do app — ver README §10).
+ * Override: SIGAA_WORKER_JOB_TIMEOUT_MS.
+ */
 const DEFAULT_JOB_TIMEOUT_MS = 15 * 60 * 1000;
+/** Grace > job timeout para o processo terminar limpo no shutdown. */
 const DEFAULT_SHUTDOWN_MS = 18 * 60 * 1000;
 
 function parsePositiveInt(raw: string | undefined, fallback: number): number {

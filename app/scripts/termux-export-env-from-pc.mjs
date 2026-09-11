@@ -1,9 +1,12 @@
 /**
  * Gera app/.env.termux.local a partir do app/.env.local do PC,
- * com overrides do Chromium/Termux e flags de home-worker.
+ * com overrides do Chromium/Termux, timeouts Termux-first e flags de home-worker.
  *
- * Uso (no PC):  cd app && node scripts/termux-export-env-from-pc.mjs
- * No tablet:   copie .env.termux.local → .env.local  (ou rode termux-fix-env.sh)
+ * Seguro versionar ESTE script; NAO versionar o .env.termux.local gerado (secrets).
+ *
+ * Uso (no PC):  cd app && npm run termux:export-env
+ * No tablet:   copie .env.termux.local para .env.local (ou rode termux-form-env.sh)
+ * Docs: README.md §9 / §15
  */
 import fs from "node:fs";
 import path from "node:path";

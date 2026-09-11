@@ -1,7 +1,12 @@
 #!/data/data/com.termux/files/usr/bin/bash
-# Aplica paridade de env do PC no Termux.
-# Preferencia: .env.termux.local (gerado no PC por termux-export-env-from-pc.mjs).
-# Senao: patchia o .env.local atual com overrides Termux (nao apaga secrets).
+# Aplica overrides Termux no .env.local (Chromium, mirror, timeouts).
+#
+# Seguro no repositorio PUBLICO: nao contem tokens/senhas — so paths e flags.
+# Secrets vem do .env.local / .env.termux.local que NAO devem ser commitados.
+#
+# Preferencia: .env.termux.local (npm run termux:export-env no PC).
+# Senao: patchia o .env.local existente (nao apaga valores secretos).
+# Docs: README.md §9 / §15
 
 set -euo pipefail
 

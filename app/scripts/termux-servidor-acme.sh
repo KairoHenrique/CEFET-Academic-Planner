@@ -1,9 +1,21 @@
 #!/data/data/com.termux/files/usr/bin/bash
-# ServidorACME no Termux — paridade com PC (worker:temp / ServidorACME tray):
-#   worker:home (:8787) + cloudflared + health local/público + SIGAA_WORKER_URL
-#   + ACCOUNT_EMAIL_VIA_HOME_WORKER (Gmail no worker) + crons locais.
+# =============================================================================
+# Servidor ACME no Termux — paridade com o tray/PC (worker:home + tunel).
 #
-# Pré-req: bash scripts/termux-form-env.sh  (depois de copiar .env.termux.local do PC)
+# Por que: a cloud (Cloudflare Workers) nao scrapa o SIGAA com Chromium.
+# Este script deixa o tablet como home-worker 24/7:
+#   1) worker:home em :8787 (Playwright + Chromium do pkg)
+#   2) cloudflared quick tunnel (metrics 127.0.0.1:20241)
+#   3) health local + publico; so entao wrangler secret put SIGAA_WORKER_URL
+#   4) crons locais (reminders / account-emails / sync-orchestrator)
+#   5) loop infinito (rotacao de URL do tunel) — sem auto-git a cada 5 min
+#
+# Git: so sob demanda com a tecla [r] (fetch + reset --hard origin/main).
+# Regra: NAO rode PC tray e Termux ao mesmo tempo (brigam pelo secret).
+#
+# Pre-req: .env.local com secrets + bash scripts/termux-form-env.sh
+# Docs: README.md §9 e §10
+# =============================================================================
 
 set -u
 

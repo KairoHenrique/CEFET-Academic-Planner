@@ -12,12 +12,16 @@ export const SIGAA_TURMA_SCRAPE_DELAY_MS = Number(
   process.env.SIGAA_TURMA_SCRAPE_DELAY_MS ?? 250
 );
 
-/** Margem maior (Termux/ARM): login lento no Chromium do pkg. */
+/** Margem maior (Termux/ARM): login lento no Chromium do pkg. Override: SIGAA_LOGIN_TIMEOUT_MS. */
 export const SIGAA_LOGIN_TIMEOUT_MS = Number(
   process.env.SIGAA_LOGIN_TIMEOUT_MS ?? 90_000
 );
 
-/** Margem maior para navegação SIGAA em tablet/home-worker lento. */
+/**
+ * Timeout de navegação/cliques no SIGAA.
+ * Motivo: páginas pesadas + rede do tablet. Override: SIGAA_NAVIGATION_TIMEOUT_MS.
+ * @see README.md §10
+ */
 export const SIGAA_NAVIGATION_TIMEOUT_MS = Number(
   process.env.SIGAA_NAVIGATION_TIMEOUT_MS ?? 60_000
 );
