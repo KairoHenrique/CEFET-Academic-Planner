@@ -131,11 +131,11 @@ flowchart LR
   MOB -.->|fallback| SIGAA
   MOB -.->|ingest| CF
 
-  classDef client fill:#2563EB,stroke:#1D4ED8,color:#FFFFFF,stroke-width:2px
-  classDef edge fill:#F97316,stroke:#EA580C,color:#FFFFFF,stroke-width:2px
-  classDef data fill:#10B981,stroke:#059669,color:#FFFFFF,stroke-width:2px
-  classDef home fill:#EAB308,stroke:#CA8A04,color:#111827,stroke-width:2px
-  classDef ext fill:#64748B,stroke:#475569,color:#FFFFFF,stroke-width:2px
+  classDef client fill:#DC2626,stroke:#991B1B,color:#FFFFFF,stroke-width:2px
+  classDef edge fill:#EA580C,stroke:#C2410C,color:#FFFFFF,stroke-width:2px
+  classDef data fill:#059669,stroke:#047857,color:#FFFFFF,stroke-width:2px
+  classDef home fill:#CA8A04,stroke:#A16207,color:#FFFFFF,stroke-width:2px
+  classDef ext fill:#BE123C,stroke:#9F1239,color:#FFFFFF,stroke-width:2px
 
   class WEB,MOB client
   class CF edge
@@ -163,7 +163,7 @@ O scrape pesado fica no **Servidor ACME**. A cloud **despacha** jobs e **persist
 ### Fluxo de sincronização
 
 ```mermaid
-%%{init: {"theme": "base", "themeVariables": {"actorBkg": "#2563EB", "actorTextColor": "#FFFFFF", "actorBorder": "#1D4ED8", "actorLineColor": "#94A3B8", "signalColor": "#0F172A", "signalTextColor": "#0F172A", "labelBoxBkgColor": "#EAB308", "labelBoxBorderColor": "#CA8A04", "labelTextColor": "#111827", "loopTextColor": "#0F172A", "activationBkgColor": "#FDBA74", "activationBorderColor": "#EA580C", "sequenceNumberColor": "#FFFFFF", "noteBkgColor": "#FEF3C7", "noteTextColor": "#111827", "noteBorderColor": "#EAB308"}}}%%
+%%{init: {"theme": "base", "themeVariables": {"actorBkg": "#DC2626", "actorTextColor": "#FFFFFF", "actorBorder": "#991B1B", "actorLineColor": "#EA580C", "signalColor": "#EA580C", "signalTextColor": "#EA580C", "labelBoxBkgColor": "#CA8A04", "labelBoxBorderColor": "#A16207", "labelTextColor": "#FFFFFF", "loopTextColor": "#EA580C", "activationBkgColor": "#FB923C", "activationBorderColor": "#C2410C", "sequenceNumberColor": "#FFFFFF", "noteBkgColor": "#CA8A04", "noteTextColor": "#FFFFFF", "noteBorderColor": "#A16207"}}}%%
 sequenceDiagram
   autonumber
   actor Aluno
@@ -203,9 +203,9 @@ flowchart LR
   D --> E[SIGAA]
   E --> F{Status}
 
-  classDef step fill:#2563EB,stroke:#1D4ED8,color:#FFFFFF,stroke-width:2px
-  classDef mid fill:#F97316,stroke:#EA580C,color:#FFFFFF,stroke-width:2px
-  classDef endn fill:#10B981,stroke:#059669,color:#FFFFFF,stroke-width:2px
+  classDef step fill:#DC2626,stroke:#991B1B,color:#FFFFFF,stroke-width:2px
+  classDef mid fill:#EA580C,stroke:#C2410C,color:#FFFFFF,stroke-width:2px
+  classDef endn fill:#059669,stroke:#047857,color:#FFFFFF,stroke-width:2px
   class A,B step
   class C,D,E mid
   class F endn
@@ -222,10 +222,10 @@ flowchart LR
   MOB[mobile/] -->|EAS| PLAY[Google Play]
   SQL[migrations/] --> DB
 
-  classDef src fill:#8B5CF6,stroke:#7C3AED,color:#FFFFFF,stroke-width:2px
-  classDef dest fill:#F97316,stroke:#EA580C,color:#FFFFFF,stroke-width:2px
-  classDef store fill:#22C55E,stroke:#16A34A,color:#FFFFFF,stroke-width:2px
-  classDef db fill:#06B6D4,stroke:#0891B2,color:#FFFFFF,stroke-width:2px
+  classDef src fill:#C026D3,stroke:#A21CAF,color:#FFFFFF,stroke-width:2px
+  classDef dest fill:#EA580C,stroke:#C2410C,color:#FFFFFF,stroke-width:2px
+  classDef store fill:#16A34A,stroke:#15803D,color:#FFFFFF,stroke-width:2px
+  classDef db fill:#CA8A04,stroke:#A16207,color:#FFFFFF,stroke-width:2px
   class APP,MOB,SQL src
   class CF,CRON dest
   class PLAY store
@@ -703,7 +703,7 @@ Header: `Authorization: Bearer $CRON_SECRET`.
 ## 18. Modelo de dados
 
 ```mermaid
-%%{init: {"theme": "base", "themeVariables": {"primaryColor": "#2563EB", "primaryTextColor": "#FFFFFF", "primaryBorderColor": "#1D4ED8", "lineColor": "#64748B", "secondaryColor": "#EAB308", "tertiaryColor": "#10B981"}}}%%
+%%{init: {"theme": "base", "themeVariables": {"primaryColor": "#DC2626", "primaryTextColor": "#FFFFFF", "primaryBorderColor": "#991B1B", "lineColor": "#EA580C", "secondaryColor": "#CA8A04", "tertiaryColor": "#059669"}}}%%
 erDiagram
   APP_PROFILES ||--o{ DISCIPLINAS : possui
   APP_PROFILES ||--o{ SYNC_JOBS : dispara
