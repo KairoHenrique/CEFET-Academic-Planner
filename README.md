@@ -9,7 +9,7 @@ Sincroniza dados do [SIGAA](https://sig.cefetmg.br/) e concentra a vida acadêmi
 |---|---|
 | **Site (produção)** | https://acmehub.com.br |
 | **Pacote Android** | `br.cefethub.acme` |
-| **Versão app** | `1.15` (`versionCode` 15) |
+| **Versão app** | `1.16` (`versionCode` 16) |
 | **Repositório** | [github.com/KairoHenrique/CEFET-Academic-Planner](https://github.com/KairoHenrique/CEFET-Academic-Planner) |
 | **Produto** | **ACME HUB** — site: https://acmehub.com.br |
 | **Licença** | AGPL-3.0 |
@@ -432,7 +432,7 @@ Crons CF em `app/workers/`: `cron-ping`, `cron-account-emails`, `cron-notificati
 |-------|--------|
 | Nome | ACME HUB |
 | Package | `br.cefethub.acme` |
-| version / versionCode | `1.15` / `15` (`mobile/app.json`) |
+| version / versionCode | `1.16` / `16` (`mobile/app.json`) |
 
 ```powershell
 cd mobile
@@ -626,7 +626,7 @@ RLS: isolamento por usuário; suite `test:t2` valida.
 | `git pull` divergent | Histórico local ≠ origin | `git fetch && git reset --hard origin/main` (preserva `.env.local`) |
 | Sync “falhou” cedo | Cloud sem deploy dos polls 15 min | `npm run deploy:cf` |
 | `password authentication failed` | `DATABASE_URL` velha | Regenerar senha Supabase |
-| Checkout / “assine” | Build antigo | Confirmar free-mode + app ≥ 1.15 |
+| Checkout / “assine” | Build antigo | Confirmar free-mode + app ≥ 1.16 |
 | Push não chega | Falta Firebase no EAS | Secret `GOOGLE_SERVICES_JSON` |
 | Error 1102 no Workers | Bundle TLS pesado no edge | Não reintroduzir scrape TLS no Worker |
 | better-sqlite3 no Termux | Binário errado | Script recompila com `npm rebuild` |
