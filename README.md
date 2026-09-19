@@ -94,6 +94,15 @@ O produto é **gratuito**: as funções acadêmicas não têm paywall. Há anún
 
 Next.js 16 + Cloudflare Workers · Supabase (Auth + Postgres + RLS) · Expo 54 · Playwright/Chromium no home-worker · cloudflared.
 
+### Decisões de produto (sessões recentes)
+
+| Decisão | Motivo |
+|---------|--------|
+| Domínio próprio **acmehub.com.br** (não `*.workers.dev`) | AdSense / AdMob e loja exigem site real; marca estável para alunos e portfolio |
+| Forever-free + anúncios | Aluno usa tudo sem pagar; monetização leve; remoção de anúncios é opcional |
+| Web primeiro, depois mobile | Validar AdSense + `ads.txt` no domínio; depois AdMob + Play Billing no APK |
+| Repo público (AGPL-3.0) | Transparência do código; secrets só em env / Cloudflare / EAS |
+
 ---
 
 ## 2. Funcionalidades
@@ -117,6 +126,16 @@ Next.js 16 + Cloudflare Workers · Supabase (Auth + Postgres + RLS) · Expo 54 �
 
 Mapa e integralização usam o **PPC** do curso escolhido no cadastro (ex.: Engenharia da Computação).  
 Seeds: `app/scripts/ppc_data*.txt` → `npm run db:seed-ppc` (com `DATABASE_URL`).
+
+### Decisões de UX / produto
+
+| Decisão | Motivo |
+|---------|--------|
+| Página pública `/inicio` | AdSense exige URL pública; o dashboard logado não serve para revisão |
+| Trilhos laterais de anúncio (≥1400px) | Monetizar web sem esmagar o layout acadêmico; sem botão de dismiss nos rails |
+| “Remover anúncios” → `/planos` | Upsell claro para `ads_free` (PIX web / Play no app) |
+| Simulador: “Faltam X pts” ao vivo | Feedback imediato na edição de notas; sem hint sob nota máxima (menos ruído) |
+| AuthGate libera paths públicos sem “Preparando sessão” | Evitar tela de loading em `/inicio`, legais e download |
 
 ---
 
@@ -175,6 +194,18 @@ Fluxo preferido: clientes → Cloudflare → Servidor ACME → SIGAA, com mirror
 
 A Cloudflare **não** executa Chromium do SIGAA de forma confiável (limites de TLS/edge; scrape TLS no Worker gerou **Error 1102** e foi abandonado).  
 O scrape pesado fica no **Servidor ACME**. A cloud **despacha** jobs e **persiste** o resultado no Postgres.
+
+### Decisões de arquitetura (já fechadas)
+
+| Decisão | Motivo / consequência |
+|---------|------------------------|
+| OpenNext no Workers + `workers_dev` ligado | Deploy edge barato; custom domain `acmehub.com.br` / `www` sem perder URL de teste |
+| Servidor ACME preferido no **Termux 24/7** | Paridade com tray Windows; Chromium no tablet; um único `SIGAA_WORKER_URL` |
+| Sync híbrido (worker → device) | Web sem Chromium no edge; Android cobre quando o túnel cai |
+| Jobs async (`202` + poll ~15 min) | Scrape longo não estoura timeout HTTP da borda |
+| Postgres na cloud; SQLite só local | Guard `o2` impede SQLite como fonte de verdade nos Workers |
+| `ads.txt` + `app-ads.txt` na raiz do domínio | Exigência AdSense/AdMob; headers `text/plain`; crawl pode demorar (status “Preparando”) |
+| Entitlement único `ads_free` | Mesma regra web (AdSense) e mobile (AdMob) após PIX ou Play |
 
 ### Fluxo de sincronização
 
@@ -268,7 +299,8 @@ flowchart LR
 
 ## 4. Decisões de desenho (ADR)
 
-Cada item tem espelho curto no código (comentários de cabeçalho).
+Cada item tem espelho curto no código (comentários de cabeçalho).  
+As decisões abaixo foram **fechadas em produto** (não são TODOs): forever-free, sync híbrido, Termux-first, domínio próprio e `ads_free` unificado.
 
 ### D1 — Forever-free
 
@@ -278,6 +310,7 @@ Cada item tem espelho curto no código (comentários de cabeçalho).
 | **Flags** | `APP_IS_FREE = true`, `BILLING_ENFORCED = false`, `ADS_REMOVAL_CHECKOUT_ENABLED = true` |
 | **Efeito** | Features acadêmicas sempre liberadas; checkout (PIX / Play) só para remoção de anúncios (`ads_free`) |
 | **Por quê** | Produto forever-free; código sob AGPL-3.0 |
+| **Operacional** | Planos ativos de teste foram revogados em massa (cron / script) na virada para o modelo `ads_free` |
 
 ### D2 — Sync híbrido (worker preferido → aparelho)
 
@@ -319,6 +352,17 @@ Chromium em ARM é mais lento. Defaults alinhados para não declarar falha enqua
 
 `ACCOUNT_EMAIL_VIA_HOME_WORKER=true` + Gmail SMTP no worker (`POST /email/send`).
 
+### D10 — Monetização web + mobile
+
+| Camada | Decisão |
+|--------|---------|
+| Web | AdSense no `layout` + trilhos (`WebAdsChrome`); slots laterais; CMP/consent conforme política Google |
+| Arquivos | `ads.txt` (web) e `app-ads.txt` (app) na raiz de `acmehub.com.br` |
+| Mobile | AdMob: **App Open** (1×/sessão) + **Interstitial** pós-sync (cooldown ~30 min) |
+| Gate | `shouldShowAds()` / `useAdsFreeClient` → some se `ads_free` ativo |
+| Play | SKUs de assinatura alinhadas ao catálogo; verify em `POST /api/billing/play/verify` |
+| Console | Site do desenvolvedor no Play deve ser `https://acmehub.com.br` para o crawl do `app-ads.txt` |
+
 ---
 
 ## 5. Estrutura do repositório
@@ -355,6 +399,8 @@ CEFET-Academic-Planner/          (produto: ACME HUB)
 | `termux-export-env-from-pc.mjs` | Gera `.env.termux.local` a partir do PC | Sim (o **arquivo gerado** não) |
 | `home-server-tray.ps1` | Tray Windows | Sim |
 | `start-home-worker.mjs` / `start-temp-worker.mjs` | Worker (+ túnel) | Sim |
+
+**Decisão:** scripts Termux no repo **sem** secrets hardcoded — o tablet importa `.env` gerado no PC (`termux:export-env`). Auto-git foi desligado de propósito.
 
 ---
 
@@ -461,6 +507,16 @@ npx expo start
 
 Processo que a cloud chama para scrapar o SIGAA. **Preferência: Termux 24/7.**
 
+### Decisões operacionais
+
+| Decisão | Motivo |
+|---------|--------|
+| Termux como caminho principal | Fica ligado 24/7; Chromium do `pkg`; menos dependência do PC ligado |
+| Sem auto-`git pull` periódico | Evita surpresa em produção; update só com `[r]` sob demanda |
+| Crons locais alinhados ao CF (30m / 60m) | Antes spamava push/e-mail a cada 5 min |
+| Um túnel só | Dois `SIGAA_WORKER_URL` = sync quebrado / 1016 |
+| Health local **e** público antes do secret | Não publica túnel morto no Cloudflare |
+
 ### Termux (recomendado)
 
 ```bash
@@ -538,6 +594,8 @@ Defaults no código (override via env), alinhados a tablet lento + UI que não d
 
 > Após mudar polls no app: **`npm run deploy:cf`**. O worker Termux pega defaults no restart.
 
+**Decisão:** defaults “Termux-first” (~15 min) porque Chromium em ARM é lento — falhar cedo gerava falso negativo de sync enquanto o scrape ainda rodava.
+
 ---
 
 ## 12. APIs e robots
@@ -585,6 +643,16 @@ Produção tipicamente exige:
 
 Crons em `app/workers/`: `cron-ping`, `cron-account-emails`, `cron-notification-reminders`, `cron-sync-orchestrator`, `cron-app-update-notify`, `cron-ru-saldo`, `cron-purge-inactive-academic`.
 
+### Decisões de deploy
+
+| Decisão | Motivo |
+|---------|--------|
+| Custom domain no Worker + DNS Cloudflare | Site canônico para alunos, AdSense e Play |
+| Manter `workers_dev` | Não perder URL de smoke após ligar o domínio |
+| Publicar `ads.txt` / `app-ads.txt` / `robots.txt` no deploy | Crawl Google; `Content-Type: text/plain; charset=utf-8` |
+| Secret `PLANNER_APP_URL` | Links de e-mail e crons apontam para o domínio real |
+| Cron de purge + revoke-all | Retenção LGPD e limpeza de assinaturas na virada `ads_free` |
+
 ---
 
 ## 14. App Android
@@ -611,6 +679,17 @@ npx eas-cli@latest build --platform android --profile production --non-interacti
 Bump: incrementar `version` (+ `versionCode` no `app.json`) → commit → EAS → Play Console.
 
 Anúncios no app: **App Open** (abertura de sessão) e **Interstitial** (após sync, com cooldown). Gate por entitlement `ads_free`.
+
+### Decisões mobile / loja
+
+| Decisão | Motivo |
+|---------|--------|
+| Só App Open + Interstitial (sem banner) | Menos ruído na UI acadêmica; alinhado aos termos/privacidade |
+| IDs reais no `app.json` + override EAS (`ADMOB_*`) | Build de loja usa produção; debug pode cair em teste Google se vazio |
+| Play Billing para `ads_free` | Compra nativa no Android; PIX continua na web |
+| Assinaturas testáveis em **teste interno** | Não precisa esperar aprovação de produção para criar SKUs e validar |
+| `app-ads.txt` no domínio do site | AdMob verifica via site cadastrado na ficha do Play (não pelo upload manual) |
+| Legal atualizado (AdMob + Play) | Transparência LGPD / termos sobre formatos de anúncio |
 
 ---
 
@@ -720,6 +799,8 @@ Ver diagrama em [§3](#fluxo-de-sincronização).
 2. Android: assinatura Play → `POST /api/billing/play/verify` → `ads_free`.  
 3. Clientes leem entitlement e ocultam AdSense / AdMob.
 
+**Decisão:** um único entitlement (`ads_free`) para web e app — evita estados divergentes (“paguei no Play e ainda vejo AdSense”).
+
 ### Notificações / crons
 
 Workers CF **e/ou** loops do Termux:
@@ -729,6 +810,8 @@ Workers CF **e/ou** loops do Termux:
 - `POST /api/cron/sync-orchestrator`
 
 Header: `Authorization: Bearer $CRON_SECRET`.
+
+**Decisão:** intervals 30m (reminders) / 60m (e-mails) no Termux e nos Workers CF — alinhados após spam de push em intervalos curtos.
 
 ---
 
@@ -768,6 +851,16 @@ RLS isola por usuário; suite `test:t2` valida.
 - Se um secret vazar: **rotacione** e limpe histórico se necessário.  
 - LGPD: `/privacidade`, `/termos`; consentimento no cadastro (`legal/`).  
 - Histórico Git já passou por purge antes de tornar o repo público — ainda assim, rotacione credenciais antigas se houve exposição.
+
+### Decisões de compliance / repo
+
+| Decisão | Motivo |
+|---------|--------|
+| Repo **público** + AGPL-3.0 | Código aberto; produto comercial continua no domínio / loja |
+| About do GitHub com site + topics | Descoberta; link canônico `acmehub.com.br` |
+| Sem preços no README | Preço muda no Play/PIX; README não vira catálogo desatualizado |
+| Documentar AdMob/Play nos legais | Transparência sobre formatos (App Open, interstitial) |
+| Purge de dados inativos (cron) | Minimização LGPD + limpeza operacional |
 
 ---
 
