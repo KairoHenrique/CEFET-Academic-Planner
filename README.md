@@ -41,6 +41,10 @@
 
 ## Índice
 
+<table>
+<tr>
+<td width="50%" valign="top">
+
 1. [Visão geral](#1-visão-geral)
 2. [Funcionalidades](#2-funcionalidades)
 3. [Arquitetura](#3-arquitetura)
@@ -53,6 +57,10 @@
 10. [Servidor ACME (sync SIGAA)](#10-servidor-acme-sync-sigaa)
 11. [Timeouts (Termux-first)](#11-timeouts-termux-first)
 12. [APIs e robots](#12-apis-e-robots)
+
+</td>
+<td width="50%" valign="top" style="border-left: 2px solid #888888; padding-left: 24px;">
+
 13. [Deploy](#13-deploy)
 14. [App Android](#14-app-android)
 15. [Testes](#15-testes)
@@ -65,6 +73,10 @@
 22. [Glossário](#22-glossário)
 23. [Autor](#23-autor)
 24. [Licença](#24-licença)
+
+</td>
+</tr>
+</table>
 
 ---
 
@@ -113,11 +125,11 @@ Seeds: `app/scripts/ppc_data*.txt` → `npm run db:seed-ppc` (com `DATABASE_URL`
 ### Visão geral do sistema
 
 ```mermaid
-%%{init: {"theme": "base", "themeVariables": {"fontSize": "16px", "fontFamily": "Inter, Segoe UI, sans-serif"}, "flowchart": {"curve": "basis", "padding": 18, "nodeSpacing": 44, "rankSpacing": 54}}}%%
+%%{init: {"theme": "base", "themeVariables": {"fontSize": "16px", "lineColor": "#FACC15", "primaryTextColor": "#FFFFFF"}, "flowchart": {"curve": "basis", "padding": 18, "nodeSpacing": 48, "rankSpacing": 56}}}%%
 flowchart LR
   WEB[Web]
   MOB[Android]
-  CF[Cloudflare Workers]
+  CF[Cloudflare]
   SB[(Supabase)]
   ACME[Servidor ACME]
   SIGAA[(SIGAA)]
@@ -131,17 +143,21 @@ flowchart LR
   MOB -.->|fallback| SIGAA
   MOB -.->|ingest| CF
 
-  classDef client fill:#DC2626,stroke:#991B1B,color:#FFFFFF,stroke-width:2px
-  classDef edge fill:#EA580C,stroke:#C2410C,color:#FFFFFF,stroke-width:2px
-  classDef data fill:#059669,stroke:#047857,color:#FFFFFF,stroke-width:2px
-  classDef home fill:#CA8A04,stroke:#A16207,color:#FFFFFF,stroke-width:2px
-  classDef ext fill:#BE123C,stroke:#9F1239,color:#FFFFFF,stroke-width:2px
+  classDef web fill:#EF4444,stroke:#FACC15,color:#FFFFFF,stroke-width:3px
+  classDef mob fill:#D946EF,stroke:#FACC15,color:#FFFFFF,stroke-width:3px
+  classDef cf fill:#F97316,stroke:#FACC15,color:#FFFFFF,stroke-width:3px
+  classDef sb fill:#22C55E,stroke:#FACC15,color:#FFFFFF,stroke-width:3px
+  classDef acme fill:#EAB308,stroke:#FACC15,color:#111827,stroke-width:3px
+  classDef sig fill:#F43F5E,stroke:#FACC15,color:#FFFFFF,stroke-width:3px
 
-  class WEB,MOB client
-  class CF edge
-  class SB data
-  class ACME home
-  class SIGAA ext
+  class WEB web
+  class MOB mob
+  class CF cf
+  class SB sb
+  class ACME acme
+  class SIGAA sig
+
+  linkStyle default stroke:#FACC15,stroke-width:3px
 ```
 
 Fluxo preferido: clientes → Cloudflare → Servidor ACME → SIGAA, com mirror no Supabase. Se o worker estiver offline, o Android faz fallback e envia ingest.
@@ -163,7 +179,7 @@ O scrape pesado fica no **Servidor ACME**. A cloud **despacha** jobs e **persist
 ### Fluxo de sincronização
 
 ```mermaid
-%%{init: {"theme": "base", "themeVariables": {"actorBkg": "#DC2626", "actorTextColor": "#FFFFFF", "actorBorder": "#991B1B", "actorLineColor": "#EA580C", "signalColor": "#EA580C", "signalTextColor": "#EA580C", "labelBoxBkgColor": "#CA8A04", "labelBoxBorderColor": "#A16207", "labelTextColor": "#FFFFFF", "loopTextColor": "#EA580C", "activationBkgColor": "#FB923C", "activationBorderColor": "#C2410C", "sequenceNumberColor": "#FFFFFF", "noteBkgColor": "#CA8A04", "noteTextColor": "#FFFFFF", "noteBorderColor": "#A16207"}}}%%
+%%{init: {"theme": "base", "themeVariables": {"actorBkg": "#EF4444", "actorTextColor": "#FFFFFF", "actorBorder": "#FACC15", "actorLineColor": "#FACC15", "signalColor": "#FACC15", "signalTextColor": "#FACC15", "labelBoxBkgColor": "#D946EF", "labelBoxBorderColor": "#FACC15", "labelTextColor": "#FFFFFF", "loopTextColor": "#FACC15", "activationBkgColor": "#FB923C", "activationBorderColor": "#FACC15", "sequenceNumberColor": "#111827", "noteBkgColor": "#EAB308", "noteTextColor": "#111827", "noteBorderColor": "#FACC15"}}}%%
 sequenceDiagram
   autonumber
   actor Aluno
@@ -195,7 +211,7 @@ sequenceDiagram
 ### Envio de tarefa ao SIGAA
 
 ```mermaid
-%%{init: {"theme": "base", "flowchart": {"curve": "basis", "nodeSpacing": 32, "rankSpacing": 40}}}%%
+%%{init: {"theme": "base", "themeVariables": {"lineColor": "#FACC15"}, "flowchart": {"curve": "basis", "nodeSpacing": 36, "rankSpacing": 44}}}%%
 flowchart LR
   A[Upload] --> B[Fila]
   B --> C[Cloud]
@@ -203,18 +219,26 @@ flowchart LR
   D --> E[SIGAA]
   E --> F{Status}
 
-  classDef step fill:#DC2626,stroke:#991B1B,color:#FFFFFF,stroke-width:2px
-  classDef mid fill:#EA580C,stroke:#C2410C,color:#FFFFFF,stroke-width:2px
-  classDef endn fill:#059669,stroke:#047857,color:#FFFFFF,stroke-width:2px
-  class A,B step
-  class C,D,E mid
-  class F endn
+  classDef a fill:#EF4444,stroke:#FACC15,color:#FFFFFF,stroke-width:3px
+  classDef b fill:#D946EF,stroke:#FACC15,color:#FFFFFF,stroke-width:3px
+  classDef c fill:#F97316,stroke:#FACC15,color:#FFFFFF,stroke-width:3px
+  classDef d fill:#EAB308,stroke:#FACC15,color:#111827,stroke-width:3px
+  classDef e fill:#F43F5E,stroke:#FACC15,color:#FFFFFF,stroke-width:3px
+  classDef f fill:#22C55E,stroke:#FACC15,color:#FFFFFF,stroke-width:3px
+  class A a
+  class B b
+  class C c
+  class D d
+  class E e
+  class F f
+
+  linkStyle default stroke:#FACC15,stroke-width:3px
 ```
 
 ### Camadas de deploy
 
 ```mermaid
-%%{init: {"theme": "base", "flowchart": {"curve": "basis", "nodeSpacing": 40, "rankSpacing": 50}}}%%
+%%{init: {"theme": "base", "themeVariables": {"lineColor": "#FACC15"}, "flowchart": {"curve": "basis", "nodeSpacing": 44, "rankSpacing": 52}}}%%
 flowchart LR
   APP[app/] -->|deploy:cf| CF[Cloudflare]
   APP -->|deploy:crons| CRON[Crons]
@@ -222,14 +246,22 @@ flowchart LR
   MOB[mobile/] -->|EAS| PLAY[Google Play]
   SQL[migrations/] --> DB
 
-  classDef src fill:#C026D3,stroke:#A21CAF,color:#FFFFFF,stroke-width:2px
-  classDef dest fill:#EA580C,stroke:#C2410C,color:#FFFFFF,stroke-width:2px
-  classDef store fill:#16A34A,stroke:#15803D,color:#FFFFFF,stroke-width:2px
-  classDef db fill:#CA8A04,stroke:#A16207,color:#FFFFFF,stroke-width:2px
-  class APP,MOB,SQL src
-  class CF,CRON dest
-  class PLAY store
+  classDef app fill:#EF4444,stroke:#FACC15,color:#FFFFFF,stroke-width:3px
+  classDef mob fill:#D946EF,stroke:#FACC15,color:#FFFFFF,stroke-width:3px
+  classDef sql fill:#F43F5E,stroke:#FACC15,color:#FFFFFF,stroke-width:3px
+  classDef cf fill:#F97316,stroke:#FACC15,color:#FFFFFF,stroke-width:3px
+  classDef cron fill:#EAB308,stroke:#FACC15,color:#111827,stroke-width:3px
+  classDef play fill:#22C55E,stroke:#FACC15,color:#FFFFFF,stroke-width:3px
+  classDef db fill:#14B8A6,stroke:#FACC15,color:#111827,stroke-width:3px
+  class APP app
+  class MOB mob
+  class SQL sql
+  class CF cf
+  class CRON cron
+  class PLAY play
   class DB db
+
+  linkStyle default stroke:#FACC15,stroke-width:3px
 ```
 
 ---
@@ -703,7 +735,7 @@ Header: `Authorization: Bearer $CRON_SECRET`.
 ## 18. Modelo de dados
 
 ```mermaid
-%%{init: {"theme": "base", "themeVariables": {"primaryColor": "#DC2626", "primaryTextColor": "#FFFFFF", "primaryBorderColor": "#991B1B", "lineColor": "#EA580C", "secondaryColor": "#CA8A04", "tertiaryColor": "#059669"}}}%%
+%%{init: {"theme": "base", "themeVariables": {"primaryColor": "#EF4444", "primaryTextColor": "#FFFFFF", "primaryBorderColor": "#FACC15", "lineColor": "#FACC15", "secondaryColor": "#D946EF", "tertiaryColor": "#22C55E"}}}%%
 erDiagram
   APP_PROFILES ||--o{ DISCIPLINAS : possui
   APP_PROFILES ||--o{ SYNC_JOBS : dispara
