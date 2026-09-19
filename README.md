@@ -26,7 +26,6 @@
   <a href="https://github.com/KairoHenrique"><img src="https://img.shields.io/badge/GitHub-KairoHenrique-181717?logo=github" alt="GitHub" /></a>
 </p>
 
-| | |
 |---|---|
 | **Site** | https://acmehub.com.br |
 | **Google Play** | https://play.google.com/store/apps/details?id=br.cefethub.acme |
