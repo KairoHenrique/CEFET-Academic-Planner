@@ -1,18 +1,39 @@
-# ACME HUB
+<p align="center">
+  <img src="app/public/logo_v2.png" alt="ACME HUB" width="180" />
+</p>
 
-Planejador acadêmico **gratuito** para alunos do **CEFET-MG**.  
-Sincroniza dados do [SIGAA](https://sig.cefetmg.br/) e concentra a vida acadêmica em uma interface moderna (**web** + **Android**).
+<h1 align="center">ACME HUB</h1>
 
-> **ACME HUB** é o nome do produto. O repositório GitHub permanece `CEFET-Academic-Planner`. Para usar o app: [abrir o site](https://acmehub.com.br) · [Google Play](https://play.google.com/store/apps/details?id=br.cefethub.acme).
+<p align="center">
+  <strong>Planejador acadêmico gratuito</strong> para alunos do <strong>CEFET-MG</strong><br />
+  Web + Android · sync com o <a href="https://sig.cefetmg.br/">SIGAA</a>
+</p>
+
+<p align="center">
+  <a href="https://acmehub.com.br"><img src="https://img.shields.io/badge/site-acmehub.com.br-0B3D91?style=for-the-badge" alt="Site" /></a>
+  <a href="https://play.google.com/store/apps/details?id=br.cefethub.acme"><img src="https://img.shields.io/badge/Google%20Play-br.cefethub.acme-34A853?style=for-the-badge&logo=googleplay&logoColor=white" alt="Google Play" /></a>
+  <a href="https://github.com/KairoHenrique/CEFET-Academic-Planner/releases/tag/v1.16"><img src="https://img.shields.io/badge/versão-1.16-e9b949?style=for-the-badge" alt="Versão 1.16" /></a>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/status-ativo-success" alt="status" />
+  <img src="https://img.shields.io/badge/Next.js-16-black?logo=nextdotjs&logoColor=white" alt="Next.js" />
+  <img src="https://img.shields.io/badge/Expo-54-000020?logo=expo&logoColor=white" alt="Expo" />
+  <img src="https://img.shields.io/badge/Cloudflare%20Workers-F38020?logo=cloudflare&logoColor=white" alt="Cloudflare" />
+  <img src="https://img.shields.io/badge/Supabase-3FCF8E?logo=supabase&logoColor=white" alt="Supabase" />
+  <img src="https://img.shields.io/badge/licença-AGPL--3.0-blue" alt="AGPL-3.0" />
+  <a href="https://github.com/KairoHenrique"><img src="https://img.shields.io/badge/GitHub-KairoHenrique-181717?logo=github" alt="GitHub" /></a>
+</p>
+
+> **ACME HUB** é o nome do produto. O repositório GitHub permanece `CEFET-Academic-Planner`.
 
 | | |
 |---|---|
-| **Site (produção)** | https://acmehub.com.br |
+| **Site** | https://acmehub.com.br |
 | **Google Play** | https://play.google.com/store/apps/details?id=br.cefethub.acme |
 | **Pacote Android** | `br.cefethub.acme` |
-| **Versão app** | `1.16` (`versionCode` 16) |
+| **Versão** | `1.16` (`versionCode` 16) |
 | **Repositório** | [github.com/KairoHenrique/CEFET-Academic-Planner](https://github.com/KairoHenrique/CEFET-Academic-Planner) |
-| **Produto** | **ACME HUB** — site: https://acmehub.com.br |
 | **Licença** | AGPL-3.0 |
 | **Contato / LGPD** | acme.hubsuporte@gmail.com |
 | **Privacidade** | https://acmehub.com.br/privacidade |
@@ -43,6 +64,8 @@ Sincroniza dados do [SIGAA](https://sig.cefetmg.br/) e concentra a vida acadêmi
 19. [Troubleshooting](#19-troubleshooting)
 20. [Contribuindo](#20-contribuindo)
 21. [Glossário](#21-glossário)
+22. [Autor](#22-autor)
+23. [Licença](#23-licença)
 
 ---
 
@@ -667,6 +690,30 @@ RLS: isolamento por usuário; suite `test:t2` valida.
 
 ---
 
-## Licença
+## 22. Autor
 
-AGPL-3.0 © contribuidores do ACME HUB
+Projeto desenvolvido e mantido por:
+
+<div align="center">
+  <a href="https://github.com/KairoHenrique">
+    <img src="https://github.com/KairoHenrique.png?size=120" width="120" alt="Kairo Henrique" />
+  </a>
+  <br />
+  <strong>Kairo Henrique Ferreira Martins</strong>
+  <br />
+  Estudante de Engenharia de Computação — CEFET-MG, Campus Divinópolis
+  <br />
+  <a href="https://github.com/KairoHenrique">github.com/KairoHenrique</a>
+  ·
+  <a href="mailto:kairohenrique293@gmail.com">kairohenrique293@gmail.com</a>
+  ·
+  <a href="mailto:acme.hubsuporte@gmail.com">acme.hubsuporte@gmail.com</a>
+</div>
+
+---
+
+## 23. Licença
+
+Este repositório está sob a licença **[AGPL-3.0](LICENSE)**.
+
+© Kairo Henrique Ferreira Martins — ACME HUB
