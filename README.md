@@ -1,13 +1,14 @@
 # ACME HUB
 
-Planejador acadêmico **gratuito** (com anúncios opcionais no Android) para alunos do **CEFET-MG**.  
+Planejador acadêmico **gratuito** para alunos do **CEFET-MG**.  
 Sincroniza dados do [SIGAA](https://sig.cefetmg.br/) e concentra a vida acadêmica em uma interface moderna (**web** + **Android**).
 
-> **ACME HUB** é o nome do produto. O repositório GitHub permanece `CEFET-Academic-Planner`. Para usar o app: [abrir o site](https://acmehub.com.br).
+> **ACME HUB** é o nome do produto. O repositório GitHub permanece `CEFET-Academic-Planner`. Para usar o app: [abrir o site](https://acmehub.com.br) · [Google Play](https://play.google.com/store/apps/details?id=br.cefethub.acme).
 
 | | |
 |---|---|
 | **Site (produção)** | https://acmehub.com.br |
+| **Google Play** | https://play.google.com/store/apps/details?id=br.cefethub.acme |
 | **Pacote Android** | `br.cefethub.acme` |
 | **Versão app** | `1.16` (`versionCode` 16) |
 | **Repositório** | [github.com/KairoHenrique/CEFET-Academic-Planner](https://github.com/KairoHenrique/CEFET-Academic-Planner) |
@@ -54,7 +55,7 @@ Sincroniza dados do [SIGAA](https://sig.cefetmg.br/) e concentra a vida acadêmi
 - **Dashboard**, **disciplinas**, **calendário** (grade + agenda), **mapa do curso**, **integralização**, **simulador**.
 - **Envio de tarefa** ao SIGAA (arquivo + comentário) via Servidor ACME.
 - **Notificações** in-app e push (Android) para prazos e atualizações.
-- **Produto gratuito** — funções acadêmicas sem paywall; anúncios no Android e na web; plano opcional remove anúncios (Play no app / PIX na web).
+- **Produto gratuito** — funções acadêmicas sem paywall.
 
 ### Cursos / PPC
 
@@ -109,15 +110,15 @@ O scrape “pesado” fica no **Servidor ACME** (Termux ou PC). A cloud **despac
 
 Cada item abaixo tem espelho curto no código (comentários de cabeçalho). Detalhe operacional nesta seção.
 
-### D1 — Gratuito + ads opcional (set/2026+)
+### D1 — Forever-free (set/2026+)
 
 | | |
 |---|---|
 | **Onde** | `app/src/lib/billing/free-mode.ts`, `resolve-ads-free.ts` |
 | **Flags** | `APP_IS_FREE = true`, `BILLING_ENFORCED = false`, `ADS_REMOVAL_CHECKOUT_ENABLED = true` |
-| **Efeito** | Features acadêmicas sempre liberadas; checkout PIX (web) e Play Billing (APK) só para **remover anúncios**; entitlement `ads_free` unificado |
+| **Efeito** | Features acadêmicas sempre liberadas; checkout PIX (web) e Play Billing (APK) para remoção de anúncios (`ads_free`) |
 | **Preços (líquido alinhado)** | Web PIX: R$ 9,90 / mês · R$ 79,90 / ano · Play: R$ 11,90 / mês · R$ 93,90 / ano |
-| **Por quê** | App forever-free com monetização leve; AGPL-3.0 no código |
+| **Por quê** | App forever-free; AGPL-3.0 no código |
 
 ### D2 — Sync híbrido (worker preferido → aparelho)
 
@@ -433,6 +434,7 @@ Crons CF em `app/workers/`: `cron-ping`, `cron-account-emails`, `cron-notificati
 | Nome | ACME HUB |
 | Package | `br.cefethub.acme` |
 | version / versionCode | `1.16` / `16` (`mobile/app.json`) |
+| Play Store | https://play.google.com/store/apps/details?id=br.cefethub.acme |
 
 ```powershell
 cd mobile
