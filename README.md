@@ -115,40 +115,38 @@ Seeds: `app/scripts/ppc_data*.txt` → `npm run db:seed-ppc` (com `DATABASE_URL`
 ### Visão geral do sistema
 
 ```mermaid
-flowchart TB
-  subgraph clients["Clientes"]
-    WEB["Web<br/>Next.js / App Router"]
-    MOB["Android<br/>Expo / React Native"]
-  end
+%%{init: {"theme": "neutral", "flowchart": {"curve": "basis", "padding": 16, "nodeSpacing": 40, "rankSpacing": 50}}}%%
+flowchart LR
+  WEB[Web]
+  MOB[Android]
+  CF[Cloudflare Workers]
+  SB[(Supabase)]
+  ACME[Servidor ACME]
+  SIGAA[(SIGAA)]
 
-  subgraph edge["Cloudflare"]
-    CF["Workers · OpenNext<br/>API Routes · UI · Crons"]
-  end
+  WEB <--> CF
+  MOB <--> CF
+  CF <--> SB
+  CF --> ACME
+  ACME --> SIGAA
+  ACME --> SB
+  MOB -.->|fallback| SIGAA
+  MOB -.->|ingest| CF
 
-  subgraph data["Supabase"]
-    AUTH["Auth · JWT"]
-    PG[("PostgreSQL + RLS")]
-  end
+  classDef client fill:#e8f1fb,stroke:#1e4d8c,color:#0b1f33
+  classDef edge fill:#fff4e5,stroke:#c45c00,color:#0b1f33
+  classDef data fill:#e6f7ef,stroke:#1f7a4d,color:#0b1f33
+  classDef home fill:#f3eefc,stroke:#5b3d9e,color:#0b1f33
+  classDef ext fill:#f2f2f2,stroke:#666,color:#0b1f33
 
-  subgraph home["Servidor ACME — preferido"]
-    WRK["Home-worker :8787<br/>Playwright + Chromium"]
-    TUN["cloudflared<br/>túnel público"]
-    WRK --- TUN
-  end
-
-  SIGAA[("SIGAA<br/>sig.cefetmg.br")]
-
-  WEB <-->|"HTTPS / JWT"| CF
-  MOB <-->|"HTTPS / JWT"| CF
-  CF <--> AUTH
-  CF <--> PG
-  CF -->|"SIGAA_WORKER_URL<br/>Bearer secret"| TUN
-  TUN --> WRK
-  WRK -->|"login · scrape · mirror"| SIGAA
-  WRK -->|"mirror sync"| PG
-  MOB -.->|"fallback: HTTP nativo<br/>POST /api/sync/ingest"| SIGAA
-  MOB -.->|"ingest"| CF
+  class WEB,MOB client
+  class CF edge
+  class SB data
+  class ACME home
+  class SIGAA ext
 ```
+
+Fluxo preferido: clientes → Cloudflare → Servidor ACME → SIGAA, com mirror no Supabase. Se o worker estiver offline, o Android faz fallback e envia ingest.
 
 ### Papéis
 
@@ -167,72 +165,67 @@ O scrape pesado fica no **Servidor ACME**. A cloud **despacha** jobs e **persist
 ### Fluxo de sincronização
 
 ```mermaid
+%%{init: {"theme": "neutral", "sequence": {"mirrorActors": false, "actorMargin": 24, "messageMargin": 36}}}%%
 sequenceDiagram
   autonumber
-  actor U as Aluno
-  participant C as Cliente<br/>Web / Android
-  participant API as Cloudflare<br/>API
-  participant Q as Fila<br/>sync_jobs
-  participant W as Servidor ACME
-  participant S as SIGAA
+  actor Aluno
+  participant App as Cliente
+  participant API as Cloudflare
+  participant Worker as Servidor ACME
+  participant SIGAA
   participant DB as Postgres
 
-  U->>C: Pedir sync
-  C->>API: POST /api/sync/queue
-  API->>Q: Enfileira job
-  API->>W: Probe /health
+  Aluno->>App: Pedir sync
+  App->>API: Enfileira job
+  API->>Worker: Health check
 
   alt Worker online
-    API->>W: POST /jobs (async 202)
-    W->>S: Login + scrape
-    W->>DB: Mirror (dados acadêmicos)
-    W->>Q: Atualiza status
-    C->>API: Poll status (~15 min)
-    API-->>C: completed
+    API->>Worker: POST /jobs
+    Worker->>SIGAA: Login e scrape
+    Worker->>DB: Mirror
+    App->>API: Poll status
+    API-->>App: completed
   else Worker offline
-    Note over C,API: Android: fallback device<br/>Web: aguardar / usar o app
-    C->>S: HTTP nativo (device)
-    C->>API: POST /api/sync/ingest
-    API->>DB: Persiste snapshot
+    App->>SIGAA: Fallback device
+    App->>API: ingest
+    API->>DB: Persiste
   end
 
-  C-->>U: UI atualizada
+  App-->>Aluno: UI atualizada
 ```
 
 ### Envio de tarefa ao SIGAA
 
 ```mermaid
+%%{init: {"theme": "neutral", "flowchart": {"curve": "basis", "nodeSpacing": 28, "rankSpacing": 36}}}%%
 flowchart LR
-  A[App sobe arquivo] --> B[task_submissions<br/>queued]
-  B --> C[Cloud despacha<br/>submit-tarefa]
-  C --> D[Worker async<br/>Playwright]
+  A[Upload] --> B[Fila]
+  B --> C[Cloud]
+  C --> D[Worker]
   D --> E[SIGAA]
-  E --> F[Poll status<br/>até ~15 min]
-  F --> G{completed / failed}
+  E --> F{Status}
+
+  classDef step fill:#e8f1fb,stroke:#1e4d8c,color:#0b1f33
+  classDef endn fill:#e6f7ef,stroke:#1f7a4d,color:#0b1f33
+  class A,B,C,D,E step
+  class F endn
 ```
 
 ### Camadas de deploy
 
 ```mermaid
+%%{init: {"theme": "neutral", "flowchart": {"curve": "basis", "nodeSpacing": 36, "rankSpacing": 48}}}%%
 flowchart LR
-  subgraph repo["Repositório"]
-    APP["app/"]
-    MOB["mobile/"]
-    SQL["supabase/migrations/"]
-  end
+  APP[app/] -->|deploy:cf| CF[Cloudflare]
+  APP -->|deploy:crons| CRON[Crons]
+  APP -->|db:migrate| DB[(Supabase)]
+  MOB[mobile/] -->|EAS| PLAY[Google Play]
+  SQL[migrations/] --> DB
 
-  subgraph prod["Produção"]
-    CF2["Cloudflare Worker<br/>acme-hub"]
-    CRON["Cron Workers"]
-    EAS["EAS Build → Play"]
-    SB["Supabase Postgres"]
-  end
-
-  APP -->|"npm run deploy:cf"| CF2
-  APP -->|"npm run deploy:crons"| CRON
-  APP -->|"npm run db:migrate"| SB
-  MOB -->|"eas build production"| EAS
-  SQL --> SB
+  classDef src fill:#f3eefc,stroke:#5b3d9e,color:#0b1f33
+  classDef dest fill:#fff4e5,stroke:#c45c00,color:#0b1f33
+  class APP,MOB,SQL src
+  class CF,CRON,PLAY,DB dest
 ```
 
 ---
@@ -706,32 +699,15 @@ Header: `Authorization: Bearer $CRON_SECRET`.
 ## 18. Modelo de dados
 
 ```mermaid
+%%{init: {"theme": "neutral"}}%%
 erDiagram
-  AUTH_USERS ||--|| APP_PROFILES : "1:1"
-  APP_PROFILES ||--o{ DISCIPLINAS : tem
+  APP_PROFILES ||--o{ DISCIPLINAS : possui
   APP_PROFILES ||--o{ SYNC_JOBS : dispara
   APP_PROFILES ||--o{ TASK_SUBMISSIONS : envia
-  APP_PROFILES ||--o{ SUBSCRIPTIONS : "ads_free"
-  DISCIPLINAS ||--o{ NOTAS : contem
-  DISCIPLINAS ||--o{ FALTAS : contem
-  DISCIPLINAS ||--o{ TAREFAS : contem
-
-  APP_PROFILES {
-    uuid user_id PK
-    string cpf
-    string curso_id
-    timestamptz last_seen_at
-  }
-  SYNC_JOBS {
-    uuid id PK
-    string status
-    string robot
-  }
-  SUBSCRIPTIONS {
-    uuid id PK
-    string plan_id
-    timestamptz expires_at
-  }
+  APP_PROFILES ||--o{ SUBSCRIPTIONS : ads_free
+  DISCIPLINAS ||--o{ NOTAS : tem
+  DISCIPLINAS ||--o{ FALTAS : tem
+  DISCIPLINAS ||--o{ TAREFAS : tem
 ```
 
 | Área | Ideia |
