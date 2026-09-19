@@ -26,8 +26,6 @@
   <a href="https://github.com/KairoHenrique"><img src="https://img.shields.io/badge/GitHub-KairoHenrique-181717?logo=github" alt="GitHub" /></a>
 </p>
 
-> **ACME HUB** é o nome do produto. O repositório GitHub permanece `CEFET-Academic-Planner`.
-
 | | |
 |---|---|
 | **Site** | https://acmehub.com.br |
