@@ -6,12 +6,12 @@
 
 <p align="center">
   <strong>Planejador acadêmico gratuito</strong> para alunos do <strong>CEFET-MG</strong><br />
-  Web + Android · sync com o <a href="https://sig.cefetmg.br/">SIGAA</a>
+  Web + Android · sincronização com o <a href="https://sig.cefetmg.br/">SIGAA</a>
 </p>
 
 <p align="center">
   <a href="https://acmehub.com.br"><img src="https://img.shields.io/badge/site-acmehub.com.br-0B3D91?style=for-the-badge" alt="Site" /></a>
-  <a href="https://play.google.com/store/apps/details?id=br.cefethub.acme"><img src="https://img.shields.io/badge/Google%20Play-br.cefethub.acme-34A853?style=for-the-badge&logo=googleplay&logoColor=white" alt="Google Play" /></a>
+  <a href="https://play.google.com/store/apps/details?id=br.cefethub.acme"><img src="https://img.shields.io/badge/Google%20Play-baixar-34A853?style=for-the-badge&logo=googleplay&logoColor=white" alt="Google Play" /></a>
   <a href="https://github.com/KairoHenrique/CEFET-Academic-Planner/releases/tag/v1.16"><img src="https://img.shields.io/badge/versão-1.16-e9b949?style=for-the-badge" alt="Versão 1.16" /></a>
 </p>
 
@@ -21,6 +21,7 @@
   <img src="https://img.shields.io/badge/Expo-54-000020?logo=expo&logoColor=white" alt="Expo" />
   <img src="https://img.shields.io/badge/Cloudflare%20Workers-F38020?logo=cloudflare&logoColor=white" alt="Cloudflare" />
   <img src="https://img.shields.io/badge/Supabase-3FCF8E?logo=supabase&logoColor=white" alt="Supabase" />
+  <img src="https://img.shields.io/badge/Playwright-2EAD33?logo=playwright&logoColor=white" alt="Playwright" />
   <img src="https://img.shields.io/badge/licença-AGPL--3.0-blue" alt="AGPL-3.0" />
   <a href="https://github.com/KairoHenrique"><img src="https://img.shields.io/badge/GitHub-KairoHenrique-181717?logo=github" alt="GitHub" /></a>
 </p>
@@ -31,8 +32,7 @@
 |---|---|
 | **Site** | https://acmehub.com.br |
 | **Google Play** | https://play.google.com/store/apps/details?id=br.cefethub.acme |
-| **Pacote Android** | `br.cefethub.acme` |
-| **Versão** | `1.16` (`versionCode` 16) |
+| **Versão** | `1.16` |
 | **Repositório** | [github.com/KairoHenrique/CEFET-Academic-Planner](https://github.com/KairoHenrique/CEFET-Academic-Planner) |
 | **Licença** | AGPL-3.0 |
 | **Contato / LGPD** | acme.hubsuporte@gmail.com |
@@ -43,105 +43,212 @@
 
 ## Índice
 
-1. [O que o produto faz](#1-o-que-o-produto-faz)
-2. [Arquitetura](#2-arquitetura)
-3. [Decisões de desenho (ADR leve)](#3-decisões-de-desenho-adr-leve)
-4. [Estrutura do repositório](#4-estrutura-do-repositório)
-5. [Mapa do código (`app/src/lib`)](#5-mapa-do-código-appsrclib)
-6. [Pré-requisitos](#6-pré-requisitos)
-7. [Clonar e configurar](#7-clonar-e-configurar)
-8. [Rodar em desenvolvimento](#8-rodar-em-desenvolvimento)
-9. [Servidor ACME (sync SIGAA)](#9-servidor-acme-sync-sigaa)
-10. [Timeouts (Termux-first)](#10-timeouts-termux-first)
-11. [APIs e robots do worker](#11-apis-e-robots-do-worker)
-12. [Deploy (Cloudflare + banco)](#12-deploy-cloudflare--banco)
-13. [App Android (Expo / EAS / Play Store)](#13-app-android-expo--eas--play-store)
-14. [Testes](#14-testes)
-15. [Variáveis de ambiente](#15-variáveis-de-ambiente)
-16. [Fluxos principais](#16-fluxos-principais)
-17. [Modelo de dados (visão)](#17-modelo-de-dados-visão)
-18. [Segurança, LGPD e repo público](#18-segurança-lgpd-e-repo-público)
-19. [Troubleshooting](#19-troubleshooting)
-20. [Contribuindo](#20-contribuindo)
-21. [Glossário](#21-glossário)
-22. [Autor](#22-autor)
-23. [Licença](#23-licença)
+1. [Visão geral](#1-visão-geral)
+2. [Funcionalidades](#2-funcionalidades)
+3. [Arquitetura](#3-arquitetura)
+4. [Decisões de desenho (ADR)](#4-decisões-de-desenho-adr)
+5. [Estrutura do repositório](#5-estrutura-do-repositório)
+6. [Mapa do código](#6-mapa-do-código)
+7. [Pré-requisitos](#7-pré-requisitos)
+8. [Clonar e configurar](#8-clonar-e-configurar)
+9. [Desenvolvimento local](#9-desenvolvimento-local)
+10. [Servidor ACME (sync SIGAA)](#10-servidor-acme-sync-sigaa)
+11. [Timeouts (Termux-first)](#11-timeouts-termux-first)
+12. [APIs e robots](#12-apis-e-robots)
+13. [Deploy](#13-deploy)
+14. [App Android](#14-app-android)
+15. [Testes](#15-testes)
+16. [Variáveis de ambiente](#16-variáveis-de-ambiente)
+17. [Fluxos principais](#17-fluxos-principais)
+18. [Modelo de dados](#18-modelo-de-dados)
+19. [Segurança e LGPD](#19-segurança-e-lgpd)
+20. [Troubleshooting](#20-troubleshooting)
+21. [Contribuindo](#21-contribuindo)
+22. [Glossário](#22-glossário)
+23. [Autor](#23-autor)
+24. [Licença](#24-licença)
 
 ---
 
-## 1. O que o produto faz
+## 1. Visão geral
+
+O **ACME HUB** concentra a vida acadêmica do aluno CEFET-MG em uma interface moderna:
+
+- **Web** — Next.js na Cloudflare (OpenNext)
+- **Android** — Expo / React Native
+- **Sync** — dados do portal [SIGAA](https://sig.cefetmg.br/) via **Servidor ACME** (Playwright) ou fallback no aparelho
+
+O produto é **gratuito**: as funções acadêmicas não têm paywall. Há anúncios na web (AdSense) e no Android (AdMob); a remoção de anúncios é oferecida via planos (PIX na web / Play Billing no app).
+
+### Stack em uma frase
+
+Next.js 16 + Cloudflare Workers · Supabase (Auth + Postgres + RLS) · Expo 54 · Playwright/Chromium no home-worker · cloudflared.
+
+---
+
+## 2. Funcionalidades
 
 ### Para o aluno
 
-- **Cadastro / login** com CPF + senha do SIGAA (e-mail e telefone no cadastro + aceite legal).
-- **Sync** de portal, notas, faltas, tarefas, calendário, histórico, turmas e saldo RU (quando habilitado).
-- **Dashboard**, **disciplinas**, **calendário** (grade + agenda), **mapa do curso**, **integralização**, **simulador**.
-- **Envio de tarefa** ao SIGAA (arquivo + comentário) via Servidor ACME.
-- **Notificações** in-app e push (Android) para prazos e atualizações.
-- **Produto gratuito** — funções acadêmicas sem paywall.
+| Área | O que oferece |
+|------|----------------|
+| **Conta** | Cadastro / login com CPF + senha SIGAA, e-mail, telefone e aceite legal (LGPD) |
+| **Sync** | Portal, notas, faltas, tarefas, calendário, histórico, turmas e saldo RU (quando habilitado) |
+| **Dashboard** | Visão consolidada do semestre |
+| **Disciplinas** | Notas, faltas, tarefas, simulação de médias |
+| **Calendário** | Grade horária + agenda / eventos |
+| **Mapa do curso** | Grafo de disciplinas / PPC |
+| **Integralização** | Progresso curricular |
+| **Simulador** | Choques de horário e elegibilidade |
+| **Tarefas** | Envio de arquivo + comentário ao SIGAA |
+| **Notificações** | In-app e push (Android) para prazos e sync |
 
 ### Cursos / PPC
 
-O mapa e a integralização usam o **PPC** do curso escolhido no cadastro (ex.: Engenharia da Computação).  
+Mapa e integralização usam o **PPC** do curso escolhido no cadastro (ex.: Engenharia da Computação).  
 Seeds: `app/scripts/ppc_data*.txt` → `npm run db:seed-ppc` (com `DATABASE_URL`).
 
 ---
 
-## 2. Arquitetura
+## 3. Arquitetura
 
-```
-┌──────────────────────┐     HTTPS / JWT      ┌─────────────────────────────┐
-│  Web (Next.js)       │◄────────────────────►│  Cloudflare Workers         │
-│  App Android (Expo)  │                      │  OpenNext · API Routes      │
-└──────────────────────┘                      └──────────────┬──────────────┘
-                                                             │
-                                                             ▼
-                                              ┌─────────────────────────────┐
-                                              │  Supabase                   │
-                                              │  Auth + PostgreSQL (+ RLS)  │
-                                              └──────────────┬──────────────┘
-                                                             │
-                    preferido                                │ fila / health
-         ┌───────────────────────────────────────────────────┘
-         ▼
-┌─────────────────────────────┐         fallback (worker offline)
-│  Servidor ACME              │         ┌─────────────────────┐
-│  Termux (preferido) ou PC   │         │  App Android        │
-│  Playwright + Chromium      │         │  HTTP nativo SIGAA  │
-│  cloudflared → túnel        │         │  → ingest na cloud  │
-│  mirror → Postgres          │         └─────────────────────┘
-└─────────────────────────────┘
+### Visão geral do sistema
+
+```mermaid
+flowchart TB
+  subgraph clients["Clientes"]
+    WEB["Web<br/>Next.js / App Router"]
+    MOB["Android<br/>Expo / React Native"]
+  end
+
+  subgraph edge["Cloudflare"]
+    CF["Workers · OpenNext<br/>API Routes · UI · Crons"]
+  end
+
+  subgraph data["Supabase"]
+    AUTH["Auth · JWT"]
+    PG[("PostgreSQL + RLS")]
+  end
+
+  subgraph home["Servidor ACME — preferido"]
+    WRK["Home-worker :8787<br/>Playwright + Chromium"]
+    TUN["cloudflared<br/>túnel público"]
+    WRK --- TUN
+  end
+
+  SIGAA[("SIGAA<br/>sig.cefetmg.br")]
+
+  WEB <-->|"HTTPS / JWT"| CF
+  MOB <-->|"HTTPS / JWT"| CF
+  CF <--> AUTH
+  CF <--> PG
+  CF -->|"SIGAA_WORKER_URL<br/>Bearer secret"| TUN
+  TUN --> WRK
+  WRK -->|"login · scrape · mirror"| SIGAA
+  WRK -->|"mirror sync"| PG
+  MOB -.->|"fallback: HTTP nativo<br/>POST /api/sync/ingest"| SIGAA
+  MOB -.->|"ingest"| CF
 ```
 
 ### Papéis
 
-| Peça | Função | Onde vive |
-|------|--------|-----------|
-| **Cloud (Workers)** | API, auth, UI web, fila de sync, crons CF, push | `app/` → deploy OpenNext |
+| Peça | Função | Onde |
+|------|--------|------|
+| **Cloud (Workers)** | API, auth, UI web, fila de sync, crons, push | `app/` → OpenNext |
 | **Supabase** | Contas, dados acadêmicos multi-tenant, RLS | `supabase/migrations/` |
-| **Servidor ACME** | Login real no SIGAA com navegador, scrape, mirror, e-mail SMTP | `app/worker/` + scripts Termux/tray |
-| **Mobile** | Mesma API; sync no aparelho quando o worker está offline | `mobile/` |
+| **Servidor ACME** | Login real no SIGAA, scrape, mirror, e-mail SMTP | `app/worker/` + scripts Termux/PC |
+| **Mobile** | Mesma API; sync no aparelho se o worker estiver offline | `mobile/` |
 
 ### Por que essa divisão?
 
-A Cloudflare **não** abre o Chromium do SIGAA de forma confiável (limites TLS/edge; tentativa de scrape TLS no Worker gerou **Error 1102** e foi abandonada).  
-O scrape “pesado” fica no **Servidor ACME** (Termux ou PC). A cloud **despacha** jobs e **persiste** o resultado no Postgres.
+A Cloudflare **não** executa Chromium do SIGAA de forma confiável (limites de TLS/edge; scrape TLS no Worker gerou **Error 1102** e foi abandonado).  
+O scrape pesado fica no **Servidor ACME**. A cloud **despacha** jobs e **persiste** o resultado no Postgres.
+
+### Fluxo de sincronização
+
+```mermaid
+sequenceDiagram
+  autonumber
+  actor U as Aluno
+  participant C as Cliente<br/>Web / Android
+  participant API as Cloudflare<br/>API
+  participant Q as Fila<br/>sync_jobs
+  participant W as Servidor ACME
+  participant S as SIGAA
+  participant DB as Postgres
+
+  U->>C: Pedir sync
+  C->>API: POST /api/sync/queue
+  API->>Q: Enfileira job
+  API->>W: Probe /health
+
+  alt Worker online
+    API->>W: POST /jobs (async 202)
+    W->>S: Login + scrape
+    W->>DB: Mirror (dados acadêmicos)
+    W->>Q: Atualiza status
+    C->>API: Poll status (~15 min)
+    API-->>C: completed
+  else Worker offline
+    Note over C,API: Android: fallback device<br/>Web: aguardar / usar o app
+    C->>S: HTTP nativo (device)
+    C->>API: POST /api/sync/ingest
+    API->>DB: Persiste snapshot
+  end
+
+  C-->>U: UI atualizada
+```
+
+### Envio de tarefa ao SIGAA
+
+```mermaid
+flowchart LR
+  A[App sobe arquivo] --> B[task_submissions<br/>queued]
+  B --> C[Cloud despacha<br/>submit-tarefa]
+  C --> D[Worker async<br/>Playwright]
+  D --> E[SIGAA]
+  E --> F[Poll status<br/>até ~15 min]
+  F --> G{completed / failed}
+```
+
+### Camadas de deploy
+
+```mermaid
+flowchart LR
+  subgraph repo["Repositório"]
+    APP["app/"]
+    MOB["mobile/"]
+    SQL["supabase/migrations/"]
+  end
+
+  subgraph prod["Produção"]
+    CF2["Cloudflare Worker<br/>acme-hub"]
+    CRON["Cron Workers"]
+    EAS["EAS Build → Play"]
+    SB["Supabase Postgres"]
+  end
+
+  APP -->|"npm run deploy:cf"| CF2
+  APP -->|"npm run deploy:crons"| CRON
+  APP -->|"npm run db:migrate"| SB
+  MOB -->|"eas build production"| EAS
+  SQL --> SB
+```
 
 ---
 
-## 3. Decisões de desenho (ADR leve)
+## 4. Decisões de desenho (ADR)
 
-Cada item abaixo tem espelho curto no código (comentários de cabeçalho). Detalhe operacional nesta seção.
+Cada item tem espelho curto no código (comentários de cabeçalho).
 
-### D1 — Forever-free (set/2026+)
+### D1 — Forever-free
 
 | | |
 |---|---|
 | **Onde** | `app/src/lib/billing/free-mode.ts`, `resolve-ads-free.ts` |
 | **Flags** | `APP_IS_FREE = true`, `BILLING_ENFORCED = false`, `ADS_REMOVAL_CHECKOUT_ENABLED = true` |
-| **Efeito** | Features acadêmicas sempre liberadas; checkout PIX (web) e Play Billing (APK) para remoção de anúncios (`ads_free`) |
-| **Preços (líquido alinhado)** | Web PIX: R$ 9,90 / mês · R$ 79,90 / ano · Play: R$ 11,90 / mês · R$ 93,90 / ano |
-| **Por quê** | App forever-free; AGPL-3.0 no código |
+| **Efeito** | Features acadêmicas sempre liberadas; checkout (PIX / Play) só para remoção de anúncios (`ads_free`) |
+| **Por quê** | Produto forever-free; código sob AGPL-3.0 |
 
 ### D2 — Sync híbrido (worker preferido → aparelho)
 
@@ -149,123 +256,127 @@ Cada item abaixo tem espelho curto no código (comentários de cabeçalho). Deta
 2. Se offline → **Android** faz HTTP no SIGAA e envia snapshot (`POST /api/sync/ingest`).
 3. Web sem worker: mensagem de aguardar / usar o app (sem scrape no edge).
 
-Arquivos: `app/src/lib/sync-queue/`, `run-device-fallback-sync-client.ts`, `device-sync/`.
+Arquivos: `app/src/lib/sync-queue/`, `device-sync/`.
 
-### D3 — Credenciais SIGAA cifradas ponta a ponta
+### D3 — Credenciais SIGAA cifradas
 
 - Senha cifrada (AES-GCM) com `CREDENTIALS_ENCRYPTION_KEY` (mesma chave cloud ↔ worker).
-- Preferir `passwordEnc` no payload do job; plaintext só em fluxos legados controlados.
+- Preferir `passwordEnc` no payload do job.
 - **Nunca** logar PII (CPF, senha, e-mail) em texto claro.
 
 ### D4 — Playwright no home-worker (não no edge)
 
-- SIGAA é portal legado (sessão, JS, formulários).
-- Playwright + Chromium no Termux (`pkg`) ou Chrome no PC é o caminho estável.
-- Termux = paridade operacional com o tray Windows.
+SIGAA é portal legado (sessão, JS, formulários). Playwright + Chromium no Termux (`pkg`) ou Chrome no PC é o caminho estável.
 
 ### D5 — Um único Servidor ACME ativo
 
-PC **ou** Termux — nunca os dois. Ambos atualizam o secret `SIGAA_WORKER_URL` no Cloudflare; dois túneis = sync quebrado / 1016.
+PC **ou** Termux — nunca os dois. Ambos atualizam `SIGAA_WORKER_URL`; dois túneis = sync quebrado.
 
-### D6 — Timeouts “Termux-first” (~15 min)
+### D6 — Timeouts Termux-first (~15 min)
 
-Chromium no Android/ARM é mais lento. Defaults de login/nav/job/poll foram alinhados para **não** declarar falha enquanto o scrape ainda corre. Ver [§10](#10-timeouts-termux-first).
+Chromium em ARM é mais lento. Defaults alinhados para não declarar falha enquanto o scrape ainda corre. Ver [§11](#11-timeouts-termux-first).
 
 ### D7 — Postgres na cloud; SQLite só local/dev
 
 - Produção: `PLANNER_DATABASE=postgres` + `PLANNER_CLOUD=true`.
-- Guard: `o2-cloud-sqlite-guard` impede SQLite como fonte de verdade nos Workers.
-- Mirror: `SYNC_MIRROR_POSTGRES=true` no worker grava o sync no mesmo Postgres.
+- Guard `o2-cloud-sqlite-guard` impede SQLite como fonte de verdade nos Workers.
+- Mirror: `SYNC_MIRROR_POSTGRES=true` no worker.
 
-### D8 — Jobs assíncronos (B72e)
+### D8 — Jobs assíncronos
 
-`POST /jobs` com `execution: "async"` responde **202**; status em `sync_jobs` / `task_submissions`. Evita timeout HTTP na borda enquanto o Chromium trabalha.
+`POST /jobs` com `execution: "async"` responde **202**; status em `sync_jobs` / `task_submissions`. Evita timeout HTTP na borda.
 
 ### D9 — E-mail via home-worker
 
-`ACCOUNT_EMAIL_VIA_HOME_WORKER=true` + Gmail SMTP no worker (`POST /email/send`). Útil quando o edge não deve guardar app password ou quando o Termux já está ligado 24/7.
+`ACCOUNT_EMAIL_VIA_HOME_WORKER=true` + Gmail SMTP no worker (`POST /email/send`).
 
 ---
 
-## 4. Estrutura do repositório
+## 5. Estrutura do repositório
 
 ```
-CEFET-Academic-Planner/   (produto: ACME HUB)
-├── README.md                 ← esta documentação
-├── .gitignore
-├── app/                      ← Next.js + API + scraper + home-worker + crons CF
-│   ├── src/app/              ← App Router + /api/*
-│   ├── src/components/       ← UI web
-│   ├── src/lib/              ← domínio (ver §5)
-│   ├── scripts/              ← migrate, deploy, Termux, tray
-│   ├── worker/               ← HTTP Playwright (:8787)
-│   ├── workers/              ← cron Workers Cloudflare
-│   ├── tests/                ← tsx --test
-│   ├── wrangler.jsonc        ← Worker acme-hub
+CEFET-Academic-Planner/          (produto: ACME HUB)
+├── README.md
+├── LICENSE                      ← AGPL-3.0
+├── app/                         ← Next.js + API + scraper + home-worker + crons
+│   ├── src/app/                 ← App Router + /api/*
+│   ├── src/components/          ← UI web (+ ads)
+│   ├── src/lib/                 ← domínio (ver §6)
+│   ├── public/                  ← estáticos, ads.txt, app-ads.txt, logo
+│   ├── scripts/                 ← migrate, deploy, Termux, tray
+│   ├── worker/                  ← HTTP Playwright (:8787)
+│   ├── workers/                 ← cron Workers Cloudflare
+│   ├── tests/                   ← tsx --test
+│   ├── wrangler.jsonc
 │   └── .env.example
-├── mobile/                   ← Expo Android
+├── mobile/                      ← Expo Android
 │   ├── app.json / app.config.js / eas.json
+│   ├── src/ads/                 ← AdMob + gate ads_free
 │   └── .env.example
-├── packages/api-contracts/   ← tipos compartilhados web ↔ mobile
-└── supabase/migrations/      ← SQL versionado (npm run db:migrate)
+├── packages/api-contracts/      ← tipos compartilhados web ↔ mobile
+└── supabase/migrations/         ← SQL versionado
 ```
 
-### Scripts Termux / PC (resumo)
+### Scripts Termux / PC
 
 | Script | Função | Seguro no repo público? |
 |--------|--------|-------------------------|
-| `termux-servidor-acme.sh` | Sobe worker + túnel + secret + crons; fica rodando | Sim (sem secrets) |
-| `termux-form-env.sh` | Overrides Chromium/timeouts no `.env.local` | Sim (só flags/URLs públicas) |
+| `termux-servidor-acme.sh` | Worker + túnel + secret + crons | Sim (sem secrets) |
+| `termux-form-env.sh` | Overrides Chromium/timeouts | Sim |
 | `termux-export-env-from-pc.mjs` | Gera `.env.termux.local` a partir do PC | Sim (o **arquivo gerado** não) |
-| `termux-auto-update.sh` | Redireciona para o servidor (sem poll git) | Sim |
-| `home-server-tray.ps1` / `HomeServerTray.cs` | Tray Windows | Sim |
-| `start-home-worker.mjs` / `start-temp-worker.mjs` | Worker (+ túnel automatizado) | Sim |
+| `home-server-tray.ps1` | Tray Windows | Sim |
+| `start-home-worker.mjs` / `start-temp-worker.mjs` | Worker (+ túnel) | Sim |
 
 ---
 
-## 5. Mapa do código (`app/src/lib`)
+## 6. Mapa do código
+
+### `app/src/lib`
 
 | Pasta | Responsabilidade |
 |-------|------------------|
 | `auth/` | Sessão, CPF, pós-login |
-| `billing/` | Free mode + legado PIX/planos |
+| `billing/` | Free mode, `ads_free`, PIX, Play verify |
+| `ads/` | Config AdSense web |
 | `crypto/` | AES-GCM credenciais SIGAA |
 | `db/` | Postgres / SQLite / bootstrap |
-| `scraper/` | Playwright SIGAA (auth, portal, turma, histórico, calendário, RU, submit) |
-| `worker/` | Config, job types, runners sync/async |
+| `scraper/` | Playwright SIGAA |
+| `worker/` | Config, job types, runners |
 | `sync-queue/` | Fila, dispatch, poll, device fallback |
-| `sync/`, `sync-mirror/`, `sync-ingest/`, `sync-orchestrator/`, `sync-policy/` | Pipeline de sync |
-| `task-submissions/` | Envio de tarefa + poll de status |
+| `sync/`, `sync-mirror/`, `sync-ingest/`, `sync-orchestrator/` | Pipeline de sync |
+| `task-submissions/` | Envio de tarefa + poll |
 | `push/`, `notifications/`, `email/` | Push, lembretes, SMTP |
 | `device-sync/` | Sync HTTP no aparelho |
 | `legal/` | Consentimento / páginas legais |
 | `calendar/` | Expansão de eventos / sessões |
+| `retention/` | Purge de dados inativos |
 
-Pontos de decisão comentados no código:
+Pontos de decisão no código: `billing/free-mode.ts`, `scraper/constants.ts`, `worker/config.ts`, `worker/server.ts`, `sync-queue/poll-sync-job-client.ts`, `scripts/termux-servidor-acme.sh`.
 
-- `billing/free-mode.ts`
-- `scraper/constants.ts` (timeouts)
-- `worker/config.ts` (job 15 min)
-- `worker/server.ts` (endpoints)
-- `sync-queue/poll-sync-job-client.ts`
-- `task-submissions/poll-submission-status.ts`
-- `scripts/termux-servidor-acme.sh`
-- `scripts/termux-form-env.sh`
+### `mobile/src`
+
+| Pasta | Responsabilidade |
+|-------|------------------|
+| `ads/` | AdMob (App Open + interstitial) + cache `ads_free` |
+| `screens/` | Telas (dashboard, planos, disciplinas, …) |
+| `sync/` | Sync lite / turmas |
+| `navigation/` | Shell + drawer |
+| `api/` | Cliente HTTP tipado |
 
 ---
 
-## 6. Pré-requisitos
+## 7. Pré-requisitos
 
 - **Node.js** 20+ e **npm**
 - Conta **Supabase** (`DATABASE_URL` do *Session pooler*)
-- Conta **Cloudflare** (Workers) para deploy
+- Conta **Cloudflare** (Workers)
 - **Chromium** no Termux (`pkg`) **ou** Chrome/Playwright no PC
-- Conta **Expo / EAS** para build Play Store
-- `cloudflared` (túnel trycloudflare) no Termux/PC
+- Conta **Expo / EAS** para build da loja
+- `cloudflared` no Termux/PC
 
 ---
 
-## 7. Clonar e configurar
+## 8. Clonar e configurar
 
 ```bash
 git clone https://github.com/KairoHenrique/CEFET-Academic-Planner.git
@@ -289,14 +400,14 @@ cd mobile
 npm install
 cp .env.example .env
 # EXPO_PUBLIC_API_BASE_URL=https://acmehub.com.br
-# google-services.json via EAS secret GOOGLE_SERVICES_JSON (produção)
+# Firebase: secret EAS GOOGLE_SERVICES_JSON (produção)
 ```
 
 ---
 
-## 8. Rodar em desenvolvimento
+## 9. Desenvolvimento local
 
-### Site local
+### Site
 
 ```bash
 cd app
@@ -304,7 +415,7 @@ npm run dev
 # http://localhost:3000
 ```
 
-Com `PLANNER_DATABASE=sqlite` e `SIGAA_SCRAPER_MOCK=true` dá para explorar UI sem SIGAA real.
+Com `PLANNER_DATABASE=sqlite` e `SIGAA_SCRAPER_MOCK=true` dá para explorar a UI sem SIGAA real.
 
 ### Mobile (Expo)
 
@@ -313,17 +424,18 @@ cd mobile
 npx expo start
 ```
 
+> AdMob e Play Billing exigem build nativo (EAS). Expo Go não carrega o SDK de anúncios.
+
 ---
 
-## 9. Servidor ACME (sync SIGAA)
+## 10. Servidor ACME (sync SIGAA)
 
-Processo que a cloud chama para scrapar o SIGAA. **Preferência atual: Termux 24/7.**
+Processo que a cloud chama para scrapar o SIGAA. **Preferência: Termux 24/7.**
 
 ### Termux (recomendado)
 
 ```bash
 pkg install -y git nodejs python make clang curl cloudflared chromium
-# (chromium: pode precisar x11-repo)
 
 cd ~
 git clone https://github.com/KairoHenrique/CEFET-Academic-Planner.git
@@ -334,32 +446,28 @@ cd CEFET-Academic-Planner
 # Copie app/.env.termux.local → tablet em app/.env.local
 
 cd app
-bash scripts/termux-form-env.sh      # Chromium + timeouts + mirror (sem secrets hardcoded)
-bash scripts/termux-servidor-acme.sh # sobe e fica rodando
+bash scripts/termux-form-env.sh
+bash scripts/termux-servidor-acme.sh
 ```
 
-O que o script faz:
+O script:
 
 1. Mata processos antigos de worker/cloudflared  
-2. Aplica `termux-form-env` se existir  
+2. Aplica `termux-form-env`  
 3. `npm install` + rebuild `better-sqlite3` se preciso  
 4. Sobe `worker:home` em `:8787`  
-5. Sobe `cloudflared` (metrics `127.0.0.1:20241`)  
-6. Espera health **local** e **público**; só então `wrangler secret put SIGAA_WORKER_URL`  
-7. Loops de cron locais (reminders **30m**, account-emails **60m**, orchestrator 15m) — alinhados aos Workers CF (antes era 5m e spamava push)  
-8. Loop infinito: monitora rotação do quick tunnel  
-
-Teclas com o servidor aberto:
+5. Sobe `cloudflared`  
+6. Espera health local e público → `wrangler secret put SIGAA_WORKER_URL`  
+7. Loops de cron locais (reminders 30m, account-emails 60m, orchestrator 15m)  
+8. Monitora rotação do quick tunnel  
 
 | Tecla | Ação |
 |-------|------|
-| `[r]` | `git fetch` + `reset --hard origin/main` e reinicia (só sob demanda) |
+| `[r]` | `git fetch` + `reset --hard origin/main` e reinicia |
 | `[c]` | CPU/RAM + health local |
 | `[q]` | Encerra worker/túnel/crons |
 
-**Não** há auto-update de git a cada 5 min (foi desligado de propósito — igual “abrir e deixar rodando” no PC).
-
-Alinhar clone divergente (após force-push / histórico limpo):
+**Não** há auto-update de git periódico (igual “abrir e deixar rodando” no PC).
 
 ```bash
 cd ~/CEFET-Academic-Planner
@@ -367,76 +475,75 @@ git fetch origin
 git reset --hard origin/main
 ```
 
-### Windows (PC / tray) — legado opcional
+### Windows (PC / tray) — opcional
 
 ```bash
 cd app
 npm run worker:home
 npm run worker:tunnel
-# ou: npm run worker:temp  /  tray (home-server-tray.ps1)
+# ou tray: home-server-tray.ps1
 ```
 
 ### Health
 
 - Local: `GET http://127.0.0.1:8787/health`  
-- Público (cloud): `GET https://acmehub.com.br/api/sync/worker-health`
+- Público: `GET https://acmehub.com.br/api/sync/worker-health`
 
 ---
 
-## 10. Timeouts (Termux-first)
+## 11. Timeouts (Termux-first)
 
-Valores **default no código** (override via env). Alinhados para tablet lento + UI que não desiste cedo.
+Defaults no código (override via env), alinhados a tablet lento + UI que não desiste cedo.
 
-| Camada | Default | Env / arquivo |
-|--------|---------|----------------|
-| Login Playwright | **90 s** | `SIGAA_LOGIN_TIMEOUT_MS` → `scraper/constants.ts` |
+| Camada | Default | Onde |
+|--------|---------|------|
+| Login Playwright | **90 s** | `SIGAA_LOGIN_TIMEOUT_MS` |
 | Navegação | **60 s** | `SIGAA_NAVIGATION_TIMEOUT_MS` |
 | Submit tarefa (nav floor) | **≥ 90 s** | `submit-portal-tarefa.ts` |
-| Job inteiro (worker) | **15 min** | `SIGAA_WORKER_JOB_TIMEOUT_MS` → `worker/config.ts` |
+| Job inteiro (worker) | **15 min** | `SIGAA_WORKER_JOB_TIMEOUT_MS` |
 | Grace shutdown | **18 min** | `SIGAA_WORKER_SHUTDOWN_MS` |
-| Poll sync (cliente web/app) | **15 min** | `poll-sync-job-client.ts` |
-| Wait sync (servidor) | **15 min** | `wait-for-sync-job.ts` / `run-queued-sync.ts` |
-| Poll envio de tarefa | **450 × 2 s ≈ 15 min** | `poll-submission-status.ts` |
+| Poll sync (cliente) | **15 min** | `poll-sync-job-client.ts` |
+| Wait sync (servidor) | **15 min** | `wait-for-sync-job.ts` |
+| Poll envio de tarefa | **≈ 15 min** | `poll-submission-status.ts` |
 | Probe health worker | **4 s** | `probe-sigaa-worker-health.ts` |
 
-`termux-form-env.sh` e `termux-export-env-from-pc.mjs` também gravam esses timeouts no `.env.local` do tablet.
-
-> Após mudar polls no app, é preciso **`npm run deploy:cf`** para a cloud usar os novos limites. O worker Termux pega defaults no restart.
+> Após mudar polls no app: **`npm run deploy:cf`**. O worker Termux pega defaults no restart.
 
 ---
 
-## 11. APIs e robots do worker
+## 12. APIs e robots
 
-Home-worker (`app/worker/server.ts`), porta default **8787**:
+### Home-worker (`:8787`)
 
 | Método | Path | Auth | Função |
 |--------|------|------|--------|
-| `GET` | `/health` | — | Liveness `{ ok, service }` |
-| `GET` | `/status` | — | busy / acceptingJobs / slot |
-| `POST` | `/jobs` | Bearer `WORKER_SHARED_SECRET` | Dispara robot (sync ou async 202) |
-| `POST` | `/email/send` | Bearer | SMTP Gmail via home |
+| `GET` | `/health` | — | Liveness |
+| `GET` | `/status` | — | busy / acceptingJobs |
+| `POST` | `/jobs` | Bearer | Dispara robot (sync ou async 202) |
+| `POST` | `/email/send` | Bearer | SMTP Gmail |
 
-Robots (`job-types`): `r1` (sync principal), `turmas`, `calendario`, `turmas-selecionadas`, `submit-tarefa`, `ru`.
+Robots: `r1` (sync principal), `turmas`, `calendario`, `turmas-selecionadas`, `submit-tarefa`, `ru`.
 
-Cloud relevantes:
+### Cloud (amostra)
 
 | Path | Função |
 |------|--------|
 | `POST /api/sync/queue` | Enfileira sync |
 | `GET /api/sync/worker-health` | Sonda o túnel |
 | `POST /api/sync/ingest` | Snapshot do device |
-| `POST /api/cron/*` | Crons (Bearer `CRON_SECRET`) |
+| `POST /api/billing/play/verify` | Valida compra Play → `ads_free` |
+| `POST /api/cron/*` | Crons (`CRON_SECRET`) |
 
 ---
 
-## 12. Deploy (Cloudflare + banco)
+## 13. Deploy
 
 ```bash
 cd app
 npm run build:cf      # OpenNext
-npm run deploy:cf     # Worker name: acme-hub
-npm run deploy:crons  # ping, e-mails, orchestrator, reminders, etc.
-npm run db:migrate    # supabase/migrations via DATABASE_URL
+npm run deploy:cf     # Worker de produção
+npm run deploy:crons  # ping, e-mails, orchestrator, reminders, …
+npm run db:migrate    # supabase/migrations
 ```
 
 Produção tipicamente exige:
@@ -445,91 +552,72 @@ Produção tipicamente exige:
 - `DATABASE_URL`, chaves Supabase, `CRON_SECRET`
 - `CREDENTIALS_ENCRYPTION_KEY`, `WORKER_SHARED_SECRET` (**iguais** no Termux)
 - `SIGAA_WORKER_URL` atualizado pelo script do túnel
+- `PLANNER_APP_URL=https://acmehub.com.br`
 
-Crons CF em `app/workers/`: `cron-ping`, `cron-account-emails`, `cron-notification-reminders`, `cron-sync-orchestrator`, `cron-app-update-notify`, `cron-ru-saldo`.
+Crons em `app/workers/`: `cron-ping`, `cron-account-emails`, `cron-notification-reminders`, `cron-sync-orchestrator`, `cron-app-update-notify`, `cron-ru-saldo`, `cron-purge-inactive-academic`.
 
 ---
 
-## 13. App Android (Expo / EAS / Play Store)
+## 14. App Android
 
 | Campo | Valor |
 |-------|--------|
 | Nome | ACME HUB |
-| Package | `br.cefethub.acme` |
-| version / versionCode | `1.16` / `16` (`mobile/app.json`) |
-| Play Store | https://play.google.com/store/apps/details?id=br.cefethub.acme |
+| Versão | `1.16` |
+| Loja | [Google Play](https://play.google.com/store/apps/details?id=br.cefethub.acme) |
 
 ```powershell
 cd mobile
 npx eas-cli@latest build --platform android --profile production --non-interactive
 ```
 
-- **production** → AAB (Play Store)  
-- **preview** → APK interno  
-- **development** → APK debug / dev client  
+| Profile | Artefato |
+|---------|----------|
+| **production** | AAB (loja) |
+| **preview** | APK interno |
+| **development** | APK debug / dev client |
 
-`app.config.js` injeta `GOOGLE_SERVICES_JSON` (secret EAS). Não versionar `google-services.json` real.
+`app.config.js` injeta `GOOGLE_SERVICES_JSON` e IDs AdMob via env EAS. Não versionar `google-services.json` real.
 
-Bump: incrementar `version` + `versionCode` → commit → EAS → Play Console.
+Bump: incrementar `version` (+ `versionCode` no `app.json`) → commit → EAS → Play Console.
+
+Anúncios no app: **App Open** (abertura de sessão) e **Interstitial** (após sync, com cooldown). Gate por entitlement `ads_free`.
 
 ---
 
-## 14. Testes
+## 15. Testes
 
-Rodam com **Node test runner** via `tsx` em `app/tests/`.
-
-### Suite rápida (padrão)
+Node test runner via `tsx` em `app/tests/`.
 
 ```bash
 cd app
-npm test
-# = parsers/UI domínio com SIGAA_SCRAPER_MOCK=true
+npm test                 # suite rápida (mock SIGAA)
+npm run test:o1          # health
+npm run test:o2          # guard SQLite na cloud
+npm run test:worker      # worker
+npm run test:sync-queue  # fila
+npm run test:f31         # auth / free mode
+npm run test:t2          # RLS (precisa .env.local)
+npm run test:scraper:live  # SIGAA real — cuidado
 ```
 
-### Suites nomeadas
+Smokes: `npm run smoke:cloud-sync` · `smoke:cron` · `smoke:t2`
 
-```bash
-npm run test:o1              # health
-npm run test:o2              # guard SQLite na cloud
-npm run test:worker          # worker B54
-npm run test:sync-queue      # fila B55
-npm run test:sync-b56-o3
-npm run test:f31             # auth / free mode
-npm run test:f32-f40         # UI billing (legado)
-npm run test:t2              # RLS isolation (precisa .env.local)
-npm run test:b39 / test:b40 / test:b41-b43
-npm run test:b47 … test:b53  # billing legado
-npm run test:b68d / b68e / b68f
-npm run test:b69 / test:b74
-npm run test:scraper:live    # SIGAA real (opcional, cuidado)
-```
+| Tipo | O que valida |
+|------|----------------|
+| Parsers / domínio | HTML/SIGAA → modelos |
+| Calendário / lembretes | Prazos e sessões |
+| Worker / fila | Dispatch e sync híbrido |
+| Postgres / RLS | Schema e isolamento |
+| Auth / free | Pós-login e consent |
+| Ops | Health e guard cloud |
+| Push | Dedup / histórico |
 
-Smokes:
-
-```bash
-npm run smoke:cloud-sync
-npm run smoke:cron
-npm run smoke:t2
-```
-
-### Como pensar as categorias
-
-| Tipo | Exemplos de arquivos | O que valida |
-|------|----------------------|--------------|
-| Parsers / domínio | `bloco-2a-*.test.ts`, `absence-risk.test.ts` | HTML/SIGAA → modelos |
-| Calendário / lembretes | `calendar-event-reminders.test.ts`, `task-deadline-reminders.test.ts` | Lembretes e sessões |
-| Worker / fila | `worker-b54.test.ts`, `sync-queue-b55.test.ts`, `sync-hybrid-b82-b83.test.ts` | Dispatch e híbrido |
-| Postgres / RLS | `b39-*`, `b40-*`, `t2-rls-isolation.test.ts` | Schema e isolamento |
-| Auth / free | `f31-billing-auth-flow.test.ts`, `l1-legal-consent.test.ts` | Pós-login e consent |
-| Billing legado | `b47`…`b53`, `b69`, `b74` | Planos/PIX (dormante na UX) |
-| Ops | `o1-health`, `o2-cloud-sqlite-guard` | Health e guard cloud |
-| Push | `push-sent-history.test.ts`, `notification-fingerprint.test.ts` | Dedup / histórico |
-
-**Não** commitar dumps HTML/PDF (`.data/`, `scrape-debug/`) — `.gitignore`.
+**Não** commitar dumps HTML/PDF (`.data/`, `scrape-debug/`).
 
 ---
 
-## 15. Variáveis de ambiente
+## 16. Variáveis de ambiente
 
 Modelo: `app/.env.example` → `app/.env.local`.
 
@@ -537,14 +625,14 @@ Modelo: `app/.env.example` → `app/.env.local`.
 
 | Variável | Para quê |
 |----------|----------|
-| `CREDENTIALS_ENCRYPTION_KEY` | Cifrar senha SIGAA (≥ 16 chars) |
+| `CREDENTIALS_ENCRYPTION_KEY` | Cifrar senha SIGAA (≥ 16) |
 | `WORKER_SHARED_SECRET` | Bearer cloud ↔ worker (≥ 16) |
 | `DATABASE_URL` | Postgres (Session pooler) |
 | `NEXT_PUBLIC_SUPABASE_URL` | Cliente / auth |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (ou ANON) | Cliente |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Cliente |
 | `SUPABASE_SERVICE_ROLE_KEY` | Só servidor |
 | `CRON_SECRET` | Protege `/api/cron/*` |
-| `SIGAA_WORKER_URL` | Túnel vivo do Servidor ACME |
+| `SIGAA_WORKER_URL` | Túnel do Servidor ACME |
 | `PLANNER_CLOUD=true` | Modo Workers |
 | `PLANNER_DATABASE=postgres` | Backend de dados |
 
@@ -555,25 +643,31 @@ Modelo: `app/.env.example` → `app/.env.local`.
 | `SYNC_MIRROR_POSTGRES=true` | Mirror no Postgres |
 | `SIGAA_BROWSER_EXECUTABLE_PATH` | Chromium Termux |
 | `SIGAA_HEADLESS=true` | Sem UI |
-| `SIGAA_*_TIMEOUT_MS` / `SIGAA_WORKER_JOB_TIMEOUT_MS` | Ver §10 |
+| `SIGAA_*_TIMEOUT_MS` | Ver §11 |
 | `ACCOUNT_EMAIL_VIA_HOME_WORKER` | SMTP via worker |
 | `GMAIL_SMTP_*` | Envio de e-mail |
-| `CLOUDFLARE_API_TOKEN` | `wrangler secret put` do túnel |
+| `CLOUDFLARE_API_TOKEN` | Secret do túnel |
 
-### Mobile
+### Mobile / EAS
 
 | Variável | Para quê |
 |----------|----------|
-| `EXPO_PUBLIC_API_BASE_URL` | URL da API (sem `/` final) |
-| `GOOGLE_SERVICES_JSON` | Secret EAS (arquivo Firebase) |
+| `EXPO_PUBLIC_API_BASE_URL` | URL da API |
+| `GOOGLE_SERVICES_JSON` | Firebase (secret EAS) |
+| `ADMOB_*` | App ID e unit IDs (produção) |
 
-**Nunca** commitar `.env`, `.env.local`, `.env.termux.local`, `google-services.json` real ou scripts que **escrevem** secrets.
+### Play Billing (servidor)
 
-`termux-form-env.sh` é seguro no público: só flags, path do Chromium e URL pública do app.
+| Variável | Para quê |
+|----------|----------|
+| `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` | Valida compras |
+| `GOOGLE_PLAY_PACKAGE_NAME` | Package da loja (opcional; há default) |
+
+**Nunca** commitar `.env*`, `google-services.json` real ou scripts que escrevem secrets.
 
 ---
 
-## 16. Fluxos principais
+## 17. Fluxos principais
 
 ### Cadastro
 
@@ -585,24 +679,21 @@ Modelo: `app/.env.example` → `app/.env.local`.
 ### Login
 
 1. CPF + senha → JWT/sessão.  
-2. Redirect para `/` (sem `/planos`).
+2. Redirect para o dashboard.
 
 ### Sync
 
-1. Cliente pede sync → API autentica → job na fila.  
-2. Dispatch para Servidor ACME se `/health` OK.  
-3. Senão → fallback device (Android) ou aviso na web.  
-4. Snapshot → Postgres → UI.
+Ver diagrama em [§3](#fluxo-de-sincronização).
 
-### Envio de tarefa
+### Remoção de anúncios
 
-1. App sobe arquivo → `task_submissions` queued.  
-2. Cloud despacha `submit-tarefa` ao worker (async).  
-3. Cliente faz poll até completed/failed/timeout (~15 min).
+1. Web: checkout PIX → webhook → `ads_free`.  
+2. Android: assinatura Play → `POST /api/billing/play/verify` → `ads_free`.  
+3. Clientes leem entitlement e ocultam AdSense / AdMob.
 
 ### Notificações / crons
 
-Workers CF **e/ou** loops do Termux chamam:
+Workers CF **e/ou** loops do Termux:
 
 - `POST /api/cron/notification-reminders`
 - `POST /api/cron/account-emails`
@@ -612,85 +703,111 @@ Header: `Authorization: Bearer $CRON_SECRET`.
 
 ---
 
-## 17. Modelo de dados (visão)
+## 18. Modelo de dados
 
-Sem listar todas as colunas — visão operacional:
+```mermaid
+erDiagram
+  AUTH_USERS ||--|| APP_PROFILES : "1:1"
+  APP_PROFILES ||--o{ DISCIPLINAS : tem
+  APP_PROFILES ||--o{ SYNC_JOBS : dispara
+  APP_PROFILES ||--o{ TASK_SUBMISSIONS : envia
+  APP_PROFILES ||--o{ SUBSCRIPTIONS : "ads_free"
+  DISCIPLINAS ||--o{ NOTAS : contem
+  DISCIPLINAS ||--o{ FALTAS : contem
+  DISCIPLINAS ||--o{ TAREFAS : contem
+
+  APP_PROFILES {
+    uuid user_id PK
+    string cpf
+    string curso_id
+    timestamptz last_seen_at
+  }
+  SYNC_JOBS {
+    uuid id PK
+    string status
+    string robot
+  }
+  SUBSCRIPTIONS {
+    uuid id PK
+    string plan_id
+    timestamptz expires_at
+  }
+```
 
 | Área | Ideia |
 |------|--------|
-| Auth | Supabase Auth + `app_profiles` (CPF, curso, consent) |
+| Auth | Supabase Auth + `app_profiles` |
 | Acadêmico | Disciplinas, notas, faltas, tarefas, turmas (tenant = `user_id`) |
 | Sync | `sync_jobs` (status, robot, erros) |
-| Submissões | `task_submissions` (arquivo, status SIGAA) |
-| Billing | Tabelas legado (planos/PIX) — UX não usa |
-| Push | Tokens / fingerprints enviados |
-| PPC | Grades/currículo para mapa e integralização |
+| Submissões | `task_submissions` |
+| Billing | Assinaturas / `ads_free` |
+| Push | Tokens e fingerprints |
+| PPC | Currículo para mapa e integralização |
 
-RLS: isolamento por usuário; suite `test:t2` valida.
+RLS isola por usuário; suite `test:t2` valida.
 
 ---
 
-## 18. Segurança, LGPD e repo público
+## 19. Segurança e LGPD
 
 - Minimize PII em logs.  
 - Secrets só em `.env.local` / Cloudflare Secrets / EAS.  
-- Repo público: **não** versionar históricos escolares, dumps SIGAA, tokens, CPF reais em fixtures.  
-- Se um secret vazar: **rotacione** (Supabase, Cloudflare, Gmail app password, AES) e limpe histórico se necessário.  
+- Repo público: **não** versionar históricos escolares, dumps SIGAA, tokens ou CPF reais.  
+- Se um secret vazar: **rotacione** e limpe histórico se necessário.  
 - LGPD: `/privacidade`, `/termos`; consentimento no cadastro (`legal/`).  
-- Histórico Git já passou por purge de secrets/PII antes de tornar o repo público — ainda assim, rotacione credenciais antigas se houve exposição.
+- Histórico Git já passou por purge antes de tornar o repo público — ainda assim, rotacione credenciais antigas se houve exposição.
 
 ---
 
-## 19. Troubleshooting
+## 20. Troubleshooting
 
 | Sintoma | Causa comum | Ação |
 |---------|-------------|------|
-| `worker-health` offline | Túnel morto / secret antigo | Reiniciar Termux script; checar health público |
+| `worker-health` offline | Túnel morto / secret antigo | Reiniciar Termux; checar health público |
 | Sync web “aguarde” | Sem Servidor ACME | Ligar Termux (ou usar Android) |
-| “Túnel público NÃO responde” | trycloudflare lento / IPv6 | Script já retenta; aguardar ou `[q]` e subir de novo |
-| `git pull` divergent | Histórico local ≠ origin | `git fetch && git reset --hard origin/main` (preserva `.env.local`) |
-| Sync “falhou” cedo | Cloud sem deploy dos polls 15 min | `npm run deploy:cf` |
+| Túnel público não responde | trycloudflare lento | Script retenta; `[q]` e subir de novo |
+| `git pull` divergent | Histórico local ≠ origin | `git fetch && git reset --hard origin/main` |
+| Sync falhou cedo | Cloud sem polls 15 min | `npm run deploy:cf` |
 | `password authentication failed` | `DATABASE_URL` velha | Regenerar senha Supabase |
-| Checkout / “assine” | Build antigo | Confirmar free-mode + app ≥ 1.16 |
 | Push não chega | Falta Firebase no EAS | Secret `GOOGLE_SERVICES_JSON` |
-| Error 1102 no Workers | Bundle TLS pesado no edge | Não reintroduzir scrape TLS no Worker |
-| better-sqlite3 no Termux | Binário errado | Script recompila com `npm rebuild` |
+| Error 1102 no Workers | TLS scrape no edge | Não reintroduzir scrape no Worker |
+| better-sqlite3 no Termux | Binário errado | `npm rebuild` via script |
 
 ---
 
-## 20. Contribuindo
+## 21. Contribuindo
 
 1. Branch a partir de `main`.  
 2. Não commitar `.env*`, `.data/`, APK/AAB, dumps.  
 3. Rodar `npm test` (e suites relevantes) em `app/`.  
 4. PR pequeno; descrever impacto em sync/auth/mobile/Termux.  
-5. Commits no estilo conventional (`feat`, `fix`, `docs`, `chore`, `test`).  
-6. Deploy cloud só com secrets corretos.
+5. Commits conventional (`feat`, `fix`, `docs`, `chore`, `test`).  
 
-### Checklist rápido antes do push
+### Checklist antes do push
 
 - [ ] Sem secrets no diff  
 - [ ] Timeouts/docs alinhados se mudou sync  
 - [ ] Testes da área tocada  
-- [ ] Termux: scripts ainda sem valores secretos  
+- [ ] Scripts Termux sem valores secretos  
 
 ---
 
-## 21. Glossário
+## 22. Glossário
 
 | Termo | Significado |
 |-------|-------------|
-| **Servidor ACME** | Processo home (Termux/PC) com Playwright + túnel |
+| **Servidor ACME** | Home-worker (Termux/PC) com Playwright + túnel |
 | **Robot** | Tipo de job (`r1`, `submit-tarefa`, …) |
-| **Mirror** | Gravar resultado do scrape direto no Postgres |
+| **Mirror** | Gravar scrape direto no Postgres |
 | **Ingest** | Device envia snapshot HTTP para a cloud |
 | **Quick tunnel** | URL `*.trycloudflare.com` temporária |
-| **Free mode** | Produto sem cobrança (`free-mode.ts`) |
+| **Free mode** | Features acadêmicas sem paywall |
+| **ads_free** | Entitlement que oculta anúncios |
 | **OpenNext** | Adapter Next.js → Cloudflare Workers |
 
 ---
 
-## 22. Autor
+## 23. Autor
 
 Projeto desenvolvido e mantido por:
 
@@ -712,7 +829,7 @@ Projeto desenvolvido e mantido por:
 
 ---
 
-## 23. Licença
+## 24. Licença
 
 Este repositório está sob a licença **[AGPL-3.0](LICENSE)**.
 
