@@ -26,6 +26,7 @@
   <a href="https://github.com/KairoHenrique"><img src="https://img.shields.io/badge/GitHub-KairoHenrique-181717?logo=github" alt="GitHub" /></a>
 </p>
 
+| | |
 |---|---|
 | **Site** | https://acmehub.com.br |
 | **Google Play** | https://play.google.com/store/apps/details?id=br.cefethub.acme |
@@ -112,7 +113,7 @@ Seeds: `app/scripts/ppc_data*.txt` → `npm run db:seed-ppc` (com `DATABASE_URL`
 ### Visão geral do sistema
 
 ```mermaid
-%%{init: {"theme": "neutral", "flowchart": {"curve": "basis", "padding": 16, "nodeSpacing": 40, "rankSpacing": 50}}}%%
+%%{init: {"theme": "base", "themeVariables": {"fontSize": "16px", "fontFamily": "Inter, Segoe UI, sans-serif"}, "flowchart": {"curve": "basis", "padding": 18, "nodeSpacing": 44, "rankSpacing": 54}}}%%
 flowchart LR
   WEB[Web]
   MOB[Android]
@@ -130,11 +131,11 @@ flowchart LR
   MOB -.->|fallback| SIGAA
   MOB -.->|ingest| CF
 
-  classDef client fill:#e8f1fb,stroke:#1e4d8c,color:#0b1f33
-  classDef edge fill:#fff4e5,stroke:#c45c00,color:#0b1f33
-  classDef data fill:#e6f7ef,stroke:#1f7a4d,color:#0b1f33
-  classDef home fill:#f3eefc,stroke:#5b3d9e,color:#0b1f33
-  classDef ext fill:#f2f2f2,stroke:#666,color:#0b1f33
+  classDef client fill:#2563EB,stroke:#1D4ED8,color:#FFFFFF,stroke-width:2px
+  classDef edge fill:#F97316,stroke:#EA580C,color:#FFFFFF,stroke-width:2px
+  classDef data fill:#10B981,stroke:#059669,color:#FFFFFF,stroke-width:2px
+  classDef home fill:#EAB308,stroke:#CA8A04,color:#111827,stroke-width:2px
+  classDef ext fill:#64748B,stroke:#475569,color:#FFFFFF,stroke-width:2px
 
   class WEB,MOB client
   class CF edge
@@ -162,7 +163,7 @@ O scrape pesado fica no **Servidor ACME**. A cloud **despacha** jobs e **persist
 ### Fluxo de sincronização
 
 ```mermaid
-%%{init: {"theme": "neutral", "sequence": {"mirrorActors": false, "actorMargin": 24, "messageMargin": 36}}}%%
+%%{init: {"theme": "base", "themeVariables": {"actorBkg": "#2563EB", "actorTextColor": "#FFFFFF", "actorBorder": "#1D4ED8", "actorLineColor": "#94A3B8", "signalColor": "#0F172A", "signalTextColor": "#0F172A", "labelBoxBkgColor": "#EAB308", "labelBoxBorderColor": "#CA8A04", "labelTextColor": "#111827", "loopTextColor": "#0F172A", "activationBkgColor": "#FDBA74", "activationBorderColor": "#EA580C", "sequenceNumberColor": "#FFFFFF", "noteBkgColor": "#FEF3C7", "noteTextColor": "#111827", "noteBorderColor": "#EAB308"}}}%%
 sequenceDiagram
   autonumber
   actor Aluno
@@ -194,7 +195,7 @@ sequenceDiagram
 ### Envio de tarefa ao SIGAA
 
 ```mermaid
-%%{init: {"theme": "neutral", "flowchart": {"curve": "basis", "nodeSpacing": 28, "rankSpacing": 36}}}%%
+%%{init: {"theme": "base", "flowchart": {"curve": "basis", "nodeSpacing": 32, "rankSpacing": 40}}}%%
 flowchart LR
   A[Upload] --> B[Fila]
   B --> C[Cloud]
@@ -202,16 +203,18 @@ flowchart LR
   D --> E[SIGAA]
   E --> F{Status}
 
-  classDef step fill:#e8f1fb,stroke:#1e4d8c,color:#0b1f33
-  classDef endn fill:#e6f7ef,stroke:#1f7a4d,color:#0b1f33
-  class A,B,C,D,E step
+  classDef step fill:#2563EB,stroke:#1D4ED8,color:#FFFFFF,stroke-width:2px
+  classDef mid fill:#F97316,stroke:#EA580C,color:#FFFFFF,stroke-width:2px
+  classDef endn fill:#10B981,stroke:#059669,color:#FFFFFF,stroke-width:2px
+  class A,B step
+  class C,D,E mid
   class F endn
 ```
 
 ### Camadas de deploy
 
 ```mermaid
-%%{init: {"theme": "neutral", "flowchart": {"curve": "basis", "nodeSpacing": 36, "rankSpacing": 48}}}%%
+%%{init: {"theme": "base", "flowchart": {"curve": "basis", "nodeSpacing": 40, "rankSpacing": 50}}}%%
 flowchart LR
   APP[app/] -->|deploy:cf| CF[Cloudflare]
   APP -->|deploy:crons| CRON[Crons]
@@ -219,10 +222,14 @@ flowchart LR
   MOB[mobile/] -->|EAS| PLAY[Google Play]
   SQL[migrations/] --> DB
 
-  classDef src fill:#f3eefc,stroke:#5b3d9e,color:#0b1f33
-  classDef dest fill:#fff4e5,stroke:#c45c00,color:#0b1f33
+  classDef src fill:#8B5CF6,stroke:#7C3AED,color:#FFFFFF,stroke-width:2px
+  classDef dest fill:#F97316,stroke:#EA580C,color:#FFFFFF,stroke-width:2px
+  classDef store fill:#22C55E,stroke:#16A34A,color:#FFFFFF,stroke-width:2px
+  classDef db fill:#06B6D4,stroke:#0891B2,color:#FFFFFF,stroke-width:2px
   class APP,MOB,SQL src
-  class CF,CRON,PLAY,DB dest
+  class CF,CRON dest
+  class PLAY store
+  class DB db
 ```
 
 ---
@@ -696,7 +703,7 @@ Header: `Authorization: Bearer $CRON_SECRET`.
 ## 18. Modelo de dados
 
 ```mermaid
-%%{init: {"theme": "neutral"}}%%
+%%{init: {"theme": "base", "themeVariables": {"primaryColor": "#2563EB", "primaryTextColor": "#FFFFFF", "primaryBorderColor": "#1D4ED8", "lineColor": "#64748B", "secondaryColor": "#EAB308", "tertiaryColor": "#10B981"}}}%%
 erDiagram
   APP_PROFILES ||--o{ DISCIPLINAS : possui
   APP_PROFILES ||--o{ SYNC_JOBS : dispara
