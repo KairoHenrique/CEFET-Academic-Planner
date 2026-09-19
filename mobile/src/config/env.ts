@@ -1,6 +1,6 @@
 /**
  * URL do site ACME HUB (= F28 mobile web).
- * mobile/.env → EXPO_PUBLIC_API_BASE_URL=https://acme-hub.khfm.workers.dev
+ * mobile/.env → EXPO_PUBLIC_API_BASE_URL=https://acmehub.com.br
  */
 import Constants from "expo-constants";
 

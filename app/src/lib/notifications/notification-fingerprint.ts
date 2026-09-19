@@ -31,6 +31,22 @@ export function buildTaskNotificationFingerprint(
   return buildStableTaskNotificationFingerprint(disciplinaId, titulo, dataFim);
 }
 
+/** Identidade estável da tarefa (ignora prazo) — dedupe de push entre syncs. */
+export function buildTaskNotificationIdentityKey(
+  disciplinaId: string,
+  titulo: string
+): string {
+  return `task-id:${disciplinaId.toLowerCase()}|${normalizeNotificationText(titulo)}`;
+}
+
+export function taskIdentityKeyFromFingerprint(
+  fingerprint: string
+): string | null {
+  const match = fingerprint.match(/^task:([^|]+)\|([^|]+)\|/i);
+  if (!match) return null;
+  return `task-id:${match[1].toLowerCase()}|${match[2]}`;
+}
+
 export function buildTaskReminderNotificationFingerprint(
   disciplinaId: string,
   titulo: string,

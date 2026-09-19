@@ -154,6 +154,43 @@ describe("Calendário — aulas até fim da turma", () => {
     assert.ok(events.every((event) => event.date >= "2026-08-01"));
     assert.ok(events.every((event) => event.date <= "2026-12-20"));
   });
+
+  test("com dois Períodos Letivos, usa o que contém a data atual (.2)", async () => {
+    const { expandClassSessionEvents } = await import(
+      "../src/lib/calendar/expand-class-session-events"
+    );
+
+    const events = expandClassSessionEvents({
+      semestreRows: [
+        semestreRow({
+          turma_data_inicio: null,
+          turma_data_fim: null,
+          codigo_horario: "4M12",
+        }),
+      ],
+      academicRows: [
+        {
+          id: 1,
+          evento: "Período Letivo",
+          data_inicio: "2026-03-02",
+          data_fim: "2026-07-06",
+          semestre: "2026.1",
+        },
+        {
+          id: 2,
+          evento: "Período Letivo",
+          data_inicio: "2026-08-05",
+          data_fim: "2026-12-07",
+          semestre: "2026.2",
+        },
+      ],
+    });
+
+    assert.ok(events.length > 0);
+    assert.ok(events.every((event) => event.date >= "2026-08-05"));
+    assert.ok(events.every((event) => event.date <= "2026-12-07"));
+    assert.ok(events.some((event) => event.date.startsWith("2026-08")));
+  });
 });
 
 describe("Calendário — bounds aproximados do semestre", () => {

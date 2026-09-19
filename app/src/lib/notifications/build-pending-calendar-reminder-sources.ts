@@ -1,5 +1,6 @@
 import { buildCalendar } from "@/lib/calendar/build-calendar";
 import { normalizeTime } from "@/lib/tasks/dates";
+import { toBrazilIsoDate } from "@/lib/time/brazil";
 import type { PendingCalendarReminderSource } from "@/lib/types/notifications-api";
 import type { CalendarEvent } from "@/lib/types/calendar";
 
@@ -45,11 +46,7 @@ export function buildPendingCalendarReminderSourcesFromEvents(
   events: PendingCalendarReminderSource[];
   classes: PendingCalendarReminderSource[];
 } {
-  const refIso = [
-    referenceDate.getFullYear(),
-    String(referenceDate.getMonth() + 1).padStart(2, "0"),
-    String(referenceDate.getDate()).padStart(2, "0"),
-  ].join("-");
+  const refIso = toBrazilIsoDate(referenceDate);
 
   const upcoming = events
     .filter(isNotifiableCalendarEvent)
@@ -62,6 +59,15 @@ export function buildPendingCalendarReminderSourcesFromEvents(
     const source = toReminderSource(event);
     if (event.type === "aula" || event.id.startsWith("aula-")) {
       classes.push(source);
+      continue;
+    }
+    // Tarefas/provas do portal: ID muda a cada mirror (delete+insert).
+    // "Nova tarefa" já cobre discovery; lembretes de prazo usam pendingTasks.
+    if (
+      event.type === "tarefa" ||
+      event.type === "prova" ||
+      event.id.startsWith("tarefa-")
+    ) {
       continue;
     }
     manualEvents.push(source);

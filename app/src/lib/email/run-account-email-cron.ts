@@ -67,7 +67,8 @@ export async function runAccountEmailCron(): Promise<AccountEmailCronResult> {
   const planScheduled = await schedulePaidPlanLifecycleEmails();
 
   const { sender, provider } = resolveAccountEmailSender();
-  const delivery = await processAccountEmailQueue(sender);
+  // Workers Free: lotes pequenos por tick (CPU ~10ms).
+  const delivery = await processAccountEmailQueue(sender, 3);
 
   return {
     scheduled: trialScheduled + planScheduled,

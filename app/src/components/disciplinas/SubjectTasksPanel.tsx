@@ -5,6 +5,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Icon } from "@/components/ui/Icon";
 import { Modal } from "@/components/ui/Modal";
+import { DatePickerField } from "@/components/ui/DatePickerField";
 import { Input } from "@/components/ui/Input";
 import { PlannerSelect } from "@/components/ui/PlannerSelect";
 import { FilterBar } from "@/components/ui/FilterBar";
@@ -311,11 +312,11 @@ export function SubjectTasksPanel({
             onChange={(e) => setFormDescription(e.target.value)}
             placeholder="Opcional"
           />
-          <Input
+          <DatePickerField
             label="Data de entrega"
-            type="date"
             value={formDate}
-            onChange={(e) => setFormDate(e.target.value)}
+            onChange={setFormDate}
+            allowClear
           />
           <Input
             label="Hora máxima de entrega"

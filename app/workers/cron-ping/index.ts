@@ -20,6 +20,7 @@ export default {
       headers.authorization = `Bearer ${secret}`;
     }
 
+    // deep=1 1×/dia: barato e mantém o Postgres/Supabase acordado no free.
     const response = await fetch(`${baseUrl}/api/health?deep=1`, { headers });
     const body = await response.text();
 

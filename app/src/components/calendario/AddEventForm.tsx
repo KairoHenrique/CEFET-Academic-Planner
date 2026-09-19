@@ -9,6 +9,7 @@ import {
 } from "@/lib/types/calendar";
 import { resolveDefaultEventColor } from "@/lib/colors/event-type-colors";
 import { useDisciplinas } from "@/hooks/useDisciplinas";
+import { DatePickerField } from "@/components/ui/DatePickerField";
 import { Input } from "@/components/ui/Input";
 import { PlannerSelect } from "@/components/ui/PlannerSelect";
 import { ColorDotPicker } from "@/components/ui/ColorDotPicker";
@@ -51,7 +52,7 @@ export function AddEventForm({
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [type, setType] = useState<CalendarEvent["type"]>("tarefa");
-  const [subjectCode, setSubjectCode] = useState("");
+  const [subjectCode, setSubjectCode] = useState(UNLINKED_SUBJECT_VALUE);
   const [color, setColor] = useState("");
   const [colorTouched, setColorTouched] = useState(false);
   const [startDate, setStartDate] = useState(resolvedDefaultDate);
@@ -60,23 +61,16 @@ export function AddEventForm({
   const [endTime, setEndTime] = useState("");
   const [recurrenceDays, setRecurrenceDays] = useState<WeekdayIndex[]>([]);
 
-  const defaultSubjectCode = subjects[0]?.code ?? UNLINKED_SUBJECT_VALUE;
-  const activeSubjectCode = subjectCode || defaultSubjectCode;
+  const activeSubjectCode = subjectCode || UNLINKED_SUBJECT_VALUE;
   const isUnlinked = activeSubjectCode === UNLINKED_SUBJECT_VALUE;
   const subject = subjects.find((item) => item.code === activeSubjectCode);
   const hasWeeklyRecurrence = recurrenceDays.length > 0;
 
   useEffect(() => {
-    if (!subjectCode && subjects.length > 0) {
-      setSubjectCode(defaultSubjectCode);
-    }
-  }, [subjectCode, subjects, defaultSubjectCode]);
-
-  useEffect(() => {
     setTitle("");
     setDescription("");
     setType("tarefa");
-    setSubjectCode("");
+    setSubjectCode(UNLINKED_SUBJECT_VALUE);
     setColor("");
     setColorTouched(false);
     setStartDate(resolvedDefaultDate);
@@ -100,11 +94,11 @@ export function AddEventForm({
 
   const subjectOptions = useMemo(
     () => [
+      { value: UNLINKED_SUBJECT_VALUE, label: "Não associado à matéria" },
       ...subjects.map((item) => ({
         value: item.code,
         label: item.name,
       })),
-      { value: UNLINKED_SUBJECT_VALUE, label: "Não associado à matéria" },
     ],
     [subjects]
   );
@@ -200,11 +194,10 @@ export function AddEventForm({
       <div className="add-event-datetime-block">
         <span className="form-label">Início</span>
         <div className="add-event-datetime-row">
-          <Input
+          <DatePickerField
             label="Data de início"
-            type="date"
             value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
+            onChange={setStartDate}
             required
             disabled={isSubmitting}
           />
@@ -226,14 +219,14 @@ export function AddEventForm({
           </span>
         </span>
         <div className="add-event-datetime-row">
-          <Input
+          <DatePickerField
             label="Data de fim"
-            type="date"
             value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
+            onChange={setEndDate}
             disabled={isSubmitting}
             min={startDate || undefined}
             required={hasWeeklyRecurrence}
+            allowClear={!hasWeeklyRecurrence}
           />
           <Input
             label="Hora de fim"

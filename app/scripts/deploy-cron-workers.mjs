@@ -65,7 +65,7 @@ const cronSecret = env.CRON_SECRET;
 const appUrl =
   env.PLANNER_APP_URL?.trim() ||
   env.PLANNER_HEALTH_URL?.trim() ||
-  "https://acme-hub.khfm.workers.dev";
+  "https://acmehub.com.br";
 
 if (!cronSecret?.trim()) {
   throw new Error("CRON_SECRET ausente em app/.env.local");
@@ -79,6 +79,8 @@ const orchestratorConfig = "workers/cron-sync-orchestrator/wrangler.jsonc";
 const appUpdateConfig = "workers/cron-app-update-notify/wrangler.jsonc";
 const notificationRemindersConfig =
   "workers/cron-notification-reminders/wrangler.jsonc";
+const purgeInactiveConfig =
+  "workers/cron-purge-inactive-academic/wrangler.jsonc";
 
 putSecret("CRON_SECRET", cronSecret, pingConfig);
 putSecret("PLANNER_HEALTH_URL", appUrl, pingConfig);
@@ -99,6 +101,10 @@ deploy(appUpdateConfig);
 putSecret("CRON_SECRET", cronSecret, notificationRemindersConfig);
 putSecret("PLANNER_APP_URL", appUrl, notificationRemindersConfig);
 deploy(notificationRemindersConfig);
+
+putSecret("CRON_SECRET", cronSecret, purgeInactiveConfig);
+putSecret("PLANNER_APP_URL", appUrl, purgeInactiveConfig);
+deploy(purgeInactiveConfig);
 
 // Worker acme-hub-cron-ru-saldo: endpoint vive no app; o tick 2×/dia
 // é disparado pelo cron-notification-reminders (limite de schedules CF).

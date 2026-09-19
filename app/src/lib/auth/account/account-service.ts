@@ -39,34 +39,6 @@ import { ensurePostgresReady } from "@/lib/db/bootstrap-postgres";
 import { createServerSupabaseClient } from "@/lib/supabase/client";
 import { enqueueWelcomeAccountEmail, enqueueSupportRegisterNotifyEmail } from "@/lib/email/enqueue-account-email";
 import { assertCredentialHardeningForRuntime } from "@/lib/security/credential-hardening";
-import {
-  enqueueCloudSyncJob,
-  isCloudSyncWorkerConfigured,
-} from "@/lib/sync-queue/cloud-sync-queue";
-
-/**
- * Dispara o 1º sync de uma conta recém-criada (best-effort). O worker offline
- * não pode bloquear o cadastro — nesse caso o sync é reprocessado pelo
- * orquestrador (cron) ou por um sync manual. Idempotente: o enqueue r1 reusa
- * job ativo por usuário.
- */
-async function enqueueInitialAccountSync(
-  cpf: string,
-  password: string
-): Promise<void> {
-  if (!isCloudSyncWorkerConfigured()) return;
-  try {
-    await enqueueCloudSyncJob({
-      username: cpf,
-      password,
-      mode: "full",
-      lane: "priority",
-      trigger: "first_login",
-    });
-  } catch {
-    // Silencioso: falha de dispatch não deve derrubar o fluxo de cadastro.
-  }
-}
 
 async function resolveAccountSubscription(
   cpf: string
@@ -216,8 +188,6 @@ export async function registerAccount(
       input.cpf,
       input.password
     );
-    await enqueueInitialAccountSync(input.cpf, input.password);
-
     return {
       profile,
       session: sessionResult.session,

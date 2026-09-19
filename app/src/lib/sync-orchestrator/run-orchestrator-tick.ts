@@ -61,10 +61,13 @@ async function listEligibleCpfsForDeepSync(): Promise<string[]> {
   }
 
   const pool = getPostgresPool();
+  // So quem usou o app nos ultimos 15 dias (last_seen_at).
   const result = await pool.query<{ cpf: string }>(
     `SELECT cpf FROM app_profiles
      WHERE sigaa_password_enc IS NOT NULL
        AND length(trim(sigaa_password_enc)) > 0
+       AND last_seen_at IS NOT NULL
+       AND last_seen_at >= now() - interval '15 days'
      ORDER BY cpf`
   );
   return result.rows.map((row) => row.cpf);

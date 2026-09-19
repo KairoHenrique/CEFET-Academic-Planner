@@ -44,7 +44,8 @@ function resolveClassSchedulePositions(
 
 function resolveTurmaBounds(
   row: SemestreAtualWithDisciplina,
-  academicRows: CalendarioAcademicoRow[]
+  academicRows: CalendarioAcademicoRow[],
+  now: Date = new Date()
 ): { dataInicio: string; dataFim: string } | null {
   if (row.turma_data_inicio && row.turma_data_fim) {
     return {
@@ -53,12 +54,17 @@ function resolveTurmaBounds(
     };
   }
 
-  const fromPeriodoLetivo = findPeriodoLetivoBounds(academicRows, null);
+  const semestre = resolveSemestreForClassBounds(
+    academicRows.map((academic) => academic.semestre),
+    now
+  );
+  const fromPeriodoLetivo = findPeriodoLetivoBounds(
+    academicRows,
+    semestre,
+    now
+  );
   if (fromPeriodoLetivo) return fromPeriodoLetivo;
 
-  const semestre = resolveSemestreForClassBounds(
-    academicRows.map((academic) => academic.semestre)
-  );
   return inferDefaultPeriodoLetivoBounds(semestre);
 }
 

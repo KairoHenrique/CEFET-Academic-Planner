@@ -10,9 +10,11 @@ import { SessionActivityTracker } from "@/components/auth/SessionActivityTracker
 import { QueryProvider } from "@/components/providers/QueryProvider";
 import { SyncQueueProvider } from "@/components/providers/SyncQueueProvider";
 import { AppDownloadFab } from "@/components/download/AppDownloadFab";
+import { WebAdsChrome } from "@/components/ads/WebAdsChrome";
 import {
   isDownloadPath,
   isLegalDocumentPath,
+  isPublicLandingPath,
 } from "@/lib/routing/public-paths";
 
 interface AppShellProps {
@@ -29,8 +31,9 @@ export function AppShell({ children }: AppShellProps) {
   const isDevPanel = isDevPanelRoute(pathname);
   const isLegalPage = isLegalDocumentPath(pathname);
   const isDownload = isDownloadPath(pathname);
+  const isPublicLanding = isPublicLandingPath(pathname ?? "");
   const showStudentChrome =
-    !isLogin && !isDevPanel && !isLegalPage && !isDownload;
+    !isLogin && !isDevPanel && !isLegalPage && !isDownload && !isPublicLanding;
 
   return (
     <QueryProvider>
@@ -41,12 +44,15 @@ export function AppShell({ children }: AppShellProps) {
             {showStudentChrome && <AutoSyncRunner />}
             {showStudentChrome && <Navbar />}
             {showStudentChrome && <AppDownloadFab />}
+            {showStudentChrome && <WebAdsChrome />}
             <main
               className={`main-content ${
                 isLogin ? "main-content-login" : ""
               } ${isDevPanel ? "main-content-dev" : ""} ${
                 isLegalPage ? "main-content-legal" : ""
-              } ${isDownload ? "main-content-download" : ""}`}
+              } ${isDownload ? "main-content-download" : ""} ${
+                isPublicLanding ? "main-content-public-inicio" : ""
+              }`}
             >
               <MaintenanceGuard>
                 {showStudentChrome ? (

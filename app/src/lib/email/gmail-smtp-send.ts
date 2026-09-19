@@ -60,7 +60,7 @@ function resolveLogoFilePath(): string | null {
 
 /**
  * Troca qualquer src remoto da logo por cid:… e devolve o anexo inline.
- * Gmail costuma quebrar `<img>` apontando para *.workers.dev.
+ * Gmail costuma quebrar `<img>` apontando para hosts sem reputacao (ex. *.workers.dev).
  */
 function embedLogoInHtml(html: string): {
   html: string;

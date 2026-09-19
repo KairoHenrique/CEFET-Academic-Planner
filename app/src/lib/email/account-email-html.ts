@@ -19,7 +19,7 @@ const NAVY = "#0b1220";
 const URL_PATTERN = /(https?:\/\/[^\s<]+)/g;
 const STANDALONE_URL_PATTERN = /^https?:\/\/[^\s<]+$/;
 
-/** CID usado no SMTP Gmail (anexo inline) — Gmail bloqueia img remota de workers.dev. */
+/** CID usado no SMTP Gmail (anexo inline) — Gmail bloqueia img remota em alguns hosts. */
 export const ACCOUNT_EMAIL_LOGO_CID = "acme-logo";
 
 export interface RenderAccountEmailHtmlOptions {

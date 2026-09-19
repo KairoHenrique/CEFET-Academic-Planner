@@ -22,7 +22,7 @@ export type TurmasSyncUiState = {
 };
 
 const POLL_MS = 800;
-const TIMEOUT_MS = 360_000;
+const TIMEOUT_MS = 900_000;
 
 const PROGRESS_STEPS: Array<{ at: number; label: string; progress: number }> = [
   { at: 0, label: "Conectando ao SIGAA…", progress: 8 },

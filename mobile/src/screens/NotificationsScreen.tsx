@@ -1,14 +1,14 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Pressable,
   RefreshControl,
-  StyleSheet,
   Text,
   View,
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import type { NotificationsSnapshotResponse } from "@acme/api-contracts";
 import { ApiClientError } from "../auth/api";
+import { markNotificationsAsRead } from "../api/mutations";
 import { fetchNotifications } from "../cache/fetchers";
 import { mergeMobileNotificationItems } from "../features/notifications/merge-mobile-notification-items";
 import { navigateFromNotificationHref } from "../navigation/resolve-notification-href";
@@ -40,6 +40,7 @@ export function NotificationsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [reminderTick, setReminderTick] = useState(0);
+  const lastMarkedKeyRef = useRef("");
 
   const load = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
@@ -82,6 +83,19 @@ export function NotificationsScreen() {
     if (!data) return [];
     return mergeMobileNotificationItems(data);
   }, [data, reminderTick]);
+
+  // Ao ver a lista: marca fingerprints como lidos+pushed (evita re-push apos sync).
+  useEffect(() => {
+    if (items.length === 0) return;
+    const fingerprints = items
+      .map((item) => item.fingerprint)
+      .filter((fp): fp is string => typeof fp === "string" && fp.length > 0);
+    if (fingerprints.length === 0) return;
+    const key = [...fingerprints].sort().join("|");
+    if (key === lastMarkedKeyRef.current) return;
+    lastMarkedKeyRef.current = key;
+    void markNotificationsAsRead(fingerprints).catch(() => undefined);
+  }, [items]);
 
   return (
     <Screen

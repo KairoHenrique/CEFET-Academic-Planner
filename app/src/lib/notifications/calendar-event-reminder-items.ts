@@ -4,6 +4,7 @@ import {
   buildClassReminderFingerprint,
   type CalendarReminderSlot,
 } from "@/lib/notifications/notification-fingerprint";
+import { toBrazilIsoDate } from "@/lib/time/brazil";
 import type {
   NotificationSnapshotItem,
   PendingCalendarReminderSource,
@@ -15,17 +16,9 @@ export type ClassReminderSlot = "30m";
 const THIRTY_MINUTES_MS = 30 * 60 * 1000;
 const MS_PER_DAY = 86_400_000;
 
-function toIsoDate(date: Date): string {
-  return [
-    date.getFullYear(),
-    String(date.getMonth() + 1).padStart(2, "0"),
-    String(date.getDate()).padStart(2, "0"),
-  ].join("-");
-}
-
 function daysBetweenIso(fromIso: string, toIso: string): number {
-  const from = new Date(`${fromIso}T12:00:00`).getTime();
-  const to = new Date(`${toIso}T12:00:00`).getTime();
+  const from = Date.parse(`${fromIso}T12:00:00Z`);
+  const to = Date.parse(`${toIso}T12:00:00Z`);
   return Math.round((to - from) / MS_PER_DAY);
 }
 
@@ -40,7 +33,7 @@ export function getActiveCalendarReminderSlots(
   const startDateIso = event.startDateIso.trim();
   if (!startDateIso) return [];
 
-  const todayIso = toIsoDate(now);
+  const todayIso = toBrazilIsoDate(now);
   const days = daysBetweenIso(todayIso, startDateIso);
   if (days < 0) return [];
 

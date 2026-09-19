@@ -101,9 +101,12 @@ export function PlannerSelect<T extends string>({
         {open && (
           <ul
             id={listboxId}
-            className={`planner-select-menu ${fullWidth ? "planner-select-menu--full" : ""}`.trim()}
+            className={`planner-select-menu ${fullWidth ? "planner-select-menu--full planner-select-menu--panel" : ""}`.trim()}
             role="listbox"
             aria-label={label}
+            onWheel={isolateInteraction}
+            onTouchMove={isolateInteraction}
+            onScroll={isolateInteraction}
           >
             {options.map((option) => (
               <li key={option.value} role="presentation">

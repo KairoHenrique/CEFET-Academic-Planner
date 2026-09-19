@@ -6,6 +6,7 @@ import { runWithQueryCursoId } from "@/lib/auth/account/query-curso-context";
 import { withCloudPostgresClient } from "@/lib/db/postgres/cloud-request-client";
 import { runWithTenantUserId } from "@/lib/db/postgres/tenant-context";
 import { resolveProfileFromAuthorization } from "@/lib/auth/account/resolve-profile-from-request";
+import { touchProfileLastSeenAt } from "@/lib/auth/account/profile-repository";
 import {
   enforceSubscriptionAccessGate,
   shouldEnforceAccessGate,
@@ -61,6 +62,10 @@ export function withDb<TContext = unknown>(
         }
 
         const scopedUsername = profile?.cpf ?? username;
+
+        if (profile?.userId) {
+          void touchProfileLastSeenAt(profile.userId).catch(() => undefined);
+        }
 
         return runWithQueryCursoId(profile?.cursoId, () =>
           runWithTenantUserId(profile?.userId, () =>

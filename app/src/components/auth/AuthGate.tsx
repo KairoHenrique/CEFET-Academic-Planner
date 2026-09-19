@@ -13,9 +13,11 @@ interface AuthGateProps {
 const AUTH_GATE_TIMEOUT_MS = 8_000;
 
 export function AuthGate({ children }: AuthGateProps) {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "/";
   const router = useRouter();
-  const [ready, setReady] = useState(false);
+  const isPublic = isPublicAppPath(pathname);
+  // Paginas publicas (ex. /inicio p/ AdSense) nao ficam presas em "Preparando sessao".
+  const [ready, setReady] = useState(isPublic);
 
   useEffect(() => {
     let cancelled = false;
@@ -27,10 +29,10 @@ export function AuthGate({ children }: AuthGateProps) {
     };
 
     const onLoginPage = pathname === "/login";
-    const isPublic = isPublicAppPath(pathname);
+    const publicPath = isPublicAppPath(pathname);
     const authed = isAuthenticated();
 
-    if (!authed && !isPublic) {
+    if (!authed && !publicPath) {
       router.replace("/login");
       return;
     }
@@ -48,7 +50,7 @@ export function AuthGate({ children }: AuthGateProps) {
     };
   }, [pathname, router]);
 
-  if (!ready) {
+  if (!ready && !isPublic) {
     return <AppRouteLoading message="Preparando sessão…" />;
   }
 

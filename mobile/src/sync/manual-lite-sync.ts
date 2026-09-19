@@ -16,7 +16,7 @@ import { queueJobToUiStep } from "./queue-job-ui";
 export const SYNC_COMPLETE_EVENT = "planner:sync-complete";
 
 const POLL_MS = 800;
-const TIMEOUT_MS = 360_000;
+const TIMEOUT_MS = 900_000;
 
 export type MobileSyncState = {
   syncing: boolean;

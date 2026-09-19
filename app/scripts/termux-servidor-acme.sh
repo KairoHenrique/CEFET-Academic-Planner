@@ -33,7 +33,7 @@ cd "$DIR" || exit 1
 CHROMIUM_BIN="/data/data/com.termux/files/usr/bin/chromium-browser"
 WORKER_PORT=8787
 METRICS_ADDR="127.0.0.1:20241"
-APP_URL="https://acme-hub.khfm.workers.dev"
+APP_URL="https://acmehub.com.br"
 
 # --- deps sistema ---
 if command -v pkg >/dev/null 2>&1; then

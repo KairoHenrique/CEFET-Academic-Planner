@@ -1,5 +1,9 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
+import {
+  buildTaskNotificationFingerprint,
+  taskIdentityKeyFromFingerprint,
+} from "../src/lib/notifications/notification-fingerprint";
 
 /**
  * Espelha a regra de parse do push-sent-fingerprints-store
@@ -72,5 +76,15 @@ describe("push history — evita spam de Nova Tarefa", () => {
     );
 
     assert.equal(alreadySent.has("task:g00|nova|2026-09-20"), false);
+  });
+
+  test("mesma tarefa com prazo diferente compartilha identidade", () => {
+    const a = buildTaskNotificationFingerprint("G00", "Desafio 04", "2026-09-10");
+    const b = buildTaskNotificationFingerprint("G00", "Desafio 04", "2026-09-11");
+    assert.notEqual(a, b);
+    assert.equal(
+      taskIdentityKeyFromFingerprint(a),
+      taskIdentityKeyFromFingerprint(b)
+    );
   });
 });

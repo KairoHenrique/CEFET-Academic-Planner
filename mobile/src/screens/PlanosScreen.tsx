@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState, type ReactNode } from "react";
 import {
-  Linking,
+  Alert,
   Pressable,
   RefreshControl,
   StyleSheet,
@@ -12,29 +12,24 @@ import type { RouteProp } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type {
   BillingAccountResponse,
-  BillingCheckoutResponse,
   BillingPlansResponse,
   PaidPlanId,
 } from "@acme/api-contracts";
 import {
   ApiClientError,
   requestJson,
-  resolveWebHref,
   syncSubscriptionFromPerfil,
 } from "../auth/api";
-import { isSubscriptionBlocked } from "../auth/access";
 import { getSession } from "../auth/session";
 import { GiftKeyRedeemForm } from "../features/planos/GiftKeyRedeemForm";
-import { PlanosCheckoutPanel } from "../features/planos/PlanosCheckoutPanel";
 import { PlanosHero } from "../features/planos/PlanosHero";
-import { PlanosPromoBanner } from "../features/planos/PlanosPromoBanner";
 import { PlanosStatusAlert } from "../features/planos/PlanosStatusAlert";
-import { savePendingCheckout } from "../features/planos/pending-checkout-storage";
 import {
   parsePlanosFlow,
   resolvePlanosFlowForStatus,
   type PlanosFlow,
 } from "../features/planos/planos-utils";
+import { refreshAdsFreeFromServer } from "../ads/refresh-ads-free";
 import type { RootStackParamList } from "../navigation/types";
 import { brand } from "../theme/brand";
 import { ErrorBox } from "../ui/ErrorBox";
@@ -45,16 +40,38 @@ type Nav = NativeStackNavigationProp<RootStackParamList>;
 type PlanosRoute = RouteProp<RootStackParamList, "Planos">;
 
 type Props = {
-  /** Paywall standalone (sem rota). */
   initialFlow?: PlanosFlow;
   paywall?: boolean;
   onExploreDashboard?: () => void;
   footerExtra?: ReactNode;
 };
 
+type IapModule = {
+  initConnection: () => Promise<boolean>;
+  endConnection: () => Promise<void>;
+  getSubscriptions: (skus: string[]) => Promise<Array<{ productId: string }>>;
+  requestSubscription: (sku: string) => Promise<{
+    productId?: string;
+    purchaseToken?: string;
+    transactionReceipt?: string;
+  } | Array<{ productId?: string; purchaseToken?: string }>>;
+  finishTransaction: (
+    purchase: { productId?: string; purchaseToken?: string },
+    isConsumable?: boolean
+  ) => Promise<void>;
+};
+
+function loadIap(): IapModule | null {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    return require("react-native-iap") as IapModule;
+  } catch {
+    return null;
+  }
+}
+
 /**
- * Planos F28 — ordem do site:
- * hero → promo → status → picker+showcase → legal + gift → voltar
+ * Remover anuncios — somente Google Play no APK (sem PIX / Mercado Pago).
  */
 export function PlanosScreen({
   initialFlow,
@@ -72,10 +89,8 @@ export function PlanosScreen({
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectingPlanId, setSelectingPlanId] = useState<PaidPlanId | null>(
-    null
-  );
-  const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const [buying, setBuying] = useState<PaidPlanId | null>(null);
+  const [buyError, setBuyError] = useState<string | null>(null);
 
   const session = getSession();
   const subStatus = session?.subscription.status;
@@ -86,18 +101,7 @@ export function PlanosScreen({
     return subStatus ? resolvePlanosFlowForStatus(subStatus) : null;
   }, [initialFlow, routeFlow, subStatus]);
 
-  const showExploreLink =
-    !isPaywall &&
-    (effectiveFlow === "welcome" || subStatus === "trial_active");
-
-  const showDashboardLink =
-    !isPaywall &&
-    subStatus != null &&
-    !isSubscriptionBlocked(subStatus);
-
-  const subtitle = catalog?.checkoutEnabled
-    ? "Um plano, um clique, acesso completo ao ACME."
-    : "Checkout PIX em configuração — valores abaixo são referência.";
+  const adsFreeActive = Boolean(account?.adsFree?.active);
 
   const load = useCallback(async () => {
     setError(null);
@@ -110,6 +114,9 @@ export function PlanosScreen({
       ]);
       setCatalog(plans);
       setAccount(billing);
+      if (billing?.adsFree) {
+        await refreshAdsFreeFromServer();
+      }
     } catch (err) {
       setError(
         err instanceof ApiClientError
@@ -129,32 +136,64 @@ export function PlanosScreen({
     }, [load])
   );
 
-  async function handleCheckout(planId: PaidPlanId) {
-    setCheckoutError(null);
-    setSelectingPlanId(planId);
+  const purchasable = useMemo(() => {
+    if (!catalog) return [];
+    return (catalog.plans ?? []).filter(
+      (p) => p.kind === "paid" && p.purchasable && (p.id === "month" || p.id === "year")
+    );
+  }, [catalog]);
+
+  async function handlePlayPurchase(planId: PaidPlanId) {
+    setBuyError(null);
+    setBuying(planId);
     try {
-      const idempotencyKey = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-      const result = await requestJson<BillingCheckoutResponse>(
-        "/api/billing/checkout",
-        {
-          method: "POST",
-          headers: { "Idempotency-Key": idempotencyKey },
-          body: JSON.stringify({ planId, idempotencyKey }),
+      const sku = catalog?.playPrices?.[planId]?.sku;
+      if (!sku) {
+        throw new Error("SKU Play não configurado para este plano.");
+      }
+
+      const iap = loadIap();
+      if (!iap) {
+        Alert.alert(
+          "Play Billing",
+          "Compras na Play ficam disponíveis no build EAS (não no Expo Go). Enquanto isso, use uma chave gift ou remova anúncios pela web (PIX)."
+        );
+        return;
+      }
+
+      await iap.initConnection();
+      try {
+        await iap.getSubscriptions([sku]);
+        const purchase = await iap.requestSubscription(sku);
+        const item = Array.isArray(purchase) ? purchase[0] : purchase;
+        const token = item?.purchaseToken;
+        const productId = item?.productId ?? sku;
+        if (!token) {
+          throw new Error("Compra cancelada ou sem token.");
         }
-      );
-      await savePendingCheckout(result);
-      navigation.navigate("PlanosPix", {
-        paymentId: result.payment.id,
-        paywall: isPaywall || undefined,
-      });
+
+        await requestJson("/api/billing/play/verify", {
+          method: "POST",
+          body: JSON.stringify({ productId, purchaseToken: token }),
+        });
+        await iap.finishTransaction(item, false);
+        await refreshAdsFreeFromServer();
+        await syncSubscriptionFromPerfil().catch(() => undefined);
+        await load();
+        Alert.alert("Pronto", "Anúncios removidos neste aparelho e na web.");
+      } finally {
+        await iap.endConnection().catch(() => undefined);
+      }
     } catch (err) {
-      setCheckoutError(
+      setBuyError(
         err instanceof ApiClientError
           ? err.message
-          : "Não foi possível iniciar o checkout. Tente novamente."
+          : err instanceof Error
+            ? err.message
+            : "Não foi possível concluir a compra."
       );
     } finally {
-      setSelectingPlanId(null);
+      setBuying(null);
     }
   }
 
@@ -175,125 +214,125 @@ export function PlanosScreen({
       safeEdges={isPaywall ? ["top", "left", "right", "bottom"] : undefined}
     >
       <PlanosHero
-        subtitle={subtitle}
-        showExploreLink={showExploreLink}
+        subtitle={
+          adsFreeActive
+            ? "Você está sem anúncios neste aparelho e na web."
+            : "App gratuito com anúncios. Pague só se quiser remover a propaganda — via Google Play."
+        }
+        showExploreLink={Boolean(onExploreDashboard) || effectiveFlow === "welcome"}
         onExplore={
           onExploreDashboard ??
           (() => navigation.navigate("Dashboard"))
         }
       />
 
+      {account ? (
+        <PlanosStatusAlert flow={effectiveFlow} account={account} />
+      ) : null}
+
       {loading && !catalog ? <LoadingBlock /> : null}
-      {error && !catalog ? (
-        <ErrorBox message={error} onRetry={() => void load()} />
-      ) : null}
+      {error ? <ErrorBox message={error} onRetry={() => void load()} /> : null}
 
-      {catalog?.promo ? <PlanosPromoBanner promo={catalog.promo} /> : null}
+      {buyError ? <Text style={styles.error}>{buyError}</Text> : null}
 
-      <PlanosStatusAlert flow={effectiveFlow} account={account} />
-
-      {catalog ? (
-        <PlanosCheckoutPanel
-          catalog={catalog}
-          selectingPlanId={selectingPlanId}
-          onCheckout={(planId) => void handleCheckout(planId)}
-        />
-      ) : null}
-
-      {checkoutError ? (
-        <View style={styles.notice}>
-          <Text style={styles.noticeKicker}>Checkout indisponível</Text>
-          <Text style={styles.noticeBody}>{checkoutError}</Text>
-          <Pressable onPress={() => setCheckoutError(null)}>
-            <Text style={styles.noticeDismiss}>Fechar</Text>
-          </Pressable>
-        </View>
-      ) : null}
-
-      <View style={styles.footer}>
-        <View style={styles.legal}>
-          <Pressable
-            onPress={() => void Linking.openURL(resolveWebHref("/termos"))}
-          >
-            <Text style={styles.legalLink}>Termos</Text>
-          </Pressable>
-          <Text style={styles.legalSep}>·</Text>
-          <Pressable
-            onPress={() =>
-              void Linking.openURL(resolveWebHref("/privacidade"))
-            }
-          >
-            <Text style={styles.legalLink}>Privacidade</Text>
-          </Pressable>
-        </View>
-
-        <GiftKeyRedeemForm
-          onSuccess={() => {
-            void syncSubscriptionFromPerfil();
-          }}
-        />
-
-        {showDashboardLink ? (
-          <Pressable onPress={() => navigation.navigate("Dashboard")}>
-            <Text style={styles.back}>← Voltar ao dashboard</Text>
-          </Pressable>
-        ) : null}
-
-        {footerExtra}
+      <View style={styles.list}>
+        {purchasable.map((plan) => {
+          const play = catalog?.playPrices?.[plan.id as PaidPlanId];
+          const priceLabel = play?.priceLabel ?? plan.priceLabel;
+          return (
+            <View key={plan.id} style={styles.card}>
+              <Text style={styles.cardTitle}>{plan.label}</Text>
+              <Text style={styles.cardPrice}>{priceLabel}</Text>
+              <Text style={styles.cardDesc}>{plan.description}</Text>
+              <Pressable
+                style={[styles.cta, (buying || adsFreeActive) && styles.ctaDisabled]}
+                disabled={Boolean(buying) || adsFreeActive}
+                onPress={() => void handlePlayPurchase(plan.id as PaidPlanId)}
+              >
+                <Text style={styles.ctaText}>
+                  {adsFreeActive
+                    ? "Já sem anúncios"
+                    : buying === plan.id
+                      ? "Abrindo Play…"
+                      : "Comprar na Play"}
+                </Text>
+              </Pressable>
+            </View>
+          );
+        })}
       </View>
+
+      <Text style={styles.note}>
+        Pagamento somente pela Google Play neste app. PIX fica exclusivo da versão web.
+        O benefício vale nos dois.
+      </Text>
+
+      <GiftKeyRedeemForm
+        onSuccess={() => {
+          void refreshAdsFreeFromServer();
+          void load();
+        }}
+      />
+
+      {footerExtra}
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  footer: { marginTop: 20, gap: 12, paddingBottom: 8 },
-  legal: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
+  list: { gap: 12, marginTop: 8 },
+  card: {
+    borderWidth: 1,
+    borderColor: brand.border,
+    borderRadius: brand.radiusLg,
+    padding: 16,
+    backgroundColor: brand.glass,
     gap: 8,
   },
-  legalLink: {
-    fontSize: 13,
+  cardTitle: {
+    color: brand.text,
     fontFamily: brand.fontBodySemi,
     fontWeight: "600",
-    color: brand.gold200,
+    fontSize: 16,
   },
-  legalSep: { color: brand.textMuted },
-  back: {
-    textAlign: "center",
+  cardPrice: {
+    color: brand.gold,
+    fontFamily: brand.fontDisplayExtra,
+    fontWeight: "800",
+    fontSize: 22,
+  },
+  cardDesc: {
+    color: brand.textMuted,
+    fontFamily: brand.fontBody,
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  cta: {
     marginTop: 8,
-    fontSize: 13,
-    fontFamily: brand.fontBodySemi,
-    fontWeight: "600",
-    color: brand.textSecondary,
-  },
-  notice: {
-    marginTop: 12,
-    padding: 12,
+    minHeight: brand.touchMin,
     borderRadius: brand.radiusMd,
-    borderWidth: 1,
-    borderColor: "rgba(248,81,73,0.4)",
-    backgroundColor: "rgba(248,81,73,0.12)",
-    gap: 4,
+    backgroundColor: brand.blue,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  noticeKicker: {
-    fontSize: 11,
+  ctaDisabled: { opacity: 0.55 },
+  ctaText: {
+    color: brand.text,
     fontFamily: brand.fontBodyBold,
     fontWeight: "700",
-    color: "#FF7B72",
-    textTransform: "uppercase",
   },
-  noticeBody: {
-    fontSize: 13,
-    fontFamily: brand.fontBody,
-    color: brand.textSecondary,
-  },
-  noticeDismiss: {
-    marginTop: 4,
+  note: {
+    marginTop: 16,
+    marginBottom: 12,
+    color: brand.textMuted,
     fontSize: 12,
+    lineHeight: 17,
+    fontFamily: brand.fontBody,
+  },
+  error: {
+    color: brand.danger,
+    marginBottom: 8,
     fontFamily: brand.fontBodySemi,
     fontWeight: "600",
-    color: brand.gold200,
   },
 });

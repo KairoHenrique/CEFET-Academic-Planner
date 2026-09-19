@@ -582,6 +582,21 @@ export interface SitePromoPublic {
 export interface BillingPlansResponse {
   plans: BillingPlanView[];
   checkoutEnabled: boolean;
+  ok?: true;
+  currency?: "BRL";
+  productModel?: "ads_free" | "legacy_access";
+  channels?: { web: "pix"; mobile: "play" };
+  playPrices?: Partial<
+    Record<
+      PaidPlanId,
+      { priceCents: number; priceLabel: string; sku: string }
+    >
+  >;
+  trialPolicy?: {
+    durationDays: number;
+    oncePerCpf: true;
+    label: string;
+  };
   promo?: SitePromoPublic | null;
   quarterSavings?: { label: string; percent?: number | null } | null;
   semesterSavings?: { label: string; percent?: number | null } | null;
@@ -600,9 +615,19 @@ export interface BillingAccountSubscriptionView {
   renewalEligible: boolean;
 }
 
+export interface BillingAdsFreeView {
+  active: boolean;
+  expiresAt: string | null;
+  planId: string | null;
+  planLabel: string | null;
+  source: string | null;
+}
+
 export interface BillingAccountResponse {
   ok: true;
   subscription: BillingAccountSubscriptionView;
+  adsFree?: BillingAdsFreeView;
+  payments?: unknown[];
 }
 
 export interface BillingCheckoutRequestBody {

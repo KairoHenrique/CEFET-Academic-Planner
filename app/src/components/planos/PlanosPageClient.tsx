@@ -61,7 +61,7 @@ export function PlanosPageClient() {
     (perfil?.subscription.status === "trial_active");
 
   const subtitle = catalog?.checkoutEnabled
-    ? "Um plano, um clique, acesso completo ao ACME."
+    ? "O ACME é gratuito. Pague só se quiser remover anúncios no app e na web (PIX)."
     : "Checkout PIX em configuração — valores abaixo são referência.";
 
   const handleCheckout = async (planId: PaidPlanId) => {

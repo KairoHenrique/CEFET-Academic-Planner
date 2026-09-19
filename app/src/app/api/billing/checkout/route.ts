@@ -17,7 +17,7 @@ import {
   parseBillingCheckoutRequest,
   readIdempotencyKeyFromHeaders,
 } from "@/lib/billing/checkout/parse-billing-checkout-request";
-import { APP_IS_FREE } from "@/lib/billing/free-mode";
+import { ADS_REMOVAL_CHECKOUT_ENABLED } from "@/lib/billing/free-mode";
 import { isPostgresBackend } from "@/lib/db/backend/config";
 import { ensurePostgresReady } from "@/lib/db/bootstrap-postgres";
 
@@ -25,9 +25,9 @@ export const runtime = "nodejs";
 
 export const POST = async (request: Request) => {
   try {
-    if (APP_IS_FREE) {
+    if (!ADS_REMOVAL_CHECKOUT_ENABLED) {
       throw validationError(
-        "O ACME HUB é gratuito. Checkout PIX está desativado."
+        "Checkout de remoção de anúncios está temporariamente desativado."
       );
     }
 

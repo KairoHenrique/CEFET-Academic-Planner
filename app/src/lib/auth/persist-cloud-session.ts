@@ -1,5 +1,4 @@
 import type { AccountAuthResult } from "@/lib/auth/account/types";
-import { markBackgroundSyncPending } from "@/lib/auth/background-sync";
 import { setSession, type AuthSession } from "@/lib/auth/session";
 
 export function persistCloudAuthSession(result: AccountAuthResult): AuthSession {
@@ -16,8 +15,6 @@ export function persistCloudAuthSession(result: AccountAuthResult): AuthSession 
     expiresAt: result.session.expiresAt,
   };
   setSession(session);
-  // Agenda o sync de entrada (consumido por useAutoSync); no cloud a senha
-  // SIGAA está no servidor, então o sync roda sem credencial local.
-  markBackgroundSyncPending();
+  // Sem sync automatico no login — usuario clica para sincronizar.
   return session;
 }

@@ -63,7 +63,7 @@ const navTheme = {
 
 /**
  * App nativo Android — clone F28 (navbar + drawer, sem WebView).
- * Login local · sessão SecureStore · cache · mutações · push.
+ * Boot: hidrata sessao local e libera UI; refresh de rede em background.
  */
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -91,6 +91,11 @@ export default function App() {
     void (async () => {
       await hydrateAvatarInitials();
       const stored = await hydrateSession();
+      const current = getSession();
+      setSessionState(current);
+      // Libera a UI ja com snapshot local (nao espera /api/perfil).
+      setReady(true);
+
       if (stored) {
         try {
           await ensureFreshSession();
@@ -98,16 +103,20 @@ export default function App() {
         } catch {
           // Mantém snapshot local.
         }
-      }
-      const current = getSession();
-      setSessionState(current);
-      if (
+        const refreshed = getSession();
+        setSessionState(refreshed);
+        if (
+          refreshed &&
+          resolveAppDestination(refreshed.subscription.status) === "home"
+        ) {
+          void registerPushForCurrentSession();
+        }
+      } else if (
         current &&
         resolveAppDestination(current.subscription.status) === "home"
       ) {
         void registerPushForCurrentSession();
       }
-      setReady(true);
     })();
     return () => {
       removePushNav();
@@ -124,7 +133,6 @@ export default function App() {
     );
   }
 
-  // Fontes: se falharem, segue com fallback do sistema.
   void fontsLoaded;
 
   if (!isAuthenticated(session) || !session) {

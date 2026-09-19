@@ -11,7 +11,6 @@ import { Icon } from "@/components/ui/Icon";
 import { useSync } from "@/hooks/useSync";
 import { ApiClientError, getSyncReadiness, postSigaaVerify } from "@/lib/api/client";
 import { saveSyncCredentials } from "@/lib/auth/credentials";
-import { markBackgroundSyncPending } from "@/lib/auth/background-sync";
 import { setSession } from "@/lib/auth/session";
 import { brand } from "@/config/brand";
 import { LoginCard } from "@/components/auth/LoginCard";
@@ -32,8 +31,6 @@ export function SigaaLoginForm() {
     setErrorEpoch((value) => value + 1);
   };
   const [entering, setEntering] = useState(false);
-  const [isFirstLoginSync, setIsFirstLoginSync] = useState(false);
-
   useEffect(() => {
     if (searchParams.get("error") === "credentials") {
       showError(
@@ -52,7 +49,6 @@ export function SigaaLoginForm() {
     event.preventDefault();
     setErrorMessage(null);
     sync.resetError();
-    setIsFirstLoginSync(false);
 
     const trimmedUsername = username.trim();
 
@@ -81,7 +77,6 @@ export function SigaaLoginForm() {
           savePassword,
           loggedAt: new Date().toISOString(),
         });
-        markBackgroundSyncPending();
         router.push("/");
         router.refresh();
         return;
@@ -93,14 +88,15 @@ export function SigaaLoginForm() {
       }
     }
 
-    setIsFirstLoginSync(true);
-    const ok = await sync.startSync(credentials, {
-      mode: "full",
-      trigger: "first_login",
-    });
-    if (!ok) {
-      setIsFirstLoginSync(false);
-      return;
+    // Sem sync automatico no login — usuario sincroniza pelo botao.
+    try {
+      await postSigaaVerify(credentials);
+    } catch (error) {
+      if (error instanceof ApiClientError) {
+        showError(error.message);
+        return;
+      }
+      throw error;
     }
 
     saveSyncCredentials(credentials, savePassword);
@@ -189,12 +185,6 @@ export function SigaaLoginForm() {
                 : "Entrar"}
           </button>
 
-          {sync.syncing && isFirstLoginSync && (
-            <p className="login-first-sync-hint" role="status">
-              É seu primeiro acesso — estamos baixando todo o seu histórico do
-              SIGAA. Isso pode levar alguns minutos; não feche esta página.
-            </p>
-          )}
         </div>
       </form>
 

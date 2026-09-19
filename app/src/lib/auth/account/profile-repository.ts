@@ -304,3 +304,16 @@ export async function updateProfileContact(
 
   return mapProfileRow(row);
 }
+
+/** Atualiza last_seen_at no maximo a cada 1h (barato; usado pelo withDb). */
+export async function touchProfileLastSeenAt(userId: string): Promise<void> {
+  if (!userId.trim()) return;
+  await getPostgresPool().query(
+    `UPDATE app_profiles
+     SET last_seen_at = now()
+     WHERE user_id = $1
+       AND (last_seen_at IS NULL OR last_seen_at < now() - interval '1 hour')`,
+    [userId]
+  );
+}
+

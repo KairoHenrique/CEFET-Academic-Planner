@@ -3,8 +3,8 @@ export const dynamic = "force-dynamic";
 import { unauthorizedError } from "@/lib/api/errors";
 import { apiErrorResponse, apiSuccess } from "@/lib/api/response";
 import { isPostgresBackend } from "@/lib/db/backend/config";
+import { withCloudPostgresClient } from "@/lib/db/postgres/cloud-request-client";
 import { verifyCronSecret } from "@/lib/health/check-health";
-import { runAppUpdateNotifyCheck } from "@/lib/push/run-app-update-notify";
 
 export const runtime = "nodejs";
 
@@ -22,7 +22,12 @@ export async function POST(request: Request) {
   }
 
   try {
-    const result = await runAppUpdateNotifyCheck();
+    const { runAppUpdateNotifyCheck } = await import(
+      "@/lib/push/run-app-update-notify"
+    );
+    const result = await withCloudPostgresClient(() =>
+      runAppUpdateNotifyCheck()
+    );
     return apiSuccess(result);
   } catch (error) {
     return apiErrorResponse(error);

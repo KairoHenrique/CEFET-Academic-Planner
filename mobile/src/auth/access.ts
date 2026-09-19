@@ -1,6 +1,6 @@
 import type { PerfilSubscriptionStatus } from "@acme/api-contracts";
 
-/** App gratuito — nunca bloqueia por assinatura. */
+/** Features academicas sempre liberadas — ads_free e opcional. */
 export function isSubscriptionAccessAllowed(
   _status: PerfilSubscriptionStatus
 ): boolean {
@@ -15,7 +15,7 @@ export function isSubscriptionBlocked(
 
 export type AppDestination = "home" | "paywall";
 
-/** Sempre home — paywall desativado. */
+/** Sempre home — sem paywall de funcionalidade. */
 export function resolveAppDestination(
   _status: PerfilSubscriptionStatus
 ): AppDestination {
@@ -26,15 +26,17 @@ export function subscriptionStatusLabel(
   status: PerfilSubscriptionStatus
 ): string {
   switch (status) {
-    case "trial_active":
     case "active":
+      return "Sem anúncios";
+    case "trial_active":
       return "Acesso gratuito";
-    case "trial_expired":
     case "pending_payment":
+      return "Pagamento pendente";
     case "expired":
+    case "trial_expired":
     case "cancelled":
-      return "Acesso gratuito";
+      return "Com anúncios (gratuito)";
     default:
-      return "Acesso gratuito";
+      return "Gratuito";
   }
 }

@@ -35,7 +35,7 @@ async function forwardPushToCloud(username: string): Promise<void> {
       authorization: `Bearer ${secret}`,
       "content-type": "application/json",
     },
-    body: JSON.stringify({ cpf, fallbackSyncToast: true }),
+    body: JSON.stringify({ cpf, fallbackSyncToast: true, source: "sync" }),
   });
 
   if (!response.ok) {
@@ -53,6 +53,7 @@ export async function notifySyncCompletedPush(username: string): Promise<void> {
     if (isPostgresBackend()) {
       await dispatchNotificationPushesForCpf(username, {
         fallbackSyncToast: true,
+        source: "sync",
       });
       return;
     }

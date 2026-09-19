@@ -50,7 +50,7 @@ const base = (
   process.argv[2]?.trim() ||
   env.PLANNER_APP_URL?.trim() ||
   env.PLANNER_HEALTH_URL?.trim() ||
-  "https://acme-hub.khfm.workers.dev"
+  "https://acmehub.com.br"
 ).replace(/\/$/, "");
 
 const supabaseUrl = env.NEXT_PUBLIC_SUPABASE_URL?.trim();

@@ -7,7 +7,7 @@ type Props = {
   onExplore?: () => void;
 };
 
-/** Espelho F28 de `PlanosHero`. */
+/** Remover anuncios — copy alinhada ao modelo ads_free. */
 export function PlanosHero({
   subtitle,
   showExploreLink = false,
@@ -15,20 +15,20 @@ export function PlanosHero({
 }: Props) {
   return (
     <View style={styles.wrap}>
-      <Text style={styles.eyebrow}>Assinatura</Text>
-      <Text style={styles.title}>Escolha seu plano</Text>
+      <Text style={styles.eyebrow}>Anúncios</Text>
+      <Text style={styles.title}>Remover propaganda</Text>
       <Text style={styles.subtitle}>{subtitle}</Text>
       <View style={styles.pills}>
         <View style={styles.pill}>
-          <Text style={styles.pillText}>7 dias grátis no cadastro</Text>
+          <Text style={styles.pillText}>App gratuito para sempre</Text>
         </View>
         <View style={styles.pill}>
-          <Text style={styles.pillText}>Pagamento via PIX</Text>
+          <Text style={styles.pillText}>Pagamento só na Play</Text>
         </View>
       </View>
       {showExploreLink && onExplore ? (
         <Pressable onPress={onExplore} hitSlop={6}>
-          <Text style={styles.explore}>Explorar o ACME com trial ativo →</Text>
+          <Text style={styles.explore}>Continuar com anúncios →</Text>
         </Pressable>
       ) : null}
     </View>
@@ -39,11 +39,11 @@ const styles = StyleSheet.create({
   wrap: { gap: 10, marginBottom: 16 },
   eyebrow: {
     fontSize: 11,
-    fontFamily: brand.fontBodyBold,
-    fontWeight: "700",
-    letterSpacing: 0.8,
-    textTransform: "uppercase",
+    fontFamily: brand.fontBodySemi,
+    fontWeight: "600",
     color: brand.gold200,
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
   },
   title: {
     fontSize: 26,
@@ -53,30 +53,30 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 14,
-    fontFamily: brand.fontBody,
-    color: brand.textSecondary,
     lineHeight: 20,
+    fontFamily: brand.fontBody,
+    color: brand.textMuted,
   },
-  pills: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 4 },
+  pills: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   pill: {
-    borderRadius: brand.radiusSm,
     borderWidth: 1,
     borderColor: brand.border,
-    backgroundColor: "rgba(255,255,255,0.04)",
+    borderRadius: brand.radiusSm,
     paddingHorizontal: 10,
     paddingVertical: 6,
+    backgroundColor: "rgba(212,168,67,0.08)",
   },
   pillText: {
     fontSize: 12,
-    fontFamily: brand.fontBodySemi,
-    fontWeight: "600",
-    color: brand.textSecondary,
+    fontFamily: brand.fontBodyMed,
+    fontWeight: "500",
+    color: brand.gold200,
   },
   explore: {
     marginTop: 4,
-    fontSize: 13,
+    color: brand.gold,
     fontFamily: brand.fontBodySemi,
     fontWeight: "600",
-    color: brand.gold200,
+    fontSize: 14,
   },
 });

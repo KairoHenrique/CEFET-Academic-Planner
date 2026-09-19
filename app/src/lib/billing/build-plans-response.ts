@@ -1,11 +1,19 @@
 import { computeBundleSavings } from "./compute-bundle-savings";
 import { resolvePriceLabel } from "./format-brl-cents";
-import { BILLING_PLAN_DEFINITIONS } from "./plan-catalog";
+import {
+  ADS_FREE_PLAN_IDS,
+  BILLING_PLAN_DEFINITIONS,
+} from "./plan-catalog";
 import {
   isBillingPriceConfiguredViaEnv,
   resolveBillingPriceCents,
 } from "./resolve-plan-prices";
+import {
+  DEFAULT_PLAY_PRICES_CENTS,
+  PLAY_PRODUCT_SKU,
+} from "./default-play-prices";
 import { resolvePixGatewayConfig } from "./gateway/resolve-pix-gateway-config";
+import { ADS_REMOVAL_CHECKOUT_ENABLED } from "./free-mode";
 import type { BillingPlanView, BillingPlansResponse, PaidPlanId } from "./types";
 import { TRIAL_DURATION_DAYS, TRIAL_PLAN_LABEL } from "@/lib/auth/trial/constants";
 
@@ -39,15 +47,35 @@ function buildPlanView(
 export function buildBillingPlansResponse(): BillingPlansResponse {
   const plans = BILLING_PLAN_DEFINITIONS.map(buildPlanView);
   const monthCents = resolveBillingPriceCents("month");
-  const quarterCents = resolveBillingPriceCents("quarter");
-  const semesterCents = resolveBillingPriceCents("semester");
   const yearCents = resolveBillingPriceCents("year");
-  const fiveYearCents = resolveBillingPriceCents("five_year");
+  const checkoutReady =
+    ADS_REMOVAL_CHECKOUT_ENABLED && resolvePixGatewayConfig().checkoutReady;
+
+  const playPrices: Partial<
+    Record<PaidPlanId, { priceCents: number; priceLabel: string; sku: string }>
+  > = {};
+  for (const planId of ADS_FREE_PLAN_IDS) {
+    const cents = DEFAULT_PLAY_PRICES_CENTS[planId];
+    const sku = PLAY_PRODUCT_SKU[planId];
+    if (cents != null && sku) {
+      playPrices[planId] = {
+        priceCents: cents,
+        priceLabel: resolvePriceLabel(cents),
+        sku,
+      };
+    }
+  }
 
   return {
     ok: true,
     currency: "BRL",
-    checkoutEnabled: resolvePixGatewayConfig().checkoutReady,
+    checkoutEnabled: checkoutReady,
+    productModel: "ads_free",
+    channels: {
+      web: "pix",
+      mobile: "play",
+    },
+    playPrices,
     trialPolicy: {
       durationDays: TRIAL_DURATION_DAYS,
       oncePerCpf: true,
@@ -55,29 +83,14 @@ export function buildBillingPlansResponse(): BillingPlansResponse {
     },
     plans,
     promo: null,
-    quarterSavings: computeBundleSavings(
-      monthCents,
-      3,
-      quarterCents,
-      "três mensalidades"
-    ),
-    semesterSavings: computeBundleSavings(
-      quarterCents,
-      2,
-      semesterCents,
-      "dois trimestres"
-    ),
+    quarterSavings: null,
+    semesterSavings: null,
     yearSavings: computeBundleSavings(
-      semesterCents,
-      2,
+      monthCents,
+      12,
       yearCents,
-      "dois semestres"
+      "doze mensalidades"
     ),
-    fiveYearSavings: computeBundleSavings(
-      yearCents,
-      5,
-      fiveYearCents,
-      "cinco anos no plano anual"
-    ),
+    fiveYearSavings: null,
   };
 }

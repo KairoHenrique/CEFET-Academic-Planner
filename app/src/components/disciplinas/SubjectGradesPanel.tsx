@@ -307,19 +307,39 @@ export function SubjectGradesPanel({ subject }: SubjectGradesPanelProps) {
   };
 
   const pendingLabel = formatGradePoints(pendingTeacherPoints);
-  const addBudgetLabel = formatGradePoints(activeAddBudget);
-  const editBudgetLabel = formatGradePoints(editDistributionBudget);
+
+  // Contador "Faltam X" desconta a nota máxima digitada no form (ao vivo).
+  const draftAddAllocated = newExtra
+    ? 0
+    : (() => {
+        const n = Number.parseFloat(newMax);
+        return Number.isFinite(n) && n > 0 ? n : 0;
+      })();
+  const liveAddRemaining = Math.max(0, activeAddBudget - draftAddAllocated);
+  const liveAddRemainingLabel = formatGradePoints(liveAddRemaining);
+
+  const draftEditAllocated = editExtra
+    ? 0
+    : (() => {
+        const n = Number.parseFloat(editMax);
+        return Number.isFinite(n) && n > 0 ? n : 0;
+      })();
+  const liveEditRemaining = Math.max(
+    0,
+    editDistributionBudget - draftEditAllocated
+  );
+  const liveEditRemainingLabel = formatGradePoints(liveEditRemaining);
 
   const addModalAside =
-    !newExtra && activeAddBudget > 0 ? (
-      <>Faltam {addBudgetLabel} pts para distribuir</>
+    !newExtra && liveAddRemaining > 0 ? (
+      <>Faltam {liveAddRemainingLabel} pts para distribuir</>
     ) : !newExtra ? (
       <>Distribuição completa</>
     ) : undefined;
 
   const editModalAside =
-    editRow && !editExtra && editDistributionBudget > 0 ? (
-      <>Faltam {editBudgetLabel} pts para distribuir</>
+    editRow && !editExtra && liveEditRemaining > 0 ? (
+      <>Faltam {liveEditRemainingLabel} pts para distribuir</>
     ) : editRow && !editExtra ? (
       <>Distribuição completa</>
     ) : undefined;
@@ -610,9 +630,7 @@ export function SubjectGradesPanel({ subject }: SubjectGradesPanelProps) {
             hint={
               newExtra
                 ? "Notas extras não entram no limite de distribuição."
-                : activeAddBudget > 0
-                  ? `Até ${addBudgetLabel} pts disponíveis nesta matéria.`
-                  : "Não há pontos disponíveis para distribuir."
+                : undefined
             }
           />
           <ToggleOption
@@ -669,9 +687,7 @@ export function SubjectGradesPanel({ subject }: SubjectGradesPanelProps) {
             hint={
               editExtra
                 ? "Notas extras não entram no limite de distribuição."
-                : editDistributionBudget > 0
-                  ? `Até ${editBudgetLabel} pts disponíveis nesta matéria.`
-                  : "Não há pontos disponíveis para distribuir."
+                : undefined
             }
           />
           <ToggleOption

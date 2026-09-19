@@ -14,60 +14,43 @@ const FLOW_COPY: Record<
 > = {
   welcome: {
     tone: "welcome",
-    title: "Conta criada",
-    body: "Seu trial de 7 dias já está ativo. Assine quando quiser garantir acesso contínuo.",
+    title: "Conta pronta",
+    body: "O app é gratuito com anúncios. Só pague se quiser remover a propaganda.",
   },
   renew: {
     tone: "renew",
-    title: "Assinatura necessária",
-    body: "Escolha um período abaixo e pague via PIX para voltar ao ACME.",
+    title: "Renovar remoção de anúncios",
+    body: "Escolha um período abaixo e pague pela Google Play.",
   },
   pending: {
     tone: "pending",
-    title: "PIX pendente",
-    body: "Conclua o pagamento em andamento ou escolha um novo plano.",
+    title: "Compra em andamento",
+    body: "Conclua na Play Store ou tente novamente.",
   },
 };
 
-/** Espelho F28 de `PlanosStatusAlert`. */
+/** Status do plano sem ads. */
 export function PlanosStatusAlert({ flow, account }: Props) {
+  if (account?.adsFree?.active) {
+    return (
+      <View style={[styles.alert, styles.tone_welcome]}>
+        <Text style={styles.title}>Sem anúncios</Text>
+        <Text style={styles.body}>
+          Válido no app e na web
+          {account.adsFree.expiresAt
+            ? ` até ${new Date(account.adsFree.expiresAt).toLocaleDateString("pt-BR")}.`
+            : "."}
+        </Text>
+      </View>
+    );
+  }
+
   if (flow && flow !== "exists") {
     const copy = FLOW_COPY[flow];
     return (
       <View style={[styles.alert, styles[`tone_${copy.tone}`]]}>
         <Text style={styles.title}>{copy.title}</Text>
         <Text style={styles.body}>{copy.body}</Text>
-      </View>
-    );
-  }
-
-  const subscription = account?.subscription;
-  if (!subscription) return null;
-
-  if (subscription.inGracePeriod) {
-    return (
-      <View style={[styles.alert, styles.tone_grace]}>
-        <Text style={styles.title}>Período de tolerância</Text>
-        <Text style={styles.body}>
-          Você ainda tem {subscription.daysRemaining ?? 0} dia(s) para renovar.
-          O novo período será somado ao saldo restante.
-        </Text>
-      </View>
-    );
-  }
-
-  if (
-    subscription.status === "expired" ||
-    subscription.status === "trial_expired"
-  ) {
-    return (
-      <View style={[styles.alert, styles.tone_renew]}>
-        <Text style={styles.title}>Renovar assinatura</Text>
-        <Text style={styles.body}>
-          {subscription.renewalEligible
-            ? "Dias restantes do ciclo anterior serão acumulados ao renovar."
-            : "Seu acesso expirou. Escolha um plano para continuar."}
-        </Text>
       </View>
     );
   }
@@ -106,9 +89,5 @@ const styles = StyleSheet.create({
   tone_pending: {
     borderColor: "rgba(212,168,67,0.4)",
     backgroundColor: "rgba(212,168,67,0.12)",
-  },
-  tone_grace: {
-    borderColor: "rgba(56,139,253,0.4)",
-    backgroundColor: "rgba(56,139,253,0.12)",
   },
 });

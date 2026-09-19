@@ -18,6 +18,7 @@ export type SubscriptionStatus = (typeof SUBSCRIPTION_STATUSES)[number];
 export const SUBSCRIPTION_SOURCES = [
   "trial",
   "pix",
+  "play",
   "gift_key",
   "manual",
   "referral",

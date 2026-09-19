@@ -53,8 +53,8 @@ upsert_env "WORKER_PORT" "8787" ".env.local"
 upsert_env "SYNC_MIRROR_POSTGRES" "true" ".env.local"
 upsert_env "PLANNER_DATABASE" "postgres" ".env.local"
 upsert_env "ACCOUNT_EMAIL_VIA_HOME_WORKER" "true" ".env.local"
-upsert_env "PLANNER_HEALTH_URL" "https://acme-hub.khfm.workers.dev" ".env.local"
-upsert_env "PLANNER_APP_URL" "https://acme-hub.khfm.workers.dev" ".env.local"
+upsert_env "PLANNER_HEALTH_URL" "https://acmehub.com.br" ".env.local"
+upsert_env "PLANNER_APP_URL" "https://acmehub.com.br" ".env.local"
 
 # Remove URL de túnel do PC — o servidor Termux regenera.
 if grep -qE '^SIGAA_WORKER_URL=' .env.local; then

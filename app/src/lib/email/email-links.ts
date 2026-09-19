@@ -5,7 +5,7 @@
  * caminhos relativos). A base vem do ambiente quando disponível
  * (`PLANNER_APP_URL`), com fallback para o domínio público de produção.
  */
-const DEFAULT_APP_BASE_URL = "https://acme-hub.khfm.workers.dev";
+const DEFAULT_APP_BASE_URL = "https://acmehub.com.br";
 
 export function resolveAppBaseUrl(): string {
   const fromEnv =

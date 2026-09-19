@@ -63,6 +63,16 @@ export interface BillingPlansResponse {
   ok: true;
   currency: "BRL";
   checkoutEnabled: boolean;
+  /** ads_free = app gratis + plano so remove propaganda. */
+  productModel?: "ads_free" | "legacy_access";
+  channels?: { web: "pix"; mobile: "play" };
+  /** Precos / SKUs Google Play (somente APK). */
+  playPrices?: Partial<
+    Record<
+      PaidPlanId,
+      { priceCents: number; priceLabel: string; sku: string }
+    >
+  >;
   trialPolicy: {
     durationDays: number;
     oncePerCpf: true;

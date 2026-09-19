@@ -48,6 +48,7 @@ export function DashboardScreen() {
     if (!silent) setLoading(true);
     setError(null);
     try {
+      // 1) Cache na hora (cold start rapido apos 1o sync)
       const [dash, sched] = await Promise.all([
         fetchDashboard(),
         fetchSchedule().catch(() => null),
@@ -57,6 +58,21 @@ export function DashboardScreen() {
       if (sched) setSchedule(sched.data);
       if (dash.data.aluno?.nome) {
         void setAvatarFromNome(dash.data.aluno.nome);
+      }
+      setLoading(false);
+
+      // 2) Revalidate em background se veio do cache
+      if (dash.fromCache || sched?.fromCache) {
+        const [dashFresh, schedFresh] = await Promise.all([
+          fetchDashboard({ forceNetwork: true }),
+          fetchSchedule({ forceNetwork: true }).catch(() => null),
+        ]);
+        setData(dashFresh.data);
+        setFromCache(false);
+        if (schedFresh) setSchedule(schedFresh.data);
+        if (dashFresh.data.aluno?.nome) {
+          void setAvatarFromNome(dashFresh.data.aluno.nome);
+        }
       }
     } catch (err) {
       if (err instanceof ApiClientError && err.status === 404) {
@@ -85,6 +101,7 @@ export function DashboardScreen() {
   useOnSyncComplete(() => {
     void load(true);
   });
+
 
   const emptySchedule: ScheduleApiResponse = {
     days: ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"],

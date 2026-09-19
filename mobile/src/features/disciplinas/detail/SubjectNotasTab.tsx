@@ -10,6 +10,10 @@ import {
 import type { SubjectDetail, SubjectEvaluation } from "@acme/api-contracts";
 import { ApiClientError } from "../../../auth/api";
 import { addNota, updateNotaScore } from "../../../api/mutations";
+import {
+  useGradeSimulation,
+  type SimEvaluationRow,
+} from "../useGradeSimulation";
 import { brand } from "../../../theme/brand";
 import { EmptyState } from "../../../ui/EmptyState";
 import { GradeRiskBlock, DISPLAY_GRADE_MAX } from "../../../ui/GradeRiskBlock";
@@ -39,7 +43,6 @@ const ZONE_BADGE = {
   },
 } as const;
 
-/** Nota mínima nesta avaliação para atingir a aprovação (igual ao site). */
 function evaluationMinimum(
   rows: SubjectEvaluation[],
   index: number,
@@ -69,7 +72,7 @@ function renderNecessario(
   return "—";
 }
 
-/** Painel Notas F28 — header + GradeRisk + cards de avaliação (mobile browser). */
+/** Painel Notas — inclui modo Simular (efemero, igual ao web). */
 export function SubjectNotasTab({ code, subject, onChanged }: Props) {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [draft, setDraft] = useState("");
@@ -80,10 +83,18 @@ export function SubjectNotasTab({ code, subject, onChanged }: Props) {
   const [score, setScore] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  const risk = subject.gradeRisk;
   const scaleMax = subject.gradeMax || DISPLAY_GRADE_MAX;
-  const passing = risk.passingGrade || 60;
-  const rows = subject.evaluations;
+  const passing = subject.gradeRisk.passingGrade || 60;
+  const sim = useGradeSimulation({
+    evaluations: subject.evaluations,
+    passingGrade: passing,
+    gradeMax: scaleMax,
+  });
+
+  const displayRisk = sim.simulateMode ? sim.simGradeRisk : subject.gradeRisk;
+  const rows: SubjectEvaluation[] = sim.simulateMode
+    ? sim.workingEvaluations
+    : subject.evaluations;
 
   const remainingTeacher = useMemo(() => {
     const distributed = rows
@@ -93,8 +104,8 @@ export function SubjectNotasTab({ code, subject, onChanged }: Props) {
   }, [rows, scaleMax]);
 
   const headerBadge =
-    risk.zone !== "unknown"
-      ? ZONE_BADGE[risk.zone as keyof typeof ZONE_BADGE]
+    displayRisk.zone !== "unknown"
+      ? ZONE_BADGE[displayRisk.zone as keyof typeof ZONE_BADGE]
       : null;
 
   async function saveScore(id: number) {
@@ -169,36 +180,68 @@ export function SubjectNotasTab({ code, subject, onChanged }: Props) {
               ]}
             >
               <Text style={[styles.riskBadgeText, { color: headerBadge.color }]}>
-                {risk.label}
+                {displayRisk.label}
               </Text>
             </View>
-          ) : subject.grade != null ? (
+          ) : subject.grade != null && !sim.simulateMode ? (
             <View style={styles.goldBadge}>
               <Text style={styles.goldBadgeText}>{subject.grade} pts</Text>
             </View>
           ) : null}
         </View>
-        <Pressable
-          style={styles.outlineBtn}
-          onPress={() => setShowAdd((v) => !v)}
-        >
-          <Text style={styles.outlineBtnText}>
-            {showAdd ? "Cancelar" : "+ Avaliação"}
-          </Text>
-        </Pressable>
+        <View style={styles.rowBtns}>
+          <Pressable
+            style={[styles.outlineBtn, styles.outlineBtnFlex]}
+            onPress={() => {
+              if (sim.simulateMode) sim.exitSimulation();
+              else {
+                setShowAdd(false);
+                setEditingId(null);
+                sim.enterSimulation();
+              }
+            }}
+          >
+            <Text style={styles.outlineBtnText}>
+              {sim.simulateMode ? "Notas reais" : "Simular"}
+            </Text>
+          </Pressable>
+          {!sim.simulateMode ? (
+            <Pressable
+              style={[styles.outlineBtn, styles.outlineBtnFlex]}
+              onPress={() => setShowAdd((v) => !v)}
+            >
+              <Text style={styles.outlineBtnText}>
+                {showAdd ? "Cancelar" : "+ Avaliação"}
+              </Text>
+            </Pressable>
+          ) : (
+            <Pressable
+              style={[styles.outlineBtn, styles.outlineBtnFlex]}
+              onPress={sim.handleReset}
+            >
+              <Text style={styles.outlineBtnText}>Resetar</Text>
+            </Pressable>
+          )}
+        </View>
       </View>
 
-      {risk.zone !== "unknown" ? (
+      {sim.simulateMode ? (
+        <Text style={styles.simHint}>
+          Modo simulação — alterações não são salvas no SIGAA.
+        </Text>
+      ) : null}
+
+      {displayRisk.zone !== "unknown" ? (
         <View style={styles.riskBlock}>
           <GradeRiskBlock
-            grade={subject.grade}
+            grade={sim.simulateMode ? displayRisk.currentTotal : subject.grade}
             gradeMax={scaleMax}
-            gradeRisk={risk}
+            gradeRisk={displayRisk}
           />
         </View>
       ) : null}
 
-      {showAdd ? (
+      {showAdd && !sim.simulateMode ? (
         <View style={styles.addBox}>
           <TextInput
             style={styles.input}
@@ -242,29 +285,45 @@ export function SubjectNotasTab({ code, subject, onChanged }: Props) {
       {rows.length === 0 ? (
         <EmptyState title="Sem avaliações registradas" />
       ) : (
-        rows.map((ev, idx) => {
+        (sim.simulateMode ? sim.simRows : subject.evaluations).map((ev, idx) => {
+          const displayEv = rows[idx];
+          if (!displayEv) return null;
           const minNeeded = evaluationMinimum(rows, idx, passing);
           const necessario = renderNecessario(
-            ev,
+            displayEv,
             minNeeded,
-            risk.pointsNeeded
+            displayRisk.pointsNeeded
           );
+          const simRow = sim.simulateMode ? (ev as SimEvaluationRow) : null;
+          const simKey = simRow?.simKey ?? "";
           return (
-            <View key={`${ev.id ?? ev.name}-${idx}`} style={styles.evalCard}>
+            <View
+              key={simKey || `${ev.id ?? ev.name}-${idx}`}
+              style={styles.evalCard}
+            >
               <View style={styles.evalRow}>
                 <Text style={styles.evalLabel}>Avaliação</Text>
                 <Text style={styles.evalValue}>
-                  {ev.name}
-                  {ev.extra ? " (extra)" : ""}
+                  {displayEv.name}
+                  {displayEv.extra ? " (extra)" : ""}
                 </Text>
               </View>
               <View style={styles.evalRow}>
                 <Text style={styles.evalLabel}>Máx.</Text>
-                <Text style={styles.evalValue}>{ev.max}</Text>
+                <Text style={styles.evalValue}>{displayEv.max}</Text>
               </View>
               <View style={styles.evalRow}>
                 <Text style={styles.evalLabel}>Nota</Text>
-                {editingId === ev.id ? (
+                {sim.simulateMode ? (
+                  <TextInput
+                    style={styles.scoreInput}
+                    value={sim.simScores[simKey] ?? ""}
+                    onChangeText={(value) => sim.setSimScore(simKey, value)}
+                    keyboardType="decimal-pad"
+                    placeholder="—"
+                    placeholderTextColor={brand.textMuted}
+                  />
+                ) : editingId === ev.id ? (
                   <View style={styles.editRow}>
                     <TextInput
                       style={styles.scoreInput}
@@ -311,7 +370,7 @@ export function SubjectNotasTab({ code, subject, onChanged }: Props) {
         })
       )}
 
-      {remainingTeacher > 0 ? (
+      {remainingTeacher > 0 && !sim.simulateMode ? (
         <Text style={styles.footerNote}>
           Faltam {remainingTeacher % 1 === 0 ? remainingTeacher : remainingTeacher.toFixed(1)}{" "}
           pontos para o professor distribuir
@@ -320,6 +379,7 @@ export function SubjectNotasTab({ code, subject, onChanged }: Props) {
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   panel: {
@@ -486,4 +546,12 @@ const styles = StyleSheet.create({
     color: brand.textMuted,
   },
   error: { color: brand.danger, marginBottom: 8, fontWeight: "600" },
+  rowBtns: { flexDirection: "row", gap: 8 },
+  outlineBtnFlex: { flex: 1 },
+  simHint: {
+    marginBottom: 10,
+    fontSize: 12,
+    fontFamily: brand.fontBody,
+    color: brand.gold200,
+  },
 });

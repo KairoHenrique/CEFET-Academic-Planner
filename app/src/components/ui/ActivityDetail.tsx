@@ -9,10 +9,10 @@ import {
 import type { ScheduleSlotData } from "@/config/mock/schedule";
 import type { AcademicTask } from "@/config/mock/tasks";
 import { disciplinaDetailPath } from "@/lib/disciplinas/disciplina-path";
+import { SubmitTaskButton } from "@/components/tasks/SubmitTaskButton";
 import { Icon } from "./Icon";
 import { EventTypeBadge } from "./EventTypeBadge";
 import { FormattedDescription } from "./FormattedDescription";
-import { SubmitTaskPanel } from "@/components/tasks/SubmitTaskPanel";
 
 interface EventDetailContentProps {
   event: CalendarEvent;
@@ -226,17 +226,8 @@ export const TaskDetailContent = memo(function TaskDetailContent({
         </p>
       )}
 
-      <SubmitTaskPanel task={task} onSubmitted={onSubmitted} />
-
       <div className="detail-actions">
-        <Link
-          href={disciplinaDetailPath(task.subjectCode)}
-          className="btn-gold"
-          onClick={onClose}
-        >
-          <Icon name="books" size={14} />
-          Ver disciplina
-        </Link>
+        <SubmitTaskButton task={task} onSubmitted={onSubmitted} />
         {onToggleDone && (
           <button type="button" className="btn-outline" onClick={onToggleDone}>
             <Icon name="check" size={14} />

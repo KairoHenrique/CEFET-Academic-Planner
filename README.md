@@ -1,18 +1,21 @@
 # ACME HUB
 
-Planejador acadêmico **100% gratuito** para alunos do **CEFET-MG**.  
+Planejador acadêmico **gratuito** (com anúncios opcionais no Android) para alunos do **CEFET-MG**.  
 Sincroniza dados do [SIGAA](https://sig.cefetmg.br/) e concentra a vida acadêmica em uma interface moderna (**web** + **Android**).
+
+> **ACME HUB** é o nome do produto. O repositório GitHub permanece `CEFET-Academic-Planner`. Para usar o app: [abrir o site](https://acmehub.com.br).
 
 | | |
 |---|---|
-| **Site (produção)** | https://acme-hub.khfm.workers.dev |
+| **Site (produção)** | https://acmehub.com.br |
 | **Pacote Android** | `br.cefethub.acme` |
 | **Versão app** | `1.15` (`versionCode` 15) |
-| **Repositório** | [github.com/KairoHenrique/CEFET-Academic-Planner](https://github.com/KairoHenrique/CEFET-Academic-Planner) *(alvo de rename: `acme-hub`)* |
-| **Licença** | MIT |
+| **Repositório** | [github.com/KairoHenrique/CEFET-Academic-Planner](https://github.com/KairoHenrique/CEFET-Academic-Planner) |
+| **Produto** | **ACME HUB** — site: https://acmehub.com.br |
+| **Licença** | AGPL-3.0 |
 | **Contato / LGPD** | acme.hubsuporte@gmail.com |
-| **Privacidade** | https://acme-hub.khfm.workers.dev/privacidade |
-| **Termos** | https://acme-hub.khfm.workers.dev/termos |
+| **Privacidade** | https://acmehub.com.br/privacidade |
+| **Termos** | https://acmehub.com.br/termos |
 
 ---
 
@@ -51,7 +54,7 @@ Sincroniza dados do [SIGAA](https://sig.cefetmg.br/) e concentra a vida acadêmi
 - **Dashboard**, **disciplinas**, **calendário** (grade + agenda), **mapa do curso**, **integralização**, **simulador**.
 - **Envio de tarefa** ao SIGAA (arquivo + comentário) via Servidor ACME.
 - **Notificações** in-app e push (Android) para prazos e atualizações.
-- **Produto gratuito** — sem assinatura, sem PIX, sem paywall.
+- **Produto gratuito** — funções acadêmicas sem paywall; anúncios no Android e na web; plano opcional remove anúncios (Play no app / PIX na web).
 
 ### Cursos / PPC
 
@@ -106,15 +109,15 @@ O scrape “pesado” fica no **Servidor ACME** (Termux ou PC). A cloud **despac
 
 Cada item abaixo tem espelho curto no código (comentários de cabeçalho). Detalhe operacional nesta seção.
 
-### D1 — App 100% gratuito (set/2026)
+### D1 — Gratuito + ads opcional (set/2026+)
 
 | | |
 |---|---|
-| **Onde** | `app/src/lib/billing/free-mode.ts` |
-| **Flags** | `APP_IS_FREE = true`, `BILLING_ENFORCED = false` |
-| **Efeito** | Gate não bloqueia; checkout PIX recusado; e-mails de fim de trial não enfileiram; cadastro sem “trial 7 dias” |
-| **Por quê** | Remover fricção de cobrança para alunos CEFET-MG |
-| **Legado** | Código de planos/PIX/gift keys/referrals permanece dormante para possível reativação |
+| **Onde** | `app/src/lib/billing/free-mode.ts`, `resolve-ads-free.ts` |
+| **Flags** | `APP_IS_FREE = true`, `BILLING_ENFORCED = false`, `ADS_REMOVAL_CHECKOUT_ENABLED = true` |
+| **Efeito** | Features acadêmicas sempre liberadas; checkout PIX (web) e Play Billing (APK) só para **remover anúncios**; entitlement `ads_free` unificado |
+| **Preços (líquido alinhado)** | Web PIX: R$ 9,90 / mês · R$ 79,90 / ano · Play: R$ 11,90 / mês · R$ 93,90 / ano |
+| **Por quê** | App forever-free com monetização leve; AGPL-3.0 no código |
 
 ### D2 — Sync híbrido (worker preferido → aparelho)
 
@@ -163,7 +166,7 @@ Chromium no Android/ARM é mais lento. Defaults de login/nav/job/poll foram alin
 ## 4. Estrutura do repositório
 
 ```
-CEFET-Academic-Planner/   (acme-hub)
+CEFET-Academic-Planner/   (produto: ACME HUB)
 ├── README.md                 ← esta documentação
 ├── .gitignore
 ├── app/                      ← Next.js + API + scraper + home-worker + crons CF
@@ -261,7 +264,7 @@ cp .env.example .env.local
 cd mobile
 npm install
 cp .env.example .env
-# EXPO_PUBLIC_API_BASE_URL=https://acme-hub.khfm.workers.dev
+# EXPO_PUBLIC_API_BASE_URL=https://acmehub.com.br
 # google-services.json via EAS secret GOOGLE_SERVICES_JSON (produção)
 ```
 
@@ -352,7 +355,7 @@ npm run worker:tunnel
 ### Health
 
 - Local: `GET http://127.0.0.1:8787/health`  
-- Público (cloud): `GET https://acme-hub.khfm.workers.dev/api/sync/worker-health`
+- Público (cloud): `GET https://acmehub.com.br/api/sync/worker-health`
 
 ---
 
@@ -664,4 +667,4 @@ RLS: isolamento por usuário; suite `test:t2` valida.
 
 ## Licença
 
-MIT © contribuidores do ACME HUB
+AGPL-3.0 © contribuidores do ACME HUB

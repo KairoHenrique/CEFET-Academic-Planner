@@ -2,8 +2,8 @@ export const dynamic = "force-dynamic";
 
 import { unauthorizedError } from "@/lib/api/errors";
 import { apiErrorResponse, apiSuccess } from "@/lib/api/response";
+import { withCloudPostgresClient } from "@/lib/db/postgres/cloud-request-client";
 import { verifyCronSecret } from "@/lib/health/check-health";
-import { runSyncOrchestratorTick } from "@/lib/sync-orchestrator/run-orchestrator-tick";
 
 export const runtime = "nodejs";
 
@@ -15,7 +15,12 @@ export async function POST(request: Request) {
   try {
     const url = new URL(request.url);
     const force = url.searchParams.get("force") === "1";
-    const result = await runSyncOrchestratorTick({ force });
+    const { runSyncOrchestratorTick } = await import(
+      "@/lib/sync-orchestrator/run-orchestrator-tick"
+    );
+    const result = await withCloudPostgresClient(() =>
+      runSyncOrchestratorTick({ force })
+    );
     return apiSuccess(result);
   } catch (error) {
     return apiErrorResponse(error);

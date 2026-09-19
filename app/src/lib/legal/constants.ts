@@ -1,5 +1,5 @@
-export const LEGAL_TERMS_VERSION = "2026-07-01";
-export const LEGAL_PRIVACY_VERSION = "2026-07-01";
+export const LEGAL_TERMS_VERSION = "2026-09-18";
+export const LEGAL_PRIVACY_VERSION = "2026-09-18";
 
 export const LEGAL_ROUTES = {
   terms: "/termos",

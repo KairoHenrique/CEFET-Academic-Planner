@@ -325,9 +325,13 @@ export async function postTurmasSelecionadasSync(): Promise<{
   });
 }
 
-export async function markNotificationsAsRead(): Promise<unknown> {
+export async function markNotificationsAsRead(
+  fingerprints: string[]
+): Promise<unknown> {
+  if (fingerprints.length === 0) return { success: true, skipped: true };
   return requestJson("/api/notifications/read", {
     method: "POST",
+    body: JSON.stringify({ fingerprints }),
   });
 }
 

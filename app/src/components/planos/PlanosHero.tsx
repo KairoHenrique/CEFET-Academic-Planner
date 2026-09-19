@@ -14,26 +14,26 @@ export function PlanosHero({ subtitle, showExploreLink = false }: PlanosHeroProp
       <div className="planos-hero-copy">
         <div className="planos-hero-title-row">
           <div>
-            <p className="planos-hero-eyebrow">Assinatura</p>
-            <h1 className="planos-hero-title">Escolha seu plano</h1>
+            <p className="planos-hero-eyebrow">Anúncios</p>
+            <h1 className="planos-hero-title">Remover propaganda</h1>
           </div>
-          <PageTutorialHelpButton tutorialId="planos" label="Como assinar" />
+          <PageTutorialHelpButton tutorialId="planos" label="Como funciona" />
         </div>
         <p className="planos-hero-subtitle">{subtitle}</p>
       </div>
 
       <div className="planos-hero-pills" role="list">
         <span className="planos-pill" role="listitem">
-          7 dias grátis no cadastro
+          App gratuito para sempre
         </span>
         <span className="planos-pill" role="listitem">
-          Pagamento via PIX
+          Pagamento via PIX (web)
         </span>
       </div>
 
       {showExploreLink ? (
         <Link href="/" className="planos-hero-explore">
-          Explorar o ACME com trial ativo →
+          Continuar com anúncios →
         </Link>
       ) : null}
     </header>

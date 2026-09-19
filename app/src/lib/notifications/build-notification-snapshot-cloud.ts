@@ -8,6 +8,7 @@ import { buildPendingCalendarReminderSourcesFromEvents } from "@/lib/notificatio
 import { DEFAULT_NOTIFICATION_PREFERENCES } from "@/lib/notifications/notification-preferences-shared";
 import { pgGetNotificationPreferences } from "@/lib/notifications/notification-preferences-store";
 import { pgGetNotificationHistory, pgSaveNotificationHistory } from "@/lib/push/push-sent-fingerprints-store";
+import { taskIdentityKeyFromFingerprint } from "@/lib/notifications/notification-fingerprint";
 import { postgresQueryDeps } from "@/lib/db/postgres/query-port";
 import { getActiveTenantUserId } from "@/lib/db/postgres/tenant-context";
 import {
@@ -85,11 +86,28 @@ export async function buildNotificationSnapshotCloud(): Promise<NotificationSnap
     for (const item of snapshot.items) {
       const state = history.get(item.fingerprint);
       if (!state) {
+        // Se já empurramos a mesma tarefa (outro prazo/fingerprint), não reabrir push.
+        let alreadyPushed = false;
+        if (item.kind === "task") {
+          const identity = taskIdentityKeyFromFingerprint(item.fingerprint);
+          if (identity) {
+            for (const existing of history.values()) {
+              if (
+                existing.pushed &&
+                taskIdentityKeyFromFingerprint(existing.fingerprint) === identity
+              ) {
+                alreadyPushed = true;
+                break;
+              }
+            }
+          }
+        }
+
         history.set(item.fingerprint, {
           fingerprint: item.fingerprint,
           discoveredAt: now,
           isRead: false,
-          pushed: false,
+          pushed: alreadyPushed,
         });
         changed = true;
         item.discoveredAt = now;

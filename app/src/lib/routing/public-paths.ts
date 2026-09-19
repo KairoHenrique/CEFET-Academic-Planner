@@ -7,6 +7,10 @@ export function isPublicAppPath(pathname: string): boolean {
     return true;
   }
 
+  if (pathname === "/inicio") {
+    return true;
+  }
+
   if (pathname === "/termos" || pathname === "/privacidade") {
     return true;
   }
@@ -24,4 +28,8 @@ export function isLegalDocumentPath(pathname: string): boolean {
 
 export function isDownloadPath(pathname: string): boolean {
   return pathname === "/download";
+}
+
+export function isPublicLandingPath(pathname: string): boolean {
+  return pathname === "/inicio";
 }

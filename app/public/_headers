@@ -1,2 +1,10 @@
 /_next/static/*
   Cache-Control: public,max-age=31536000,immutable
+
+/app-ads.txt
+  Content-Type: text/plain; charset=utf-8
+  Cache-Control: public, max-age=300
+
+/ads.txt
+  Content-Type: text/plain; charset=utf-8
+  Cache-Control: public, max-age=300

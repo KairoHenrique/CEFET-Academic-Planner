@@ -12,6 +12,9 @@ import {
 } from "./durations";
 import type { BillingPlanDefinition, BillingPlanId, PaidPlanId } from "./types";
 
+/** Planos vendidos para remocao de ads (canais Play / PIX). */
+export const ADS_FREE_PLAN_IDS: readonly PaidPlanId[] = ["month", "year"] as const;
+
 export const PAID_PLAN_IDS: readonly PaidPlanId[] = [
   "month",
   "quarter",
@@ -27,77 +30,77 @@ export const BILLING_PLAN_DEFINITIONS: readonly BillingPlanDefinition[] = [
     label: TRIAL_PLAN_LABEL,
     shortLabel: "Trial",
     durationDays: TRIAL_DURATION_DAYS,
-    durationLabel: `${TRIAL_DURATION_DAYS} dias · uma vez por CPF`,
-    description: "Teste grátis por 7 dias ao criar sua conta.",
+    durationLabel: `${TRIAL_DURATION_DAYS} dias · legado`,
+    description: "Legado: o app e gratuito com anuncios; nao ha trial obrigatorio.",
     purchasable: false,
     oncePerCpf: true,
     featured: false,
-    ctaLabel: "Incluído no cadastro",
+    ctaLabel: "Incluido no cadastro",
   },
   {
     id: "month",
     kind: "paid",
-    label: "Plano mensal",
-    shortLabel: "1 mês",
+    label: "Sem propaganda — mensal",
+    shortLabel: "1 mes",
     durationDays: MONTH_DURATION_DAYS,
     durationLabel: "30 dias",
-    description: "Renove mês a mês, sem compromisso de longo prazo.",
+    description: "Remove anuncios no app e na web por 30 dias. Funcoes academicas ja sao gratuitas.",
     purchasable: true,
     oncePerCpf: false,
     featured: false,
-    ctaLabel: "Assinar via PIX",
+    ctaLabel: "Remover anuncios",
   },
   {
     id: "quarter",
     kind: "paid",
-    label: "Plano trimestre",
+    label: "Plano trimestre (legado)",
     shortLabel: "3 meses",
     durationDays: QUARTER_DURATION_DAYS,
     durationLabel: "3 meses",
-    description: "Três meses de acesso com custo menor que três mensalidades.",
-    purchasable: true,
+    description: "Plano legado — nao oferecido na vitrine atual.",
+    purchasable: false,
     oncePerCpf: false,
     featured: false,
-    ctaLabel: "Assinar via PIX",
+    ctaLabel: "Indisponivel",
   },
   {
     id: "semester",
     kind: "paid",
-    label: "Plano semestre",
+    label: "Plano semestre (legado)",
     shortLabel: "6 meses",
     durationDays: SEMESTER_DURATION_DAYS,
     durationLabel: "6 meses",
-    description: "O melhor equilíbrio para cobrir o semestre letivo inteiro.",
-    purchasable: true,
+    description: "Plano legado — nao oferecido na vitrine atual.",
+    purchasable: false,
     oncePerCpf: false,
-    featured: true,
-    ctaLabel: "Assinar via PIX",
+    featured: false,
+    ctaLabel: "Indisponivel",
   },
   {
     id: "year",
     kind: "paid",
-    label: "Plano anual",
+    label: "Sem propaganda — anual",
     shortLabel: "1 ano",
     durationDays: YEAR_DURATION_DAYS,
     durationLabel: "12 meses",
-    description: "Um ano de acesso contínuo para quem usa o ACME todo dia.",
+    description: "Remove anuncios no app e na web por 12 meses. Melhor custo-beneficio.",
     purchasable: true,
     oncePerCpf: false,
-    featured: false,
-    ctaLabel: "Assinar via PIX",
+    featured: true,
+    ctaLabel: "Remover anuncios",
   },
   {
     id: "five_year",
     kind: "paid",
-    label: "Plano 5 anos",
+    label: "Plano 5 anos (legado)",
     shortLabel: "5 anos",
     durationDays: FIVE_YEAR_DURATION_DAYS,
     durationLabel: "5 anos",
-    description: "Cobertura até o fim da graduação, com o menor custo no longo prazo.",
-    purchasable: true,
+    description: "Plano legado — nao oferecido na vitrine atual.",
+    purchasable: false,
     oncePerCpf: false,
     featured: false,
-    ctaLabel: "Assinar via PIX",
+    ctaLabel: "Indisponivel",
   },
 ] as const;
 
@@ -117,25 +120,14 @@ export function resolvePlanDurationDays(planId: string): number {
     return plan.durationDays;
   }
 
-  if (planId === "month") {
-    return MONTH_DURATION_DAYS;
-  }
-
-  if (planId === "quarter") {
-    return QUARTER_DURATION_DAYS;
-  }
-
-  if (planId === "semester") {
-    return SEMESTER_DURATION_DAYS;
-  }
-
-  if (planId === "year") {
-    return YEAR_DURATION_DAYS;
-  }
-
-  if (planId === "five_year") {
-    return FIVE_YEAR_DURATION_DAYS;
-  }
-
+  if (planId === "month") return MONTH_DURATION_DAYS;
+  if (planId === "quarter") return QUARTER_DURATION_DAYS;
+  if (planId === "semester") return SEMESTER_DURATION_DAYS;
+  if (planId === "year") return YEAR_DURATION_DAYS;
+  if (planId === "five_year") return FIVE_YEAR_DURATION_DAYS;
   return TRIAL_DURATION_DAYS;
+}
+
+export function isAdsFreePurchasablePlan(planId: string): boolean {
+  return (ADS_FREE_PLAN_IDS as readonly string[]).includes(planId);
 }

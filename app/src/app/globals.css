@@ -10563,6 +10563,12 @@ body.mobile-nav-open {
   background: rgba(212, 168, 67, 0.08);
 }
 
+.task-submit-dropzone.is-dragging {
+  border-color: var(--gold-300);
+  border-style: dashed;
+  background: rgba(212, 168, 67, 0.14);
+}
+
 .task-submit-dropzone-row {
   display: inline-flex;
   align-items: center;
@@ -15311,3 +15317,253 @@ body.app-dl-modal-open {
   overflow: hidden;
 }
 
+
+
+/* --- Web ads: rails nas margens (sem mexer no layout); mobile = faixa --- */
+.web-ad-rail {
+  display: none;
+}
+
+/* So aparece quando ha gutter real alem do max-width (1280px) do app */
+@media (min-width: 1400px) {
+  .web-ad-rail {
+    display: block;
+    position: fixed;
+    top: 72px;
+    bottom: 24px;
+    z-index: 30;
+    /* Usa so a margem vazia: nao empurra .main-content */
+    width: min(300px, calc((100vw - var(--max-width, 1280px)) / 2 - 16px));
+    pointer-events: none;
+  }
+  .web-ad-rail--left {
+    left: 8px;
+  }
+  .web-ad-rail--right {
+    right: 8px;
+  }
+  .web-ad-rail-inner {
+    pointer-events: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    height: 100%;
+    padding: 10px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 16, 32, 0.88);
+    backdrop-filter: blur(8px);
+  }
+  .web-ad-rail-inner .web-ad-placeholder,
+  .web-ad-rail-inner .web-ad-ins {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none;
+    width: 100%;
+  }
+  .web-ad-rail-upsell {
+    flex-shrink: 0;
+    font-size: 11px;
+    text-align: center;
+    color: #e8c66a;
+    text-decoration: none;
+  }
+  .web-ad-rail-upsell:hover {
+    text-decoration: underline;
+  }
+}
+
+/* Faixa inferior: so mobile/tablet — desktop usa so as margens */
+.web-ad-bottom {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 45;
+  pointer-events: none;
+  padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+@media (min-width: 1400px) {
+  .web-ad-bottom {
+    display: none;
+  }
+}
+.web-ad-bottom-inner {
+  pointer-events: auto;
+  margin: 0 auto;
+  max-width: 960px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 12, 24, 0.94);
+  backdrop-filter: blur(10px);
+}
+@media (min-width: 720px) and (max-width: 1399px) {
+  .web-ad-bottom-inner {
+    flex-direction: row;
+    align-items: center;
+    border-radius: 12px 12px 0 0;
+    margin: 0 16px;
+  }
+}
+.web-ad-bottom-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  flex-shrink: 0;
+}
+.web-ad-bottom-upsell,
+.web-ad-bottom-dismiss {
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 8px 10px;
+  min-height: 40px;
+  border: 1px solid rgba(232, 198, 106, 0.35);
+  background: rgba(212, 168, 67, 0.12);
+  color: #e8c66a;
+  text-decoration: none;
+  cursor: pointer;
+}
+.web-ad-bottom-dismiss {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  color: #c8d0d8;
+}
+.web-ad-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 50px;
+  border-radius: 8px;
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  color: rgba(200, 208, 216, 0.55);
+  font-size: 11px;
+  flex: 1;
+}
+.web-ad-placeholder--rectangle {
+  min-height: 200px;
+}
+.web-ad-ins {
+  flex: 1;
+  min-height: 50px;
+  max-height: 90px;
+  overflow: hidden;
+}
+.web-ad-ins--rectangle {
+  min-height: 200px;
+  max-height: none;
+}
+
+@media (max-width: 1399px) {
+  body:has(.web-ad-bottom) .main-content {
+    padding-bottom: calc(88px + env(safe-area-inset-bottom));
+  }
+}
+@media (min-width: 720px) and (max-width: 1399px) {
+  body:has(.web-ad-bottom) .main-content {
+    padding-bottom: calc(72px + env(safe-area-inset-bottom));
+  }
+}
+
+
+/* --- Pagina publica /inicio (AdSense crawl + preview) --- */
+.main-content-public-inicio {
+  max-width: none;
+  padding: 0;
+}
+.public-inicio {
+  min-height: 100vh;
+  padding: 24px 16px 48px;
+  color: #e8eef4;
+}
+.public-inicio-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  max-width: 1100px;
+  margin: 0 auto 28px;
+}
+.public-inicio-brand {
+  margin: 0;
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #e8c66a;
+  letter-spacing: 0.04em;
+}
+.public-inicio-nav {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.public-inicio-nav a {
+  color: #c8d0d8;
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+.public-inicio-nav a:hover {
+  color: #e8c66a;
+}
+.public-inicio-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+@media (min-width: 1100px) {
+  .public-inicio-layout {
+    grid-template-columns: 200px minmax(0, 1fr) 200px;
+    align-items: start;
+  }
+}
+.public-inicio-rail {
+  display: none;
+}
+@media (min-width: 1100px) {
+  .public-inicio-rail {
+    display: block;
+    position: sticky;
+    top: 24px;
+  }
+}
+.public-inicio-main h1 {
+  margin: 0 0 12px;
+  font-family: var(--font-outfit), sans-serif;
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  line-height: 1.2;
+}
+.public-inicio-main p,
+.public-inicio-main li {
+  color: #c8d0d8;
+  line-height: 1.55;
+}
+.public-inicio-main ul {
+  margin: 16px 0 20px;
+  padding-left: 1.2rem;
+}
+.public-inicio-cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 24px 0;
+}
+.public-inicio-bottom-ad {
+  margin-top: 28px;
+}
+
+.public-inicio-ad-upsell {
+  display: block;
+  margin-top: 8px;
+  font-size: 11px;
+  text-align: center;
+  color: #e8c66a;
+  text-decoration: none;
+}
+.public-inicio-ad-upsell:hover {
+  text-decoration: underline;
+}

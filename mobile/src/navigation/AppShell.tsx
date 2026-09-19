@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type ComponentType, type ReactNode } from "react";
-import { StyleSheet, View } from "react-native";
+import { InteractionManager, StyleSheet, View } from "react-native";
 import {
   createNativeStackNavigator,
   type NativeStackNavigationProp,
@@ -36,7 +36,9 @@ import {
   TutorialProvider,
   useTutorial,
 } from "../features/tutorial";
-import { AppUpdateProvider, useUpdateCheck } from "../features/updates";
+import { AppUpdateProvider } from "../features/updates";
+import { useAdsBootstrap } from "../ads/useAdsBootstrap";
+import { maybeShowPostSyncInterstitial } from "../ads/AdMobController";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -44,9 +46,9 @@ function ShellChrome({ children }: { children: ReactNode }) {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { startTutorialForRoute } = useTutorial();
-  const { checkManually } = useUpdateCheck();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  useAdsBootstrap();
 
   const loadNotifications = useCallback(async () => {
     try {
@@ -60,11 +62,15 @@ function ShellChrome({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    void loadNotifications();
+    const task = InteractionManager.runAfterInteractions(() => {
+      void loadNotifications();
+    });
+    return () => task.cancel();
   }, [loadNotifications]);
 
   useOnSyncComplete(() => {
     void loadNotifications();
+    void maybeShowPostSyncInterstitial();
   });
   const sync = useMobileSync();
   const initials = useAvatarInitials();
@@ -74,18 +80,21 @@ function ShellChrome({ children }: { children: ReactNode }) {
   });
 
   useEffect(() => {
-    void (async () => {
-      try {
-        const perfil = await getPerfil();
-        if (perfil.profile?.initials) {
-          await setAvatarInitials(perfil.profile.initials);
-        } else if (perfil.profile?.nome) {
-          await setAvatarFromNome(perfil.profile.nome);
+    const task = InteractionManager.runAfterInteractions(() => {
+      void (async () => {
+        try {
+          const perfil = await getPerfil();
+          if (perfil.profile?.initials) {
+            await setAvatarInitials(perfil.profile.initials);
+          } else if (perfil.profile?.nome) {
+            await setAvatarFromNome(perfil.profile.nome);
+          }
+        } catch {
+          /* offline / sem sync — mantém cache */
         }
-      } catch {
-        /* offline / sem sync — mantém cache */
-      }
-    })();
+      })();
+    });
+    return () => task.cancel();
   }, []);
 
   function handleSyncPress() {
@@ -97,13 +106,6 @@ function ShellChrome({ children }: { children: ReactNode }) {
     setDrawerOpen(false);
     setTimeout(() => {
       startTutorialForRoute(String(activeRoute));
-    }, 280);
-  }
-
-  function handleCheckUpdates() {
-    setDrawerOpen(false);
-    setTimeout(() => {
-      checkManually();
     }, 280);
   }
 
@@ -135,7 +137,6 @@ function ShellChrome({ children }: { children: ReactNode }) {
           navigation.navigate(route as never);
         }}
         onStartTutorial={handleStartTutorial}
-        onCheckUpdates={handleCheckUpdates}
       />
     </View>
   );

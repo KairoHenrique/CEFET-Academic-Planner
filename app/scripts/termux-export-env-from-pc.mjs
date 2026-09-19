@@ -32,8 +32,8 @@ const TERMUX_OVERRIDES = {
   PLANNER_DATABASE: "postgres",
   PLANNER_CLOUD: "true",
   ACCOUNT_EMAIL_VIA_HOME_WORKER: "true",
-  PLANNER_HEALTH_URL: "https://acme-hub.khfm.workers.dev",
-  PLANNER_APP_URL: "https://acme-hub.khfm.workers.dev",
+  PLANNER_HEALTH_URL: "https://acmehub.com.br",
+  PLANNER_APP_URL: "https://acmehub.com.br",
 };
 
 const REQUIRED_KEYS = [

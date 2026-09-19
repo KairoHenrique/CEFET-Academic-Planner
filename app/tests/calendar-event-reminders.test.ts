@@ -6,10 +6,16 @@ import {
   getActiveCalendarReminderSlots,
   getActiveClassReminderSlots,
 } from "../src/lib/notifications/calendar-event-reminder-items";
+import { brazilWallTimeToUtcDate } from "../src/lib/time/brazil";
+
+/** `now` como instante absoluto a partir de horário de parede em Brasília. */
+function atBrazil(dateIso: string, time: string): Date {
+  return brazilWallTimeToUtcDate(dateIso, time);
+}
 
 describe("calendar-event-reminder-items", () => {
   test("evento longe do prazo só gera aviso de cadastro", () => {
-    const now = new Date("2026-03-01T10:00:00");
+    const now = atBrazil("2026-03-01", "10:00");
     const event = {
       eventId: "evento-1",
       title: "Estudo em grupo",
@@ -28,7 +34,7 @@ describe("calendar-event-reminder-items", () => {
   });
 
   test("1 dia antes gera cadastro + amanhã", () => {
-    const now = new Date("2026-03-01T20:30:00");
+    const now = atBrazil("2026-03-01", "20:30");
     const event = {
       eventId: "evento-1",
       title: "Estudo em grupo",
@@ -46,7 +52,7 @@ describe("calendar-event-reminder-items", () => {
   });
 
   test("no dia gera cadastro + hoje", () => {
-    const now = new Date("2026-03-02T09:00:00");
+    const now = atBrazil("2026-03-02", "09:00");
     const event = {
       eventId: "evento-1",
       title: "Estudo em grupo",
@@ -59,12 +65,14 @@ describe("calendar-event-reminder-items", () => {
     assert.deepEqual(getActiveCalendarReminderSlots(event, now), ["new", "0d"]);
   });
 
-  test("aulas só avisam 30 min antes", () => {
-    const insideWindow = new Date("2026-03-02T19:35:00");
-    const outsideWindow = new Date("2026-03-02T18:00:00");
+  test("aulas só avisam 30 min antes (fuso Brasília, não UTC)", () => {
+    const insideWindow = atBrazil("2026-03-02", "19:35");
+    const outsideWindow = atBrazil("2026-03-02", "18:00");
+    // 16:00 UTC ≈ 13:00 BRT — fora da janela se aula é 20:00 BRT
+    const utcFalsePositive = new Date("2026-03-02T19:35:00.000Z");
     const session = {
       eventId: "aula-AEDI-2026-03-02-0",
-      title: "AEDI · 07:30",
+      title: "AEDI · 20:00",
       subtitle: "Algoritmos",
       href: "/disciplinas/AEDI",
       startDateIso: "2026-03-02",
@@ -73,6 +81,7 @@ describe("calendar-event-reminder-items", () => {
 
     assert.deepEqual(getActiveClassReminderSlots(session, insideWindow), ["30m"]);
     assert.deepEqual(getActiveClassReminderSlots(session, outsideWindow), []);
+    assert.deepEqual(getActiveClassReminderSlots(session, utcFalsePositive), []);
 
     const items = buildClassSessionReminderItems([session], insideWindow);
     assert.equal(items.length, 1);

@@ -4,7 +4,7 @@
 // até completed/failed → resumo dos steps.
 //
 // Uso (PowerShell):
-//   $env:PLANNER_APP_URL="https://acme-hub.khfm.workers.dev"
+//   $env:PLANNER_APP_URL="https://acmehub.com.br"
 //   $env:SIGAA_CPF="..."; $env:SIGAA_PASSWORD="..."   # senha opcional se salva na conta
 //   $env:SIGAA_WORKER_URL="https://..." (opcional — health direto do worker)
 //   node scripts/smoke-cloud-sync.mjs

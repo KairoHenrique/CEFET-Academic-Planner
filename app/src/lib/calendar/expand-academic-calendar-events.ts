@@ -65,18 +65,40 @@ export function expandAcademicRowsToCalendarEvents(
 
 export function findPeriodoLetivoBounds(
   rows: CalendarioAcademicoRow[],
-  semestre?: string | null
+  semestre?: string | null,
+  now: Date = new Date()
 ): { dataInicio: string; dataFim: string } | null {
-  const match = rows.find((row) => {
-    if (!/per[ií]odo letivo/i.test(row.evento)) return false;
-    if (semestre && row.semestre && row.semestre !== semestre) return false;
-    return true;
+  const periodos = rows.filter((row) => /per[ií]odo letivo/i.test(row.evento));
+  if (periodos.length === 0) return null;
+
+  const toBounds = (row: CalendarioAcademicoRow) => ({
+    dataInicio: row.data_inicio,
+    dataFim: row.data_fim ?? row.data_inicio,
   });
 
-  if (!match) return null;
+  // Preferir o período que contém a data de hoje (ex.: ago/2026 → 2026.2).
+  const today = formatLocalIsoDate(now);
+  const containing = periodos.find((row) => {
+    const end = row.data_fim ?? row.data_inicio;
+    return row.data_inicio <= today && end >= today;
+  });
+  if (containing) return toBounds(containing);
 
-  return {
-    dataInicio: match.data_inicio,
-    dataFim: match.data_fim ?? match.data_inicio,
-  };
+  if (semestre) {
+    const exact = periodos.find((row) => row.semestre === semestre);
+    if (exact) return toBounds(exact);
+  }
+
+  // Fallback: semestre mais recente na tabela.
+  const sorted = [...periodos].sort((left, right) =>
+    String(left.semestre ?? "").localeCompare(String(right.semestre ?? ""))
+  );
+  return toBounds(sorted.at(-1)!);
+}
+
+function formatLocalIsoDate(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }

@@ -102,40 +102,47 @@ export function SubjectAbsencePanel({
         </div>
 
         <div className="data-table-wrap attendance-table-wrap">
-          <table className="data-table attendance-table">
-            <thead>
-              <tr>
-                <th>Data</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {records.map((record) => (
-                <tr
-                  key={record.id}
-                  className="data-table-row-clickable"
-                  onClick={() => openEdit(record)}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      openEdit(record);
-                    }
-                  }}
-                >
-                  <td data-label="Data">{record.date}</td>
-                  <td data-label="Status">
-                    <span className={`badge ${statusBadge[record.status]}`}>
-                      {record.status === "falta" && (record.quantidade ?? 0) > 1
-                        ? `${record.quantidade} faltas`
-                        : attendanceStatusLabels[record.status]}
-                    </span>
-                  </td>
+          {records.length === 0 ? (
+            <p className="panel-footer-note" role="status">
+              Nenhuma aula registrada nesta disciplina.
+            </p>
+          ) : (
+            <table className="data-table attendance-table">
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Status</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {records.map((record) => (
+                  <tr
+                    key={record.id}
+                    className="data-table-row-clickable"
+                    onClick={() => openEdit(record)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        openEdit(record);
+                      }
+                    }}
+                  >
+                    <td data-label="Data">{record.date}</td>
+                    <td data-label="Status">
+                      <span className={`badge ${statusBadge[record.status]}`}>
+                        {record.status === "falta" &&
+                        (record.quantidade ?? 0) > 1
+                          ? `${record.quantidade} faltas`
+                          : attendanceStatusLabels[record.status]}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
 
