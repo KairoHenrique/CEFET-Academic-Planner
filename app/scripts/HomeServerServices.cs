@@ -293,7 +293,8 @@ namespace HomeServerTray
                 SetAcValue(ProcMax, Math.Min(procMax, QuietProcMaxPercent));
                 if (cooling >= 0) SetAcValue(CoolingPolicy, PassiveCooling);
                 ApplyActiveScheme();
-                TrayLog.Write("Modo dormir ON (CPU max " + QuietProcMaxPercent + "%, resfriamento passivo).");
+                TrayLog.Write("Modo dormir ON (CPU max " + QuietProcMaxPercent + "%" +
+                    (cooling >= 0 ? ", resfriamento passivo" : "") + ").");
             }
         }
 
