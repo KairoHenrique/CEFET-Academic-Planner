@@ -40,7 +40,7 @@ namespace HomeServerTray
         static readonly object stateLock = new object();
         static NotifyIcon notify;
         static Control ui;
-        static ToolStripMenuItem miStatus, miStart, miStop, miSync, miAutostart, miKeepAwake;
+        static ToolStripMenuItem miStatus, miStart, miStop, miSync, miScreensOff, miAutostart, miKeepAwake;
         static System.Windows.Forms.Timer pollTimer, watchdogTimer;
         static Process workerProc, tunnelProc;
         static string tunnelUrl;
@@ -96,6 +96,8 @@ namespace HomeServerTray
             miStop.Click += delegate { StopServers(true); };
             miSync = new ToolStripMenuItem("Sync geral agora");
             miSync.Click += delegate { GeneralSync.TriggerAsync(0, ReportSync); };
+            miScreensOff = new ToolStripMenuItem("Apagar telas agora");
+            miScreensOff.Click += delegate { MonitorPower.TurnOffAfter(800); };
             miAutostart = new ToolStripMenuItem("Iniciar com o Windows");
             miAutostart.CheckOnClick = true;
             miAutostart.Click += delegate { AutostartRegistry.SetEnabled(miAutostart.Checked); };
@@ -112,7 +114,7 @@ namespace HomeServerTray
 
             var menu = new ContextMenuStrip();
             menu.Items.AddRange(new ToolStripItem[] {
-                miStatus, miStart, miStop, miSync, new ToolStripSeparator(),
+                miStatus, miStart, miStop, miSync, miScreensOff, new ToolStripSeparator(),
                 miAutostart, miKeepAwake, new ToolStripSeparator(), miExit });
 
             notify = new NotifyIcon();

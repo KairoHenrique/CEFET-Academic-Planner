@@ -220,6 +220,32 @@ namespace HomeServerTray
         }
     }
 
+    /// <summary>Desliga os monitores na hora (mouse/teclado religam). Nao afeta a suspensao.</summary>
+    static class MonitorPower
+    {
+        const int WmSysCommand = 0x0112;
+        const int ScMonitorPower = 0xF170;
+        const int MonitorOff = 2;
+        static readonly IntPtr HwndBroadcast = new IntPtr(0xFFFF);
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        static extern bool PostMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
+
+        /// <summary>
+        /// Espera o clique do menu "assentar" (senao o proprio movimento do mouse religa a tela).
+        /// PostMessage em vez de SendMessage: broadcast sincrono pode travar em janela que nao responde.
+        /// </summary>
+        public static void TurnOffAfter(int delayMs)
+        {
+            ThreadPool.QueueUserWorkItem(delegate
+            {
+                Thread.Sleep(delayMs);
+                PostMessage(HwndBroadcast, WmSysCommand, new IntPtr(ScMonitorPower), new IntPtr(MonitorOff));
+                TrayLog.Write("Telas apagadas pelo menu.");
+            });
+        }
+    }
+
     static class HttpProbe
     {
         public static bool IsHealthy(string url, int timeoutMs)
