@@ -277,13 +277,64 @@ namespace HomeServerTray
         [System.Runtime.InteropServices.DllImport("user32.dll")]
         static extern void mouse_event(uint flags, int dx, int dy, uint data, UIntPtr extraInfo);
         const uint MouseLeftDown = 0x0002, MouseLeftUp = 0x0004;
-        public static void Select(int profileIndex)
+        const string DefaultDriverExe = @"C:\Program Files (x86)\Womier-SK80 Driver V1.0\DeviceDriver.exe";
+        const int LaunchWaitMs = 15000;
+
+        static IntPtr FindDriverWindow()
         {
             IntPtr h = FindWindow(null, WindowTitle);
-            if (h == IntPtr.Zero) { TrayLog.Write("Womier: driver nao esta aberto; perfil nao trocado."); return; }
+            if (h != IntPtr.Zero) return h;
+            foreach (Process p in Process.GetProcessesByName("DeviceDriver"))
+            {
+                using (p) { if (p.MainWindowHandle != IntPtr.Zero) return p.MainWindowHandle; }
+            }
+            return IntPtr.Zero;
+        }
 
-            bool wasHidden = !IsWindowVisible(h);
-            bool wasMinimized = IsIconic(h);
+        /// <summary>Abre o driver se estiver fechado e espera a janela principal aparecer.</summary>
+        static IntPtr LaunchDriverAndWait()
+        {
+            if (!File.Exists(DefaultDriverExe)) return IntPtr.Zero;
+            try
+            {
+                Process.Start(new ProcessStartInfo(DefaultDriverExe)
+                {
+                    WorkingDirectory = Path.GetDirectoryName(DefaultDriverExe)
+                });
+                TrayLog.Write("Womier: driver estava fechado; abrindo.");
+            }
+            catch (Exception ex)
+            {
+                TrayLog.Write("Womier: falha ao abrir driver: " + ex.Message);
+                return IntPtr.Zero;
+            }
+            Stopwatch sw = Stopwatch.StartNew();
+            while (sw.ElapsedMilliseconds < LaunchWaitMs)
+            {
+                Thread.Sleep(500);
+                IntPtr h = FindDriverWindow();
+                if (h != IntPtr.Zero && IsWindowVisible(h))
+                {
+                    Thread.Sleep(1500);
+                    return h;
+                }
+            }
+            return FindDriverWindow();
+        }
+
+        public static void Select(int profileIndex)
+        {
+            IntPtr h = FindDriverWindow();
+            bool launchedNow = false;
+            if (h == IntPtr.Zero)
+            {
+                h = LaunchDriverAndWait();
+                launchedNow = h != IntPtr.Zero;
+            }
+            if (h == IntPtr.Zero) { TrayLog.Write("Womier: driver nao encontrado; perfil nao trocado."); return; }
+
+            bool wasHidden = !launchedNow && !IsWindowVisible(h);
+            bool wasMinimized = launchedNow || IsIconic(h);
             IntPtr previousForeground = GetForegroundWindow();
             Point cursor;
             GetCursorPos(out cursor);
