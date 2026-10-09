@@ -388,76 +388,65 @@ namespace HomeServerTray
     }
 
     /// <summary>
-    /// Atalho global F10+F11+F12 (hook de teclado de baixo nivel; RegisterHotKey nao aceita
-    /// combinacao de 3 teclas comuns). So olha os codigos dessas 3 teclas e nunca registra
-    /// nem bloqueia nada que for digitado. Dispara ao SOLTAR as tres, para o proprio
-    /// soltar nao ser lido como "usuario voltou".
+    /// Atalho global Ctrl+Shift+F12 via RegisterHotKey (sem hook de teclado: o Windows so
+    /// avisa quando essa combinacao exata e apertada). Janela oculta so para receber WM_HOTKEY.
     /// </summary>
-    static class SleepHotkey
+    sealed class SleepHotkey : NativeWindow, IDisposable
     {
-        const int WhKeyboardLl = 13;
-        const int WmKeyDown = 0x0100, WmKeyUp = 0x0101, WmSysKeyDown = 0x0104, WmSysKeyUp = 0x0105;
-        const int VkF10 = 0x79, VkF11 = 0x7A, VkF12 = 0x7B;
-
-        delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam);
+        const int WmHotkey = 0x0312;
+        const int HotkeyId = 0xACE1;
+        const uint ModControl = 0x0002, ModShift = 0x0004, ModNoRepeat = 0x4000;
+        const uint VkF12 = 0x7B;
+        const int VkShift = 0x10, VkControl = 0x11;
 
         [System.Runtime.InteropServices.DllImport("user32.dll", SetLastError = true)]
-        static extern IntPtr SetWindowsHookEx(int idHook, LowLevelKeyboardProc fn, IntPtr hMod, uint threadId);
-        [System.Runtime.InteropServices.DllImport("user32.dll")] static extern bool UnhookWindowsHookEx(IntPtr hook);
+        static extern bool RegisterHotKey(IntPtr hWnd, int id, uint modifiers, uint vk);
         [System.Runtime.InteropServices.DllImport("user32.dll")]
-        static extern IntPtr CallNextHookEx(IntPtr hook, int nCode, IntPtr wParam, IntPtr lParam);
-        [System.Runtime.InteropServices.DllImport("kernel32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
-        static extern IntPtr GetModuleHandle(string name);
+        static extern bool UnregisterHotKey(IntPtr hWnd, int id);
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        static extern short GetAsyncKeyState(int vk);
 
-        static LowLevelKeyboardProc hookProc;
-        static IntPtr hookHandle = IntPtr.Zero;
-        static bool f10Down, f11Down, f12Down, chordArmed;
-        static Action onTriggered;
+        readonly Action onTriggered;
+        bool registered;
 
-        /// <summary>Instalar na thread de UI (o hook depende do loop de mensagens dela).</summary>
-        public static void Install(Action callback)
+        /// <summary>Criar na thread de UI (o WM_HOTKEY chega pelo loop de mensagens dela).</summary>
+        public SleepHotkey(Action callback)
         {
-            if (hookHandle != IntPtr.Zero) return;
             onTriggered = callback;
-            hookProc = HookCallback;
-            hookHandle = SetWindowsHookEx(WhKeyboardLl, hookProc, GetModuleHandle(null), 0);
-            TrayLog.Write(hookHandle != IntPtr.Zero
-                ? "Atalho F10+F11+F12 (Modo dormir) ativo."
-                : "Falha ao registrar atalho F10+F11+F12.");
+            CreateHandle(new CreateParams());
+            registered = RegisterHotKey(Handle, HotkeyId, ModControl | ModShift | ModNoRepeat, VkF12);
+            TrayLog.Write(registered
+                ? "Atalho Ctrl+Shift+F12 (Modo dormir) ativo."
+                : "Falha ao registrar Ctrl+Shift+F12 (outro programa ja usa essa combinacao?).");
         }
 
-        public static void Uninstall()
+        protected override void WndProc(ref Message m)
         {
-            if (hookHandle == IntPtr.Zero) return;
-            UnhookWindowsHookEx(hookHandle);
-            hookHandle = IntPtr.Zero;
+            if (m.Msg == WmHotkey && m.WParam.ToInt32() == HotkeyId && onTriggered != null) onTriggered();
+            base.WndProc(ref m);
         }
 
-        static IntPtr HookCallback(int nCode, IntPtr wParam, IntPtr lParam)
+        /// <summary>Espera soltar Ctrl/Shift/F12, senao o proprio soltar e lido como "usuario voltou".</summary>
+        public static void WaitKeysReleased(int maxMs)
         {
-            if (nCode >= 0)
+            Stopwatch sw = Stopwatch.StartNew();
+            while (sw.ElapsedMilliseconds < maxMs &&
+                   (IsDown(VkControl) || IsDown(VkShift) || IsDown((int)VkF12)))
             {
-                int msg = wParam.ToInt32();
-                bool down = msg == WmKeyDown || msg == WmSysKeyDown;
-                bool up = msg == WmKeyUp || msg == WmSysKeyUp;
-                if (down || up) Track(System.Runtime.InteropServices.Marshal.ReadInt32(lParam), down);
+                Thread.Sleep(50);
             }
-            return CallNextHookEx(hookHandle, nCode, wParam, lParam);
         }
 
-        static void Track(int vk, bool down)
+        static bool IsDown(int vk)
         {
-            if (vk == VkF10) f10Down = down;
-            else if (vk == VkF11) f11Down = down;
-            else if (vk == VkF12) f12Down = down;
-            else return;
+            return (GetAsyncKeyState(vk) & 0x8000) != 0;
+        }
 
-            if (f10Down && f11Down && f12Down) chordArmed = true;
-            else if (chordArmed && !f10Down && !f11Down && !f12Down)
-            {
-                chordArmed = false;
-                if (onTriggered != null) onTriggered();
-            }
+        public void Dispose()
+        {
+            if (registered) UnregisterHotKey(Handle, HotkeyId);
+            registered = false;
+            DestroyHandle();
         }
     }
 

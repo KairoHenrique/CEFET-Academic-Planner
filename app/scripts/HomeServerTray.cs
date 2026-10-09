@@ -46,6 +46,7 @@ namespace HomeServerTray
         static System.Windows.Forms.Timer pollTimer, watchdogTimer, returnWatchTimer;
         static uint inputBaselineTick;
         static int sleepModeActive;
+        static SleepHotkey sleepHotkey;
         static Process workerProc, tunnelProc;
         static string tunnelUrl;
         static string cloudflared;
@@ -80,12 +81,12 @@ namespace HomeServerTray
                 miAutostart.Checked = AutostartRegistry.IsEnabled();
                 CreateTimers();
                 SystemEvents.PowerModeChanged += OnPowerModeChanged;
-                SleepHotkey.Install(delegate { StartSleepMode("atalho F10+F11+F12"); });
+                sleepHotkey = new SleepHotkey(delegate { StartSleepMode("atalho Ctrl+Shift+F12"); });
                 TrayLog.Write("Tray iniciado. AppDir=" + EnvLocal.AppDir);
                 ScheduleAutoStart();
                 Application.Run();
                 SystemEvents.PowerModeChanged -= OnPowerModeChanged;
-                SleepHotkey.Uninstall();
+                sleepHotkey.Dispose();
                 GC.KeepAlive(mutex);
             }
         }
@@ -206,7 +207,8 @@ namespace HomeServerTray
             TrayLog.Write("Modo dormir pedido via " + origin + ".");
             ThreadPool.QueueUserWorkItem(delegate
             {
-                // Espera o clique "assentar", senao o proprio mouse religa a tela.
+                // Espera o clique/atalho "assentar", senao o proprio input religa a tela.
+                SleepHotkey.WaitKeysReleased(5000);
                 Thread.Sleep(ScreensOffDelayMs);
                 WomierProfile.Select(WomierProfile.ProfileSleep);
                 QuietMode.Enter();
