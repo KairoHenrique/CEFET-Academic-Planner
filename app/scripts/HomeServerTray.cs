@@ -100,7 +100,7 @@ namespace HomeServerTray
             miStop.Click += delegate { StopServers(true); };
             miSync = new ToolStripMenuItem("Sync geral agora");
             miSync.Click += delegate { GeneralSync.TriggerAsync(0, ReportSync); };
-            miScreensOff = new ToolStripMenuItem("Apagar telas agora");
+            miScreensOff = new ToolStripMenuItem("Modo dormir");
             miScreensOff.Click += delegate { ConfirmAndTurnOffScreens(); };
             miAutostart = new ToolStripMenuItem("Iniciar com o Windows");
             miAutostart.CheckOnClick = true;
@@ -188,8 +188,8 @@ namespace HomeServerTray
         static void ConfirmAndTurnOffScreens()
         {
             DialogResult answer = MessageBox.Show(
-                "Apagar todas as telas agora?\n\n" +
-                "O PC entra em modo silencioso (CPU limitada, ventoinhas mais baixas) e o servidor continua rodando.\n" +
+                "Ativar o Modo dormir?\n\n" +
+                "As telas apagam e o PC fica mais silencioso (CPU limitada, ventoinhas mais baixas). O servidor continua rodando.\n" +
                 "Mexa o mouse ou aperte uma tecla para voltar ao normal.",
                 "ServidorACME", MessageBoxButtons.YesNo, MessageBoxIcon.Question,
                 MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly);

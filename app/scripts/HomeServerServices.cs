@@ -287,13 +287,13 @@ namespace HomeServerTray
                 if (File.Exists(StatePath())) return;
                 int procMax = ReadAcValue(ProcMax);
                 int cooling = ReadAcValue(CoolingPolicy);
-                if (procMax < 0) { TrayLog.Write("Modo silencioso: nao consegui ler o plano de energia."); return; }
+                if (procMax < 0) { TrayLog.Write("Modo dormir: nao consegui ler o plano de energia."); return; }
                 Directory.CreateDirectory(Path.GetDirectoryName(StatePath()));
                 File.WriteAllText(StatePath(), procMax + ";" + cooling);
                 SetAcValue(ProcMax, Math.Min(procMax, QuietProcMaxPercent));
                 if (cooling >= 0) SetAcValue(CoolingPolicy, PassiveCooling);
                 ApplyActiveScheme();
-                TrayLog.Write("Modo silencioso ON (CPU max " + QuietProcMaxPercent + "%, resfriamento passivo).");
+                TrayLog.Write("Modo dormir ON (CPU max " + QuietProcMaxPercent + "%, resfriamento passivo).");
             }
         }
 
@@ -314,9 +314,9 @@ namespace HomeServerTray
                         SetAcValue(CoolingPolicy, cooling);
                     ApplyActiveScheme();
                     File.Delete(path);
-                    TrayLog.Write("Modo silencioso OFF (plano de energia restaurado).");
+                    TrayLog.Write("Modo dormir OFF (plano de energia restaurado).");
                 }
-                catch (Exception ex) { TrayLog.Write("erro ao restaurar modo silencioso: " + ex.Message); }
+                catch (Exception ex) { TrayLog.Write("erro ao restaurar modo dormir: " + ex.Message); }
             }
         }
 
