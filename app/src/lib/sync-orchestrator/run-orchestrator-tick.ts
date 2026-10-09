@@ -168,7 +168,7 @@ export async function runSyncOrchestratorTick(options?: {
   if (isPostgresBackend()) {
     const pool = getPostgresPool();
     const result = await pool.query<{ count: string }>(
-      `SELECT count(*) as count FROM turmas_ofertadas_catalog WHERE semestre = $1`,
+      `SELECT count(*) as count FROM turmas_ofertadas WHERE semestre = $1`,
       [targetSemester]
     );
     hasTurmas = parseInt(result.rows[0].count, 10) > 0;
