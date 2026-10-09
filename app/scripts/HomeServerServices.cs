@@ -239,6 +239,103 @@ namespace HomeServerTray
         }
     }
 
+    /// <summary>
+    /// Troca o perfil de iluminacao no driver Womier-SK80 por clique real: a UI dele e desenhada
+    /// a mao (sem UI Automation) e ignora mensagens de mouse postadas em segundo plano.
+    /// Coordenadas em pixels de cliente da janela 1200x720 a 96 DPI (layout do driver V1.0).
+    /// </summary>
+    static class WomierProfile
+    {
+        public const int ProfileDefault = 0;
+        public const int ProfileSleep = 1;
+        const string WindowTitle = "Womier-SK80 Driver";
+        const int ProfileRowX = 176;
+        const int FirstProfileRowY = 114;
+        const int ProfileRowHeight = 30;
+        const int LightingTabX = 30;
+        const int LightingTabY = 382;
+        const int SwShow = 5, SwMinimize = 6, SwRestore = 9;
+        static readonly IntPtr HwndTopmost = new IntPtr(-1);
+        static readonly IntPtr HwndNoTopmost = new IntPtr(-2);
+        const uint SwpNoMoveNoSize = 0x0001 | 0x0002;
+
+        [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
+        struct Point { public int X, Y; }
+
+        [System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+        static extern IntPtr FindWindow(string cls, string title);
+        [System.Runtime.InteropServices.DllImport("user32.dll")] static extern bool IsWindowVisible(IntPtr h);
+        [System.Runtime.InteropServices.DllImport("user32.dll")] static extern bool IsIconic(IntPtr h);
+        [System.Runtime.InteropServices.DllImport("user32.dll")] static extern bool ShowWindow(IntPtr h, int cmd);
+        [System.Runtime.InteropServices.DllImport("user32.dll")] static extern bool SetForegroundWindow(IntPtr h);
+        [System.Runtime.InteropServices.DllImport("user32.dll")] static extern IntPtr GetForegroundWindow();
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        static extern bool SetWindowPos(IntPtr h, IntPtr after, int x, int y, int cx, int cy, uint flags);
+        [System.Runtime.InteropServices.DllImport("user32.dll")] static extern bool ClientToScreen(IntPtr h, ref Point p);
+        [System.Runtime.InteropServices.DllImport("user32.dll")] static extern bool GetCursorPos(out Point p);
+        [System.Runtime.InteropServices.DllImport("user32.dll")] static extern bool SetCursorPos(int x, int y);
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        static extern void mouse_event(uint flags, int dx, int dy, uint data, UIntPtr extraInfo);
+        const uint MouseLeftDown = 0x0002, MouseLeftUp = 0x0004;
+        public static void Select(int profileIndex)
+        {
+            IntPtr h = FindWindow(null, WindowTitle);
+            if (h == IntPtr.Zero) { TrayLog.Write("Womier: driver nao esta aberto; perfil nao trocado."); return; }
+
+            bool wasHidden = !IsWindowVisible(h);
+            bool wasMinimized = IsIconic(h);
+            IntPtr previousForeground = GetForegroundWindow();
+            Point cursor;
+            GetCursorPos(out cursor);
+            try
+            {
+                BringToTop(h, wasHidden, wasMinimized);
+                // A lista de perfis certa so existe na aba "Key light customization" (estrela);
+                // sempre clica nela (clicar na aba ja ativa e inofensivo).
+                ClickClient(h, LightingTabX, LightingTabY);
+                Thread.Sleep(700);
+                ClickClient(h, ProfileRowX, FirstProfileRowY + profileIndex * ProfileRowHeight);
+                Thread.Sleep(400);
+                TrayLog.Write("Womier: perfil #" + (profileIndex + 1) + " selecionado.");
+            }
+            catch (Exception ex) { TrayLog.Write("erro Womier: " + ex.Message); }
+            finally
+            {
+                SetCursorPos(cursor.X, cursor.Y);
+                RestoreWindow(h, wasHidden, wasMinimized, previousForeground);
+            }
+        }
+
+        static void BringToTop(IntPtr h, bool wasHidden, bool wasMinimized)
+        {
+            if (wasHidden) ShowWindow(h, SwShow);
+            if (wasMinimized) ShowWindow(h, SwRestore);
+            SetWindowPos(h, HwndTopmost, 0, 0, 0, 0, SwpNoMoveNoSize);
+            SetForegroundWindow(h);
+            Thread.Sleep(350);
+        }
+
+        static void RestoreWindow(IntPtr h, bool wasHidden, bool wasMinimized, IntPtr previousForeground)
+        {
+            SetWindowPos(h, HwndNoTopmost, 0, 0, 0, 0, SwpNoMoveNoSize);
+            if (wasMinimized) ShowWindow(h, SwMinimize);
+            else if (wasHidden) ShowWindow(h, 0);
+            if (previousForeground != IntPtr.Zero && previousForeground != h) SetForegroundWindow(previousForeground);
+        }
+
+        static void ClickClient(IntPtr h, int x, int y)
+        {
+            var p = new Point { X = x, Y = y };
+            ClientToScreen(h, ref p);
+            SetCursorPos(p.X, p.Y);
+            Thread.Sleep(60);
+            mouse_event(MouseLeftDown, 0, 0, 0, UIntPtr.Zero);
+            Thread.Sleep(50);
+            mouse_event(MouseLeftUp, 0, 0, 0, UIntPtr.Zero);
+        }
+
+    }
+
     static class UserInput
     {
         [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]

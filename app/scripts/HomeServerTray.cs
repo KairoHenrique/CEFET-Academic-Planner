@@ -189,7 +189,8 @@ namespace HomeServerTray
         {
             DialogResult answer = MessageBox.Show(
                 "Ativar o Modo dormir?\n\n" +
-                "As telas apagam e o PC fica mais silencioso (CPU limitada, ventoinhas mais baixas). O servidor continua rodando.\n" +
+                "As telas apagam, o teclado vai para o perfil \"config dormir\" e o PC fica mais silencioso " +
+                "(CPU limitada, ventoinhas mais baixas). O servidor continua rodando.\n" +
                 "Mexa o mouse ou aperte uma tecla para voltar ao normal.",
                 "ServidorACME", MessageBoxButtons.YesNo, MessageBoxIcon.Question,
                 MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly);
@@ -199,6 +200,7 @@ namespace HomeServerTray
             {
                 // Espera o clique "assentar", senao o proprio mouse religa a tela.
                 Thread.Sleep(ScreensOffDelayMs);
+                WomierProfile.Select(WomierProfile.ProfileSleep);
                 QuietMode.Enter();
                 MonitorPower.TurnOffNow();
                 Thread.Sleep(ScreensOffDelayMs);
@@ -212,7 +214,12 @@ namespace HomeServerTray
             if (UserInput.LastInputTick() == inputBaselineTick) return;
             returnWatchTimer.Stop();
             TrayLog.Write("Usuario voltou ao PC.");
-            ThreadPool.QueueUserWorkItem(delegate { QuietMode.Exit(); });
+            ThreadPool.QueueUserWorkItem(delegate
+            {
+                QuietMode.Exit();
+                Thread.Sleep(800);
+                WomierProfile.Select(WomierProfile.ProfileDefault);
+            });
         }
 
         static void ApplyKeepAwake()
