@@ -574,7 +574,7 @@ powershell -ExecutionPolicy Bypass -File app\scripts\build-tray-exe.ps1   # gera
 | Watchdog 15 s com backoff (10 s → 5 min) reinicia worker/túnel que caírem | Queda isolada não derruba o sync até alguém notar |
 | Após o 1º secret OK: **sync geral** (`POST /api/cron/sync-orchestrator?force=1`, Bearer `CRON_SECRET` do `.env.local`) | Calendário, turmas e alunos ativos atualizam depois de cada religada |
 | **Impedir suspensão (telas podem apagar)** — ligado por padrão enquanto o servidor roda | `SetThreadExecutionState(ES_SYSTEM_REQUIRED)`: monitores apagam, PC não dorme por inatividade; desligável no menu (`.data/keep-awake-disabled`) |
-| Botão **Apagar telas agora** | Desliga os monitores na hora sem suspender; mouse/teclado religam |
+| Botão **Apagar telas agora** (com confirmação) | Desliga os monitores e liga o **modo silencioso**: CPU máx. 50% no plano de energia (+ resfriamento passivo se exposto) para a Smart Fan da BIOS baixar as ventoinhas. Mouse/teclado religam e restauram os valores (salvos em `.data/quiet-mode.state`, restaurados também ao abrir/fechar o tray) |
 | Ao **acordar da suspensão/hibernação**: túnel novo, worker conferido, secret e sync geral de novo | Quick tunnel volta "meio morto" ou com outro hostname depois do sleep |
 | Instância única (mutex) | Autostart + abrir manualmente não sobem dois túneis |
 

@@ -31,6 +31,8 @@ namespace HomeServerTray
         const int SyncAfterSecretDelayMs = 20000;
         const int MaxRestartBackoffSec = 300;
         const int ResumeSettleMs = 5000;
+        const int ScreensOffDelayMs = 1200;
+        const int ReturnWatchMs = 1000;
 
         static readonly Regex UrlRe =
             new Regex(@"https://[a-z0-9-]+\.trycloudflare\.com", RegexOptions.IgnoreCase);
@@ -41,7 +43,8 @@ namespace HomeServerTray
         static NotifyIcon notify;
         static Control ui;
         static ToolStripMenuItem miStatus, miStart, miStop, miSync, miScreensOff, miAutostart, miKeepAwake;
-        static System.Windows.Forms.Timer pollTimer, watchdogTimer;
+        static System.Windows.Forms.Timer pollTimer, watchdogTimer, returnWatchTimer;
+        static uint inputBaselineTick;
         static Process workerProc, tunnelProc;
         static string tunnelUrl;
         static string cloudflared;
@@ -65,6 +68,7 @@ namespace HomeServerTray
                 EnvLocal.AppDir = ResolveAppDir();
                 TrayLog.Init(EnvLocal.AppDir);
                 cloudflared = ResolveCloudflared();
+                QuietMode.Exit();
 
                 Application.EnableVisualStyles();
                 ui = new Control();
@@ -137,6 +141,10 @@ namespace HomeServerTray
             watchdogTimer = new System.Windows.Forms.Timer();
             watchdogTimer.Interval = WatchdogMs;
             watchdogTimer.Tick += delegate { ThreadPool.QueueUserWorkItem(delegate { WatchdogTick(); }); };
+
+            returnWatchTimer = new System.Windows.Forms.Timer();
+            returnWatchTimer.Interval = ReturnWatchMs;
+            returnWatchTimer.Tick += delegate { OnReturnWatchTick(); };
         }
 
         static void ScheduleAutoStart()
@@ -180,10 +188,31 @@ namespace HomeServerTray
         static void ConfirmAndTurnOffScreens()
         {
             DialogResult answer = MessageBox.Show(
-                "Apagar todas as telas agora?\n\nO servidor continua rodando. Mexa o mouse ou aperte uma tecla para acender.",
+                "Apagar todas as telas agora?\n\n" +
+                "O PC entra em modo silencioso (CPU limitada, ventoinhas mais baixas) e o servidor continua rodando.\n" +
+                "Mexa o mouse ou aperte uma tecla para voltar ao normal.",
                 "ServidorACME", MessageBoxButtons.YesNo, MessageBoxIcon.Question,
                 MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly);
-            if (answer == DialogResult.Yes) MonitorPower.TurnOffAfter(1200);
+            if (answer != DialogResult.Yes) return;
+
+            ThreadPool.QueueUserWorkItem(delegate
+            {
+                // Espera o clique "assentar", senao o proprio mouse religa a tela.
+                Thread.Sleep(ScreensOffDelayMs);
+                QuietMode.Enter();
+                MonitorPower.TurnOffNow();
+                Thread.Sleep(ScreensOffDelayMs);
+                inputBaselineTick = UserInput.LastInputTick();
+                RunOnUi(delegate { returnWatchTimer.Start(); });
+            });
+        }
+
+        static void OnReturnWatchTick()
+        {
+            if (UserInput.LastInputTick() == inputBaselineTick) return;
+            returnWatchTimer.Stop();
+            TrayLog.Write("Usuario voltou ao PC.");
+            ThreadPool.QueueUserWorkItem(delegate { QuietMode.Exit(); });
         }
 
         static void ApplyKeepAwake()
@@ -359,6 +388,8 @@ namespace HomeServerTray
 
         static void ExitApp()
         {
+            try { returnWatchTimer.Stop(); } catch { }
+            QuietMode.Exit();
             StopServers(false);
             try { notify.Visible = false; notify.Dispose(); } catch { }
             Application.Exit();

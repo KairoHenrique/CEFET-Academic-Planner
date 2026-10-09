@@ -231,18 +231,142 @@ namespace HomeServerTray
         [System.Runtime.InteropServices.DllImport("user32.dll")]
         static extern bool PostMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
 
-        /// <summary>
-        /// Espera o clique do menu "assentar" (senao o proprio movimento do mouse religa a tela).
-        /// PostMessage em vez de SendMessage: broadcast sincrono pode travar em janela que nao responde.
-        /// </summary>
-        public static void TurnOffAfter(int delayMs)
+        /// <summary>PostMessage em vez de SendMessage: broadcast sincrono pode travar em janela que nao responde.</summary>
+        public static void TurnOffNow()
         {
-            ThreadPool.QueueUserWorkItem(delegate
+            PostMessage(HwndBroadcast, WmSysCommand, new IntPtr(ScMonitorPower), new IntPtr(MonitorOff));
+            TrayLog.Write("Telas apagadas pelo menu.");
+        }
+    }
+
+    static class UserInput
+    {
+        [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
+        struct LastInputInfo
+        {
+            public uint cbSize;
+            public uint dwTime;
+        }
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        static extern bool GetLastInputInfo(ref LastInputInfo info);
+
+        /// <summary>Tick (ms desde o boot) do ultimo mouse/teclado; 0 se a API falhar.</summary>
+        public static uint LastInputTick()
+        {
+            var info = new LastInputInfo();
+            info.cbSize = (uint)System.Runtime.InteropServices.Marshal.SizeOf(info);
+            return GetLastInputInfo(ref info) ? info.dwTime : 0;
+        }
+    }
+
+    /// <summary>
+    /// Modo silencioso enquanto as telas estao apagadas: limita a CPU e usa resfriamento
+    /// passivo no plano de energia ativo, para a curva Smart Fan da BIOS baixar as ventoinhas.
+    /// Os valores originais ficam em .data/quiet-mode.state ate a restauracao (sobrevive a crash).
+    /// </summary>
+    static class QuietMode
+    {
+        const string SubProcessor = "54533251-82be-4824-96c1-47b60b740d00";
+        const string ProcMax = "bc5038f7-23e0-4960-96da-33abaf5935ec";
+        const string CoolingPolicy = "94d3a615-a899-4ac5-ae2b-e4d8f634367f";
+        const int QuietProcMaxPercent = 50;
+        const int PassiveCooling = 0;
+        static readonly object gate = new object();
+        static readonly Regex HexValue = new Regex(@"0x([0-9a-fA-F]+)");
+
+        static string StatePath()
+        {
+            return Path.Combine(EnvLocal.AppDir, ".data", "quiet-mode.state");
+        }
+
+        public static void Enter()
+        {
+            lock (gate)
             {
-                Thread.Sleep(delayMs);
-                PostMessage(HwndBroadcast, WmSysCommand, new IntPtr(ScMonitorPower), new IntPtr(MonitorOff));
-                TrayLog.Write("Telas apagadas pelo menu.");
-            });
+                if (File.Exists(StatePath())) return;
+                int procMax = ReadAcValue(ProcMax);
+                int cooling = ReadAcValue(CoolingPolicy);
+                if (procMax < 0) { TrayLog.Write("Modo silencioso: nao consegui ler o plano de energia."); return; }
+                Directory.CreateDirectory(Path.GetDirectoryName(StatePath()));
+                File.WriteAllText(StatePath(), procMax + ";" + cooling);
+                SetAcValue(ProcMax, Math.Min(procMax, QuietProcMaxPercent));
+                if (cooling >= 0) SetAcValue(CoolingPolicy, PassiveCooling);
+                ApplyActiveScheme();
+                TrayLog.Write("Modo silencioso ON (CPU max " + QuietProcMaxPercent + "%, resfriamento passivo).");
+            }
+        }
+
+        /// <summary>Restaura os valores salvos. Seguro chamar sempre (no-op se nao ativo).</summary>
+        public static void Exit()
+        {
+            lock (gate)
+            {
+                string path = StatePath();
+                if (!File.Exists(path)) return;
+                try
+                {
+                    string[] parts = File.ReadAllText(path).Split(';');
+                    int procMax, cooling;
+                    if (parts.Length > 0 && int.TryParse(parts[0], out procMax) && procMax > 0)
+                        SetAcValue(ProcMax, procMax);
+                    if (parts.Length > 1 && int.TryParse(parts[1], out cooling) && cooling >= 0)
+                        SetAcValue(CoolingPolicy, cooling);
+                    ApplyActiveScheme();
+                    File.Delete(path);
+                    TrayLog.Write("Modo silencioso OFF (plano de energia restaurado).");
+                }
+                catch (Exception ex) { TrayLog.Write("erro ao restaurar modo silencioso: " + ex.Message); }
+            }
+        }
+
+        /// <summary>powercfg /query: as duas ultimas linhas com 0x sao AC e DC atuais.</summary>
+        static int ReadAcValue(string setting)
+        {
+            string output = RunPowercfg("/query SCHEME_CURRENT " + SubProcessor + " " + setting);
+            if (output == null) return -1;
+            string acLine = null, dcLine = null;
+            foreach (string line in output.Split('\n'))
+            {
+                if (!HexValue.IsMatch(line)) continue;
+                acLine = dcLine;
+                dcLine = line;
+            }
+            if (acLine == null) return -1;
+            return Convert.ToInt32(HexValue.Match(acLine).Groups[1].Value, 16);
+        }
+
+        static void SetAcValue(string setting, int value)
+        {
+            RunPowercfg("/setacvalueindex SCHEME_CURRENT " + SubProcessor + " " + setting + " " + value);
+        }
+
+        static void ApplyActiveScheme()
+        {
+            RunPowercfg("/setactive SCHEME_CURRENT");
+        }
+
+        static string RunPowercfg(string args)
+        {
+            try
+            {
+                var psi = new ProcessStartInfo("powercfg.exe", args);
+                psi.UseShellExecute = false;
+                psi.CreateNoWindow = true;
+                psi.RedirectStandardOutput = true;
+                using (Process p = Process.Start(psi))
+                {
+                    string output = p.StandardOutput.ReadToEnd();
+                    p.WaitForExit(10000);
+                    if (p.ExitCode != 0) TrayLog.Write("powercfg " + args + " -> exit=" + p.ExitCode);
+                    return p.ExitCode == 0 ? output : null;
+                }
+            }
+            catch (Exception ex)
+            {
+                TrayLog.Write("erro powercfg: " + ex.Message);
+                return null;
+            }
         }
     }
 
