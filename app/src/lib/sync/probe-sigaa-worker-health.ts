@@ -7,7 +7,7 @@ export interface SigaaWorkerHealthResult {
   reason?: string;
 }
 
-const DEFAULT_TIMEOUT_MS = 4_000;
+const DEFAULT_TIMEOUT_MS = 8_000;
 
 /**
  * Sonda o worker Playwright do Servidor ACME (`GET {SIGAA_WORKER_URL}/health`).

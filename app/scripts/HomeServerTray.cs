@@ -1,8 +1,8 @@
 // ServidorACME - Servidor de casa (tray app nativo).
-// Sobe o worker Playwright (:8787) + tunnel cloudflared e atualiza
-// automaticamente o secret SIGAA_WORKER_URL no Cloudflare.
-// Poll a cada 20s em 127.0.0.1:20241/quicktunnel — se o hostname
-// do túnel mudar, o secret é atualizado de novo.
+// Ao abrir (ou no logon do Windows) sobe sozinho o worker Playwright (:8787)
+// + tunnel cloudflared, valida o tunel, atualiza o secret SIGAA_WORKER_URL
+// no Cloudflare e dispara um sync geral. Watchdog reinicia worker/tunel
+// se cairem; poll a cada 20s em 127.0.0.1:20241/quicktunnel reaplica a URL.
 // Compilar: ver app/scripts/build-tray-exe.ps1
 using System;
 using System.Diagnostics;
@@ -18,50 +18,88 @@ namespace HomeServerTray
 {
     static class Program
     {
-        static NotifyIcon notify;
-        static ToolStripMenuItem miStatus, miStart, miStop, miExit;
-        static Process workerProc;
-        static Process tunnelProc;
-        static string tunnelUrl;
-        static bool running;
-        static bool updatingSecret;
-        static readonly object secretLock = new object();
-        static string appDir;
-        static string cloudflared;
-        static string logFile;
-        static System.Windows.Forms.Timer pollTimer;
+        const int WorkerPort = 8787;
         const string MetricsUrl = "http://127.0.0.1:20241/quicktunnel";
         const int PollMs = 20000;
+        const int WatchdogMs = 15000;
+        const int AutoStartDelayMs = 3000;
+        const int NetworkWaitMs = 3 * 60 * 1000;
+        const int LocalHealthWaitMs = 4 * 60 * 1000;
+        const int PublicHealthWaitMs = 3 * 60 * 1000;
+        const int SyncAfterSecretDelayMs = 20000;
+        const int MaxRestartBackoffSec = 300;
+
         static readonly Regex UrlRe =
             new Regex(@"https://[a-z0-9-]+\.trycloudflare\.com", RegexOptions.IgnoreCase);
         static readonly Regex HostnameRe =
             new Regex(@"""hostname""\s*:\s*""([^""]+)""", RegexOptions.IgnoreCase);
 
+        static readonly object stateLock = new object();
+        static NotifyIcon notify;
+        static Control ui;
+        static ToolStripMenuItem miStatus, miStart, miStop, miSync, miAutostart;
+        static System.Windows.Forms.Timer pollTimer, watchdogTimer;
+        static Process workerProc, tunnelProc;
+        static string tunnelUrl;
+        static string cloudflared;
+        static bool running;
+        static bool generalSyncPending;
+        static int publishing;
+        static int watchdogBusy;
+        static int workerRestarts, tunnelRestarts;
+        static DateTime nextWorkerRestartUtc = DateTime.MinValue;
+        static DateTime nextTunnelRestartUtc = DateTime.MinValue;
+
         [STAThread]
         static void Main()
         {
-            appDir = ResolveAppDir();
-            logFile = Path.Combine(appDir, ".data", "home-server-tray.log");
-            cloudflared = ResolveCloudflared();
+            bool createdNew;
+            using (var mutex = new Mutex(true, "Local\\ServidorACME_Tray", out createdNew))
+            {
+                if (!createdNew) return;
+                ServicePointManager.SecurityProtocol |= (SecurityProtocolType)3072;
+                EnvLocal.AppDir = ResolveAppDir();
+                TrayLog.Init(EnvLocal.AppDir);
+                cloudflared = ResolveCloudflared();
 
-            Application.EnableVisualStyles();
+                Application.EnableVisualStyles();
+                ui = new Control();
+                IntPtr forceHandle = ui.Handle;
 
+                BuildTray();
+                AutostartRegistry.ApplyDefaultOnLaunch();
+                miAutostart.Checked = AutostartRegistry.IsEnabled();
+                CreateTimers();
+                TrayLog.Write("Tray iniciado. AppDir=" + EnvLocal.AppDir);
+                ScheduleAutoStart();
+                Application.Run();
+                GC.KeepAlive(mutex);
+            }
+        }
+
+        // ---------------- UI ----------------
+
+        static void BuildTray()
+        {
             miStatus = new ToolStripMenuItem("Parado");
             miStatus.Enabled = false;
             miStart = new ToolStripMenuItem("Executar");
             miStart.Click += delegate { StartServers(); };
             miStop = new ToolStripMenuItem("Parar");
             miStop.Enabled = false;
-            miStop.Click += delegate { StopServers(); };
-            miExit = new ToolStripMenuItem("Sair");
+            miStop.Click += delegate { StopServers(true); };
+            miSync = new ToolStripMenuItem("Sync geral agora");
+            miSync.Click += delegate { GeneralSync.TriggerAsync(0, ReportSync); };
+            miAutostart = new ToolStripMenuItem("Iniciar com o Windows");
+            miAutostart.CheckOnClick = true;
+            miAutostart.Click += delegate { AutostartRegistry.SetEnabled(miAutostart.Checked); };
+            var miExit = new ToolStripMenuItem("Sair");
             miExit.Click += delegate { ExitApp(); };
 
             var menu = new ContextMenuStrip();
-            menu.Items.Add(miStatus);
-            menu.Items.Add(miStart);
-            menu.Items.Add(miStop);
-            menu.Items.Add(new ToolStripSeparator());
-            menu.Items.Add(miExit);
+            menu.Items.AddRange(new ToolStripItem[] {
+                miStatus, miStart, miStop, miSync, new ToolStripSeparator(),
+                miAutostart, new ToolStripSeparator(), miExit });
 
             notify = new NotifyIcon();
             notify.Icon = LoadIcon();
@@ -72,33 +110,73 @@ namespace HomeServerTray
             {
                 if (e.Button == MouseButtons.Left) ShowMenu();
             };
-            notify.ShowBalloonTip(2500, "ServidorACME",
-                "Pronto. Clique no icone e em \"Executar\".", ToolTipIcon.Info);
+        }
 
+        static void CreateTimers()
+        {
             pollTimer = new System.Windows.Forms.Timer();
             pollTimer.Interval = PollMs;
-            pollTimer.Tick += delegate
-            {
-                ThreadPool.QueueUserWorkItem(delegate { PollLiveTunnel(); });
-            };
+            pollTimer.Tick += delegate { ThreadPool.QueueUserWorkItem(delegate { PollLiveTunnel(); }); };
 
-            Log("Tray iniciado. AppDir=" + appDir);
-            Application.Run();
+            watchdogTimer = new System.Windows.Forms.Timer();
+            watchdogTimer.Interval = WatchdogMs;
+            watchdogTimer.Tick += delegate { ThreadPool.QueueUserWorkItem(delegate { WatchdogTick(); }); };
+        }
+
+        static void ScheduleAutoStart()
+        {
+            var once = new System.Windows.Forms.Timer();
+            once.Interval = AutoStartDelayMs;
+            once.Tick += delegate
+            {
+                once.Stop();
+                once.Dispose();
+                StartServers();
+            };
+            once.Start();
+        }
+
+        static void RunOnUi(MethodInvoker action)
+        {
+            try
+            {
+                if (ui.InvokeRequired) ui.BeginInvoke(action);
+                else action();
+            }
+            catch { }
+        }
+
+        static void SetStatus(string text)
+        {
+            RunOnUi(delegate
+            {
+                miStatus.Text = text;
+                string full = "ServidorACME - " + text;
+                notify.Text = full.Length > 63 ? full.Substring(0, 63) : full;
+            });
+        }
+
+        static void Balloon(string text, ToolTipIcon icon)
+        {
+            RunOnUi(delegate { notify.ShowBalloonTip(4000, "ServidorACME", text, icon); });
+        }
+
+        static void ReportSync(string message, bool ok)
+        {
+            Balloon(message, ok ? ToolTipIcon.Info : ToolTipIcon.Warning);
         }
 
         static Icon LoadIcon()
         {
-            // 1) icone embutido no proprio .exe (logo do site via /win32icon)
             try
             {
                 Icon self = Icon.ExtractAssociatedIcon(Application.ExecutablePath);
                 if (self != null) return self;
             }
             catch { }
-            // 2) fallback: favicon do app
             try
             {
-                string ico = Path.Combine(appDir, "src", "app", "favicon.ico");
+                string ico = Path.Combine(EnvLocal.AppDir, "src", "app", "favicon.ico");
                 if (File.Exists(ico)) return new Icon(ico);
             }
             catch { }
@@ -129,7 +207,8 @@ namespace HomeServerTray
                 }
             }
             catch { }
-            return @"C:\Users\kairo\OneDrive\Documentos\CEFET-Academic-Planner\app";
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                "CEFET-Academic-Planner", "app");
         }
 
         static string ResolveCloudflared()
@@ -138,101 +217,180 @@ namespace HomeServerTray
             return File.Exists(def) ? def : "cloudflared";
         }
 
-        static void Log(string msg)
-        {
-            try
-            {
-                string dir = Path.GetDirectoryName(logFile);
-                if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
-                File.AppendAllText(logFile,
-                    "[" + DateTime.Now.ToString("HH:mm:ss") + "] " + msg + Environment.NewLine);
-            }
-            catch { }
-        }
+        // ---------------- Ciclo de vida ----------------
 
-        static void SetStatus(string t)
+        static bool IsRunning()
         {
-            try
-            {
-                miStatus.Text = t;
-                string full = "ServidorACME - " + t;
-                notify.Text = full.Length > 63 ? full.Substring(0, 63) : full;
-            }
-            catch { }
+            lock (stateLock) { return running; }
         }
 
         static void StartServers()
         {
-            if (running) return;
-            Log("--- Iniciando servidor ---");
-            SetStatus("Iniciando...");
-
-            try
+            lock (stateLock)
             {
-                string workerLog = Path.Combine(appDir, ".data", "home-worker.log");
-                string workerDir = Path.GetDirectoryName(workerLog);
-                if (!Directory.Exists(workerDir)) Directory.CreateDirectory(workerDir);
-
-                var wpsi = new ProcessStartInfo("cmd.exe",
-                    "/c npm run worker:home > \"" + workerLog + "\" 2>&1");
-                wpsi.WorkingDirectory = appDir;
-                wpsi.UseShellExecute = false;
-                wpsi.CreateNoWindow = true;
-                wpsi.WindowStyle = ProcessWindowStyle.Hidden;
-                workerProc = Process.Start(wpsi);
-                Log("worker:home pid=" + (workerProc != null ? workerProc.Id.ToString() : "?") +
-                    " log=" + workerLog);
+                if (running) return;
+                running = true;
+                generalSyncPending = true;
+                workerRestarts = 0;
+                tunnelRestarts = 0;
             }
-            catch (Exception ex) { Log("erro worker: " + ex.Message); }
-
-            try
-            {
-                var tpsi = new ProcessStartInfo(cloudflared,
-                    "tunnel --url http://127.0.0.1:8787 --metrics 127.0.0.1:20241");
-                tpsi.WorkingDirectory = appDir;
-                tpsi.UseShellExecute = false;
-                tpsi.CreateNoWindow = true;
-                tpsi.RedirectStandardOutput = true;
-                tpsi.RedirectStandardError = true;
-                tunnelProc = new Process();
-                tunnelProc.StartInfo = tpsi;
-                tunnelProc.OutputDataReceived += OnTunnelData;
-                tunnelProc.ErrorDataReceived += OnTunnelData;
-                tunnelProc.Start();
-                tunnelProc.BeginOutputReadLine();
-                tunnelProc.BeginErrorReadLine();
-                Log("cloudflared pid=" + tunnelProc.Id);
-            }
-            catch (Exception ex) { Log("erro tunnel: " + ex.Message); }
-
-            running = true;
+            TrayLog.Write("--- Iniciando servidor ---");
             miStart.Enabled = false;
             miStop.Enabled = true;
-            SetStatus("No ar (conectando tunel...)");
-            notify.ShowBalloonTip(3000, "ServidorACME",
-                "Servidor iniciado. Conectando tunel...", ToolTipIcon.Info);
-            pollTimer.Start();
-            ThreadPool.QueueUserWorkItem(delegate
-            {
-                Thread.Sleep(5000);
-                PollLiveTunnel();
-            });
+            SetStatus("Aguardando rede...");
+            ThreadPool.QueueUserWorkItem(delegate { BootSequence(); });
         }
+
+        static void BootSequence()
+        {
+            if (!HttpProbe.WaitForNetwork(NetworkWaitMs, IsRunning))
+                TrayLog.Write("Rede nao confirmada em 3 min; tentando mesmo assim.");
+            if (!IsRunning()) return;
+
+            ProcessTools.KillByName("cloudflared");
+            ProcessTools.KillPortListeners(WorkerPort);
+            StartWorker();
+            StartTunnel();
+
+            SetStatus("No ar (conectando tunel...)");
+            Balloon("Servidor iniciado. Conectando tunel...", ToolTipIcon.Info);
+            RunOnUi(delegate { pollTimer.Start(); watchdogTimer.Start(); });
+            Thread.Sleep(5000);
+            PollLiveTunnel();
+        }
+
+        static void StartWorker()
+        {
+            try
+            {
+                string workerLog = Path.Combine(EnvLocal.AppDir, ".data", "home-worker.log");
+                Directory.CreateDirectory(Path.GetDirectoryName(workerLog));
+                TrayLog.RotateIfLarge(workerLog, 5 * 1024 * 1024);
+
+                var psi = new ProcessStartInfo("cmd.exe",
+                    "/c npm run worker:home >> \"" + workerLog + "\" 2>&1");
+                psi.WorkingDirectory = EnvLocal.AppDir;
+                psi.UseShellExecute = false;
+                psi.CreateNoWindow = true;
+                psi.WindowStyle = ProcessWindowStyle.Hidden;
+                Process p = Process.Start(psi);
+                lock (stateLock) { workerProc = p; }
+                TrayLog.Write("worker:home pid=" + (p != null ? p.Id.ToString() : "?"));
+            }
+            catch (Exception ex) { TrayLog.Write("erro worker: " + ex.Message); }
+        }
+
+        static void StartTunnel()
+        {
+            try
+            {
+                var psi = new ProcessStartInfo(cloudflared,
+                    "tunnel --url http://127.0.0.1:" + WorkerPort + " --metrics 127.0.0.1:20241");
+                psi.WorkingDirectory = EnvLocal.AppDir;
+                psi.UseShellExecute = false;
+                psi.CreateNoWindow = true;
+                psi.RedirectStandardOutput = true;
+                psi.RedirectStandardError = true;
+                var p = new Process();
+                p.StartInfo = psi;
+                p.OutputDataReceived += OnTunnelData;
+                p.ErrorDataReceived += OnTunnelData;
+                p.Start();
+                p.BeginOutputReadLine();
+                p.BeginErrorReadLine();
+                lock (stateLock) { tunnelProc = p; }
+                TrayLog.Write("cloudflared pid=" + p.Id);
+            }
+            catch (Exception ex) { TrayLog.Write("erro tunnel: " + ex.Message); }
+        }
+
+        static void StopServers(bool showBalloon)
+        {
+            Process w, t;
+            lock (stateLock)
+            {
+                running = false;
+                tunnelUrl = null;
+                w = workerProc; workerProc = null;
+                t = tunnelProc; tunnelProc = null;
+            }
+            TrayLog.Write("--- Parando servidor ---");
+            try { pollTimer.Stop(); watchdogTimer.Stop(); } catch { }
+            ProcessTools.KillTree(t);
+            ProcessTools.KillTree(w);
+            ProcessTools.KillByName("cloudflared");
+            miStart.Enabled = true;
+            miStop.Enabled = false;
+            SetStatus("Parado");
+            if (showBalloon) Balloon("Servidor parado.", ToolTipIcon.Info);
+        }
+
+        static void ExitApp()
+        {
+            StopServers(false);
+            try { notify.Visible = false; notify.Dispose(); } catch { }
+            Application.Exit();
+        }
+
+        // ---------------- Watchdog ----------------
+
+        static int BackoffSeconds(int restarts)
+        {
+            int exp = Math.Min(restarts, 6);
+            return Math.Min(MaxRestartBackoffSec, 10 * (1 << (exp - 1)));
+        }
+
+        static void WatchdogTick()
+        {
+            if (Interlocked.CompareExchange(ref watchdogBusy, 1, 0) != 0) return;
+            try
+            {
+                if (!IsRunning()) return;
+                Process w, t;
+                lock (stateLock) { w = workerProc; t = tunnelProc; }
+                if (ProcessTools.HasExited(w)) RestartWorker();
+                if (ProcessTools.HasExited(t)) RestartTunnel();
+            }
+            finally { Interlocked.Exchange(ref watchdogBusy, 0); }
+        }
+
+        static void RestartWorker()
+        {
+            if (DateTime.UtcNow < nextWorkerRestartUtc) return;
+            workerRestarts++;
+            nextWorkerRestartUtc = DateTime.UtcNow.AddSeconds(BackoffSeconds(workerRestarts));
+            TrayLog.Write("Watchdog: worker caiu, reiniciando (#" + workerRestarts + ")");
+            SetStatus("Reiniciando worker...");
+            ProcessTools.KillPortListeners(WorkerPort);
+            StartWorker();
+        }
+
+        static void RestartTunnel()
+        {
+            if (DateTime.UtcNow < nextTunnelRestartUtc) return;
+            tunnelRestarts++;
+            nextTunnelRestartUtc = DateTime.UtcNow.AddSeconds(BackoffSeconds(tunnelRestarts));
+            TrayLog.Write("Watchdog: tunel caiu, reiniciando (#" + tunnelRestarts + ")");
+            SetStatus("Reconectando tunel...");
+            lock (stateLock) { tunnelUrl = null; }
+            ProcessTools.KillByName("cloudflared");
+            StartTunnel();
+        }
+
+        // ---------------- Tunel -> secret -> sync ----------------
 
         static void OnTunnelData(object sender, DataReceivedEventArgs e)
         {
             if (string.IsNullOrEmpty(e.Data)) return;
             Match m = UrlRe.Match(e.Data);
-            if (!m.Success) return;
-            ApplyTunnelUrl(m.Value, "log");
+            if (m.Success) ApplyTunnelUrl(m.Value, "log");
         }
 
         static void PollLiveTunnel()
         {
-            if (!running) return;
+            if (!IsRunning()) return;
             string live = ReadLiveTunnelUrl();
-            if (string.IsNullOrEmpty(live)) return;
-            ApplyTunnelUrl(live, "poll");
+            if (!string.IsNullOrEmpty(live)) ApplyTunnelUrl(live, "poll");
         }
 
         static string ReadLiveTunnelUrl()
@@ -240,191 +398,94 @@ namespace HomeServerTray
             try
             {
                 HttpWebRequest req = (HttpWebRequest)WebRequest.Create(MetricsUrl);
-                req.Timeout = 3000;
-                req.ReadWriteTimeout = 3000;
+                req.Timeout = 5000;
+                req.ReadWriteTimeout = 5000;
                 req.Proxy = null;
                 using (HttpWebResponse res = (HttpWebResponse)req.GetResponse())
                 using (StreamReader sr = new StreamReader(res.GetResponseStream()))
                 {
                     Match m = HostnameRe.Match(sr.ReadToEnd());
-                    if (!m.Success) return null;
-                    return NormalizeTunnelUrl(m.Groups[1].Value);
+                    return m.Success ? NormalizeTunnelUrl(m.Groups[1].Value) : null;
                 }
             }
-            catch (Exception ex)
-            {
-                Log("poll tunel: " + ex.Message);
-                return null;
-            }
+            catch { return null; }
         }
 
         static string NormalizeTunnelUrl(string raw)
         {
             if (string.IsNullOrEmpty(raw)) return null;
             string u = raw.Trim().TrimEnd('/');
-            if (u.StartsWith("https://", StringComparison.OrdinalIgnoreCase) ||
-                u.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
+            if (!u.StartsWith("http://", StringComparison.OrdinalIgnoreCase) &&
+                !u.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
             {
-                return u.ToLowerInvariant();
+                u = "https://" + u;
             }
-            return ("https://" + u).ToLowerInvariant();
+            return u.ToLowerInvariant();
         }
 
         static void ApplyTunnelUrl(string raw, string reason)
         {
             string u = NormalizeTunnelUrl(raw);
-            if (string.IsNullOrEmpty(u)) return;
-            if (string.Equals(u, tunnelUrl, StringComparison.OrdinalIgnoreCase)) return;
-            Log("Tunnel URL (" + reason + "): " + u);
-            UpdateSecret(u);
+            if (string.IsNullOrEmpty(u) || !IsRunning()) return;
+            lock (stateLock)
+            {
+                if (string.Equals(u, tunnelUrl, StringComparison.OrdinalIgnoreCase)) return;
+            }
+            if (Interlocked.CompareExchange(ref publishing, 1, 0) != 0) return;
+            TrayLog.Write("Tunnel URL (" + reason + "): " + u);
+            ThreadPool.QueueUserWorkItem(delegate
+            {
+                try { PublishTunnel(u); }
+                finally { Interlocked.Exchange(ref publishing, 0); }
+            });
         }
 
-        static void UpdateSecret(string url)
+        static void PublishTunnel(string url)
         {
-            lock (secretLock)
+            SetStatus("Validando worker local...");
+            string localHealth = "http://127.0.0.1:" + WorkerPort + "/health";
+            if (!HttpProbe.WaitHealthy(localHealth, LocalHealthWaitMs, IsRunning))
             {
-                if (updatingSecret) return;
-                updatingSecret = true;
+                TrayLog.Write("Worker local sem /health; secret nao atualizado (retenta no poll).");
+                SetStatus("Worker local sem resposta");
+                return;
             }
-            try
+
+            SetStatus("Validando tunel publico...");
+            if (!HttpProbe.WaitHealthy(url + "/health", PublicHealthWaitMs, IsRunning))
             {
-                Log("Atualizando SIGAA_WORKER_URL=" + url);
-                string token = ReadEnvLocalValue("CLOUDFLARE_API_TOKEN");
-                var psi = new ProcessStartInfo();
-                psi.FileName = "cmd.exe";
-                psi.Arguments =
-                    "/c echo " + url +
-                    "| npx wrangler secret put SIGAA_WORKER_URL --name acme-hub";
-                psi.WorkingDirectory = appDir;
-                psi.UseShellExecute = false;
-                psi.CreateNoWindow = true;
-                if (!string.IsNullOrEmpty(token))
-                {
-                    psi.EnvironmentVariables["CLOUDFLARE_API_TOKEN"] = token;
-                    Log("CLOUDFLARE_API_TOKEN carregado do .env.local");
-                }
-                else
-                {
-                    Log("Aviso: CLOUDFLARE_API_TOKEN ausente no .env.local");
-                }
-                Process p = Process.Start(psi);
-                p.WaitForExit();
-                Log("wrangler secret put exit=" + p.ExitCode);
-                if (p.ExitCode == 0)
-                {
-                    tunnelUrl = url;
-                    WriteEnvLocalWorkerUrl(url);
-                    SetStatus("No ar (OK)");
-                    notify.ShowBalloonTip(4000, "ServidorACME",
-                        "Servidor no ar! Tunel conectado e URL atualizada no Cloudflare.",
-                        ToolTipIcon.Info);
-                }
-                else
-                {
-                    SetStatus("No ar (falha secret)");
-                    notify.ShowBalloonTip(5000, "ServidorACME",
-                        "Tunel no ar, mas falhou atualizar o secret. URL: " + url,
-                        ToolTipIcon.Warning);
-                }
+                TrayLog.Write("Tunel publico sem /health; secret nao atualizado (evita 530/1016).");
+                SetStatus("Tunel sem resposta (retentando)");
+                return;
             }
-            catch (Exception ex) { Log("erro UpdateSecret: " + ex.Message); }
-            finally
+
+            SetStatus("Atualizando URL no Cloudflare...");
+            if (!CloudflareSecret.PutWorkerUrl(url, IsRunning))
             {
-                lock (secretLock) { updatingSecret = false; }
+                SetStatus("No ar (falha secret)");
+                Balloon("Tunel no ar, mas falhou atualizar o secret. Retentando no proximo poll.",
+                    ToolTipIcon.Warning);
+                return;
             }
+            OnTunnelPublished(url);
         }
 
-        static void WriteEnvLocalWorkerUrl(string url)
+        static void OnTunnelPublished(string url)
         {
-            try
+            bool runSync;
+            lock (stateLock)
             {
-                string path = Path.Combine(appDir, ".env.local");
-                if (!File.Exists(path)) return;
-                string text = File.ReadAllText(path);
-                if (Regex.IsMatch(text, @"^SIGAA_WORKER_URL=", RegexOptions.Multiline))
-                {
-                    text = Regex.Replace(
-                        text,
-                        @"^SIGAA_WORKER_URL=.*$",
-                        "SIGAA_WORKER_URL=" + url,
-                        RegexOptions.Multiline);
-                }
-                else
-                {
-                    text = text.TrimEnd() + Environment.NewLine +
-                        "SIGAA_WORKER_URL=" + url + Environment.NewLine;
-                }
-                File.WriteAllText(path, text);
+                if (!running) return;
+                tunnelUrl = url;
+                workerRestarts = 0;
+                tunnelRestarts = 0;
+                runSync = generalSyncPending;
+                generalSyncPending = false;
             }
-            catch (Exception ex) { Log("erro WriteEnvLocal: " + ex.Message); }
-        }
-
-        static string ReadEnvLocalValue(string key)
-        {
-            try
-            {
-                string path = Path.Combine(appDir, ".env.local");
-                if (!File.Exists(path)) return null;
-                foreach (string raw in File.ReadAllLines(path))
-                {
-                    string line = raw.Trim();
-                    if (line.Length == 0 || line.StartsWith("#")) continue;
-                    if (!line.StartsWith(key + "=")) continue;
-                    string value = line.Substring(key.Length + 1).Trim();
-                    if (value.Length >= 2 &&
-                        ((value[0] == '"' && value[value.Length - 1] == '"') ||
-                         (value[0] == '\'' && value[value.Length - 1] == '\'')))
-                    {
-                        value = value.Substring(1, value.Length - 2);
-                    }
-                    return value;
-                }
-            }
-            catch (Exception ex) { Log("erro ReadEnvLocal: " + ex.Message); }
-            return null;
-        }
-
-        static void StopServers()
-        {
-            Log("--- Parando servidor ---");
-            try { pollTimer.Stop(); } catch { }
-            KillTree(tunnelProc); tunnelProc = null;
-            KillTree(workerProc); workerProc = null;
-            try
-            {
-                foreach (Process p in Process.GetProcessesByName("cloudflared"))
-                {
-                    try { p.Kill(); } catch { }
-                }
-            }
-            catch { }
-            running = false;
-            tunnelUrl = null;
-            miStart.Enabled = true;
-            miStop.Enabled = false;
-            SetStatus("Parado");
-            notify.ShowBalloonTip(2000, "ServidorACME", "Servidor parado.", ToolTipIcon.Info);
-        }
-
-        static void KillTree(Process p)
-        {
-            if (p == null) return;
-            try
-            {
-                var psi = new ProcessStartInfo("taskkill.exe", "/PID " + p.Id + " /T /F");
-                psi.UseShellExecute = false;
-                psi.CreateNoWindow = true;
-                Process k = Process.Start(psi);
-                k.WaitForExit();
-            }
-            catch { }
-        }
-
-        static void ExitApp()
-        {
-            StopServers();
-            try { notify.Visible = false; notify.Dispose(); } catch { }
-            Application.Exit();
+            EnvLocal.WriteWorkerUrl(url);
+            SetStatus("No ar (OK)");
+            Balloon("Servidor no ar! Tunel conectado e URL atualizada no Cloudflare.", ToolTipIcon.Info);
+            if (runSync) GeneralSync.TriggerAsync(SyncAfterSecretDelayMs, ReportSync);
         }
     }
 }

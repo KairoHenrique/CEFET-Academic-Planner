@@ -7,7 +7,10 @@ $ErrorActionPreference = 'Stop'
 $scriptDir = $PSScriptRoot
 $appDir = Split-Path $scriptDir -Parent
 $repoRoot = Split-Path $appDir -Parent
-$src = Join-Path $scriptDir 'HomeServerTray.cs'
+$src = @(
+  (Join-Path $scriptDir 'HomeServerTray.cs'),
+  (Join-Path $scriptDir 'HomeServerServices.cs')
+)
 $outFile = Join-Path $repoRoot 'ServidorACME.exe'
 $icoOut = Join-Path $scriptDir 'servidor-acme.ico'
 
@@ -43,6 +46,10 @@ $cscArgs = @(
 )
 if ($icoOut -and (Test-Path $icoOut)) { $cscArgs += "/win32icon:$icoOut" }
 $cscArgs += $src
+
+# O .exe em uso (tray aberto) bloqueia a sobrescrita.
+Get-Process ServidorACME -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+Start-Sleep -Milliseconds 500
 
 Write-Host "csc: $csc"
 & $csc @cscArgs

@@ -5,10 +5,10 @@ import {
   markSyncJobFailed,
 } from "@/lib/sync-queue/sync-queue-store";
 
-/** Lite/auto: se não terminar em 10 min, considera travado. */
-export const STALE_RUNNING_SYNC_MS = 10 * 60 * 1000;
-/** Queued sem claim por 12 min (worker offline / dispatch perdido). */
-export const STALE_QUEUED_SYNC_MS = 12 * 60 * 1000;
+/** Running: precisa ser > job timeout do worker (22 min), senão mata sync vivo. */
+export const STALE_RUNNING_SYNC_MS = 25 * 60 * 1000;
+/** Queued sem claim por 20 min (worker offline / dispatch perdido / PC reiniciando). */
+export const STALE_QUEUED_SYNC_MS = 20 * 60 * 1000;
 
 export const STALE_SYNC_ERROR = {
   code: "SIGAA_TIMEOUT",

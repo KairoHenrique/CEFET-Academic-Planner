@@ -4,10 +4,10 @@ import type { SyncQueueJobView } from "@/lib/types/sync-queue-api";
 const POLL_INTERVAL_MS = 800;
 /**
  * Quanto tempo a UI/app espera o sync na fila.
- * Deve ser ≥ job timeout do worker (15 min) — senão o cliente declara
- * timeout enquanto o Termux ainda scrapa. Ver README §10 / decisão D6.
+ * Deve ser ≥ job timeout do worker (22 min) — senão o cliente declara
+ * timeout enquanto o worker ainda scrapa. Ver README §10 / decisão D6.
  */
-const DEFAULT_TIMEOUT_MS = 900_000;
+const DEFAULT_TIMEOUT_MS = 1_500_000;
 
 export interface PollSyncJobOptions {
   timeoutMs?: number;

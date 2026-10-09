@@ -202,7 +202,7 @@ O scrape pesado fica no **Servidor ACME**. A cloud **despacha** jobs e **persist
 | OpenNext no Workers + `workers_dev` ligado | Deploy edge barato; custom domain `acmehub.com.br` / `www` sem perder URL de teste |
 | Servidor ACME preferido no **Termux 24/7** | Paridade com tray Windows; Chromium no tablet; um único `SIGAA_WORKER_URL` |
 | Sync híbrido (worker → device) | Web sem Chromium no edge; Android cobre quando o túnel cai |
-| Jobs async (`202` + poll ~15 min) | Scrape longo não estoura timeout HTTP da borda |
+| Jobs async (`202` + poll ~25 min) | Scrape longo não estoura timeout HTTP da borda |
 | Postgres na cloud; SQLite só local | Guard `o2` impede SQLite como fonte de verdade nos Workers |
 | `ads.txt` + `app-ads.txt` na raiz do domínio | Exigência AdSense/AdMob; headers `text/plain`; crawl pode demorar (status “Preparando”) |
 | Entitlement único `ads_free` | Mesma regra web (AdSense) e mobile (AdMob) após PIX ou Play |
@@ -334,7 +334,7 @@ SIGAA é portal legado (sessão, JS, formulários). Playwright + Chromium no Ter
 
 PC **ou** Termux — nunca os dois. Ambos atualizam `SIGAA_WORKER_URL`; dois túneis = sync quebrado.
 
-### D6 — Timeouts Termux-first (~15 min)
+### D6 — Timeouts Termux-first (~22–25 min)
 
 Chromium em ARM é mais lento. Defaults alinhados para não declarar falha enquanto o scrape ainda corre. Ver [§11](#11-timeouts-termux-first).
 
@@ -560,14 +560,24 @@ git fetch origin
 git reset --hard origin/main
 ```
 
-### Windows (PC / tray) — opcional
+### Windows (PC / tray) — `ServidorACME.exe`
 
 ```bash
-cd app
-npm run worker:home
-npm run worker:tunnel
-# ou tray: home-server-tray.ps1
+powershell -ExecutionPolicy Bypass -File app\scripts\build-tray-exe.ps1   # gera ServidorACME.exe na raiz
 ```
+
+| Comportamento | Por quê |
+|---------------|---------|
+| Liga worker + túnel **ao abrir** (sem clicar em "Executar") | PC reiniciado volta sozinho ao ar |
+| Registra-se em **Iniciar com o Windows** (HKCU `Run`, sem admin) | Desligável no menu; a escolha persiste em `.data/autostart-disabled` |
+| Espera rede/DNS, valida `/health` local **e** público antes do `wrangler secret put` | Evita publicar URL morta (530/1016) logo após o boot |
+| Watchdog 15 s com backoff (10 s → 5 min) reinicia worker/túnel que caírem | Queda isolada não derruba o sync até alguém notar |
+| Após o 1º secret OK: **sync geral** (`POST /api/cron/sync-orchestrator?force=1`, Bearer `CRON_SECRET` do `.env.local`) | Calendário, turmas e alunos ativos atualizam depois de cada religada |
+| Instância única (mutex) | Autostart + abrir manualmente não sobem dois túneis |
+
+Logs: `app/.data/home-server-tray.log` e `app/.data/home-worker.log` (rotação automática).
+
+Manual (sem tray): `npm run worker:home` + `npm run worker:tunnel`.
 
 ### Health
 
@@ -582,19 +592,22 @@ Defaults no código (override via env), alinhados a tablet lento + UI que não d
 
 | Camada | Default | Onde |
 |--------|---------|------|
-| Login Playwright | **90 s** | `SIGAA_LOGIN_TIMEOUT_MS` |
-| Navegação | **60 s** | `SIGAA_NAVIGATION_TIMEOUT_MS` |
+| Login Playwright | **150 s** | `SIGAA_LOGIN_TIMEOUT_MS` |
+| Navegação | **120 s** | `SIGAA_NAVIGATION_TIMEOUT_MS` |
+| Fetch TLS SIGAA | **45 s** | `sigaa-tls-fetch.ts` |
 | Submit tarefa (nav floor) | **≥ 90 s** | `submit-portal-tarefa.ts` |
-| Job inteiro (worker) | **15 min** | `SIGAA_WORKER_JOB_TIMEOUT_MS` |
-| Grace shutdown | **18 min** | `SIGAA_WORKER_SHUTDOWN_MS` |
-| Poll sync (cliente) | **15 min** | `poll-sync-job-client.ts` |
-| Wait sync (servidor) | **15 min** | `wait-for-sync-job.ts` |
+| Job inteiro (worker) | **22 min** | `SIGAA_WORKER_JOB_TIMEOUT_MS` |
+| Grace shutdown | **25 min** | `SIGAA_WORKER_SHUTDOWN_MS` |
+| Job `running` órfão (reclaim) | **25 min** | `reclaim-stale-sync-jobs.ts` |
+| Job `queued` sem claim | **20 min** | `reclaim-stale-sync-jobs.ts` |
+| Poll sync (cliente web/mobile) | **25 min** | `poll-sync-job-client.ts`, `manual-lite-sync.ts` |
+| Wait sync (servidor) | **25 min** | `wait-for-sync-job.ts` |
 | Poll envio de tarefa | **≈ 15 min** | `poll-submission-status.ts` |
-| Probe health worker | **4 s** | `probe-sigaa-worker-health.ts` |
+| Probe health worker | **8 s** | `probe-sigaa-worker-health.ts` |
 
-> Após mudar polls no app: **`npm run deploy:cf`**. O worker Termux pega defaults no restart.
+> Após mudar polls no app: **`npm run deploy:cf`**. O worker Termux/PC pega defaults no restart.
 
-**Decisão:** defaults “Termux-first” (~15 min) porque Chromium em ARM é lento — falhar cedo gerava falso negativo de sync enquanto o scrape ainda rodava.
+**Decisão:** defaults “Termux-first” porque Chromium em ARM é lento — falhar cedo gerava falso negativo de sync enquanto o scrape ainda rodava. Ordem obrigatória: **job (22) < reclaim running (25) ≤ polls (25)** — antes o reclaim (10 min) matava jobs vivos que o worker ainda podia terminar até 15 min.
 
 ---
 
@@ -872,7 +885,7 @@ RLS isola por usuário; suite `test:t2` valida.
 | Sync web “aguarde” | Sem Servidor ACME | Ligar Termux (ou usar Android) |
 | Túnel público não responde | trycloudflare lento | Script retenta; `[q]` e subir de novo |
 | `git pull` divergent | Histórico local ≠ origin | `git fetch && git reset --hard origin/main` |
-| Sync falhou cedo | Cloud sem polls 15 min | `npm run deploy:cf` |
+| Sync falhou cedo | Cloud sem polls 25 min | `npm run deploy:cf` |
 | `password authentication failed` | `DATABASE_URL` velha | Regenerar senha Supabase |
 | Push não chega | Falta Firebase no EAS | Secret `GOOGLE_SERVICES_JSON` |
 | Error 1102 no Workers | TLS scrape no edge | Não reintroduzir scrape no Worker |

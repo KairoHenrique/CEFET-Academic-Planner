@@ -14,7 +14,7 @@ export const SIGAA_TURMA_SCRAPE_DELAY_MS = Number(
 
 /** Margem maior (Termux/ARM): login lento no Chromium do pkg. Override: SIGAA_LOGIN_TIMEOUT_MS. */
 export const SIGAA_LOGIN_TIMEOUT_MS = Number(
-  process.env.SIGAA_LOGIN_TIMEOUT_MS ?? 90_000
+  process.env.SIGAA_LOGIN_TIMEOUT_MS ?? 150_000
 );
 
 /**
@@ -23,7 +23,7 @@ export const SIGAA_LOGIN_TIMEOUT_MS = Number(
  * @see README.md §10
  */
 export const SIGAA_NAVIGATION_TIMEOUT_MS = Number(
-  process.env.SIGAA_NAVIGATION_TIMEOUT_MS ?? 60_000
+  process.env.SIGAA_NAVIGATION_TIMEOUT_MS ?? 120_000
 );
 
 /** Lê flag do `.env.local` — tem prioridade sobre variável herdada do shell (ex.: npm test). */

@@ -5,12 +5,12 @@ const DEFAULT_MAX_CONCURRENT = 1;
  *
  * Decisão (Termux-first, set/2026): Chromium ARM no tablet demora mais que Chrome no PC.
  * Default antigo = 8 min → UI/worker matavam sync ainda em andamento.
- * Default atual = 15 min (alinhado aos polls do app — ver README §10).
+ * Default atual = 22 min (< stale running 25 min < polls do app 25 min — ver README §10).
  * Override: SIGAA_WORKER_JOB_TIMEOUT_MS.
  */
-const DEFAULT_JOB_TIMEOUT_MS = 15 * 60 * 1000;
+const DEFAULT_JOB_TIMEOUT_MS = 22 * 60 * 1000;
 /** Grace > job timeout para o processo terminar limpo no shutdown. */
-const DEFAULT_SHUTDOWN_MS = 18 * 60 * 1000;
+const DEFAULT_SHUTDOWN_MS = 25 * 60 * 1000;
 
 function parsePositiveInt(raw: string | undefined, fallback: number): number {
   if (!raw?.trim()) return fallback;

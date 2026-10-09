@@ -20,7 +20,7 @@ export interface SigaaTlsFetchResult {
   url: string;
 }
 
-const DEFAULT_TIMEOUT_MS = 25_000;
+const DEFAULT_TIMEOUT_MS = 45_000;
 
 class SocketByteReader {
   private pending = Buffer.alloc(0);
