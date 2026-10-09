@@ -45,6 +45,7 @@ namespace HomeServerTray
         static ToolStripMenuItem miStatus, miStart, miStop, miSync, miScreensOff, miAutostart, miKeepAwake;
         static System.Windows.Forms.Timer pollTimer, watchdogTimer, returnWatchTimer;
         static uint inputBaselineTick;
+        static int sleepModeActive;
         static Process workerProc, tunnelProc;
         static string tunnelUrl;
         static string cloudflared;
@@ -79,10 +80,12 @@ namespace HomeServerTray
                 miAutostart.Checked = AutostartRegistry.IsEnabled();
                 CreateTimers();
                 SystemEvents.PowerModeChanged += OnPowerModeChanged;
+                SleepHotkey.Install(delegate { StartSleepMode("atalho F10+F11+F12"); });
                 TrayLog.Write("Tray iniciado. AppDir=" + EnvLocal.AppDir);
                 ScheduleAutoStart();
                 Application.Run();
                 SystemEvents.PowerModeChanged -= OnPowerModeChanged;
+                SleepHotkey.Uninstall();
                 GC.KeepAlive(mutex);
             }
         }
@@ -194,8 +197,13 @@ namespace HomeServerTray
                 "Mexa o mouse ou aperte uma tecla para voltar ao normal.",
                 "ServidorACME", MessageBoxButtons.YesNo, MessageBoxIcon.Question,
                 MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly);
-            if (answer != DialogResult.Yes) return;
+            if (answer == DialogResult.Yes) StartSleepMode("menu");
+        }
 
+        static void StartSleepMode(string origin)
+        {
+            if (Interlocked.CompareExchange(ref sleepModeActive, 1, 0) != 0) return;
+            TrayLog.Write("Modo dormir pedido via " + origin + ".");
             ThreadPool.QueueUserWorkItem(delegate
             {
                 // Espera o clique "assentar", senao o proprio mouse religa a tela.
@@ -216,9 +224,13 @@ namespace HomeServerTray
             TrayLog.Write("Usuario voltou ao PC.");
             ThreadPool.QueueUserWorkItem(delegate
             {
-                QuietMode.Exit();
-                Thread.Sleep(800);
-                WomierProfile.Select(WomierProfile.ProfileDefault);
+                try
+                {
+                    QuietMode.Exit();
+                    Thread.Sleep(800);
+                    WomierProfile.Select(WomierProfile.ProfileDefault);
+                }
+                finally { Interlocked.Exchange(ref sleepModeActive, 0); }
             });
         }
 

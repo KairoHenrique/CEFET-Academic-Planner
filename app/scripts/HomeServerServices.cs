@@ -387,6 +387,80 @@ namespace HomeServerTray
 
     }
 
+    /// <summary>
+    /// Atalho global F10+F11+F12 (hook de teclado de baixo nivel; RegisterHotKey nao aceita
+    /// combinacao de 3 teclas comuns). So olha os codigos dessas 3 teclas e nunca registra
+    /// nem bloqueia nada que for digitado. Dispara ao SOLTAR as tres, para o proprio
+    /// soltar nao ser lido como "usuario voltou".
+    /// </summary>
+    static class SleepHotkey
+    {
+        const int WhKeyboardLl = 13;
+        const int WmKeyDown = 0x0100, WmKeyUp = 0x0101, WmSysKeyDown = 0x0104, WmSysKeyUp = 0x0105;
+        const int VkF10 = 0x79, VkF11 = 0x7A, VkF12 = 0x7B;
+
+        delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam);
+
+        [System.Runtime.InteropServices.DllImport("user32.dll", SetLastError = true)]
+        static extern IntPtr SetWindowsHookEx(int idHook, LowLevelKeyboardProc fn, IntPtr hMod, uint threadId);
+        [System.Runtime.InteropServices.DllImport("user32.dll")] static extern bool UnhookWindowsHookEx(IntPtr hook);
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        static extern IntPtr CallNextHookEx(IntPtr hook, int nCode, IntPtr wParam, IntPtr lParam);
+        [System.Runtime.InteropServices.DllImport("kernel32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+        static extern IntPtr GetModuleHandle(string name);
+
+        static LowLevelKeyboardProc hookProc;
+        static IntPtr hookHandle = IntPtr.Zero;
+        static bool f10Down, f11Down, f12Down, chordArmed;
+        static Action onTriggered;
+
+        /// <summary>Instalar na thread de UI (o hook depende do loop de mensagens dela).</summary>
+        public static void Install(Action callback)
+        {
+            if (hookHandle != IntPtr.Zero) return;
+            onTriggered = callback;
+            hookProc = HookCallback;
+            hookHandle = SetWindowsHookEx(WhKeyboardLl, hookProc, GetModuleHandle(null), 0);
+            TrayLog.Write(hookHandle != IntPtr.Zero
+                ? "Atalho F10+F11+F12 (Modo dormir) ativo."
+                : "Falha ao registrar atalho F10+F11+F12.");
+        }
+
+        public static void Uninstall()
+        {
+            if (hookHandle == IntPtr.Zero) return;
+            UnhookWindowsHookEx(hookHandle);
+            hookHandle = IntPtr.Zero;
+        }
+
+        static IntPtr HookCallback(int nCode, IntPtr wParam, IntPtr lParam)
+        {
+            if (nCode >= 0)
+            {
+                int msg = wParam.ToInt32();
+                bool down = msg == WmKeyDown || msg == WmSysKeyDown;
+                bool up = msg == WmKeyUp || msg == WmSysKeyUp;
+                if (down || up) Track(System.Runtime.InteropServices.Marshal.ReadInt32(lParam), down);
+            }
+            return CallNextHookEx(hookHandle, nCode, wParam, lParam);
+        }
+
+        static void Track(int vk, bool down)
+        {
+            if (vk == VkF10) f10Down = down;
+            else if (vk == VkF11) f11Down = down;
+            else if (vk == VkF12) f12Down = down;
+            else return;
+
+            if (f10Down && f11Down && f12Down) chordArmed = true;
+            else if (chordArmed && !f10Down && !f11Down && !f12Down)
+            {
+                chordArmed = false;
+                if (onTriggered != null) onTriggered();
+            }
+        }
+    }
+
     static class UserInput
     {
         [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
