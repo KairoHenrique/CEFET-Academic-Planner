@@ -97,7 +97,7 @@ namespace HomeServerTray
             miSync = new ToolStripMenuItem("Sync geral agora");
             miSync.Click += delegate { GeneralSync.TriggerAsync(0, ReportSync); };
             miScreensOff = new ToolStripMenuItem("Apagar telas agora");
-            miScreensOff.Click += delegate { MonitorPower.TurnOffAfter(800); };
+            miScreensOff.Click += delegate { ConfirmAndTurnOffScreens(); };
             miAutostart = new ToolStripMenuItem("Iniciar com o Windows");
             miAutostart.CheckOnClick = true;
             miAutostart.Click += delegate { AutostartRegistry.SetEnabled(miAutostart.Checked); };
@@ -175,6 +175,15 @@ namespace HomeServerTray
         static void Balloon(string text, ToolTipIcon icon)
         {
             RunOnUi(delegate { notify.ShowBalloonTip(4000, "ServidorACME", text, icon); });
+        }
+
+        static void ConfirmAndTurnOffScreens()
+        {
+            DialogResult answer = MessageBox.Show(
+                "Apagar todas as telas agora?\n\nO servidor continua rodando. Mexa o mouse ou aperte uma tecla para acender.",
+                "ServidorACME", MessageBoxButtons.YesNo, MessageBoxIcon.Question,
+                MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly);
+            if (answer == DialogResult.Yes) MonitorPower.TurnOffAfter(1200);
         }
 
         static void ApplyKeepAwake()
