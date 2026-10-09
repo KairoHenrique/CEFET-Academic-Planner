@@ -3,6 +3,7 @@
 // + tunnel cloudflared, valida o tunel, atualiza o secret SIGAA_WORKER_URL
 // no Cloudflare e dispara um sync geral. Watchdog reinicia worker/tunel
 // se cairem; poll a cada 20s em 127.0.0.1:20241/quicktunnel reaplica a URL.
+// Ao acordar de suspensao/hibernacao: tunel novo, secret novo e sync geral.
 // Compilar: ver app/scripts/build-tray-exe.ps1
 using System;
 using System.Diagnostics;
@@ -13,6 +14,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
+using Microsoft.Win32;
 
 namespace HomeServerTray
 {
@@ -28,6 +30,7 @@ namespace HomeServerTray
         const int PublicHealthWaitMs = 3 * 60 * 1000;
         const int SyncAfterSecretDelayMs = 20000;
         const int MaxRestartBackoffSec = 300;
+        const int ResumeSettleMs = 5000;
 
         static readonly Regex UrlRe =
             new Regex(@"https://[a-z0-9-]+\.trycloudflare\.com", RegexOptions.IgnoreCase);
@@ -46,6 +49,7 @@ namespace HomeServerTray
         static bool generalSyncPending;
         static int publishing;
         static int watchdogBusy;
+        static int resuming;
         static int workerRestarts, tunnelRestarts;
         static DateTime nextWorkerRestartUtc = DateTime.MinValue;
         static DateTime nextTunnelRestartUtc = DateTime.MinValue;
@@ -70,9 +74,11 @@ namespace HomeServerTray
                 AutostartRegistry.ApplyDefaultOnLaunch();
                 miAutostart.Checked = AutostartRegistry.IsEnabled();
                 CreateTimers();
+                SystemEvents.PowerModeChanged += OnPowerModeChanged;
                 TrayLog.Write("Tray iniciado. AppDir=" + EnvLocal.AppDir);
                 ScheduleAutoStart();
                 Application.Run();
+                SystemEvents.PowerModeChanged -= OnPowerModeChanged;
                 GC.KeepAlive(mutex);
             }
         }
@@ -375,6 +381,77 @@ namespace HomeServerTray
             lock (stateLock) { tunnelUrl = null; }
             ProcessTools.KillByName("cloudflared");
             StartTunnel();
+        }
+
+        // ---------------- Suspensao / hibernacao ----------------
+
+        static void OnPowerModeChanged(object sender, PowerModeChangedEventArgs e)
+        {
+            if (e.Mode == PowerModes.Suspend)
+            {
+                TrayLog.Write("PC entrando em suspensao.");
+                return;
+            }
+            if (e.Mode != PowerModes.Resume || !IsRunning()) return;
+            if (Interlocked.CompareExchange(ref resuming, 1, 0) != 0) return;
+            TrayLog.Write("PC acordou: religando tunel e conferindo worker.");
+            SetStatus("Religando apos suspensao...");
+            ThreadPool.QueueUserWorkItem(delegate
+            {
+                try { RecoverAfterResume(); }
+                finally { Interlocked.Exchange(ref resuming, 0); }
+            });
+        }
+
+        /// <summary>
+        /// Apos o sleep o quick tunnel costuma voltar "meio morto" ou com outro hostname;
+        /// um tunel novo + secret novo e mais confiavel que esperar o watchdog perceber.
+        /// </summary>
+        static void RecoverAfterResume()
+        {
+            Thread.Sleep(ResumeSettleMs);
+            if (!HttpProbe.WaitForNetwork(NetworkWaitMs, IsRunning))
+                TrayLog.Write("Rede nao confirmada apos resume; tentando mesmo assim.");
+            if (!IsRunning()) return;
+
+            HoldWatchdog();
+            try
+            {
+                Process t, w;
+                lock (stateLock)
+                {
+                    tunnelUrl = null;
+                    generalSyncPending = true;
+                    t = tunnelProc;
+                    w = workerProc;
+                }
+                ProcessTools.KillTree(t);
+                ProcessTools.KillByName("cloudflared");
+                RestartWorkerIfUnhealthy(w);
+                StartTunnel();
+            }
+            finally { Interlocked.Exchange(ref watchdogBusy, 0); }
+
+            Thread.Sleep(5000);
+            PollLiveTunnel();
+        }
+
+        static void HoldWatchdog()
+        {
+            for (int i = 0; i < 60 && Interlocked.CompareExchange(ref watchdogBusy, 1, 0) != 0; i++)
+            {
+                Thread.Sleep(500);
+            }
+        }
+
+        static void RestartWorkerIfUnhealthy(Process w)
+        {
+            string localHealth = "http://127.0.0.1:" + WorkerPort + "/health";
+            if (!ProcessTools.HasExited(w) && HttpProbe.IsHealthy(localHealth, 10000)) return;
+            TrayLog.Write("Worker sem resposta apos resume; reiniciando.");
+            ProcessTools.KillTree(w);
+            ProcessTools.KillPortListeners(WorkerPort);
+            StartWorker();
         }
 
         // ---------------- Tunel -> secret -> sync ----------------
