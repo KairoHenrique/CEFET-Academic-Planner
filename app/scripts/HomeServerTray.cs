@@ -40,7 +40,7 @@ namespace HomeServerTray
         static readonly object stateLock = new object();
         static NotifyIcon notify;
         static Control ui;
-        static ToolStripMenuItem miStatus, miStart, miStop, miSync, miAutostart;
+        static ToolStripMenuItem miStatus, miStart, miStop, miSync, miAutostart, miKeepAwake;
         static System.Windows.Forms.Timer pollTimer, watchdogTimer;
         static Process workerProc, tunnelProc;
         static string tunnelUrl;
@@ -99,13 +99,21 @@ namespace HomeServerTray
             miAutostart = new ToolStripMenuItem("Iniciar com o Windows");
             miAutostart.CheckOnClick = true;
             miAutostart.Click += delegate { AutostartRegistry.SetEnabled(miAutostart.Checked); };
+            miKeepAwake = new ToolStripMenuItem("Impedir suspensao (telas podem apagar)");
+            miKeepAwake.CheckOnClick = true;
+            miKeepAwake.Checked = KeepAwake.IsPreferred();
+            miKeepAwake.Click += delegate
+            {
+                KeepAwake.SetPreferred(miKeepAwake.Checked);
+                ApplyKeepAwake();
+            };
             var miExit = new ToolStripMenuItem("Sair");
             miExit.Click += delegate { ExitApp(); };
 
             var menu = new ContextMenuStrip();
             menu.Items.AddRange(new ToolStripItem[] {
                 miStatus, miStart, miStop, miSync, new ToolStripSeparator(),
-                miAutostart, new ToolStripSeparator(), miExit });
+                miAutostart, miKeepAwake, new ToolStripSeparator(), miExit });
 
             notify = new NotifyIcon();
             notify.Icon = LoadIcon();
@@ -165,6 +173,11 @@ namespace HomeServerTray
         static void Balloon(string text, ToolTipIcon icon)
         {
             RunOnUi(delegate { notify.ShowBalloonTip(4000, "ServidorACME", text, icon); });
+        }
+
+        static void ApplyKeepAwake()
+        {
+            RunOnUi(delegate { KeepAwake.Apply(IsRunning() && miKeepAwake.Checked); });
         }
 
         static void ReportSync(string message, bool ok)
@@ -243,6 +256,7 @@ namespace HomeServerTray
             TrayLog.Write("--- Iniciando servidor ---");
             miStart.Enabled = false;
             miStop.Enabled = true;
+            ApplyKeepAwake();
             SetStatus("Aguardando rede...");
             ThreadPool.QueueUserWorkItem(delegate { BootSequence(); });
         }
@@ -327,6 +341,7 @@ namespace HomeServerTray
             ProcessTools.KillByName("cloudflared");
             miStart.Enabled = true;
             miStop.Enabled = false;
+            ApplyKeepAwake();
             SetStatus("Parado");
             if (showBalloon) Balloon("Servidor parado.", ToolTipIcon.Info);
         }

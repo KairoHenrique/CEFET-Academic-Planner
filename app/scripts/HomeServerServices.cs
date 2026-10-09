@@ -177,6 +177,49 @@ namespace HomeServerTray
         }
     }
 
+    /// <summary>
+    /// Impede a suspensao automatica por inatividade sem impedir que as telas apaguem
+    /// (ES_SYSTEM_REQUIRED sem ES_DISPLAY_REQUIRED). Deve ser chamado sempre na thread de UI,
+    /// pois o Windows associa o pedido a thread que o fez.
+    /// </summary>
+    static class KeepAwake
+    {
+        const uint EsContinuous = 0x80000000;
+        const uint EsSystemRequired = 0x00000001;
+
+        [System.Runtime.InteropServices.DllImport("kernel32.dll")]
+        static extern uint SetThreadExecutionState(uint flags);
+
+        static string DisabledMarkerPath()
+        {
+            return Path.Combine(EnvLocal.AppDir, ".data", "keep-awake-disabled");
+        }
+
+        public static bool IsPreferred()
+        {
+            return !File.Exists(DisabledMarkerPath());
+        }
+
+        public static void SetPreferred(bool enabled)
+        {
+            try
+            {
+                string marker = DisabledMarkerPath();
+                Directory.CreateDirectory(Path.GetDirectoryName(marker));
+                if (enabled) { if (File.Exists(marker)) File.Delete(marker); }
+                else File.WriteAllText(marker, DateTime.Now.ToString("o"));
+                TrayLog.Write("Impedir suspensao = " + enabled);
+            }
+            catch (Exception ex) { TrayLog.Write("erro keep-awake marker: " + ex.Message); }
+        }
+
+        public static void Apply(bool active)
+        {
+            uint flags = active ? (EsContinuous | EsSystemRequired) : EsContinuous;
+            if (SetThreadExecutionState(flags) == 0) TrayLog.Write("SetThreadExecutionState falhou.");
+        }
+    }
+
     static class HttpProbe
     {
         public static bool IsHealthy(string url, int timeoutMs)
