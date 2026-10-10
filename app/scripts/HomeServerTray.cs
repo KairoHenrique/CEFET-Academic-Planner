@@ -33,6 +33,7 @@ namespace HomeServerTray
         const int ResumeSettleMs = 5000;
         const int ScreensOffDelayMs = 1200;
         const int ReturnWatchMs = 1000;
+        const int KeyboardProfileBootDelayMs = 20000;
 
         static readonly Regex UrlRe =
             new Regex(@"https://[a-z0-9-]+\.trycloudflare\.com", RegexOptions.IgnoreCase);
@@ -84,6 +85,7 @@ namespace HomeServerTray
                 sleepHotkey = new SleepHotkey(delegate { StartSleepMode("atalho Ctrl+Shift+F12"); });
                 TrayLog.Write("Tray iniciado. AppDir=" + EnvLocal.AppDir);
                 ScheduleAutoStart();
+                ScheduleKeyboardDefaultProfile();
                 Application.Run();
                 SystemEvents.PowerModeChanged -= OnPowerModeChanged;
                 sleepHotkey.Dispose();
@@ -162,6 +164,20 @@ namespace HomeServerTray
                 StartServers();
             };
             once.Start();
+        }
+
+        /// <summary>
+        /// No boot o driver Womier pode subir depois do tray; espera um pouco e garante o
+        /// perfil padrao (ex.: PC desligado no meio do Modo dormir deixaria "config dormir").
+        /// </summary>
+        static void ScheduleKeyboardDefaultProfile()
+        {
+            ThreadPool.QueueUserWorkItem(delegate
+            {
+                Thread.Sleep(KeyboardProfileBootDelayMs);
+                if (Interlocked.CompareExchange(ref sleepModeActive, 0, 0) != 0) return;
+                WomierProfile.Select(WomierProfile.ProfileDefault);
+            });
         }
 
         static void RunOnUi(MethodInvoker action)
