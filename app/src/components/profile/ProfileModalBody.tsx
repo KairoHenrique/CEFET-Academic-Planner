@@ -1,5 +1,6 @@
 import type { PerfilResponse } from "@/lib/types/perfil-api";
 import { ProfileAccountSection } from "@/components/profile/ProfileAccountSection";
+import { ProfileCalendarSyncSection } from "@/components/profile/ProfileCalendarSyncSection";
 import { ProfileNotificationSection } from "@/components/profile/ProfileNotificationSection";
 import { ProfileSubscriptionSection } from "@/components/profile/ProfileSubscriptionSection";
 import { ProfileSyncFooter } from "@/components/profile/ProfileSyncFooter";
@@ -63,6 +64,8 @@ export function ProfileModalBody({
         isSaving={isSaving}
         onToggle={onToggleNotification}
       />
+
+      <ProfileCalendarSyncSection />
 
       <ProfileSyncFooter sync={sync} />
     </div>

@@ -30,7 +30,9 @@
       "permissions": [
         "android.permission.POST_NOTIFICATIONS",
         "android.permission.VIBRATE",
-        "android.permission.RECEIVE_BOOT_COMPLETED"
+        "android.permission.RECEIVE_BOOT_COMPLETED",
+        "android.permission.READ_CALENDAR",
+        "android.permission.WRITE_CALENDAR"
       ]
     },
     "androidStatusBar": {
@@ -52,6 +54,12 @@
         }
       ],
       "@react-native-community/datetimepicker",
+      [
+        "expo-calendar",
+        {
+          "calendarPermission": "O ACME HUB adiciona suas aulas, prazos e provas à agenda do celular."
+        }
+      ],
       [
         "react-native-google-mobile-ads",
         {

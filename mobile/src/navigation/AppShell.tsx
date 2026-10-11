@@ -38,6 +38,7 @@ import {
 } from "../features/tutorial";
 import { AppUpdateProvider } from "../features/updates";
 import { useAdsBootstrap } from "../ads/useAdsBootstrap";
+import { useDeviceCalendarAutoSync } from "../device-calendar/useDeviceCalendarAutoSync";
 import { maybeShowPostSyncInterstitial } from "../ads/AdMobController";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -49,6 +50,7 @@ function ShellChrome({ children }: { children: ReactNode }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   useAdsBootstrap();
+  useDeviceCalendarAutoSync();
 
   const loadNotifications = useCallback(async () => {
     try {

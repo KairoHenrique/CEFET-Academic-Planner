@@ -114,6 +114,8 @@ export function expandClassSessionEvents(input: {
           description: `Aula de ${subjectLabel} — ${weekdayName}, ${start}–${end}. Sala ${room}.`,
           done: false,
           manual: false,
+          classTime: { start, end },
+          location: room === "—" ? undefined : room,
         });
       }
     }

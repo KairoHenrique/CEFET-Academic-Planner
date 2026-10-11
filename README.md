@@ -121,6 +121,7 @@ Next.js 16 + Cloudflare Workers · Supabase (Auth + Postgres + RLS) · Expo 54 �
 | **Simulador** | Choques de horário e elegibilidade |
 | **Tarefas** | Envio de arquivo + comentário ao SIGAA |
 | **Notificações** | In-app e push (Android) para prazos e sync |
+| **Agenda externa** | Aulas, prazos, provas e calendário acadêmico no Google Agenda (link `.ics`) e na agenda do Android (Samsung/Google), com categorias e lembretes escolhidos pelo aluno |
 
 ### Cursos / PPC
 
@@ -636,6 +637,10 @@ Robots: `r1` (sync principal), `turmas`, `calendario`, `turmas-selecionadas`, `s
 | `GET /api/sync/worker-health` | Sonda o túnel |
 | `POST /api/sync/ingest` | Snapshot do device |
 | `POST /api/billing/play/verify` | Valida compra Play → `ads_free` |
+| `GET/PATCH /api/calendar-sync/settings` | Categorias e modo de lembrete da agenda externa |
+| `POST/DELETE /api/calendar-sync/feed-token` | Gera (revogando o anterior) / revoga o link `.ics` |
+| `GET /api/calendar-sync/items` | Itens filtrados para o app gravar na agenda do Android |
+| `GET /api/calendar-feed/:token` | Feed `.ics` público (token na URL; rate limit por token e IP) |
 | `POST /api/cron/*` | Crons (`CRON_SECRET`) |
 
 ---
@@ -817,6 +822,25 @@ Ver diagrama em [§3](#fluxo-de-sincronização).
 3. Clientes leem entitlement e ocultam AdSense / AdMob.
 
 **Decisão:** um único entitlement (`ads_free`) para web e app — evita estados divergentes (“paguei no Play e ainda vejo AdSense”).
+
+### Agenda externa (Google Agenda / Samsung)
+
+Configuração em **Perfil** (app) ou **Meu perfil** (site). O aluno escolhe as categorias (aulas, tarefas, seus eventos, calendário acadêmico) e o modo de lembrete:
+
+| Modo | Alarmes |
+|------|---------|
+| Padrão | Aula 15 min antes; prazo/prova sem hora na véspera às 18h (+ no dia às 8h no `.ics`); evento com hora 1 h antes |
+| Só prazos | Só tarefas, provas e eventos criados pelo aluno |
+| Nenhum | Sem alarmes (o app já notifica) |
+
+Dois caminhos:
+
+1. **Link `.ics`** — `POST /api/calendar-sync/feed-token` devolve o link uma única vez; no Google Agenda: *Outras agendas → + → Do URL*. O Google atualiza sozinho (algumas horas). O Samsung Calendar mostra se a conta Google estiver sincronizada.
+2. **Android direto** — o app cria a agenda local "ACME HUB" (expo-calendar) e aplica só as diferenças após cada sync do SIGAA, ao abrir o app (no máx. a cada 6 h) e em "Atualizar agenda agora". Desligar remove a agenda do aparelho.
+
+Janela exportada: 30 dias para trás e 200 para frente. Horários em `America/Sao_Paulo` (−03:00).
+
+**Decisão:** o token do feed é 256 bits aleatórios e só o **hash SHA-256** fica no banco (`calendar_sync_settings`); gerar um novo link revoga o anterior. O feed respeita o gate de assinatura e responde 404 genérico para token inválido.
 
 ### Notificações / crons
 

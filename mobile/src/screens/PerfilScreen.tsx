@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   Linking,
   Pressable,
@@ -24,6 +25,7 @@ import {
 import { subscriptionStatusLabel } from "../auth/access";
 import { maskCpf } from "../auth/cpf";
 import { logoutLocal } from "../auth/logout";
+import { CalendarSyncSection } from "../device-calendar/CalendarSyncSection";
 import { formatPhoneInput } from "../features/auth/auth-fields";
 import {
   setAvatarFromNome,
@@ -319,6 +321,8 @@ export function PerfilScreen() {
             <ActivityIndicator color={brand.gold} style={styles.saving} />
           ) : null}
           {message ? <Text style={styles.message}>{message}</Text> : null}
+
+          <CalendarSyncSection />
 
           <Pressable
             style={styles.linkBtn}

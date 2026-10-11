@@ -8,7 +8,7 @@
     "build:webpack": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
-    "test": "SIGAA_SCRAPER_MOCK=true tsx --test tests/bloco-2a-b24-b26.test.ts tests/bloco-2a-b27.test.ts tests/bloco-2a-b28.test.ts tests/bloco-2a-b30.test.ts tests/bloco-2a-b31.test.ts tests/bloco-2a-b65-f37.test.ts tests/disciplinas-subject-display.test.ts",
+    "test": "SIGAA_SCRAPER_MOCK=true tsx --test tests/bloco-2a-b24-b26.test.ts tests/bloco-2a-b27.test.ts tests/bloco-2a-b28.test.ts tests/bloco-2a-b30.test.ts tests/bloco-2a-b31.test.ts tests/bloco-2a-b65-f37.test.ts tests/disciplinas-subject-display.test.ts tests/calendar-sync.test.ts",
     "test:worker": "SIGAA_SCRAPER_MOCK=true tsx --test tests/worker-b54.test.ts",
     "test:sync-queue": "SIGAA_SCRAPER_MOCK=true tsx --test tests/sync-queue-b55.test.ts",
     "test:sync-b56-o3": "SIGAA_SCRAPER_MOCK=true tsx --test tests/sync-b56-o3.test.ts",

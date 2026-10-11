@@ -460,6 +460,47 @@ export interface NotificationPreferences {
   personalEvents: boolean;
 }
 
+/** Sincronização com Google Agenda (.ics) e calendário do Android. */
+export type CalendarSyncCategory = "aulas" | "tarefas" | "eventos" | "academico";
+
+export type CalendarSyncReminderMode = "padrao" | "so_tarefas" | "nenhum";
+
+export interface CalendarSyncSettings {
+  categories: Record<CalendarSyncCategory, boolean>;
+  reminders: CalendarSyncReminderMode;
+  feed: {
+    active: boolean;
+    createdAt: string | null;
+    lastAccessedAt: string | null;
+  };
+}
+
+export interface CalendarFeedLink {
+  feedUrl: string;
+  webcalUrl: string;
+  settings: CalendarSyncSettings;
+}
+
+export interface CalendarSyncItem {
+  uid: string;
+  category: CalendarSyncCategory;
+  title: string;
+  notes: string;
+  location?: string;
+  allDay: boolean;
+  /** YYYY-MM-DD ou YYYY-MM-DDTHH:mm (horário de Brasília). */
+  start: string;
+  /** Exclusivo. */
+  end: string;
+  /** Minutos relativos ao início (negativo = antes). */
+  alarmOffsetsMinutes: number[];
+}
+
+export interface CalendarSyncItemsResponse {
+  items: CalendarSyncItem[];
+  settings: CalendarSyncSettings;
+}
+
 export interface PendingTaskReminderSource {
   id: number;
   disciplinaId: string;

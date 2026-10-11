@@ -25,6 +25,10 @@ export interface CalendarEvent {
   description: string;
   done?: boolean;
   manual?: boolean;
+  /** Aula: horário real da sessão (a UI usa o título; o export p/ agenda usa este campo). */
+  classTime?: { start: string; end: string };
+  /** Sala/local (export p/ agenda). */
+  location?: string;
 }
 
 export type { CalendarEventType } from "@/lib/calendar/event-types";

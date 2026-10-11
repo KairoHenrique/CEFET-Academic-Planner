@@ -25,7 +25,7 @@ interface ProfilePrefToggleProps {
   onChange: (enabled: boolean) => void;
 }
 
-function ProfilePrefToggle({
+export function ProfilePrefToggle({
   label,
   hint,
   checked,

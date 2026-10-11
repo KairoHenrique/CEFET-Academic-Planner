@@ -31,6 +31,11 @@ export interface SyncReadinessResponse {
 export type { SyncMode };
 import type { CalendarEvent } from "@/lib/types/calendar";
 import type {
+  CalendarFeedLinkView,
+  CalendarSyncSettingsView,
+  PatchCalendarSyncSettingsBody,
+} from "@/lib/calendar-sync/types";
+import type {
   CalendarResponse,
   CreateCalendarEventBody,
   PatchCalendarEventBody,
@@ -543,6 +548,29 @@ export async function createDisciplinaTarefa(
 
 export async function getCalendar(): Promise<CalendarResponse> {
   return requestJson<CalendarResponse>("/api/calendar");
+}
+
+export async function getCalendarSyncSettings(): Promise<CalendarSyncSettingsView> {
+  return requestJson<CalendarSyncSettingsView>("/api/calendar-sync/settings");
+}
+
+export async function patchCalendarSyncSettings(
+  body: PatchCalendarSyncSettingsBody
+): Promise<CalendarSyncSettingsView> {
+  return requestJson<CalendarSyncSettingsView>("/api/calendar-sync/settings", {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function createCalendarFeedLink(): Promise<CalendarFeedLinkView> {
+  return requestJson<CalendarFeedLinkView>("/api/calendar-sync/feed-token", { method: "POST" });
+}
+
+export async function revokeCalendarFeedLink(): Promise<CalendarSyncSettingsView> {
+  return requestJson<CalendarSyncSettingsView>("/api/calendar-sync/feed-token", {
+    method: "DELETE",
+  });
 }
 
 export async function createCalendarEvent(
