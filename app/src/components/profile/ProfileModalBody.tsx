@@ -2,7 +2,6 @@ import type { PerfilResponse } from "@/lib/types/perfil-api";
 import { ProfileAccountSection } from "@/components/profile/ProfileAccountSection";
 import { ProfileCalendarSyncSection } from "@/components/profile/ProfileCalendarSyncSection";
 import { ProfileNotificationSection } from "@/components/profile/ProfileNotificationSection";
-import { ProfileSubscriptionSection } from "@/components/profile/ProfileSubscriptionSection";
 import { ProfileSyncFooter } from "@/components/profile/ProfileSyncFooter";
 
 interface ProfileModalBodyProps {
@@ -23,9 +22,8 @@ export function ProfileModalBody({
   saveError,
   onSaveContact,
   onToggleNotification,
-  onClose,
 }: ProfileModalBodyProps) {
-  const { profile, account, subscription, sync, notifications } = data;
+  const { profile, account, sync, notifications } = data;
 
   return (
     <div className="profile-modal-body">
@@ -52,11 +50,6 @@ export function ProfileModalBody({
         account={account}
         isSaving={isSaving}
         onSaveContact={onSaveContact}
-      />
-
-      <ProfileSubscriptionSection
-        subscription={subscription}
-        onNavigateAway={onClose}
       />
 
       <ProfileNotificationSection

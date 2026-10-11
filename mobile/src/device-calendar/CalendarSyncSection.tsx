@@ -95,7 +95,7 @@ export function CalendarSyncSection() {
             />
           </View>
           <Text style={cardStyles.cardMeta}>
-            Cria a agenda "ACME HUB" no aparelho e atualiza após cada sync.
+            Agenda "ACME HUB" no aparelho, atualizada a cada sync.
             {sync.lastDeviceSyncAt
               ? ` Última atualização: ${new Date(sync.lastDeviceSyncAt).toLocaleString("pt-BR")}.`
               : ""}
@@ -111,8 +111,7 @@ export function CalendarSyncSection() {
       <View style={cardStyles.card}>
         <Text style={cardStyles.cardTitle}>Link para Google Agenda (qualquer dispositivo)</Text>
         <Text style={cardStyles.cardMeta}>
-          No Google Agenda: Outras agendas → + → "Do URL" → cole o link. O Google atualiza
-          sozinho a cada algumas horas. Não compartilhe o link: quem tiver ele vê sua agenda.
+          Cole no Google Agenda em Outras agendas → Do URL. Não compartilhe o link.
         </Text>
         {sync.feedLink ? (
           <>

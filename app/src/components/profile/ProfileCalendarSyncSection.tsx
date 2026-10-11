@@ -27,10 +27,10 @@ const CATEGORY_COPY: Record<CalendarSyncCategory, { label: string; hint: string 
   academico: { label: "Calendário acadêmico", hint: "Matrícula, feriados…" },
 };
 
-const REMINDER_OPTIONS: Array<{ value: CalendarSyncReminderMode; label: string }> = [
-  { value: "padrao", label: "Padrão — aula 15 min antes, prazos na véspera às 18h" },
-  { value: "so_tarefas", label: "Só prazos — tarefas, provas e eventos" },
-  { value: "nenhum", label: "Nenhum — sem alarmes na agenda" },
+const REMINDER_OPTIONS: Array<{ value: CalendarSyncReminderMode; label: string; hint: string }> = [
+  { value: "padrao", label: "Padrão", hint: "Aula 15 min antes · prazos na véspera às 18h" },
+  { value: "so_tarefas", label: "Só prazos", hint: "Tarefas, provas e seus eventos" },
+  { value: "nenhum", label: "Nenhum", hint: "Sem alarmes na agenda" },
 ];
 
 function errorText(error: unknown, fallback: string): string {
@@ -115,33 +115,39 @@ export function ProfileCalendarSyncSection() {
         ))}
       </div>
 
-      <label className="profile-calendar-sync-field">
+      <div className="profile-calendar-sync-field" role="radiogroup" aria-label="Lembretes">
         <span className="profile-pref-item-label">Lembretes</span>
-        <select
-          className="profile-calendar-sync-select"
-          value={settings.reminders}
-          disabled={busy}
-          onChange={(event) =>
-            void savePatch({ reminders: event.target.value as CalendarSyncReminderMode })
-          }
-        >
-          {REMINDER_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      </label>
+        <div className="profile-calendar-sync-chips">
+          {REMINDER_OPTIONS.map((option) => {
+            const selected = settings.reminders === option.value;
+            return (
+              <button
+                key={option.value}
+                type="button"
+                role="radio"
+                aria-checked={selected}
+                className={`profile-calendar-sync-chip${selected ? " is-selected" : ""}`}
+                disabled={busy}
+                onClick={() => !selected && void savePatch({ reminders: option.value })}
+              >
+                {option.label}
+              </button>
+            );
+          })}
+        </div>
+        <span className="profile-pref-item-hint">
+          {REMINDER_OPTIONS.find((option) => option.value === settings.reminders)?.hint}
+        </span>
+      </div>
 
       <p className="profile-calendar-sync-hint">
-        Gere o link e, no Google Agenda, vá em Outras agendas → + → &quot;Do URL&quot;. O Google
-        atualiza sozinho a cada algumas horas e o Samsung Calendar mostra se a conta Google estiver
-        sincronizada. Não compartilhe o link. No app Android dá para salvar direto na agenda do celular.
+        Gere o link e cole no Google Agenda em <strong>Outras agendas → Do URL</strong>.
       </p>
 
       {feedLink ? (
         <div className="profile-calendar-sync-link">
           <code>{feedLink.feedUrl}</code>
+          <span className="profile-calendar-sync-hint">Link pessoal — não compartilhe.</span>
           <div className="profile-inline-actions">
             <button type="button" className="profile-edit-link" onClick={() => void copyLink()}>
               Copiar link

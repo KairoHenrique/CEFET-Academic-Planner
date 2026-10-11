@@ -22,7 +22,6 @@ import {
   requestJson,
   resolveWebHref,
 } from "../auth/api";
-import { subscriptionStatusLabel } from "../auth/access";
 import { maskCpf } from "../auth/cpf";
 import { logoutLocal } from "../auth/logout";
 import { CalendarSyncSection } from "../device-calendar/CalendarSyncSection";
@@ -194,7 +193,6 @@ export function PerfilScreen() {
   }
 
   const profile = perfil?.profile;
-  const sub = perfil?.subscription;
   const initials = profile?.initials?.trim() || "??";
 
   return (
@@ -280,15 +278,6 @@ export function PerfilScreen() {
               <Text style={styles.saveText}>Salvar contato</Text>
             </Pressable>
           </View>
-
-          {sub ? (
-            <View style={cardStyles.card}>
-              <Text style={cardStyles.cardTitle}>Acesso</Text>
-              <Text style={cardStyles.cardMeta}>
-                ACME HUB gratuito — todas as funções liberadas.
-              </Text>
-            </View>
-          ) : null}
 
           <View style={cardStyles.card}>
             <Text style={cardStyles.cardTitle}>Sync</Text>

@@ -1000,13 +1000,42 @@ a:hover {
   margin-top: var(--space-3);
 }
 
-.profile-calendar-sync-select {
+.profile-calendar-sync-chips {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2);
+}
+
+.profile-calendar-sync-chip {
   padding: 8px var(--space-2);
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-muted);
   background: rgba(0, 0, 0, 0.2);
   color: var(--text-primary);
   font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+
+.profile-calendar-sync-chip:hover:not(:disabled) {
+  border-color: var(--gold-400);
+}
+
+.profile-calendar-sync-chip.is-selected {
+  background: rgba(212, 168, 67, 0.22);
+  border-color: var(--gold-400);
+  color: var(--gold-300);
+}
+
+.profile-calendar-sync-chip:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.profile-calendar-sync-chip:focus-visible {
+  outline: 2px solid var(--gold-400);
+  outline-offset: 2px;
 }
 
 .profile-calendar-sync-hint {
