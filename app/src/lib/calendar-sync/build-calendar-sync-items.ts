@@ -23,6 +23,41 @@ export interface CalendarSyncItem {
   end: string;
   /** Minutos relativos ao início: negativo = antes, positivo = depois. */
   alarmOffsetsMinutes: number[];
+  /** Matéria do item — o app cria uma agenda por matéria com a cor dela. */
+  subject?: CalendarSyncSubject;
+}
+
+export interface CalendarSyncSubject {
+  key: string;
+  label: string;
+  /** #RRGGBB */
+  color: string;
+}
+
+const HEX_COLOR = /^#[0-9a-fA-F]{6}$/;
+
+/** Cor da disciplina vem de aulas/tarefas; eventos manuais podem ter cor própria. */
+function buildSubjectColorMap(events: CalendarEvent[]): Map<string, string> {
+  const colors = new Map<string, string>();
+  for (const event of events) {
+    const key = event.subjectCode?.trim();
+    if (!key || colors.has(key) || !HEX_COLOR.test(event.color)) continue;
+    if (event.id.startsWith("aula-") || event.id.startsWith("tarefa-")) {
+      colors.set(key, event.color.toUpperCase());
+    }
+  }
+  return colors;
+}
+
+function resolveSubject(
+  event: CalendarEvent,
+  subjectColors: Map<string, string>
+): CalendarSyncSubject | undefined {
+  const key = event.subjectCode?.trim();
+  const label = event.subject?.trim();
+  if (!key || !label) return undefined;
+  const color = subjectColors.get(key) ?? (HEX_COLOR.test(event.color) ? event.color.toUpperCase() : undefined);
+  return color ? { key, label, color } : undefined;
 }
 
 /** Janela exportada: evita feed gigante (semestre inteiro de aulas + histórico antigo). */
@@ -98,7 +133,8 @@ function resolveAlarms(
 function toSyncItem(
   event: CalendarEvent,
   category: CalendarSyncCategory,
-  mode: CalendarSyncReminderMode
+  mode: CalendarSyncReminderMode,
+  subjectColors: Map<string, string>
 ): CalendarSyncItem | null {
   if (!isValidIsoDate(event.date)) return null;
   const times = resolveEventTimes(event);
@@ -122,6 +158,7 @@ function toSyncItem(
     start,
     end,
     alarmOffsetsMinutes: resolveAlarms(category, timed, Boolean(event.done), mode),
+    subject: category === "academico" ? undefined : resolveSubject(event, subjectColors),
   };
 }
 
@@ -133,6 +170,7 @@ export function buildCalendarSyncItems(
   const windowStart = shiftIsoDate(today, -PAST_WINDOW_DAYS);
   const windowEnd = shiftIsoDate(today, FUTURE_WINDOW_DAYS);
   const items: CalendarSyncItem[] = [];
+  const subjectColors = buildSubjectColorMap(events);
 
   for (const event of events) {
     const category = resolveCalendarSyncCategory(event);
@@ -140,7 +178,7 @@ export function buildCalendarSyncItems(
     const lastDate = event.dateEnd ?? event.date;
     if (lastDate < windowStart || event.date > windowEnd) continue;
 
-    const item = toSyncItem(event, category, preferences.reminders);
+    const item = toSyncItem(event, category, preferences.reminders, subjectColors);
     if (item) items.push(item);
   }
   return items;

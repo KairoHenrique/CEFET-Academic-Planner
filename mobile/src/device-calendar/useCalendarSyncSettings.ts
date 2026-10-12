@@ -31,7 +31,7 @@ function errorText(error: unknown, fallback: string): string {
 function describeDeviceResult(result: DeviceCalendarSyncResult): string {
   switch (result.status) {
     case "synced":
-      return `Agenda do celular atualizada (${result.total} itens).`;
+      return `Agenda do celular atualizada (${result.total} itens em ${result.calendars} agendas).`;
     case "permission_denied":
       return "Permissão de agenda negada. Libere em Configurações > Apps > ACME HUB > Permissões.";
     case "unsupported":
@@ -97,7 +97,7 @@ export function useCalendarSyncSettings() {
     runBusy(async () => {
       if (!value) {
         await disableDeviceCalendarSync();
-        return "Agenda ACME HUB removida do celular.";
+        return "Agendas ACME HUB removidas do celular.";
       }
       const result = await enableDeviceCalendarSync();
       if (result.status === "permission_denied") {

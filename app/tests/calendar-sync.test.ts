@@ -34,11 +34,22 @@ const SAMPLE_EVENTS: CalendarEvent[] = [
     type: "aula",
     title: "Cálculo · 07:00",
     subject: "Cálculo",
+    subjectCode: "GCC101",
+    color: "#3366ff",
     classTime: { start: "07:00", end: "08:40" },
     location: "Sala 201",
   }),
   event({ id: "tarefa-7", date: "2026-10-15", type: "prova", title: "P1", subject: "Física" }),
-  event({ id: "evento-3", date: "2026-10-20", timeStart: "14:00", timeEnd: "16:00", title: "Estudo" }),
+  event({
+    id: "evento-3",
+    date: "2026-10-20",
+    timeStart: "14:00",
+    timeEnd: "16:00",
+    title: "Estudo",
+    subject: "Cálculo",
+    subjectCode: "GCC101",
+    color: "#ff0000",
+  }),
   event({ id: "academico-9-inicio", date: "2026-10-30", title: "Matrícula — início" }),
   event({ id: "tarefa-8", date: "2025-01-01", title: "Muito antiga" }),
 ];
@@ -91,6 +102,16 @@ describe("buildCalendarSyncItems", () => {
 
     const nenhum = buildCalendarSyncItems(SAMPLE_EVENTS, prefs({ reminders: "nenhum" }), TODAY);
     assert.ok(nenhum.every((item) => item.alarmOffsetsMinutes.length === 0));
+  });
+
+  test("agrupa por matéria usando a cor da disciplina (não a do evento manual)", () => {
+    const items = buildCalendarSyncItems(SAMPLE_EVENTS, prefs(), TODAY);
+    const aula = items.find((item) => item.category === "aulas");
+    const evento = items.find((item) => item.category === "eventos");
+    const academico = items.find((item) => item.category === "academico");
+    assert.deepEqual(aula?.subject, { key: "GCC101", label: "Cálculo", color: "#3366FF" });
+    assert.equal(evento?.subject?.color, "#3366FF");
+    assert.equal(academico?.subject, undefined);
   });
 
   test("hoje é calculado no fuso de Brasília", () => {

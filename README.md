@@ -836,7 +836,9 @@ Configuração em **Perfil** (app) ou **Meu perfil** (site). O aluno escolhe as 
 Dois caminhos:
 
 1. **Link `.ics`** — `POST /api/calendar-sync/feed-token` devolve o link uma única vez; no Google Agenda: *Outras agendas → + → Do URL*. O Google atualiza sozinho (algumas horas). O Samsung Calendar mostra se a conta Google estiver sincronizada.
-2. **Android direto** — o app cria a agenda local "ACME HUB" (expo-calendar) e aplica só as diferenças após cada sync do SIGAA, ao abrir o app (no máx. a cada 6 h) e em "Atualizar agenda agora". Desligar remove a agenda do aparelho.
+2. **Android direto** — o app cria agendas locais (expo-calendar): uma por matéria (`ACME HUB · <matéria>`, com a cor da disciplina) e a geral `ACME HUB` (calendário acadêmico e itens sem matéria). Aplica só as diferenças após cada sync do SIGAA, ao abrir o app (no máx. a cada 6 h), em "Atualizar agenda agora" e numa tarefa em segundo plano (`expo-background-task`, ~3 h, horário decidido pelo Android) que roda com o app fechado. Desligar remove as agendas e a tarefa.
+
+O Google Agenda não aceita cor por evento em agendas assinadas por link, então no `.ics` tudo fica na cor que o aluno escolher para a agenda; a cor por matéria é só no Android direto.
 
 Janela exportada: 30 dias para trás e 200 para frente. Horários em `America/Sao_Paulo` (−03:00).
 

@@ -2,22 +2,29 @@ import * as Calendar from "expo-calendar";
 import { Platform } from "react-native";
 import { fetchCalendarSyncItems } from "./calendar-sync-api";
 import {
+  disabledDeviceCalendarState,
   readDeviceCalendarState,
   writeDeviceCalendarState,
   type DeviceCalendarState,
 } from "./device-calendar-store";
 import {
   applyCalendarDiff,
-  deleteAcmeCalendar,
-  findOrCreateAcmeCalendar,
+  deleteDeviceCalendars,
+  ensureDeviceCalendars,
+  resolveCalendarGroup,
+  type CalendarGroup,
 } from "./device-calendar-writer";
+import {
+  registerDeviceCalendarBackgroundTask,
+  unregisterDeviceCalendarBackgroundTask,
+} from "./device-calendar-background-task";
 
 /** Igual à janela passada do servidor (build-calendar-sync-items). */
 const PAST_WINDOW_DAYS = 30;
 const AUTO_SYNC_MIN_INTERVAL_MS = 6 * 60 * 60 * 1000;
 
 export type DeviceCalendarSyncResult =
-  | { status: "synced"; created: number; removed: number; total: number }
+  | { status: "synced"; created: number; removed: number; total: number; calendars: number }
   | { status: "disabled" | "permission_denied" | "unsupported" | "skipped" };
 
 let inFlight: Promise<DeviceCalendarSyncResult> | null = null;
@@ -38,18 +45,31 @@ async function hasCalendarPermission(prompt: boolean): Promise<boolean> {
   return (await Calendar.requestCalendarPermissionsAsync()).granted;
 }
 
+function collectGroups(items: Awaited<ReturnType<typeof fetchCalendarSyncItems>>["items"]): CalendarGroup[] {
+  const groups = new Map<string, CalendarGroup>();
+  for (const item of items) {
+    const group = resolveCalendarGroup(item);
+    if (!groups.has(group.key)) groups.set(group.key, group);
+  }
+  return [...groups.values()];
+}
+
 async function runSync(state: DeviceCalendarState): Promise<DeviceCalendarSyncResult> {
   const { items } = await fetchCalendarSyncItems();
-  const { calendarId, recreated } = await findOrCreateAcmeCalendar(state.calendarId);
+  const { calendars, liveCalendarIds } = await ensureDeviceCalendars(
+    collectGroups(items),
+    state.calendars
+  );
   const result = await applyCalendarDiff({
-    calendarId,
     items,
-    previous: recreated ? {} : state.entries,
+    previous: state.entries,
+    calendars,
+    liveCalendarIds,
     windowStartDate: windowStartDate(),
   });
   await writeDeviceCalendarState({
     enabled: true,
-    calendarId,
+    calendars,
     lastSyncedAt: Date.now(),
     entries: result.entries,
   });
@@ -58,11 +78,12 @@ async function runSync(state: DeviceCalendarState): Promise<DeviceCalendarSyncRe
     created: result.created,
     removed: result.removed,
     total: Object.keys(result.entries).length,
+    calendars: Object.keys(calendars).length,
   };
 }
 
 /**
- * `force`: ignora o intervalo mínimo (botão "Sincronizar agora" / após sync do SIGAA).
+ * `force`: ignora o intervalo mínimo (botão, após sync do SIGAA, tarefa em segundo plano).
  * `prompt`: pode abrir o diálogo de permissão (só em ação explícita do usuário).
  */
 export function syncDeviceCalendar(options: {
@@ -96,15 +117,17 @@ export async function enableDeviceCalendarSync(): Promise<DeviceCalendarSyncResu
   if (!(await hasCalendarPermission(true))) return { status: "permission_denied" };
   const state = await readDeviceCalendarState();
   await writeDeviceCalendarState({ ...state, enabled: true, lastSyncedAt: null });
+  await registerDeviceCalendarBackgroundTask().catch(() => undefined);
   return syncDeviceCalendar({ force: true });
 }
 
-/** Desligar remove o calendário "ACME HUB" inteiro do aparelho. */
+/** Desligar remove todas as agendas "ACME HUB" do aparelho e a tarefa em segundo plano. */
 export async function disableDeviceCalendarSync(): Promise<void> {
   if (inFlight) await inFlight.catch(() => undefined);
+  await unregisterDeviceCalendarBackgroundTask().catch(() => undefined);
   const state = await readDeviceCalendarState();
-  if (state.calendarId && (await hasCalendarPermission(false))) {
-    await deleteAcmeCalendar(state.calendarId);
+  if (await hasCalendarPermission(false)) {
+    await deleteDeviceCalendars(Object.values(state.calendars).map((ref) => ref.id));
   }
-  await writeDeviceCalendarState({ enabled: false, calendarId: null, lastSyncedAt: null, entries: {} });
+  await writeDeviceCalendarState(disabledDeviceCalendarState());
 }

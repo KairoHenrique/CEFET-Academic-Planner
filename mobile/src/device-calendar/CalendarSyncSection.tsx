@@ -95,7 +95,7 @@ export function CalendarSyncSection() {
             />
           </View>
           <Text style={cardStyles.cardMeta}>
-            Agenda "ACME HUB" no aparelho, atualizada a cada sync.
+            Uma agenda por matéria, com a cor dela. Atualiza sozinha, mesmo com o app fechado.
             {sync.lastDeviceSyncAt
               ? ` Última atualização: ${new Date(sync.lastDeviceSyncAt).toLocaleString("pt-BR")}.`
               : ""}

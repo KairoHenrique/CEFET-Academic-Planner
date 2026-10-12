@@ -494,6 +494,8 @@ export interface CalendarSyncItem {
   end: string;
   /** Minutos relativos ao início (negativo = antes). */
   alarmOffsetsMinutes: number[];
+  /** Matéria — o app cria uma agenda por matéria com esta cor (#RRGGBB). */
+  subject?: { key: string; label: string; color: string };
 }
 
 export interface CalendarSyncItemsResponse {

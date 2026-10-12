@@ -1,45 +1,104 @@
 import * as Calendar from "expo-calendar";
 import type { CalendarSyncItem } from "@acme/api-contracts";
-import type { DeviceCalendarEntry } from "./device-calendar-store";
+import type { DeviceCalendarEntry, DeviceCalendarRef } from "./device-calendar-store";
 
-const CALENDAR_TITLE = "ACME HUB";
-const CALENDAR_COLOR = "#E9B949";
+const BASE_TITLE = "ACME HUB";
+const GENERAL_GROUP_KEY = "geral";
+const GENERAL_COLOR = "#E9B949";
 const TIMEZONE = "America/Sao_Paulo";
 const WRITE_CONCURRENCY = 6;
+const HEX_COLOR = /^#[0-9A-Fa-f]{6}$/;
 
-/**
- * Reusa o calendário conhecido. Um "ACME HUB" órfão (estado local perdido, ex.: reinstalação)
- * é recriado para não duplicar eventos que não sabemos rastrear.
- */
-export async function findOrCreateAcmeCalendar(
-  knownId: string | null
-): Promise<{ calendarId: string; recreated: boolean }> {
-  const calendars = await Calendar.getCalendarsAsync(Calendar.EntityTypes.EVENT);
-  const known = knownId ? calendars.find((calendar) => calendar.id === knownId) : undefined;
-  if (known) return { calendarId: known.id, recreated: false };
+export interface CalendarGroup {
+  key: string;
+  title: string;
+  color: string;
+}
 
-  const orphans = calendars.filter(
-    (calendar) => calendar.title === CALENDAR_TITLE && calendar.allowsModifications
-  );
-  for (const orphan of orphans) await deleteAcmeCalendar(orphan.id);
+/** Uma agenda por matéria (cor da disciplina); sem matéria → agenda geral dourada. */
+export function resolveCalendarGroup(item: CalendarSyncItem): CalendarGroup {
+  const subject = item.subject;
+  if (!subject || !HEX_COLOR.test(subject.color)) {
+    return { key: GENERAL_GROUP_KEY, title: BASE_TITLE, color: GENERAL_COLOR };
+  }
+  return {
+    key: `m:${subject.key}`,
+    title: `${BASE_TITLE} · ${subject.label}`.slice(0, 80),
+    color: subject.color.toUpperCase(),
+  };
+}
 
-  const calendarId = await Calendar.createCalendarAsync({
-    title: CALENDAR_TITLE,
-    name: "acme-hub",
-    color: CALENDAR_COLOR,
+function isAcmeCalendar(calendar: Calendar.Calendar): boolean {
+  return calendar.allowsModifications && calendar.title.startsWith(BASE_TITLE);
+}
+
+export async function deleteDeviceCalendars(calendarIds: string[]): Promise<void> {
+  for (const calendarId of calendarIds) {
+    await Calendar.deleteCalendarAsync(calendarId).catch(() => undefined);
+  }
+}
+
+async function createDeviceCalendar(group: CalendarGroup): Promise<DeviceCalendarRef> {
+  const id = await Calendar.createCalendarAsync({
+    title: group.title,
+    name: `acme-hub-${group.key}`,
+    color: group.color,
     entityType: Calendar.EntityTypes.EVENT,
-    source: { isLocalAccount: true, name: CALENDAR_TITLE, type: Calendar.SourceType.LOCAL },
-    ownerAccount: CALENDAR_TITLE,
+    source: { isLocalAccount: true, name: BASE_TITLE, type: Calendar.SourceType.LOCAL },
+    ownerAccount: BASE_TITLE,
     accessLevel: Calendar.CalendarAccessLevel.OWNER,
     timeZone: TIMEZONE,
     isVisible: true,
     isSynced: true,
   });
-  return { calendarId, recreated: true };
+  return { id, title: group.title, color: group.color };
 }
 
-export async function deleteAcmeCalendar(calendarId: string): Promise<void> {
-  await Calendar.deleteCalendarAsync(calendarId).catch(() => undefined);
+export interface EnsureCalendarsResult {
+  calendars: Record<string, DeviceCalendarRef>;
+  /** Agendas que ainda existem no aparelho (o aluno pode ter apagado alguma). */
+  liveCalendarIds: Set<string>;
+}
+
+/**
+ * Garante uma agenda por grupo necessário. Agendas de matérias antigas são mantidas
+ * (guardam o histórico). Sem estado local (reinstalação/migração), apaga agendas
+ * "ACME HUB" órfãs para não duplicar eventos que não sabemos rastrear.
+ */
+export async function ensureDeviceCalendars(
+  groups: CalendarGroup[],
+  known: Record<string, DeviceCalendarRef>
+): Promise<EnsureCalendarsResult> {
+  const deviceCalendars = await Calendar.getCalendarsAsync(Calendar.EntityTypes.EVENT);
+  const deviceIds = new Set(deviceCalendars.map((calendar) => calendar.id));
+  const calendars: Record<string, DeviceCalendarRef> = {};
+
+  for (const [key, ref] of Object.entries(known)) {
+    if (deviceIds.has(ref.id)) calendars[key] = ref;
+  }
+  if (Object.keys(calendars).length === 0) {
+    await deleteDeviceCalendars(deviceCalendars.filter(isAcmeCalendar).map((c) => c.id));
+  }
+
+  for (const group of groups) {
+    const existing = calendars[group.key];
+    if (!existing) {
+      calendars[group.key] = await createDeviceCalendar(group);
+      continue;
+    }
+    if (existing.color !== group.color || existing.title !== group.title) {
+      await Calendar.updateCalendarAsync(existing.id, { color: group.color, title: group.title })
+        .then(() => {
+          calendars[group.key] = { ...existing, color: group.color, title: group.title };
+        })
+        .catch(() => undefined);
+    }
+  }
+
+  return {
+    calendars,
+    liveCalendarIds: new Set(Object.values(calendars).map((ref) => ref.id)),
+  };
 }
 
 /** djb2 — só detecta mudança no item; não é uso criptográfico. */
@@ -95,33 +154,42 @@ export interface ApplyDiffResult {
 }
 
 /**
- * Aplica só a diferença: cria novos, recria alterados, apaga removidos que ainda estão
- * na janela. Itens que só "envelheceram" para fora da janela continuam no celular.
+ * Aplica só a diferença: cria novos, recria alterados (inclusive troca de matéria/cor),
+ * apaga removidos que ainda estão na janela. Itens que só "envelheceram" para fora da
+ * janela continuam no celular.
  */
 export async function applyCalendarDiff(input: {
-  calendarId: string;
   items: CalendarSyncItem[];
   previous: Record<string, DeviceCalendarEntry>;
+  calendars: Record<string, DeviceCalendarRef>;
+  liveCalendarIds: Set<string>;
   windowStartDate: string;
 }): Promise<ApplyDiffResult> {
   const next: Record<string, DeviceCalendarEntry> = {};
-  const toCreate: CalendarSyncItem[] = [];
+  const toCreate: Array<{ item: CalendarSyncItem; calendarId: string; fingerprint: string }> = [];
   const toDelete: string[] = [];
   const incomingUids = new Set<string>();
 
   for (const item of input.items) {
+    const calendarId = input.calendars[resolveCalendarGroup(item).key]?.id;
+    if (!calendarId) continue;
     incomingUids.add(item.uid);
     const fingerprint = fingerprintItem(item);
     const known = input.previous[item.uid];
-    if (known && known.fingerprint === fingerprint) {
+    const knownAlive = known && input.liveCalendarIds.has(known.calendarId);
+    if (knownAlive && known.fingerprint === fingerprint && known.calendarId === calendarId) {
       next[item.uid] = known;
       continue;
     }
-    if (known) toDelete.push(known.eventId);
-    toCreate.push(item);
+    if (knownAlive) toDelete.push(known.eventId);
+    toCreate.push({ item, calendarId, fingerprint });
   }
   for (const [uid, entry] of Object.entries(input.previous)) {
-    if (!incomingUids.has(uid) && entry.startDate >= input.windowStartDate) {
+    if (
+      !incomingUids.has(uid) &&
+      entry.startDate >= input.windowStartDate &&
+      input.liveCalendarIds.has(entry.calendarId)
+    ) {
       toDelete.push(entry.eventId);
     }
   }
@@ -129,14 +197,10 @@ export async function applyCalendarDiff(input: {
   await runInBatches(toDelete, (eventId) =>
     Calendar.deleteEventAsync(eventId).catch(() => undefined)
   );
-  await runInBatches(toCreate, async (item) => {
+  await runInBatches(toCreate, async ({ item, calendarId, fingerprint }) => {
     try {
-      const eventId = await Calendar.createEventAsync(input.calendarId, toEventDetails(item));
-      next[item.uid] = {
-        eventId,
-        fingerprint: fingerprintItem(item),
-        startDate: item.start.slice(0, 10),
-      };
+      const eventId = await Calendar.createEventAsync(calendarId, toEventDetails(item));
+      next[item.uid] = { eventId, calendarId, fingerprint, startDate: item.start.slice(0, 10) };
     } catch {
       // Item fica sem entrada e é recriado na próxima sincronização.
     }
