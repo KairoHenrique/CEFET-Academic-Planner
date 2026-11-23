@@ -5,14 +5,14 @@
 <h1 align="center">ACME HUB</h1>
 
 <p align="center">
-  <strong>Planejador acadêmico gratuito</strong> para alunos do <strong>CEFET-MG</strong><br />
+  <strong>Planejador acadêmico gratuito</strong> para alunos da <strong>UFCIMG</strong><br />
   Web + Android · sincronização com o <a href="https://sig.cefetmg.br/">SIGAA</a>
 </p>
 
 <p align="center">
   <a href="https://acmehub.com.br"><img src="https://img.shields.io/badge/site-acmehub.com.br-0B3D91?style=for-the-badge" alt="Site" /></a>
   <a href="https://play.google.com/store/apps/details?id=br.cefethub.acme"><img src="https://img.shields.io/badge/Google%20Play-baixar-34A853?style=for-the-badge&logo=googleplay&logoColor=white" alt="Google Play" /></a>
-  <a href="https://github.com/KairoHenrique/CEFET-Academic-Planner/releases/tag/v1.16"><img src="https://img.shields.io/badge/versão-1.16-e9b949?style=for-the-badge" alt="Versão 1.16" /></a>
+  <a href="https://github.com/KairoHenrique/CEFET-Academic-Planner/releases/tag/v1.17"><img src="https://img.shields.io/badge/versão-1.17-e9b949?style=for-the-badge" alt="Versão 1.17" /></a>
 </p>
 
 <p align="center">
@@ -30,7 +30,7 @@
 |---|---|
 | **Site** | https://acmehub.com.br |
 | **Google Play** | https://play.google.com/store/apps/details?id=br.cefethub.acme |
-| **Versão** | `1.16` |
+| **Versão** | `1.17` |
 | **Repositório** | [github.com/KairoHenrique/CEFET-Academic-Planner](https://github.com/KairoHenrique/CEFET-Academic-Planner) |
 | **Licença** | AGPL-3.0 |
 | **Contato / LGPD** | acme.hubsuporte@gmail.com |
@@ -433,7 +433,6 @@ Pontos de decisão no código: `billing/free-mode.ts`, `scraper/constants.ts`, `
 
 | Pasta | Responsabilidade |
 |-------|------------------|
-| `ads/` | AdMob (App Open + interstitial) + cache `ads_free` |
 | `screens/` | Telas (dashboard, planos, disciplinas, …) |
 | `sync/` | Sync lite / turmas |
 | `navigation/` | Shell + drawer |
@@ -682,7 +681,7 @@ Crons em `app/workers/`: `cron-ping`, `cron-account-emails`, `cron-notification-
 | Campo | Valor |
 |-------|--------|
 | Nome | ACME HUB |
-| Versão | `1.16` |
+| Versão | `1.17` |
 | Loja | [Google Play](https://play.google.com/store/apps/details?id=br.cefethub.acme) |
 
 ```powershell
@@ -696,22 +695,17 @@ npx eas-cli@latest build --platform android --profile production --non-interacti
 | **preview** | APK interno |
 | **development** | APK debug / dev client |
 
-`app.config.js` injeta `GOOGLE_SERVICES_JSON` e IDs AdMob via env EAS. Não versionar `google-services.json` real.
+`app.config.js` injeta `GOOGLE_SERVICES_JSON` via env EAS. Não versionar `google-services.json` real.
 
 Bump: incrementar `version` (+ `versionCode` no `app.json`) → commit → EAS → Play Console.
-
-Anúncios no app: **App Open** (abertura de sessão) e **Interstitial** (após sync, com cooldown). Gate por entitlement `ads_free`.
 
 ### Decisões mobile / loja
 
 | Decisão | Motivo |
 |---------|--------|
-| Só App Open + Interstitial (sem banner) | Menos ruído na UI acadêmica; alinhado aos termos/privacidade |
-| IDs reais no `app.json` + override EAS (`ADMOB_*`) | Build de loja usa produção; debug pode cair em teste Google se vazio |
-| Play Billing para `ads_free` | Compra nativa no Android; PIX continua na web |
+| Sem anúncios | Experiência limpa na web e no app Android |
+| Play Billing | Suporte opcional nativo no Android |
 | Assinaturas testáveis em **teste interno** | Não precisa esperar aprovação de produção para criar SKUs e validar |
-| `app-ads.txt` no domínio do site | AdMob verifica via site cadastrado na ficha do Play (não pelo upload manual) |
-| Legal atualizado (AdMob + Play) | Transparência LGPD / termos sobre formatos de anúncio |
 
 ---
 

@@ -2,7 +2,7 @@
   "expo": {
     "name": "ACME HUB",
     "slug": "acme-hub",
-    "version": "1.16",
+    "version": "1.17",
     "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -18,7 +18,7 @@
     },
     "android": {
       "package": "br.cefethub.acme",
-      "versionCode": 16,
+      "versionCode": 17,
       "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "backgroundColor": "#000814",
