@@ -29,12 +29,9 @@ export const TERMS_SECTIONS: LegalSection[] = [
   },
   {
     id: "assinatura",
-    title: "3. Uso gratuito, anúncios e plano opcional",
+    title: "3. Uso gratuito",
     paragraphs: [
-      "O aplicativo e a versão web podem ser usados sem custo. No modo gratuito podem ser exibidos anúncios: no Android (Google AdMob), em abertura de sessão e após sincronização; na web (Google AdSense), nas laterais do desktop e, no mobile web, faixa inferior dismissível — sem bloquear o uso (podem reaparecer após algumas horas).",
-      "É opcional assinar o plano “sem propaganda”, que remove anúncios no app e na web pelo período contratado. A assinatura não libera funções acadêmicas adicionais — elas já estão disponíveis no modo gratuito.",
-      "Pagamentos: na web, via PIX (Mercado Pago); no aplicativo Android, apenas pela Google Play. Os canais não se misturam na interface (o app não oferece checkout PIX; a web não vende pela Play).",
-      "Quem paga em qualquer canal fica sem anúncios nos dois. Chaves gift / concessão manual pelo operador também ativam o mesmo benefício.",
+      "O aplicativo Android e a versão web podem ser usados sem custo, sem exibição de anúncios nem bloqueio de recursos acadêmicos.",
     ],
   },
   {
@@ -60,8 +57,8 @@ export const TERMS_SECTIONS: LegalSection[] = [
     id: "retencao",
     title: "6. Retenção de dados e inatividade",
     paragraphs: [
-      "Para higiene do banco, contas gratuitas sem uso há mais de 15 dias podem ter dados acadêmicos e manuais (notas, faltas, tarefas, calendário editado, etc.) apagados. A conta de login (CPF/e-mail) permanece para você entrar de novo e sincronizar.",
-      "Com plano “sem propaganda” ativo, essa limpeza só passa a contar após o fim do plano. A sincronização automática também exige uso recente (últimos 15 dias), independentemente do plano.",
+      "Para higiene do banco, contas sem uso há mais de 15 dias podem ter dados acadêmicos e manuais (notas, faltas, tarefas, calendário editado, etc.) apagados. A conta de login (CPF/e-mail) permanece para você entrar de novo e sincronizar.",
+      "A sincronização automática também exige uso recente (últimos 15 dias).",
     ],
   },
   {

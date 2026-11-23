@@ -10,7 +10,6 @@ import { SessionActivityTracker } from "@/components/auth/SessionActivityTracker
 import { QueryProvider } from "@/components/providers/QueryProvider";
 import { SyncQueueProvider } from "@/components/providers/SyncQueueProvider";
 import { AppDownloadFab } from "@/components/download/AppDownloadFab";
-import { WebAdsChrome } from "@/components/ads/WebAdsChrome";
 import {
   isDownloadPath,
   isLegalDocumentPath,
@@ -44,7 +43,6 @@ export function AppShell({ children }: AppShellProps) {
             {showStudentChrome && <AutoSyncRunner />}
             {showStudentChrome && <Navbar />}
             {showStudentChrome && <AppDownloadFab />}
-            {showStudentChrome && <WebAdsChrome />}
             <main
               className={`main-content ${
                 isLogin ? "main-content-login" : ""

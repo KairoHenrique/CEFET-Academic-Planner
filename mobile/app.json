@@ -59,23 +59,13 @@
         {
           "calendarPermission": "O ACME HUB adiciona suas aulas, prazos e provas à agenda do celular."
         }
-      ],
-      [
-        "react-native-google-mobile-ads",
-        {
-          "androidAppId": "ca-app-pub-2654315891415442~4498576769",
-          "iosAppId": "ca-app-pub-3940256099942544~1458002511"
-        }
       ]
     ],
     "extra": {
       "apiBaseUrl": "https://acmehub.com.br",
       "eas": {
         "projectId": "9e0eaddd-a802-465e-8474-cfd6ae69d75d"
-      },
-      "admobEnabled": true,
-      "admobAppOpenUnitId": "ca-app-pub-2654315891415442/5148568599",
-      "admobInterstitialUnitId": "ca-app-pub-2654315891415442/2377091712"
+      }
     },
     "owner": "kairohfm"
   }

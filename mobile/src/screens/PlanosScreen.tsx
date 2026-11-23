@@ -29,7 +29,6 @@ import {
   resolvePlanosFlowForStatus,
   type PlanosFlow,
 } from "../features/planos/planos-utils";
-import { refreshAdsFreeFromServer } from "../ads/refresh-ads-free";
 import type { RootStackParamList } from "../navigation/types";
 import { brand } from "../theme/brand";
 import { ErrorBox } from "../ui/ErrorBox";
@@ -114,9 +113,6 @@ export function PlanosScreen({
       ]);
       setCatalog(plans);
       setAccount(billing);
-      if (billing?.adsFree) {
-        await refreshAdsFreeFromServer();
-      }
     } catch (err) {
       setError(
         err instanceof ApiClientError
@@ -177,7 +173,6 @@ export function PlanosScreen({
           body: JSON.stringify({ productId, purchaseToken: token }),
         });
         await iap.finishTransaction(item, false);
-        await refreshAdsFreeFromServer();
         await syncSubscriptionFromPerfil().catch(() => undefined);
         await load();
         Alert.alert("Pronto", "Anúncios removidos neste aparelho e na web.");
@@ -269,7 +264,6 @@ export function PlanosScreen({
 
       <GiftKeyRedeemForm
         onSuccess={() => {
-          void refreshAdsFreeFromServer();
           void load();
         }}
       />

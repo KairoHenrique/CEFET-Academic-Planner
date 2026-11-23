@@ -27,7 +27,7 @@ export function subscriptionStatusLabel(
 ): string {
   switch (status) {
     case "active":
-      return "Sem anúncios";
+      return "Ativo";
     case "trial_active":
       return "Acesso gratuito";
     case "pending_payment":
@@ -35,7 +35,7 @@ export function subscriptionStatusLabel(
     case "expired":
     case "trial_expired":
     case "cancelled":
-      return "Com anúncios (gratuito)";
+      return "Gratuito";
     default:
       return "Gratuito";
   }
