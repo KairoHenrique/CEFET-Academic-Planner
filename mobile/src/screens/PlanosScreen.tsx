@@ -61,12 +61,7 @@ type IapModule = {
 };
 
 function loadIap(): IapModule | null {
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    return require("react-native-iap") as IapModule;
-  } catch {
-    return null;
-  }
+  return null;
 }
 
 /**
