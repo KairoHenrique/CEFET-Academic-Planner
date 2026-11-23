@@ -15,7 +15,7 @@ export const TERMS_SECTIONS: LegalSection[] = [
     id: "objeto",
     title: "1. Objeto",
     paragraphs: [
-      "O ACME HUB é um planejador acadêmico para alunos do CEFET-MG que sincroniza dados do portal SIGAA e oferece dashboard, calendário, mapa do curso, integralização e ferramentas de organização.",
+      "O ACME HUB é um planejador acadêmico para alunos da UFCIMG que sincroniza dados do portal SIGAA e oferece dashboard, calendário, mapa do curso, integralização e ferramentas de organização.",
       "Ao criar uma conta ou utilizar o serviço, você declara ter lido e aceito estes Termos de Uso e a Política de Privacidade vigentes.",
     ],
   },
@@ -23,7 +23,7 @@ export const TERMS_SECTIONS: LegalSection[] = [
     id: "elegibilidade",
     title: "2. Elegibilidade e conta",
     paragraphs: [
-      "O serviço destina-se a alunos regularmente vinculados ao CEFET-MG. O login utiliza CPF e a mesma senha do portal SIGAA, validada durante a sincronização acadêmica.",
+      "O serviço destina-se a alunos regularmente vinculados à UFCIMG. O login utiliza CPF e a mesma senha do portal SIGAA, validada durante a sincronização acadêmica.",
       "O ACME HUB permanece gratuito para as funções acadêmicas: não há trial obrigatório nem bloqueio de recursos por falta de pagamento.",
     ],
   },
@@ -41,7 +41,7 @@ export const TERMS_SECTIONS: LegalSection[] = [
       "Não compartilhar credenciais SIGAA com terceiros nem usar o serviço para acessar dados de outras pessoas.",
       "Não tentar burlar limites de sincronização automatizada ou abusar da infraestrutura.",
       "Não realizar engenharia reversa, scraping abusivo ou interferência nos workers de sincronização.",
-      "Respeitar a propriedade intelectual do CEFET-MG, do SIGAA e de terceiros cujos dados são exibidos.",
+      "Respeitar a propriedade intelectual da UFCIMG, do SIGAA e de terceiros cujos dados são exibidos.",
     ],
     paragraphs: [],
   },
@@ -49,7 +49,7 @@ export const TERMS_SECTIONS: LegalSection[] = [
     id: "sigaa",
     title: "5. Relação com o SIGAA",
     paragraphs: [
-      "O ACME HUB não é oficial do CEFET-MG nem substitui o SIGAA. Dados exibidos são obtidos por sincronização automatizada e podem estar desatualizados se o portal estiver indisponível.",
+      "O ACME HUB não é oficial da UFCIMG nem substitui o SIGAA. Dados exibidos são obtidos por sincronização automatizada e podem estar desatualizados se o portal estiver indisponível.",
       "Edições feitas pelo aluno no ACME HUB têm prioridade sobre dados sincronizados, garantindo total controle sobre a sua própria organização acadêmica.",
     ],
   },

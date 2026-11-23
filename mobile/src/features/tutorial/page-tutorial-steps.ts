@@ -97,7 +97,7 @@ export const PAGE_TUTORIALS_NATIVE: Record<PageTutorialId, PageTutorialStep[]> =
     {
       id: "overview",
       title: "Calendário",
-      body: "Agenda do semestre: tarefas, provas, eventos manuais e datas acadêmicas oficiais do CEFET.",
+      body: "Agenda do semestre: tarefas, provas, eventos manuais e datas acadêmicas oficiais da UFCIMG.",
     },
     {
       id: "filters",

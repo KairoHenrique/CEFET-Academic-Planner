@@ -159,7 +159,7 @@ const semesterSubjectsSeed: SubjectSeed[] = [
 
 const defaultSubjectMeta = {
   ementa:
-    "Disciplina do curso de Engenharia da Computação. Conteúdo programático conforme PPC vigente do CEFET-MG.",
+    "Disciplina do curso de Engenharia da Computação. Conteúdo programático conforme PPC vigente da UFCIMG.",
 };
 
 const subjectMeta: Record<string, Pick<Subject, "ementa">> = {

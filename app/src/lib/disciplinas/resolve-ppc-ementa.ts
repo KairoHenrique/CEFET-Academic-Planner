@@ -144,11 +144,11 @@ export function resolvePpcEmenta(
 
   const direct = EMENTAS_BY_CODIGO[codigo];
   if (direct) {
-    return `${direct}\n\n(Carga horária: ${chLabel} · PPC Eng. Computação CEFET-MG)`;
+    return `${direct}\n\n(Carga horária: ${chLabel} · PPC Eng. Computação UFCIMG)`;
   }
 
   return (
-    `${nome}. Componente curricular do PPC de Engenharia da Computação (CEFET-MG — Divinópolis). ` +
+    `${nome}. Componente curricular do PPC de Engenharia da Computação (UFCIMG — Divinópolis). ` +
     `Conteúdo programático conforme ementário oficial da instituição.\n\n` +
     `(Carga horária: ${chLabel})`
   );

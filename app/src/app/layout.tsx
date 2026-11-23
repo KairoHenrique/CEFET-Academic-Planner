@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     template: "%s · ACME HUB",
   },
   description:
-    "ACME HUB — planejador acadêmico com sincronização ao SIGAA do CEFET-MG",
+    "ACME HUB — planejador acadêmico com sincronização ao SIGAA da UFCIMG",
 };
 
 export const viewport: Viewport = {

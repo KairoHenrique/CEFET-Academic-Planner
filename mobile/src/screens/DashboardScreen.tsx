@@ -128,7 +128,7 @@ export function DashboardScreen() {
       highlight={data ? data.aluno.nome : undefined}
       subtitle={
         data
-          ? `${data.aluno.curso} · CEFET-MG Divinópolis`
+          ? `${data.aluno.curso} · UFCIMG Divinópolis`
           : "Resumo acadêmico"
       }
       cacheHint={fromCache ? "Dados do cache offline" : null}

@@ -1,7 +1,7 @@
 /** Configuração de marca — trocar quando o logo real existir */
 export const brand = {
   name: "ACME HUB",
-  institution: "CEFET-MG",
+  institution: "UFCIMG",
   sigaaUrl: "https://sig.cefetmg.br/sigaa/",
   signupUrl: "https://sig.cefetmg.br/sigaa/public/home.jsf",
   /** Caminho para a logo, adicione o arquivo logo.png na pasta public */

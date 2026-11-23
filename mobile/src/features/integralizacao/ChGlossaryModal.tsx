@@ -24,7 +24,7 @@ const CH_GLOSSARY: GlossaryEntry[] = [
     ],
     ppcHours: 3105,
     regulation:
-      "Engenharia de Computação — CEFET-MG Divinópolis (PPC v2, 4.320 h totais)",
+      "Engenharia de Computação — UFCIMG Divinópolis (PPC v2, 4.320 h totais)",
   },
   {
     title: "Optativa (eletiva)",
@@ -37,34 +37,34 @@ const CH_GLOSSARY: GlossaryEntry[] = [
       "Computação Gráfica, Linguagens Formais — quando cursadas como eletiva",
     ],
     ppcHours: 360,
-    regulation: "Resoluções CEFET-MG · catálogo de optativas do PPC",
+    regulation: "Resoluções UFCIMG · catálogo de optativas do PPC",
   },
   {
     title: "Complementar (ACC)",
     summary:
       "Atividades Complementares de Curso (ACC) homologadas fora da grade rígida.",
     description:
-      "Eixo de Prática Profissional e Integração Curricular do CEFET-MG. Inclui iniciação científica (até 360 h), monitoria (até 180 h), extensão comunitária (até 120 h), prática profissional (até 90 h) e outras ACC (até 120 h), com documentação e avaliação do colegiado. O app permite cadastrar horas que o SIGAA ainda não refletiu.",
+      "Eixo de Prática Profissional e Integração Curricular da UFCIMG. Inclui iniciação científica (até 360 h), monitoria (até 180 h), extensão comunitária (até 120 h), prática profissional (até 90 h) e outras ACC (até 120 h), com documentação e avaliação do colegiado. O app permite cadastrar horas que o SIGAA ainda não refletiu.",
     examples: [
-      "IC/PIC, monitoria em disciplina do CEFET-MG",
+      "IC/PIC, monitoria em disciplina da UFCIMG",
       "Curso de idiomas, participação na Semana de C&T, disciplina de outra IES homologada",
     ],
     ppcHours: 375,
     regulation:
-      "DECOM CEFET-MG · Res. CEPE 24/08, CEPE 39/10, CGRAD 17/11 e 19/11",
+      "DECOM UFCIMG · Res. CEPE 24/08, CEPE 39/10, CGRAD 17/11 e 19/11",
   },
   {
     title: "Extensão universitária",
     summary:
       "Ações de extensão (universidade ↔ sociedade), com meta ~10% da CH total.",
     description:
-      "Atividades extensionistas registradas no SIGAA e vinculadas à política de extensão do CEFET-MG (DEDC). O PPC exige cerca de 450 h (~10% de 4.320 h). Projetos, cursos, eventos e campanhas devem ser validados como extensão — não confundir com ACC genérica ou optativa.",
+      "Atividades extensionistas registradas no SIGAA e vinculadas à política de extensão da UFCIMG (DEDC). O PPC exige cerca de 450 h (~10% de 4.320 h). Projetos, cursos, eventos e campanhas devem ser validados como extensão — não confundir com ACC genérica ou optativa.",
     examples: [
-      "Projeto extensionista do CEFET-MG com CH lançada em Extensão",
+      "Projeto extensionista da UFCIMG com CH lançada em Extensão",
       "Ação comunitária coordenada pela DEDC e validada no histórico",
     ],
     ppcHours: 450,
-    regulation: "Res. CEPE 04/22 · Política de Extensão CEFET-MG",
+    regulation: "Res. CEPE 04/22 · Política de Extensão UFCIMG",
   },
   {
     title: "Flexibilizada",
@@ -78,7 +78,7 @@ const CH_GLOSSARY: GlossaryEntry[] = [
     ],
     ppcHours: 30,
     regulation:
-      "Engenharia de Computação — CEFET-MG Divinópolis (PPC v2, 4.320 h totais)",
+      "Engenharia de Computação — UFCIMG Divinópolis (PPC v2, 4.320 h totais)",
   },
 ];
 
@@ -103,7 +103,7 @@ export function ChGlossaryModal({ open, onClose }: Props) {
         <View style={styles.sheet}>
           <View style={styles.header}>
             <Text style={styles.title}>Entenda suas horas</Text>
-            <Text style={styles.badge}>CEFET-MG · Eng. Computação</Text>
+            <Text style={styles.badge}>UFCIMG · Eng. Computação</Text>
           </View>
           <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
             <Text style={styles.intro}>{INTRO}</Text>
@@ -130,7 +130,7 @@ export function ChGlossaryModal({ open, onClose }: Props) {
               </View>
             ))}
             <Text style={styles.footer}>
-              Fontes: PPC Eng. Computação (CEFET-MG Divinópolis), portal DECOM —{" "}
+              Fontes: PPC Eng. Computação (UFCIMG Divinópolis), portal DECOM —{" "}
               <Text
                 style={styles.link}
                 onPress={() =>

@@ -69,7 +69,7 @@ export function DashboardView() {
         eyebrow={`Semestre ${data.aluno.semestreAtual}`}
         title={greeting}
         highlight={data.aluno.nome}
-        subtitle={`${data.aluno.curso} · CEFET-MG Divinópolis`}
+        subtitle={`${data.aluno.curso} · UFCIMG Divinópolis`}
         tutorial="dashboard"
         trailing={
           <RuSaldoChip

@@ -37,7 +37,7 @@ export function buildWelcomeEmail(input: WelcomeTemplateInput) {
     bodyText: [
       buildGreeting(input.firstNames ?? null),
       "",
-      "Sua conta no ACME HUB foi criada com sucesso. Seu planejador acadêmico integrado ao SIGAA do CEFET-MG já está pronto.",
+      "Sua conta no ACME HUB foi criada com sucesso. Seu planejador acadêmico integrado ao SIGAA da UFCIMG já está pronto.",
       "",
       "Você já pode acompanhar notas e faltas, montar sua grade, ver o mapa de pré-requisitos e a integralização do curso.",
       "",

@@ -115,7 +115,7 @@ export function LoginCard({ children, foot, subtitle }: Props) {
                     />
                   </View>
                   <View style={styles.brandText}>
-                    <Text style={styles.institution}>CEFET-MG</Text>
+                    <Text style={styles.institution}>UFCIMG</Text>
                     <Text style={styles.title}>ACME HUB</Text>
                   </View>
                 </View>

@@ -184,7 +184,7 @@ export function buildSubjectFromSemestreCore(
           ementaCargaHoraria,
           resolveQueryCursoId()
         )
-      : "Disciplina do curso. Conteúdo programático conforme PPC vigente do CEFET-MG.",
+      : "Disciplina do curso. Conteúdo programático conforme PPC vigente da UFCIMG.",
   };
 }
 

@@ -120,7 +120,7 @@ export const PAGE_TUTORIALS_DESKTOP: Record<PageTutorialId, PageTutorialStep[]> 
       id: "overview",
       targetId: null,
       title: "Calendário",
-      body: "Agenda do semestre: tarefas, provas, eventos manuais e datas acadêmicas oficiais do CEFET.",
+      body: "Agenda do semestre: tarefas, provas, eventos manuais e datas acadêmicas oficiais da UFCIMG.",
     },
     {
       id: "filters",

@@ -32,7 +32,7 @@ function courseRegulation(cursoId: string): string {
     ? resolveCursoLabel(cursoId)
     : resolveCursoLabel("eng-computacao");
   const total = getIntegrationTotalHours(cursoId).toLocaleString("pt-BR");
-  return `${label} — CEFET-MG Divinópolis (PPC · ${total} h totais)`;
+  return `${label} — UFCIMG Divinópolis (PPC · ${total} h totais)`;
 }
 
 /** Textos estáveis; horas/regulation mudam por curso. */
@@ -67,9 +67,9 @@ const GLOSSARY_COPY: Omit<ChGlossaryEntry, "ppcHours" | "regulation">[] = [
     summary:
       "Atividades Complementares de Curso (ACC) homologadas fora da grade rígida.",
     description:
-      "Eixo de Prática Profissional e Integração Curricular do CEFET-MG. Inclui iniciação científica, monitoria, extensão comunitária, prática profissional e outras ACC, com documentação e avaliação do colegiado. O app permite cadastrar horas que o SIGAA ainda não refletiu.",
+      "Eixo de Prática Profissional e Integração Curricular da UFCIMG. Inclui iniciação científica, monitoria, extensão comunitária, prática profissional e outras ACC, com documentação e avaliação do colegiado. O app permite cadastrar horas que o SIGAA ainda não refletiu.",
     examples: [
-      "IC/PIC, monitoria em disciplina do CEFET-MG",
+      "IC/PIC, monitoria em disciplina da UFCIMG",
       "Curso de idiomas, participação na Semana de C&T, disciplina de outra IES homologada",
     ],
   },
@@ -79,9 +79,9 @@ const GLOSSARY_COPY: Omit<ChGlossaryEntry, "ppcHours" | "regulation">[] = [
     summary:
       "Ações de extensão (universidade ↔ sociedade), com meta proporcional do PPC.",
     description:
-      "Atividades extensionistas registradas no SIGAA e vinculadas à política de extensão do CEFET-MG (DEDC). Projetos, cursos, eventos e campanhas devem ser validados como extensão — não confundir com ACC genérica ou optativa.",
+      "Atividades extensionistas registradas no SIGAA e vinculadas à política de extensão da UFCIMG (DEDC). Projetos, cursos, eventos e campanhas devem ser validados como extensão — não confundir com ACC genérica ou optativa.",
     examples: [
-      "Projeto extensionista do CEFET-MG com CH lançada em Extensão",
+      "Projeto extensionista da UFCIMG com CH lançada em Extensão",
       "Ação comunitária coordenada pela DEDC e validada no histórico",
     ],
   },
@@ -108,11 +108,11 @@ export function getChGlossaryForCurso(
     ppcHours: hoursFor(entry.tipoCh, cursoId),
     regulation:
       entry.tipoCh === "Complementar"
-        ? "DECOM CEFET-MG · Res. CEPE 24/08, CEPE 39/10, CGRAD 17/11 e 19/11"
+        ? "DECOM UFCIMG · Res. CEPE 24/08, CEPE 39/10, CGRAD 17/11 e 19/11"
         : entry.tipoCh === "Extensão"
-          ? "Res. CEPE 04/22 · Política de Extensão CEFET-MG"
+          ? "Res. CEPE 04/22 · Política de Extensão UFCIMG"
           : entry.tipoCh === "Optativa"
-            ? "Resoluções CEFET-MG · catálogo de optativas do PPC"
+            ? "Resoluções UFCIMG · catálogo de optativas do PPC"
             : regulation,
   }));
 }
@@ -133,7 +133,7 @@ export function getChGlossaryEntry(
 
 export function resolveGlossaryCursoBadge(cursoId: string): string {
   if (isAppCursoId(cursoId)) {
-    return `CEFET-MG · ${resolveCursoLabel(cursoId)}`;
+    return `UFCIMG · ${resolveCursoLabel(cursoId)}`;
   }
-  return "CEFET-MG · Eng. Computação";
+  return "UFCIMG · Eng. Computação";
 }

@@ -13,7 +13,7 @@ import { resolveLegalContactEmail } from "@/lib/legal/constants";
  * URLs `http(s)` são convertidas em links seguros (linkify pós-escape).
  */
 const BRAND = "ACME HUB";
-const TAGLINE = "Planejador acadêmico · CEFET-MG";
+const TAGLINE = "Planejador acadêmico · UFCIMG";
 const GOLD = "#c9a227";
 const NAVY = "#0b1220";
 const URL_PATTERN = /(https?:\/\/[^\s<]+)/g;
@@ -111,9 +111,9 @@ function renderFooter(year: number): string {
         <a href="mailto:${contactEmail}" style="color:${GOLD};text-decoration:none;font-weight:600;">${contactEmail}</a>
       </p>
       <p style="margin:0;font-size:12px;line-height:1.6;color:#9ca3af;">
-        Você recebeu este e-mail porque tem uma conta no ${BRAND} (planejador acadêmico do CEFET-MG).<br />
+        Você recebeu este e-mail porque tem uma conta no ${BRAND} (planejador acadêmico da UFCIMG).<br />
         Gerencie seu plano em <a href="${plansUrl}" style="color:#6b7280;text-decoration:underline;">${plansUrl}</a><br />
-        &copy; ${year} ${BRAND}. Não oficial do CEFET-MG.
+        &copy; ${year} ${BRAND}. Não oficial da UFCIMG.
       </p>
     </td>
   </tr>`;
