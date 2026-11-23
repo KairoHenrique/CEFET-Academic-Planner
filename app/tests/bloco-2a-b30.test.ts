@@ -161,6 +161,82 @@ describe("B30 — persist histórico", () => {
       "01/3"
     );
   });
+
+  test("evita colisão de código e cross-match entre Tópicos Especiais distintos", async () => {
+    const {
+      normalizeDisciplinaNome,
+      resolveDisciplinaCodigoByNome,
+      resolveDisciplinaCodigoFromSemestre,
+      scoreDisciplinaNomeMatch,
+    } = await import(
+      "../src/lib/scraper/portal-discente/resolve-disciplina-codigo"
+    );
+    const { findBestJaccardMatch } = await import(
+      "../src/lib/scraper/portal-discente/jaccard-matcher"
+    );
+
+    const linux =
+      "TÓPICOS ESPECIAIS EM FUNDAMENTOS DA ENGENHARIA DE COMPUTAÇÃO: PROGRAMAÇÃO EM LINUX";
+    const jogos =
+      "TÓPICOS ESPECIAIS EM FUNDAMENTOS DA ENGENHARIA DE COMPUTAÇÃO: DESENVOLVIMENTO DE JOGOS EDUCATIVOS";
+    const sociais =
+      "TÓPICOS ESPECIAIS EM FUNDAMENTOS DA ENGENHARIA DE COMPUTAÇÃO: TECNOLOGIAS SOCIAIS DIGITAIS";
+
+    const codeLinux = resolveDisciplinaCodigoByNome(linux, []);
+    const codeJogos = resolveDisciplinaCodigoByNome(jogos, []);
+    const codeSociais = resolveDisciplinaCodigoByNome(sociais, []);
+
+    assert.ok(codeLinux.length <= 24);
+    assert.ok(codeJogos.length <= 24);
+    assert.ok(codeSociais.length <= 24);
+    assert.notEqual(codeLinux, codeJogos);
+    assert.notEqual(codeLinux, codeSociais);
+    assert.notEqual(codeJogos, codeSociais);
+    assert.equal(codeLinux, resolveDisciplinaCodigoByNome(linux, []));
+
+    // Ignora código legado truncado em 24 chars sem hash para não reutilizar colisão
+    const codeJogosWithLegacy = resolveDisciplinaCodigoByNome(jogos, [
+      {
+        codigo: "TÓPICOS-ESPECIAIS-EM-FUN",
+        nome: jogos,
+        tipo: null,
+        carga_horaria: null,
+        periodo: null,
+        ementa: null,
+      },
+    ]);
+    assert.equal(codeJogosWithLegacy, codeJogos);
+    assert.notEqual(codeJogosWithLegacy, "TÓPICOS-ESPECIAIS-EM-FUN");
+
+    assert.ok(
+      scoreDisciplinaNomeMatch(
+        normalizeDisciplinaNome(linux),
+        normalizeDisciplinaNome(jogos)
+      ) < 0
+    );
+
+    const semestreByNome = new Map([
+      [normalizeDisciplinaNome(linux), codeLinux],
+      [normalizeDisciplinaNome(jogos), codeJogos],
+    ]);
+    const activeIds = new Set([codeLinux, codeJogos]);
+    assert.equal(
+      resolveDisciplinaCodigoFromSemestre(linux, semestreByNome, activeIds),
+      codeLinux
+    );
+    assert.equal(
+      resolveDisciplinaCodigoFromSemestre(jogos, semestreByNome, activeIds),
+      codeJogos
+    );
+
+    // Não casa Tópicos Especiais com disciplina regular do PPC via Jaccard
+    const topicosSoft =
+      "TÓPICOS ESPECIAIS EM FUNDAMENTOS DA ENGENHARIA DE COMPUTAÇÃO: ENGENHARIA DE SOFTWARE";
+    const jaccard = findBestJaccardMatch(topicosSoft, 60, [
+      { codigo: "06/3", nome: "Engenharia de Software", carga_horaria: 60 },
+    ]);
+    assert.equal(jaccard, null);
+  });
 });
 
 describe("B30 — resiliência do sync", () => {

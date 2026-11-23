@@ -5,6 +5,7 @@ import {
 } from "@/lib/disciplinas/grade-display";
 import type { PortalDiscenteSnapshot } from "@/lib/scraper/types/portal-discente";
 import type { UserSqliteSnapshot } from "@/lib/sync-mirror/snapshot-types";
+import { buildFallbackDisciplinaCodigo } from "@/lib/scraper/portal-discente/fallback-disciplina-codigo";
 import { isAtividadePrazoVencido } from "@/lib/tasks/dates";
 
 /** Resolve código sem tocar SQLite (bundle do browser). */
@@ -14,8 +15,8 @@ function resolveCodigoPortal(
 ): string {
   const codigo = codigoHorario?.trim() ?? "";
   if (/^\d{2}\/\d+$/.test(codigo)) return codigo;
-  if (codigo) return codigo.toUpperCase();
-  return nome.trim().slice(0, 24).replace(/\s+/g, "-").toUpperCase() || "DISC";
+  if (codigo && !/\s/.test(codigo)) return codigo.toUpperCase();
+  return buildFallbackDisciplinaCodigo(nome || codigo);
 }
 
 /**

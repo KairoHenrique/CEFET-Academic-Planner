@@ -156,4 +156,58 @@ describe("B83 build ingest from portal", () => {
       snapshot.config.some((entry) => entry.chave === "sync.last_at")
     );
   });
+
+  it("gera códigos distintos e determinísticos para Tópicos Especiais no buildIngestSnapshotFromPortal", async () => {
+    const { buildFallbackDisciplinaCodigo } = await import(
+      "../src/lib/scraper/portal-discente/fallback-disciplina-codigo"
+    );
+
+    const linux =
+      "TÓPICOS ESPECIAIS EM FUNDAMENTOS DA ENGENHARIA DE COMPUTAÇÃO: PROGRAMAÇÃO EM LINUX";
+    const jogos =
+      "TÓPICOS ESPECIAIS EM FUNDAMENTOS DA ENGENHARIA DE COMPUTAÇÃO: DESENVOLVIMENTO DE JOGOS EDUCATIVOS";
+
+    const snapshot = buildIngestSnapshotFromPortal({
+      scrapedAt: "2026-08-01T10:00:00.000Z",
+      aluno: {
+        matricula: "2023001",
+        nome: "Aluno Teste",
+        curso: "Engenharia de Computação",
+        email: null,
+        semestreEntrada: "2023.1",
+        rg: 8.5,
+        status: "ATIVO",
+      },
+      integralizacao: [],
+      integralizacaoResumo: { totalCurriculo: 3600, percentIntegralizado: 40 },
+      semestreAtual: [
+        {
+          codigo: linux,
+          nome: linux,
+          local: "Sala 606",
+          codigoHorario: "4T34",
+          horarioTraduzido: "Qua 15:50",
+        },
+        {
+          codigo: jogos,
+          nome: jogos,
+          local: "Sala 607",
+          codigoHorario: "5T34",
+          horarioTraduzido: "Qui 15:50",
+        },
+      ],
+      semestreLetivo: "2026.2",
+      atividades: [],
+    });
+
+    assert.equal(snapshot.semestreAtual.length, 2);
+    const [idLinux, idJogos] = snapshot.semestreAtual.map(
+      (item) => item.disciplina_id
+    );
+    assert.equal(idLinux, buildFallbackDisciplinaCodigo(linux));
+    assert.equal(idJogos, buildFallbackDisciplinaCodigo(jogos));
+    assert.notEqual(idLinux, idJogos);
+    assert.ok((idLinux?.length ?? 0) <= 24);
+    assert.ok((idJogos?.length ?? 0) <= 24);
+  });
 });

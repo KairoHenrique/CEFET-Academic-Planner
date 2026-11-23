@@ -1,15 +1,14 @@
 import { getDisciplinas } from "@/lib/db/queries";
 import type { DisciplinaRow } from "@/lib/types/db";
 import { findBestJaccardMatch, type JaccardCandidateEntry } from "./jaccard-matcher";
+import {
+  buildFallbackDisciplinaCodigo,
+  isLegacyTruncatedFallbackCodigo,
+  normalizeDisciplinaNomePure,
+} from "./fallback-disciplina-codigo";
 
 export function normalizeDisciplinaNome(value: string): string {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/[^\w\s]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+  return normalizeDisciplinaNomePure(value);
 }
 
 /** Código canônico do PPC — ex.: `06/3`, `04/7`, `01/12`. */
@@ -43,6 +42,10 @@ function listPpcDisciplinaEntries(
     }));
 }
 
+function isTopicosNormalized(value: string): boolean {
+  return /^topicos\s+especiais\b/.test(value);
+}
+
 /** Pontua similaridade entre nomes SIGAA (genérico para qualquer disciplina). */
 export function scoreDisciplinaNomeMatch(target: string, candidate: string): number {
   if (target === candidate) return 1000;
@@ -50,6 +53,10 @@ export function scoreDisciplinaNomeMatch(target: string, candidate: string): num
   const targetIsLab = isLaboratorioNome(target);
   const candidateIsLab = isLaboratorioNome(candidate);
   if (targetIsLab !== candidateIsLab) return -1;
+
+  const targetIsTopicos = isTopicosNormalized(target);
+  const candidateIsTopicos = isTopicosNormalized(candidate);
+  if (targetIsTopicos !== candidateIsTopicos) return -1;
 
   if (target.startsWith(candidate) || candidate.startsWith(target)) {
     return 500 - Math.abs(target.length - candidate.length);
@@ -62,15 +69,24 @@ export function scoreDisciplinaNomeMatch(target: string, candidate: string): num
   }
 
   const targetTokens = new Set(significantTokens(target));
-  const candidateTokens = significantTokens(candidate);
-  if (targetTokens.size === 0 || candidateTokens.length === 0) return -1;
+  const candidateTokens = new Set(significantTokens(candidate));
+  if (targetTokens.size === 0 || candidateTokens.size === 0) return -1;
 
   let overlap = 0;
   for (const token of candidateTokens) {
     if (targetTokens.has(token)) overlap += 1;
   }
 
-  const minTokens = Math.min(targetTokens.size, candidateTokens.length);
+  const minTokens = Math.min(targetTokens.size, candidateTokens.size);
+  if (targetIsTopicos) {
+    const union = targetTokens.size + candidateTokens.size - overlap;
+    const jaccard = union === 0 ? 0 : overlap / union;
+    if (overlap === minTokens || jaccard >= 0.75) {
+      return 80 + overlap * 15;
+    }
+    return -1;
+  }
+
   if (overlap >= 2 || (minTokens === 1 && overlap === 1)) {
     return 80 + overlap * 15;
   }
@@ -131,12 +147,13 @@ export function resolveDisciplinaCodigoByNome(
   const alias = disciplinas.find(
     (disciplina) =>
       !isPpcCanonicalCodigo(disciplina.codigo) &&
+      !isLegacyTruncatedFallbackCodigo(disciplina.codigo, disciplina.nome) &&
       (disciplina.codigo.toUpperCase() === trimmed.toUpperCase() ||
         normalizeDisciplinaNome(disciplina.nome) === target)
   );
   if (alias) return alias.codigo;
 
-  return trimmed.slice(0, 24).replace(/\s+/g, "-").toUpperCase();
+  return buildFallbackDisciplinaCodigo(trimmed);
 }
 
 /**

@@ -101,6 +101,10 @@ function isLabNome(tokens: Set<string>): boolean {
   return tokens.has("laboratorio") || tokens.has("lab");
 }
 
+function isTopicosNome(tokens: Set<string>): boolean {
+  return tokens.has("topicos") && tokens.has("especiais");
+}
+
 /**
  * Calcula score combinado de match entre uma disciplina do PDF e uma candidata PPC.
  *
@@ -119,6 +123,11 @@ export function jaccardScoreDisciplina(
 
   // Guard: lab vs não-lab
   if (isLabNome(targetTokens) !== isLabNome(candidateTokens)) {
+    return { codigo: candidate.codigo, score: -1, nomeScore: -1, ementaScore: 0 };
+  }
+
+  // Guard: Tópicos Especiais nunca deve casar com disciplina regular do PPC
+  if (isTopicosNome(targetTokens) !== isTopicosNome(candidateTokens)) {
     return { codigo: candidate.codigo, score: -1, nomeScore: -1, ementaScore: 0 };
   }
 
