@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/Input";
 import { PasswordInput } from "@/components/ui/PasswordInput";
 import { PlannerSelect } from "@/components/ui/PlannerSelect";
-import { AuthTrialBanner } from "@/components/auth/AuthTrialBanner";
 import { AuthSubmitButton } from "@/components/auth/AuthSubmitButton";
 import { RegisterAccountExistsNotice } from "@/components/auth/RegisterAccountExistsNotice";
 import {
@@ -186,8 +185,6 @@ export function RegisterForm({ cursos }: RegisterFormProps) {
           Usada para sincronizar seus dados acadêmicos com segurança.
         </p>
       </div>
-
-      <AuthTrialBanner />
 
       <LegalConsentField
         checked={legalAccepted}

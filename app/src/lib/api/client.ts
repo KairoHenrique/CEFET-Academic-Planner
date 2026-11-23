@@ -20,7 +20,12 @@ import type {
   GetSyncQueueJobResponse,
   SyncQueueJobView,
 } from "@/lib/types/sync-queue-api";
-import { getSession } from "@/lib/auth/session";
+import {
+  expireSessionAndNotify,
+  getSession,
+  isCloudSessionExpired,
+  setSession,
+} from "@/lib/auth/session";
 
 export interface SyncReadinessResponse {
   ok: true;
@@ -141,12 +146,84 @@ function buildRequestAuthHeaders(username?: string): HeadersInit {
   return headers;
 }
 
+function isAuthExemptApiPath(path: string): boolean {
+  return (
+    path.startsWith("/api/auth/login") ||
+    path.startsWith("/api/auth/register") ||
+    path.startsWith("/api/auth/refresh") ||
+    path.startsWith("/api/auth/config") ||
+    path.startsWith("/api/dev/")
+  );
+}
+
+let refreshInFlight: Promise<boolean> | null = null;
+
+async function refreshWebCloudSession(force = false): Promise<boolean> {
+  const session = getSession();
+  if (!session || session.mode !== "cloud") return true;
+  if (!force && !isCloudSessionExpired(session, 120)) return true;
+
+  if (!session.refreshToken?.trim()) {
+    expireSessionAndNotify();
+    return false;
+  }
+
+  if (refreshInFlight) return refreshInFlight;
+
+  refreshInFlight = (async () => {
+    try {
+      const res = await fetch("/api/auth/refresh", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refreshToken: session.refreshToken }),
+      });
+
+      if (res.ok) {
+        const data = (await res.json()) as {
+          session?: { accessToken: string; refreshToken: string; expiresAt: number };
+        };
+        if (data?.session?.accessToken) {
+          setSession({
+            ...session,
+            accessToken: data.session.accessToken,
+            refreshToken: data.session.refreshToken,
+            expiresAt: data.session.expiresAt,
+          });
+          return true;
+        }
+      }
+
+      if (res.status === 401 || res.status === 400) {
+        expireSessionAndNotify();
+        return false;
+      }
+
+      return false;
+    } catch {
+      return false;
+    } finally {
+      refreshInFlight = null;
+    }
+  })();
+
+  return refreshInFlight;
+}
+
+export async function ensureFreshWebSession(): Promise<boolean> {
+  return refreshWebCloudSession(false);
+}
+
 async function requestJson<T>(
   path: string,
   init?: RequestInit,
   sigaaUsername?: string
 ): Promise<T> {
   let response: Response;
+  const checkAuth = path.startsWith("/api/") && !isAuthExemptApiPath(path);
+
+  if (checkAuth) {
+    await refreshWebCloudSession(false);
+  }
 
   // Timeout evita loading infinito no browser (Workers/rede).
   const timeoutMs =
@@ -171,6 +248,28 @@ async function requestJson<T>(
         ...init?.headers,
       },
     });
+
+    if (
+      response.status === 401 &&
+      checkAuth &&
+      getSession()?.mode === "cloud"
+    ) {
+      const refreshed = await refreshWebCloudSession(true);
+      if (refreshed) {
+        response = await fetch(path, {
+          ...init,
+          signal: init?.signal ?? controller?.signal,
+          headers: {
+            "Content-Type": "application/json",
+            ...buildRequestAuthHeaders(sigaaUsername),
+            ...init?.headers,
+          },
+        });
+      }
+      if (response.status === 401) {
+        expireSessionAndNotify();
+      }
+    }
   } catch {
     throw new ApiClientError(
       "Não foi possível conectar ao servidor. Verifique se o app está rodando.",
@@ -215,6 +314,8 @@ export async function submitTarefaToSigaa(
   id: number,
   form: FormData
 ): Promise<SubmitTarefaResponse> {
+  await refreshWebCloudSession(false);
+
   let response: Response;
   try {
     response = await fetch(`/api/tarefas/${id}/submit`, {
@@ -224,6 +325,22 @@ export async function submitTarefaToSigaa(
         ...buildRequestAuthHeaders(),
       },
     });
+
+    if (response.status === 401 && getSession()?.mode === "cloud") {
+      const refreshed = await refreshWebCloudSession(true);
+      if (refreshed) {
+        response = await fetch(`/api/tarefas/${id}/submit`, {
+          method: "POST",
+          body: form,
+          headers: {
+            ...buildRequestAuthHeaders(),
+          },
+        });
+      }
+      if (response.status === 401) {
+        expireSessionAndNotify();
+      }
+    }
   } catch {
     throw new ApiClientError(
       "Não foi possível conectar ao servidor.",

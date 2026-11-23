@@ -3,7 +3,13 @@
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { AppRouteLoading } from "@/components/layout/AppRouteLoading";
-import { isAuthenticated } from "@/lib/auth/session";
+import { ensureFreshWebSession } from "@/lib/api/client";
+import {
+  AUTH_SESSION_EXPIRED_EVENT,
+  getSession,
+  isAuthenticated,
+  isCloudSessionExpired,
+} from "@/lib/auth/session";
 import { isPublicAppPath } from "@/lib/routing/public-paths";
 
 interface AuthGateProps {
@@ -16,8 +22,19 @@ export function AuthGate({ children }: AuthGateProps) {
   const pathname = usePathname() ?? "/";
   const router = useRouter();
   const isPublic = isPublicAppPath(pathname);
-  // Paginas publicas (ex. /inicio p/ AdSense) nao ficam presas em "Preparando sessao".
+  // Paginas publicas nao ficam presas em "Preparando sessao".
   const [ready, setReady] = useState(isPublic);
+
+  useEffect(() => {
+    const onExpired = () => {
+      if (!isPublicAppPath(pathname)) {
+        setReady(false);
+        router.replace("/login");
+      }
+    };
+    window.addEventListener(AUTH_SESSION_EXPIRED_EVENT, onExpired);
+    return () => window.removeEventListener(AUTH_SESSION_EXPIRED_EVENT, onExpired);
+  }, [pathname, router]);
 
   useEffect(() => {
     let cancelled = false;
@@ -40,7 +57,19 @@ export function AuthGate({ children }: AuthGateProps) {
       router.replace("/");
       return;
     }
-    finish();
+
+    if (authed && !publicPath && isCloudSessionExpired(getSession(), 0)) {
+      void ensureFreshWebSession().then((ok) => {
+        if (cancelled) return;
+        if (!ok && !isAuthenticated()) {
+          router.replace("/login");
+          return;
+        }
+        finish();
+      });
+    } else {
+      finish();
+    }
 
     const timer = window.setTimeout(finish, AUTH_GATE_TIMEOUT_MS);
 

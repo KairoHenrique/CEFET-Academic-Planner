@@ -1,4 +1,5 @@
 import type { PerfilResponse } from "@/lib/types/perfil-api";
+import { Icon } from "@/components/ui/Icon";
 import { ProfileAccountSection } from "@/components/profile/ProfileAccountSection";
 import { ProfileCalendarSyncSection } from "@/components/profile/ProfileCalendarSyncSection";
 import { ProfileNotificationSection } from "@/components/profile/ProfileNotificationSection";
@@ -24,12 +25,15 @@ export function ProfileModalBody({
   onToggleNotification,
 }: ProfileModalBodyProps) {
   const { profile, account, sync, notifications } = data;
+  const rawInitials = profile?.initials?.trim();
+  const validInitials =
+    rawInitials && rawInitials !== "?" && rawInitials !== "??" ? rawInitials : null;
 
   return (
     <div className="profile-modal-body">
       <header className="profile-modal-hero">
         <div className="profile-modal-avatar" aria-hidden="true">
-          {profile?.initials ?? "??"}
+          {validInitials ?? <Icon name="user" size={22} />}
         </div>
         <div>
           <p className="profile-modal-name">{profile?.nome ?? "Aguardando sync"}</p>

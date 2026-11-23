@@ -35,6 +35,7 @@ import { brand } from "../theme/brand";
 import { cardStyles } from "../ui/cards";
 import { ErrorBox } from "../ui/ErrorBox";
 import { FadeInContent } from "../ui/FadeInContent";
+import { Icon } from "../ui/Icon";
 import { LoadingBlock } from "../ui/LoadingBlock";
 import { Screen } from "../ui/Screen";
 
@@ -193,7 +194,9 @@ export function PerfilScreen() {
   }
 
   const profile = perfil?.profile;
-  const initials = profile?.initials?.trim() || "??";
+  const rawInitials = profile?.initials?.trim() ?? "";
+  const validInitials =
+    rawInitials && rawInitials !== "?" && rawInitials !== "??" ? rawInitials : null;
 
   return (
     <Screen
@@ -223,9 +226,15 @@ export function PerfilScreen() {
           <View style={[cardStyles.card, styles.hero]}>
             <View
               style={styles.avatar}
-              accessibilityLabel={`Iniciais ${initials}`}
+              accessibilityLabel={
+                validInitials ? `Iniciais ${validInitials}` : "Avatar do perfil"
+              }
             >
-              <Text style={styles.avatarText}>{initials}</Text>
+              {validInitials ? (
+                <Text style={styles.avatarText}>{validInitials}</Text>
+              ) : (
+                <Icon name="user" size={24} color={brand.gold200} />
+              )}
             </View>
             <View style={styles.heroText}>
               <Text style={cardStyles.cardTitle}>

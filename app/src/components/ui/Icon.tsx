@@ -36,6 +36,7 @@ export type IconName =
   | "priority-very-low"
   | "grip"
   | "edit"
+  | "user"
   | "logout"
   | "users"
   | "bell"
@@ -241,6 +242,12 @@ const paths: Record<IconName, React.ReactNode> = {
     <>
       <path d="M12 20h9" />
       <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+    </>
+  ),
+  user: (
+    <>
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+      <circle cx="12" cy="7" r="4" />
     </>
   ),
   logout: (

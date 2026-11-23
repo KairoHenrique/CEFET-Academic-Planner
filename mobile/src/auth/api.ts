@@ -97,6 +97,7 @@ export async function requestJson<T>(
 
   const canRetry = isRetriableMethod(init);
   let lastError: ApiClientError | null = null;
+  let retried401 = false;
 
   for (let attempt = 0; attempt <= (canRetry ? MAX_RETRIES : 0); attempt++) {
     if (attempt > 0) {
@@ -124,6 +125,21 @@ export async function requestJson<T>(
 
     if (!response.ok) {
       const err = payload as { message?: string; code?: string } | null;
+
+      if (init.auth !== false && response.status === 401) {
+        if (!retried401) {
+          retried401 = true;
+          const refreshed = await ensureFreshSession({ force: true }).catch(
+            () => null
+          );
+          if (refreshed) {
+            Object.assign(headers, buildAuthHeaders());
+            attempt -= 1;
+            continue;
+          }
+        }
+        await clearSession();
+      }
 
       // Para erros transitórios, retenta automaticamente
       if (canRetry && TRANSIENT_STATUS.has(response.status) && attempt < MAX_RETRIES) {

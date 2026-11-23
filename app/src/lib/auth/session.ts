@@ -2,6 +2,8 @@ import { clearSyncCredentials } from "@/lib/auth/credentials";
 import type { AppCursoId } from "@/lib/auth/account/types";
 
 const SESSION_KEY = "academic-planner-session";
+export const AVATAR_INITIALS_KEY = "academic-planner-avatar-initials";
+export const AUTH_SESSION_EXPIRED_EVENT = "acme-hub:session-expired";
 
 export type AuthSessionMode = "sigaa" | "cloud";
 
@@ -34,7 +36,26 @@ export function setSession(session: AuthSession) {
 
 export function clearSession() {
   localStorage.removeItem(SESSION_KEY);
+  localStorage.removeItem(AVATAR_INITIALS_KEY);
   clearSyncCredentials();
+}
+
+export function isCloudSessionExpired(
+  session: AuthSession | null = getSession(),
+  skewSec = 60
+): boolean {
+  if (!session || session.mode !== "cloud") return false;
+  if (typeof session.expiresAt === "number" && session.expiresAt > 0) {
+    return Math.floor(Date.now() / 1000) >= session.expiresAt - skewSec;
+  }
+  return false;
+}
+
+export function expireSessionAndNotify(): void {
+  if (typeof window !== "undefined") {
+    clearSession();
+    window.dispatchEvent(new Event(AUTH_SESSION_EXPIRED_EVENT));
+  }
 }
 
 export function isAuthenticated(): boolean {

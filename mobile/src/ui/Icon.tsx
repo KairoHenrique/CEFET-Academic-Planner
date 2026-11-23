@@ -36,6 +36,7 @@ export type IconName =
   | "chevron-right"
   | "search"
   | "edit"
+  | "user"
   | "users"
   | "plus"
   | "help-circle"
@@ -241,6 +242,12 @@ export function Icon({ name, size = 18, color = "#E8C66A" }: Props) {
             d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"
             {...common}
           />
+        </>
+      ) : null}
+      {name === "user" ? (
+        <>
+          <Path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" {...common} />
+          <Circle cx="12" cy="7" r="4" {...common} />
         </>
       ) : null}
       {name === "users" ? (

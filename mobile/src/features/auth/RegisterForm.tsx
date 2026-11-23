@@ -6,7 +6,6 @@ import { formatCpfInput, isValidCpf, normalizeCpf } from "../../auth/cpf";
 import { AuthField } from "./AuthField";
 import { AuthNotice } from "./AuthNotice";
 import { AuthSubmitButton } from "./AuthSubmitButton";
-import { AuthTrialBanner } from "./AuthTrialBanner";
 import {
   buildLegalConsentPayload,
   formatPhoneInput,
@@ -158,8 +157,6 @@ export function RegisterForm({
         autoComplete="password"
         hint="Usada para sincronizar seus dados acadêmicos com segurança."
       />
-
-      <AuthTrialBanner />
 
       <LegalConsentField
         checked={legalAccepted}

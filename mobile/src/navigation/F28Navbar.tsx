@@ -27,10 +27,11 @@ export function F28Navbar({
   onPressBrand,
   unreadCount = 0,
   syncing = false,
-  initials = "??",
+  initials = "",
 }: Props) {
   const insets = useSafeAreaInsets();
-  const avatarLabel = initials.trim() || "??";
+  const trimmed = initials.trim();
+  const hasInitials = Boolean(trimmed && trimmed !== "?" && trimmed !== "??");
 
   return (
     <View style={[styles.bar, { paddingTop: Math.max(insets.top, 8) }]}>
@@ -91,10 +92,14 @@ export function F28Navbar({
               pressableOpacityStyle(pressed, styles.avatarBtn)
             }
             android_ripple={goldRipple}
-            accessibilityLabel={`Perfil ${avatarLabel}`}
+            accessibilityLabel={hasInitials ? `Perfil ${trimmed}` : "Perfil"}
             hitSlop={brandHitSlop}
           >
-            <Text style={styles.avatarText}>{avatarLabel}</Text>
+            {hasInitials ? (
+              <Text style={styles.avatarText}>{trimmed}</Text>
+            ) : (
+              <Icon name="user" size={17} color={brand.gold200} />
+            )}
           </Pressable>
 
           <Pressable

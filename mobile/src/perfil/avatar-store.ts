@@ -3,8 +3,14 @@ import { buildInitials } from "../lib/build-initials";
 
 const STORAGE_KEY = "acme-hub.avatar-initials";
 
-let memoryInitials = "??";
+let memoryInitials = "";
 const listeners = new Set<(initials: string) => void>();
+
+function sanitizeInitials(raw: string | null | undefined): string {
+  const value = raw?.trim().slice(0, 3).toUpperCase() ?? "";
+  if (!value || value === "?" || value === "??") return "";
+  return value;
+}
 
 function emit() {
   for (const l of listeners) l(memoryInitials);
@@ -27,8 +33,9 @@ export function subscribeAvatarInitials(
 export async function hydrateAvatarInitials(): Promise<string> {
   try {
     const raw = await AsyncStorage.getItem(STORAGE_KEY);
-    if (raw?.trim()) {
-      memoryInitials = raw.trim().slice(0, 3).toUpperCase();
+    const cleaned = sanitizeInitials(raw);
+    if (cleaned) {
+      memoryInitials = cleaned;
       emit();
     }
   } catch {
@@ -38,11 +45,25 @@ export async function hydrateAvatarInitials(): Promise<string> {
 }
 
 export async function setAvatarInitials(next: string): Promise<void> {
-  const value = next.trim().slice(0, 3).toUpperCase() || "??";
+  const value = sanitizeInitials(next);
   memoryInitials = value;
   emit();
   try {
-    await AsyncStorage.setItem(STORAGE_KEY, value);
+    if (value) {
+      await AsyncStorage.setItem(STORAGE_KEY, value);
+    } else {
+      await AsyncStorage.removeItem(STORAGE_KEY);
+    }
+  } catch {
+    /* ignore */
+  }
+}
+
+export async function clearAvatarInitials(): Promise<void> {
+  memoryInitials = "";
+  emit();
+  try {
+    await AsyncStorage.removeItem(STORAGE_KEY);
   } catch {
     /* ignore */
   }
